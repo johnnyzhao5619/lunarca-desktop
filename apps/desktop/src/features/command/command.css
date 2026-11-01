@@ -1,0 +1,247 @@
+/*
+ * 快速切换面板与命令清单基座（`.luna-quick-switcher` / `.luna-command-list`）。
+ *
+ * **它此前住在 `features/notifications/notifications.css`**——而它的消费者是快速切换、
+ * 回收站、动态、用量四处清单，与通知毫无关系（TDD-15 §2.3 就近放置）。
+ */
+
+.luna-quick-switcher {
+  position: fixed;
+  z-index: var(--z-overlay);
+  display: grid;
+  place-items: start center;
+  inset: var(--space-0);
+  padding-block-start: 10vh;
+  background: var(--video-overlay-bg);
+  backdrop-filter: blur(4px);
+}
+
+.luna-quick-switcher__panel {
+  display: grid;
+  gap: var(--space-3);
+  width: min(640px, calc(var(--size-full) - var(--space-6)));
+  max-block-size: calc(var(--size-full) - 14vh);
+  padding: var(--space-4);
+  overflow: auto;
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-panel);
+  box-shadow: var(--shadow-lg);
+}
+
+.luna-quick-switcher__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.luna-quick-switcher__header h2 {
+  margin: var(--space-0);
+  font-size: var(--font-size-lg);
+}
+
+/* 索引未就绪的提示（PRD-06-004 ④）：与搜索侧栏的摘要行同一字号与弱化色。 */
+.luna-quick-switcher__notice {
+  margin: var(--space-0);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/*
+ * **判据收窄到"行主体那颗按钮"**（`> li > button`）。
+ *
+ * 它此前是 `.luna-command-list button`——一个元素兜底选择器在写外观，于是**行内动作里
+ * 的图标按钮也被套上了整行宽的描边与底色**：通知历史那两颗「前往 / 标已读」在真机上
+ * 是两个漂在卡片外的大白框（2026-09-09）。原语（`.luna-icon-btn` / `.luna-btn--*`）压
+ * 不过它，因为标签选择器与类选择器同特异性而它写在后面。
+ */
+.luna-quick-switcher input,
+.luna-command-list__items > li > button {
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+}
+
+.luna-quick-switcher input {
+  width: var(--size-full);
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+}
+
+.luna-command-list {
+  outline: none;
+}
+
+.luna-command-list:focus-visible,
+.luna-quick-switcher input:focus-visible,
+.luna-command-list__items > li > button:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-border-focus);
+  outline-offset: var(--space-1);
+}
+
+.luna-command-list__items {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-0);
+  margin: var(--space-0);
+  list-style: none;
+}
+
+/* 一行 = 可选的行首插槽（勾选框）+ 行主体 + 可选的行内动作，三者是**兄弟**。
+   用 flex 而不是定列数的 grid：插槽在场与否会让列数变化，写死两列时"没有行首"的清单
+   会把主体挤进第一列（`auto`）而不再占满。 */
+.luna-command-list__items li {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+.luna-command-list__leading {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.luna-command-list__items > li > button {
+  flex: 1;
+  min-inline-size: var(--space-0);
+  padding: var(--space-2) var(--space-3);
+  text-align: start;
+}
+
+.luna-command-list__items > li > button[data-active="true"] {
+  background: var(--color-bg-selected);
+  border-color: var(--color-border-focus);
+}
+
+/*
+ * 行主体的**竖排**只归那一层 `> span`（`FilteredList` 包在 `renderRow` 外面的那个）。
+ *
+ * `strong` 此前也在这条规则里，于是**标题内部**也成了网格：快速切换器与命令面板的
+ * 标题是「命中片段 `<mark>` + 其余 `<span>`」的兄弟序列，每一段各占一行——一输入查询，
+ * 标题就竖着排成一列。通知历史的未读圆点（`::before`）同理被顶到标题上面单独一行
+ * （真机 2026-09-09 截图）。没有任何消费者往 `strong` 里放块级内容，这条覆盖面纯属多余。
+ */
+.luna-command-list__items > li > button > span {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.luna-command-list small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.luna-command-list mark {
+  color: var(--color-accent);
+  background: transparent;
+}
+
+/* ── 形态：内容清单（`--content`）────────────────────────────────────────────
+ *
+ * 基座的默认形态是**命令面板**——浮层里一排各自描边、各自带底色的命令项，那正是它
+ * 诞生的地方（`.luna-quick-switcher`）。回收站与通知历史后来复用了它，于是整页变成"一叠
+ * 卡片摞在纸上"：每行一个框、行内动作被推到框外飘着、整份清单外面还套一圈巨大的焦点环。
+ * 真机 2026-09-09 上报「UI 风格与其他页面明显不符、元件简单粗暴地罗列」，说的就是这个。
+ *
+ * 内容清单的语言与速记流（`.luna-inbox__row`）、文件树一致：**行不描边、底色只在
+ * hover / 当前项时出现、行与行之间只有一条细分隔线**，行内动作与行主体同处一行之内。
+ *
+ * 形态由调用方显式选（与 `.luna-btn--*` 同一条规矩），不靠"谁在用它"去猜。
+ */
+/* **行与行之间没有分隔线**，只有一档间距——与文件树、录音/转写/速记清单
+   （`.luna-filtered-list__items`，同样是 `--space-0-5` 的 gap + `border: 0` 的行）逐字
+   同语言。逐行画横线会把清单读成一张**表格**：真机 2026-09-09「卡片风格与其他 UI 界面
+   不统一」说的就是这个——本应用的清单从来不画行线，边界由悬停底色与圆角表达。 */
+.luna-command-list--content .luna-command-list__items {
+  gap: var(--space-0-5);
+}
+
+.luna-command-list--content .luna-command-list__items li {
+  align-items: center;
+  gap: var(--space-1);
+  padding-inline-end: var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+/* 底色画在**整行**上而不是行主体那颗按钮上：按钮只占第一列，画在它身上的话，
+   行内动作那一列会留在高亮之外——一行被切成"亮的一半和不亮的一半"。 */
+.luna-command-list--content .luna-command-list__items li:hover {
+  background: var(--color-bg-hover);
+}
+
+/* 纵向内距比单行清单（`--space-1`）大一档：这里的行是两行字（标题 + 元信息）。 */
+.luna-command-list--content .luna-command-list__items > li > button {
+  padding: var(--space-1-5) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+}
+
+.luna-command-list--content .luna-command-list__items > li > button[data-active="true"] {
+  background: transparent;
+  border-color: transparent;
+}
+
+/* 容器焦点环收到**当前行**上：内容清单是整页那么大，给它整圈描边等于在页面中间画一个
+   巨大的方框（真机截图里那一圈金边）。listbox 的可见焦点由当前项承担，语义不变。 */
+.luna-command-list--content:focus-visible {
+  outline: none;
+}
+
+/* **当前项的强调色与焦点环只在键盘操作时出现**。基座的 `data-active` 跟着鼠标走
+   （`onMouseEnter` 就置为当前项），在浮层命令面板里那是对的；但在一页内容清单上，
+   鼠标划过每一行都亮起强调色 = 整页在跟着指针闪，而"当前项"本该是键盘导航的位置。
+   指针态用中性 hover，键盘态才上强调色。 */
+.luna-command-list--content:focus-visible .luna-command-list__items li:has(> button[data-active="true"]) {
+  background: var(--color-bg-selected);
+  outline: var(--outline-width-focus) solid var(--color-border-focus);
+  outline-offset: calc(var(--outline-width-focus) * -1);
+}
+
+/* 分节标题（`groups` 在场时）：与侧栏清单的时间桶标题（`.luna-filtered-list__group-title`）
+   同一种东西——"这一段是什么"，故同一档字号 / 颜色 / 字重 / 字距。它是 `role="none"` 的
+   `li`，不参与方向键导航。 */
+/* 分节标题**吸顶**：一份能翻好几页的历史里，滚到中间时"我现在在哪一天"是随时要知道
+   的事；不吸顶的话标题一划出视口，剩下的就是一堆没有归属的行（iOS / macOS 的分节列表、
+   Gmail 的日期分隔都是这个做法）。背景不可透明，否则滚上来的行会从它底下透出来。 */
+.luna-command-list__group {
+  margin-block-start: var(--space-2);
+}
+
+.luna-command-list__group:first-child {
+  margin-block-start: var(--space-0);
+}
+
+/* 吸顶只给内容清单：浮层命令面板短、也不分节，给它一条粘性规则纯属多余。
+   底色写死面板底色而不是留一个"可配的"变量——当前唯一的分节消费者是通知抽屉，而一个
+   没人赋值的 `var()` 永远走 fallback，等于假装它可配（`style-ownership-guard` 判红）。
+   将来真有整页清单要分节时，那一批给它自己的规则。 */
+.luna-command-list--content .luna-command-list__group {
+  position: sticky;
+  inset-block-start: var(--space-0);
+  z-index: var(--z-stage);
+  background: var(--color-bg-panel);
+}
+
+.luna-command-list__group-title {
+  margin: var(--space-0);
+  padding: var(--space-1) var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* 命令面板行右侧的快捷键提示：等宽小字、淡底胶囊（与菜单里的快捷键同一语言）。 */
+.luna-command-list__shortcut {
+  margin-inline-start: var(--space-2);
+  padding: var(--space-0) var(--space-1);
+  border-radius: var(--radius-xs);
+  background: var(--color-bg-muted);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+}

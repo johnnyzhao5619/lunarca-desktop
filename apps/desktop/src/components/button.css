@@ -1,0 +1,180 @@
+/*
+ * 文本按钮原语（`.luna-btn` + 形态/尺寸修饰符）——跨 feature 的控件原语。
+ *
+ * **它此前被劈成两半住在两个 feature 里**：`.luna-btn` / `--primary` / `--secondary`
+ * 在 `features/settings/settings.css`，`--danger` / `--danger-sm` 在
+ * `features/workspace/workspace.css`——而消费者遍布 settings / workspace / chat /
+ * transcribe / playback / graph / knowledge / vault / popup-translate 九个 feature。
+ * 按 TDD-15 §3.3a：被第三处需要的外壳不属于任何 feature，名字与位置都得说真话。
+ *
+ * 同批从根上修净的四件事：
+ *
+ * ① **主操作色回到它自己的 Token**。`--color-action-primary` 在 `tokens/base.css`
+ *    的定义里白纸黑字写着"主操作按钮底"，且配套了 `--color-action-primary-text`；
+ *    而 `--primary` 一直烧的是 `--color-accent`（那条 Token 的职责是"图标/激活/焦点"，
+ *    浅色下刻意比按钮底更深）。用错 Token 的直接后果是**别处只好各自绕开**：弹窗翻译
+ *    自己写了一份 action-primary 的覆盖，两个 HUD 各写一份别的颜色——"主操作长什么样"
+ *    于是有了四种答案。改回正主后那些覆盖全部失去存在理由。
+ *
+ * ② **危险态不再写 `color: white` 字面量**（§3.2 禁硬编码色）。填充式危险按钮的字色
+ *    与 `--primary` 同理走 `--color-bg-surface`：状态色的明度本就随主题翻转（浅色
+ *    #b03a40 深红 / 深色 #e28389 浅粉），表面色跟着翻，两个方向的对比度都成立。
+ *
+ * ③ **修饰符只声明"它真正不同的东西"**。`--danger` / `--danger-sm` 此前各自重写了
+ *    padding / border-radius / font-size / border / cursor——那些是基类的职责，重写
+ *    只会让"改一次按钮尺寸"变成改五处，还让 `border: none` 与 `1px solid` 两处绕过
+ *    了 `--border-width-thin`。
+ *
+ * ④ **不再把"危险"与"小"捆成一个名字**。`--danger-sm` 一个名字管了两个正交维度，
+ *    于是"想要一个小的次要按钮"无处可取。拆成形态（`--danger` 填充 /
+ *    `--danger-subtle` 描边）× 尺寸（`--sm`），各管各的。
+ *
+ * **`.luna-btn` 是抽象基类，永远不单独出现在界面上**：它只定几何与交互，不定颜色，
+ * 因此裸用时既没有底也没有 hover——审查里"裸 .luna-btn 没有任何 hover 反馈"正是这么
+ * 来的。真正的修法不是给基类补一份 hover（那会与各形态的 hover 撞特异性、还得靠源码
+ * 顺序取胜），而是**要求每个使用点显式选一种形态**；由 `control-primitives.test.ts`
+ * 结构性守护，反向验证（写一个不带形态的 `.luna-btn`）会红。
+ */
+
+.luna-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 图标 + 文字的**唯一**间距定义点：此前基类没有 gap，于是有的按钮图标贴着字、
+     有的各自补一份（处理队列补 `--space-1`、回收站补 `--space-1-5`）。 */
+  gap: var(--space-1-5);
+  /* 与输入/下拉同一行高档：并排的「搜索框 + 按钮」「下拉 + 按钮」此前各自撑各自的高。 */
+  box-sizing: border-box;
+  min-block-size: var(--control-height-md);
+  padding: var(--space-2) var(--space-4);
+  font-weight: 500;
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-sm);
+  border: var(--border-width-thin) solid transparent;
+  cursor: pointer;
+  /* 只过渡真正会变的视觉属性：`all` 会把 padding/尺寸一并纳入，布局一动就抖。
+     `transform` 也在这里：按下微缩此前由 `components/interaction-motion.css` 补一份
+     **第二条 transition** 给同一批元素（§3.3c：同属性两个负责者，靠"排在所有 feature
+     之后"取胜）。分层之后那条理由已不成立——一个属性只能有一个定义点，故并回本处。 */
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+    color var(--transition-fast), box-shadow var(--transition-fast),
+    opacity var(--transition-fast), transform var(--transition-fast);
+  outline: none;
+}
+
+/* 按下微缩：全应用按钮共用的一句触感反馈。 */
+.luna-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* ── 形态 ────────────────────────────────────────────────────────────────── */
+
+.luna-btn--primary {
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+}
+
+.luna-btn--primary:hover:not(:disabled) {
+  opacity: 0.95;
+  box-shadow: var(--shadow-sm);
+}
+
+.luna-btn--primary:active:not(:disabled) {
+  opacity: 0.85;
+}
+
+.luna-btn--secondary {
+  background: var(--color-bg-surface);
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-primary);
+}
+
+.luna-btn--secondary:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-focus);
+}
+
+.luna-btn--secondary:active:not(:disabled) {
+  background: var(--color-bg-selected);
+}
+
+/* 开关型次级按钮的按下态（`aria-pressed`）：底色 + 描边 + 字色同时变，不靠颜色单独表达。
+   此前回放视图的原文 / 译文 / 双语、校对、呈现四选、「正在播放」条的跟随 / 画面各写了一份，
+   而且写得还不一样（有的变字色有的不变），同一屏两种"选中"（真机 2026-09-08）。 */
+.luna-btn--secondary[aria-pressed="true"] {
+  color: var(--color-accent);
+  background: var(--color-bg-selected);
+  border-color: var(--color-border-focus);
+}
+
+/* 填充式破坏性动作：一屏里最重的那一颗，留给"确认删除"这一类终局按钮。 */
+.luna-btn--danger {
+  background: var(--color-status-error);
+  color: var(--color-bg-surface);
+}
+
+.luna-btn--danger:hover:not(:disabled) {
+  opacity: 0.95;
+  box-shadow: var(--shadow-sm);
+}
+
+.luna-btn--danger:active:not(:disabled) {
+  opacity: 0.85;
+}
+
+/* 描边式破坏性动作：与 `--secondary` 同一层级，只是语义是红的——列表行里的
+   「永久删除」该与「还原」等重，不该先声夺人。 */
+.luna-btn--danger-subtle {
+  background: transparent;
+  border-color: var(--color-status-error);
+  color: var(--color-status-error);
+}
+
+.luna-btn--danger-subtle:hover:not(:disabled) {
+  background: var(--color-status-error-surface);
+}
+
+.luna-btn--danger-subtle:active:not(:disabled) {
+  background: var(--color-status-error-surface);
+  opacity: 0.85;
+}
+
+/* ── 尺寸（与形态正交） ──────────────────────────────────────────────────── */
+
+/* 紧凑尺寸：列表行内的成对动作（还原 / 永久删除）用它，否则两颗常规按钮会把行撑高。 */
+.luna-btn--sm {
+  gap: var(--space-1);
+  min-block-size: var(--control-height-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+}
+
+/* ── HUD 档（ADR-137 V6）──────────────────────────────────────────────────────
+   悬浮窗里的文字按钮与同排控件同高、胶囊形：此前「开始录音」「停止」「存入速记笔记」用的是
+   主窗口档（36），比同一行的 28 档图标钮高出一截，紧挨着的「⋯」像是被它压住（真机
+   2026-10-02）；语音是圆钮、录音和字幕是方角按钮，三扇窗的「开始」长成三种样子。
+   密度归外壳的上下文、不归每个使用点——HUD 里不该出现第二种按钮高度。 */
+.luna-hud-surface .luna-btn {
+  min-block-size: var(--hud-control-size);
+  padding: var(--space-0) var(--space-3);
+  border-radius: var(--radius-full);
+}
+
+/* ── 状态 ────────────────────────────────────────────────────────────────── */
+
+/* 禁用态由基类统一裁决：形态各异但"不可点"只有一种样子。 */
+.luna-btn:disabled {
+  color: var(--color-text-muted);
+  background: var(--color-bg-disabled);
+  border-color: var(--color-border-subtle);
+  cursor: not-allowed;
+}
+
+/* 基类此前写了 `outline: none` 却**没有任何 `:focus-visible` 替代**——于是全应用
+   每一颗文本按钮的键盘焦点圈都是隐形的（用键盘走一遍界面，你不知道自己停在哪）。
+   `outline: none` 保留（它挡的是某些引擎在鼠标点击后仍画的默认圈），但必须配一份
+   显式的 `:focus-visible`，否则关掉的是可访问性而不是噪声。 */
+.luna-btn:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: var(--space-1);
+}

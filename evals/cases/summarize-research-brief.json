@@ -1,0 +1,37 @@
+{
+  "_comment": [
+    "项目研究 creator.research.brief（PRD-19-046，ADR-167 ⑥）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "summarize",
+  "template": "creator.research.brief",
+  "cases": [
+    {
+      "name": "每条发现都带来源编号",
+      "vars": {},
+      "must_contain": [
+        "\"sources\": the numbers of the sources it comes from",
+        "state only what at least one source supports"
+      ],
+      "why": "没有出处的结论正是研究简报要避免的；Rust 也会丢掉没有有效来源的发现"
+    },
+    {
+      "name": "不编造、不合并矛盾",
+      "vars": {},
+      "must_contain": [
+        "Never invent facts, numbers or quotes",
+        "do not merge claims the sources disagree on"
+      ],
+      "why": "多条来源说法不一时模型会和稀泥，写出任何一条来源都没说过的话"
+    },
+    {
+      "name": "只回 JSON",
+      "vars": {},
+      "must_contain": [
+        "Output only JSON",
+        "\"findings\""
+      ],
+      "why": "回成 Markdown 时 Rust 解析不了"
+    }
+  ]
+}

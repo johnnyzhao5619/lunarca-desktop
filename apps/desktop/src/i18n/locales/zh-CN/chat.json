@@ -1,0 +1,113 @@
+{
+  "title": "AI 对话",
+  "model_selector_label": "当前 AI 执行路径",
+  "route": {
+    "loading": "正在确认执行路径",
+    "unavailable": "执行路径暂不可用",
+    "managed_service": "服务端托管",
+    "local_unconfigured": "未配置本机模型"
+  },
+  "empty": {
+    "title": "问点什么吧",
+    "hint": "输入问题开始对话。",
+    "hint_panel": "随时按 {{shortcut}} 唤起。",
+    "presets_label": "选择对话角色",
+    "hint_temporary": "临时对话关闭后不会保留。"
+  },
+  "preset": {
+    "chat_general": "通用助手",
+    "chat_translator": "翻译助手",
+    "chat_coder": "代码解释",
+    "chat_summarizer": "精炼总结"
+  },
+  "action": {
+    "copy": "$t(common:hud.action.copy)",
+    "close": "$t(common:hud.action.close)",
+    "new": "新对话",
+    "regenerate": "$t(common:hud.action.regenerate)",
+    "save_note": "此对话$t(common:hud.action.save_note)",
+    "save_message": "此条$t(common:hud.action.save_note)",
+    "send": "发送",
+    "stop": "$t(common:hud.action.stop)生成",
+    "retry": "$t(common:hud.action.retry)",
+    "retry_in": "{{seconds}} 秒后重试",
+    "jump_latest": "跳到最新",
+    "open_in_notes": "在笔记库中打开",
+    "continue_workspace": "在主工作区继续",
+    "more": "更多对话操作",
+    "copy_message": "复制整条",
+    "quote": "引用到输入框",
+    "save_knowledge": "存为知识笔记（带来源）"
+  },
+  "input": {
+    "placeholder": "输入问题…",
+    "hint": "Enter 发送 · Shift+Enter 换行"
+  },
+  "context": {
+    "label": "引用选中内容",
+    "remove": "移除引用"
+  },
+  "flag": {
+    "truncated": "上下文过长，较早的消息已被截断",
+    "stopped": "已停止，保留已生成内容"
+  },
+  "notice": {
+    "copied": "已复制",
+    "copy_failed": "复制失败",
+    "saved": "已存入笔记",
+    "save_failed": "存入笔记失败",
+    "continue_failed": "暂时无法转到主工作区，会话仍保留在这里",
+    "saved_knowledge": "已存为《{{title}}》"
+  },
+  "history": {
+    "title": "历史会话",
+    "emptyTitle": "还没有历史会话",
+    "empty": "对话会自动保存到这里（临时对话除外）。",
+    "open_in_notes": "在笔记库中打开",
+    "delete": "删除会话",
+    "delete_title": "删除这个会话？",
+    "deleted": "会话已删除",
+    "delete_failed": "删除失败",
+    "open_failed": "载入会话失败",
+    "listLabel": "历史会话列表"
+  },
+  "temporary": {
+    "badge": "临时 · 不保存",
+    "toggle": "临时对话（不保存到历史）"
+  },
+  "grounding": {
+    "label": "知识库",
+    "on_hint": "回答时会检索你的笔记并标注出处（点击关闭）",
+    "off_hint": "当前不检索笔记，仅凭模型知识作答（点击开启）"
+  },
+  "sources": {
+    "summary": "已检索 {{scanned}} 篇 → 引用 {{cited}} 篇",
+    "none": "已检索 {{scanned}} 篇，未找到相关内容",
+    "emptyHint": "库里没有与这个问题相关的内容，以下回答基于模型自身知识。",
+    "truncated": "候选过多，结果可能不完整",
+    "label": "出处",
+    "open": "打开出处 {{index}}：{{title}}",
+    "material": "来源",
+    "drop": "这次不要这篇",
+    "dropOne": "这次不要《{{title}}》，换一批依据重答",
+    "includeChat": "把 AI 对话记录也算作依据",
+    "includeChatHint": "对话记录是 AI 自己写的内容，默认不作事实源。想让某段对话长期算数，把它整理成知识笔记即可。",
+    "draft": "来自待整理",
+    "draftSnippet": "来自待整理 · {{snippet}}",
+    "marker": "出处 {{index}}：{{title}}",
+    "markerDraft": "出处 {{index}}：{{title}}，来自待整理内容",
+    "excludeDrafts": "这次只用已定稿的内容",
+    "excludeDraftsHint": "只对这一次提问生效，不改设置。",
+    "openOutcome": {
+      "moved": "《{{title}}》中的原句位置已变化，已准确定位到新位置。",
+      "heading_only": "《{{title}}》的原句已改动，已定位到原来所在的小节。",
+      "lost": "《{{title}}》的原文已改动，已打开笔记但无法定位到当初那句。",
+      "source_missing": "找不到出处《{{title}}》；它可能已被移动或删除。",
+      "error": "暂时无法打开出处《{{title}}》，请稍后重试。"
+    },
+    "model_supplement": "模型补充 · 未由知识库支持",
+    "model_supplement_section": "\n\n{{label}}\n\n{{content}}",
+    "dismissOutcome": "关闭提示"
+  },
+  "model_selector_open_assignment": "前往模型分配"
+}

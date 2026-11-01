@@ -1,0 +1,18 @@
+{
+  "_comment": ["单篇蒸馏主指令（distill 域）：三段正交拼装——输入形态 + 输出结构 + 纪律。"],
+  "scope": "distill",
+  "template": "instruction",
+  "cases": [
+    {
+      "name": "前言、语言、区块、已确认事实四者都带入，且禁止角标",
+      "vars": {
+        "preamble": "The text is a transcript of recorded audio.",
+        "lang": "Chinese",
+        "sections": "`## 决议`, `## 行动项`",
+        "facts": " The following facts were already extracted from this source and confirmed; keep them exactly as given, do not reword, drop, or add to them: action items: 通知小李."
+      },
+      "must_contain": ["transcript of recorded audio", "Chinese", "## 决议", "通知小李", "citation markers"],
+      "why": "丢了「never copy citation markers」，对话归档里的 [n] 会被抄进蒸馏笔记并渲染成指向虚空的链接（PRD-16-005）"
+    }
+  ]
+}

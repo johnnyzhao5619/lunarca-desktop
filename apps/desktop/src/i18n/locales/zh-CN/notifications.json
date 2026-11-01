@@ -1,0 +1,441 @@
+{
+  "config_recovered": {
+    "title": "配置文件已损坏，已重建",
+    "body": "设备配置文件无法解析，本次启动使用默认值；原文件已留档为 config.corrupt-<时间>.toml，可从中取回内容。设置现在可以正常修改。",
+    "action": "打开高级设置"
+  },
+  "config_values_reset": {
+    "title": "{{count}} 项设置已回到默认",
+    "body": "这些项的取值在当前版本已不适用，已各自回到默认：{{keys}}。其余设置不受影响。",
+    "action": "打开高级设置"
+  },
+  "permission_revoked": {
+    "title": "系统权限已被撤销",
+    "body": "相关入口已降级，请前往权限设置重新授权。",
+    "action": "打开权限设置"
+  },
+  "strict_local_blocked": {
+    "title": "严格本地模式已拦截联网任务",
+    "body": "该任务需要外发能力，已按隐私设置阻止。",
+    "action": "打开隐私设置"
+  },
+  "prompt_catalog_rejected": {
+    "title": "服务端提示词目录不齐备，已改用内置提示词",
+    "body": "服务端配置未通过校验，已继续使用内置配置；AI 功能可用。",
+    "diagnostic": "服务端下发的提示词目录 v{{version}} 缺少必备模板 {{key}}，本机已整份忽略它并使用随应用内置的提示词。需要管理员在管理台重新发布一版齐备的目录。",
+    "action": "查看 AI 模型设置"
+  },
+  "prompt_catalog_degraded": {
+    "title": "服务端提示词目录按旧清单生效",
+    "body": "部分配置使用内置默认，AI 功能可用。",
+    "diagnostic": "提示词目录 v{{version}} 是按旧版清单（v{{manifest}}）发布的，本机已按它生效；这一版应用新增的 {{missing}} 条模板暂用内置默认。管理员重新发布后即可全部生效。",
+    "action": "查看 AI 模型设置"
+  },
+  "recording_disk_low": {
+    "title": "磁盘空间不足",
+    "body": "录音仍在继续，建议尽快结束以确保音频安全。"
+  },
+  "recording_disk_critical": {
+    "title": "磁盘将满 — 已停止录音",
+    "body": "已优雅停录，目前为止采集的音频均已保存。"
+  },
+  "recording_save_unavailable": {
+    "title": "本次录音未落盘",
+    "body": "音频文件创建失败，实时转写继续但不归档。"
+  },
+  "recording_device_lost": {
+    "title": "麦克风已断开",
+    "body": "录音已按已采集内容收尾归档。"
+  },
+  "recording_input_device_fallback": {
+    "title": "所选麦克风不可用",
+    "body": "已回退系统默认输入继续录音，请检查设备设置。"
+  },
+  "recording_window_dropped": {
+    "title": "实时转写过载",
+    "body": "部分实时文字被跳过。音频已完整保存，可稍后二次转写。"
+  },
+  "recording_transcribe_waiting": {
+    "title": "实时转写还没开始",
+    "body": "本机实时会话额度被占用，字幕暂时不会出字。录音与音频保存不受影响，稍后可二次转写补齐。"
+  },
+  "recording_retranscribed": {
+    "title": "转写已优化完成",
+    "body": "已用更高精度的模型对本次录音重新转写，结果更准确。",
+    "action": "查看录音"
+  },
+  "recording_mic_silent_input": {
+    "title": "麦克风没有信号",
+    "body": "录音仍在继续，但没有收到麦克风声音。",
+    "diagnostic": "请检查：「系统设置 › 隐私与安全性 › 麦克风」是否允许 Lunarca；系统输入音量是否为 0；输入设备是否正确。",
+    "action": "检查输入设备"
+  },
+  "recording_source_rate_mismatch": {
+    "title": "系统声音的时间线不对",
+    "body": "系统声音轨的实际采集速率与设备声明不一致，本轨的时间码与时长会偏离真实值（音频内容仍在保存）。请停止本次录音并重新开始；若反复出现，请在反馈中附上录音时间。"
+  },
+  "distill_batch_queued": {
+    "title": "已加入队列 {{count}} 件",
+    "body": "会按顺序处理，进度在处理队列里。",
+    "action": "查看队列"
+  },
+  "identifier_migrated": {
+    "title": "应用标识已更新",
+    "body": "这一版换上了正式的应用标识，你的笔记、设置与模型都已原样保留。麦克风、辅助功能、屏幕与系统声音这些系统权限是按应用标识记的，需要重新授权一次。",
+    "action": "打开隐私设置"
+  },
+  "recording_speaker_playback": {
+    "title": "正在通过扬声器外放",
+    "body": "系统声音正经内建扬声器播放，麦克风会拾到对方的声音。建议佩戴耳机以获得最佳分轨与识别效果。"
+  },
+  "transcribe_fetched": {
+    "title": "链接内容已转写完成",
+    "body": "从链接下载的媒体已完成转写，可查看文稿并校对。",
+    "action": "查看转写"
+  },
+  "recording_diarized": {
+    "title": "已区分说话人",
+    "body": "本次录音的说话人识别已完成，可在回放中查看并为说话人改名。",
+    "action": "查看录音"
+  },
+  "graph_tags_rescanned": {
+    "title": "关系标签补齐完成",
+    "body": "全库 AI 关系标签重扫已完成，图谱连线已更新。",
+    "action": "查看图谱"
+  },
+  "graph_tags_rescan_halted": {
+    "title": "关系标签重扫已中止",
+    "body": "连续多篇生成失败，重扫已提前停止。点击查看图谱后重试。",
+    "body_strict_local": "连续多篇生成失败，重扫已提前停止。当前是「仅本地」隐私档，标签由这台设备生成——请确认 AI 引擎已启动、且模型分配里的对话模型已安装。",
+    "body_on_device": "连续多篇生成失败，重扫已提前停止。标签由这台设备生成——请确认 AI 引擎已启动、且模型分配里的对话模型已安装。",
+    "body_official_cloud": "连续多篇生成失败，重扫已提前停止。标签由 Lunarca 云生成——请检查网络与账户额度后重试。",
+    "body_organization": "连续多篇生成失败，重扫已提前停止。标签由你的组织服务端生成——请检查服务端状态，或联系管理员。",
+    "action": "查看图谱"
+  },
+  "fallback": {
+    "title": "Lunarca 通知",
+    "body": "有一条状态更新需要注意。"
+  },
+  "history": {
+    "title": "通知历史",
+    "count": "{{count}} 条",
+    "loading": "读取中",
+    "empty": "暂无通知",
+    "search_label": "搜索通知",
+    "search_placeholder": "搜索通知标题、正文或类别",
+    "mark_all_read": "全部已读",
+    "no_unread": "没有未读通知",
+    "clear": "清空",
+    "clear_title": "清空全部通知历史？",
+    "clear_desc": "此操作不可撤销。",
+    "unread": "未读",
+    "class": {
+      "completion": "完成",
+      "failure": "失败",
+      "system_health": "系统健康",
+      "user_action": "需要处理",
+      "info": "提示"
+    },
+    "severity": {
+      "info": "信息",
+      "warning": "警告",
+      "error": "错误",
+      "critical": "严重"
+    },
+    "detail": "查看详情",
+    "go": "前往",
+    "mark_read": "标为已读",
+    "count_filtered": "已筛出 {{shown}} 条 · 共 {{total}} 条",
+    "scope_label": "查看范围",
+    "scope_all": "全部",
+    "scope_unread": "未读 {{count}}",
+    "filter_label": "按类别筛选",
+    "filter_all_classes": "全部类别",
+    "maintenance_label": "更多操作",
+    "clear_read": "清除已读",
+    "clear_filter": "清除筛选条件",
+    "empty_filtered": "没有符合条件的通知",
+    "empty_hint": "任务完成、权限变化、系统健康等状态变化都会记录在这里，随时可以回看。",
+    "load_more": "加载更多（已加载 {{loaded}} / {{total}} 条）"
+  },
+  "action": {
+    "dismiss": "关闭通知",
+    "history": "查看历史",
+    "open": "打开"
+  },
+  "detail": {
+    "class": "类别",
+    "severity": "级别",
+    "channels": "触达渠道",
+    "time": "时间",
+    "close": "关闭",
+    "diagnostic": "诊断信息",
+    "channelSeparator": "、",
+    "channel": {
+      "banner": "顶部横幅",
+      "toast": "浮层提示",
+      "inline": "行内提示",
+      "status": "状态栏与角标",
+      "system": "系统通知"
+    }
+  },
+  "screenshot_permission_missing": {
+    "title": "截屏翻译需要屏幕录制权限",
+    "body": "请在「系统设置 › 隐私与安全性 › 屏幕录制」勾选 Lunarca 后重启应用。",
+    "action": "打开权限设置"
+  },
+  "screenshot_no_text": {
+    "title": "未识别到文字",
+    "body": "框选区域内没有可识别的文字，请重新截取更清晰的文字区域。"
+  },
+  "desktop_lens_region_offscreen": {
+    "title": "取景范围跨越显示器",
+    "body": "译境的取景框跨在两块显示器之间，单次采集无法如实还原画面。请把取景框整体移回同一块显示器后重试。"
+  },
+  "desktop_lens_geometry_not_saved": {
+    "title": "取景位置未能保存",
+    "body": "译境的取景框位置本次可正常使用，但因配置无法写入磁盘，重启后不会被记住。请检查存储权限与磁盘空间。"
+  },
+  "llm_default_model_missing": {
+    "title": "默认文本模型未安装",
+    "body": "当前默认模型 {{model}} 还没装在这台设备上，翻译/润色将无法生成。本机已有其他可用模型，可切换默认或重新下载。",
+    "action": "打开模型设置"
+  },
+  "llm_no_models_installed": {
+    "title": "尚未安装任何本地模型",
+    "body": "这台设备上还没有本机文本模型，翻译/润色将无法生成。请先在模型页下载一个推荐模型。",
+    "action": "去下载模型"
+  },
+  "recording_system_audio_no_data": {
+    "title": "未采到系统音频",
+    "body": "请在「系统设置 › 隐私与安全性 › 屏幕与系统音频录制」允许 Lunarca，或确认系统正在播放声音后重新开始。"
+  },
+  "hostLabel": "应用内提示",
+  "overflow": "还有 {{count}} 条未看 · 查看全部",
+  "repeated": "同类通知 {{count}} 条",
+  "recording_retranscribed_distill": {
+    "title": "转写已优化完成",
+    "body": "结果更准确了。可在回放页把这次录音整理成一篇知识笔记。",
+    "action": "查看录音"
+  },
+  "transcribe_fetched_distill": {
+    "title": "链接内容已转写完成",
+    "body": "文稿已就绪。可在转写页把它整理成一篇知识笔记。",
+    "action": "查看转写"
+  },
+  "transcribe_imported": {
+    "title": "导入的媒体已转写完成",
+    "body": "导入的音视频已完成转写，可查看文稿并校对。",
+    "action": "查看转写"
+  },
+  "transcribe_imported_distill": {
+    "title": "导入的媒体已转写完成",
+    "body": "文稿已就绪。可在转写页把它整理成一篇知识笔记。",
+    "action": "查看转写"
+  },
+  "transcript_translated": {
+    "title": "文稿翻译完成",
+    "body": "这一篇的译文已生成，可在回放或转写页查看。",
+    "action": "查看译文"
+  },
+  "chat_ended_distill": {
+    "title": "对话已归档",
+    "body": "这次对话可以整理成一篇知识笔记，入口在对话页头或历史右键。",
+    "action": "查看对话笔记"
+  },
+  "topic_composed": {
+    "title": "主题页已合成",
+    "body": "主题页初稿已生成——点击打开。Lunarca 会继续把新要点归入这一页。"
+  },
+  "knowledge_ingested": {
+    "title": "知识库已更新",
+    "body": "这篇知识笔记的要点已归入相关主题页，点击查看是哪几页。"
+  },
+  "semantic_index_built": {
+    "title": "语义索引已建好",
+    "body": "现在换个说法问、用另一种语言问都能找到笔记了。点击查看索引状态。"
+  },
+  "semantic_index_halted": {
+    "title": "语义索引建库中止",
+    "body": "连续几篇都失败了，建库已提前停止。点击检查设置后重试。",
+    "body_strict_local": "连续几篇都失败了，建库已提前停止。当前是「仅本地」隐私档，向量由这台设备生成——请确认 AI 引擎已启动、且嵌入模型 bge-m3 已安装。",
+    "body_on_device": "连续几篇都失败了，建库已提前停止。向量由这台设备生成——请确认 AI 引擎已启动、且嵌入模型 bge-m3 已安装。",
+    "body_official_cloud": "连续几篇都失败了，建库已提前停止。向量由 Lunarca 云生成——请检查网络与账户额度后重试。",
+    "body_organization": "连续几篇都失败了，建库已提前停止。向量由你的组织服务端生成——请检查服务端状态，或联系管理员。"
+  },
+  "knowledge_checkup_done": {
+    "title": "深度体检已完成",
+    "body": "主题页的声明都对着源核对过了，点击查看报告。"
+  },
+  "knowledge_checkup_halted": {
+    "title": "深度体检中止",
+    "body": "连续几条都判不出来，体检已提前停止。点击查看结论后重试。",
+    "body_strict_local": "连续几条都判不出来，体检已提前停止。当前是「仅本地」隐私档，判定由这台设备完成——请确认 AI 引擎已启动、且模型分配里的对话模型已安装。",
+    "body_on_device": "连续几条都判不出来，体检已提前停止。判定由这台设备完成——请确认 AI 引擎已启动、且模型分配里的对话模型已安装。",
+    "body_official_cloud": "连续几条都判不出来，体检已提前停止。判定由 Lunarca 云完成——请检查网络与账户额度后重试。",
+    "body_organization": "连续几条都判不出来，体检已提前停止。判定由你的组织服务端完成——请检查服务端状态，或联系管理员。"
+  },
+  "knowledge_checkup_due": {
+    "title": "该做一次知识体检了",
+    "body": "距上次深度体检已超过两周。点击查看，跑不跑由你决定。"
+  },
+  "knowledgeReceipt": {
+    "hostLabel": "知识处理回执",
+    "body": {
+      "saved": "「{{title}}」已保存到知识库。",
+      "queued": "「{{title}}」已保存，正在整理它和已有知识的关系。",
+      "updated": "「{{title}}」已归入《{{topics}}》。",
+      "degraded": "「{{title}}」已安全保存，部分后台维护没做完。",
+      "failed": "「{{title}}」已安全保存，但后台维护没有完成。",
+      "updated_map": "《{{topics}}》已更新。",
+      "queued_map": "《{{title}}》已保存，正在更新索引。"
+    },
+    "appliedItems": "本页写入了 {{count}} 条有出处的内容。",
+    "queued": "正在后台进行：{{steps}}",
+    "degraded": "未完成：{{steps}}。知识笔记已安全保留，可稍后重试。",
+    "stepSeparator": "、",
+    "step": {
+      "tag": "关系标签",
+      "embed": "语义索引",
+      "ingest": "准备主题整理建议",
+      "knowledge_map": "知识地图",
+      "index": "搜索索引",
+      "baseline": "自动维护底版"
+    },
+    "open": "打开笔记",
+    "outcome": {
+      "saved": "知识已保存",
+      "queued": "知识已保存",
+      "updated": "知识关系已更新",
+      "degraded": "知识已保存，部分维护已降级",
+      "failed": "知识维护未完成"
+    }
+  },
+  "drawer": {
+    "close": "关闭通知历史"
+  },
+  "note_ai_ready": {
+    "title": "AI 结果已就绪",
+    "body": "后台跑完了这一篇的 AI 操作——点击打开，结果由你决定怎么落地。"
+  },
+  "sync_read_only_started": {
+    "title": "云同步已转为只读",
+    "body": "当前订阅不含云同步：可以下载，不能上传改动。{{date}} 清除云端副本，本机笔记不受影响。",
+    "action": "查看"
+  },
+  "sync_read_only_reminder": {
+    "title": "{{days}} 天后清除云端副本",
+    "body": "{{date}} 清除云端副本；续订即可保留。本机笔记不受影响。",
+    "action": "查看"
+  },
+  "sync_read_only_today": {
+    "title": "今天清除云端副本",
+    "body": "云同步只读宽限今天到期，云端副本随后清除；本机笔记不受影响。",
+    "action": "查看"
+  },
+  "sync_vault_deleted_remotely": {
+    "title": "云端库已被删除",
+    "body": "云端库「{{name}}」已在另一台设备上被删除，这台设备已停止同步它，本地文件都在。",
+    "action": "查看"
+  },
+  "session_expired": {
+    "title": "登录已失效",
+    "body": "服务端不再接受这台设备的登录凭据（会话过期或设备被撤销）。重新登录前，服务端提供的对话、翻译与转写会失败；本机能力不受影响。",
+    "action": "重新登录"
+  },
+  "billing_past_due": {
+    "title": "付款失败",
+    "body": "付款失败，请在 {{date}} 前更新付款方式，否则将降为免费档。服务照常，本机数据不受影响。",
+    "action": "更新付款方式"
+  },
+  "billing_frozen": {
+    "title": "账户已转为只读",
+    "body": "账户因付款争议已转为只读：云端推理与同步上传已暂停，数据不受影响，请联系支持。",
+    "action": "查看"
+  },
+  "billing_restored": {
+    "title": "账户已恢复正常",
+    "body": "付款问题已解决，云端推理与同步照常。",
+    "action": "查看"
+  },
+  "usage_subscription_p80": {
+    "title": "套餐额度已用到 80%",
+    "body": "本周期的套餐额度里有一项已用到 80%。可在「账户 › 订阅与用量」查看各项余量与重置时间。",
+    "action": "查看用量"
+  },
+  "usage_subscription_p95": {
+    "title": "套餐额度即将用尽",
+    "body": "本周期的套餐额度里有一项已用到 95%。用尽后需要服务端的任务会从预付 credits 扣，没有预付时会在开始前被拒，直到周期重置。",
+    "action": "查看用量"
+  },
+  "usage_subscription_exhausted": {
+    "title": "套餐额度已用尽",
+    "body": "本周期的套餐额度里有一项已用尽：需要服务端的任务会从预付 credits 扣，没有预付时会在开始前被拒，直到周期重置。可升级、购买 credits 或改用本机模型。",
+    "action": "查看用量"
+  },
+  "usage_prepaid_p80": {
+    "title": "预付 credits 已用掉 80%",
+    "body": "已购的预付 credits 用掉了 80%。预付 credits 不过期，可在账户页查看余额或再购买。",
+    "action": "查看用量"
+  },
+  "usage_prepaid_p95": {
+    "title": "预付 credits 即将用完",
+    "body": "已购的预付 credits 用掉了 95%。用完后超出套餐额度的任务会在开始前被拒。",
+    "action": "查看用量"
+  },
+  "usage_prepaid_exhausted": {
+    "title": "预付 credits 已用完",
+    "body": "已购的预付 credits 已用完：超出套餐额度的任务会在开始前被拒。可再购买 credits 或改用本机模型。",
+    "action": "查看用量"
+  },
+  "usage_spend_cap_p80": {
+    "title": "本月预付消费到了上限的 80%",
+    "body": "本月从预付 credits 扣的已到你设置的上限的 80%。到达上限后需要预付的任务会停下；订阅包含的额度不受影响。",
+    "action": "查看上限"
+  },
+  "usage_spend_cap_p95": {
+    "title": "本月预付消费接近上限",
+    "body": "本月从预付 credits 扣的已到你设置的上限的 95%。到达上限后需要预付的任务会停下；订阅包含的额度不受影响。",
+    "action": "调整上限"
+  },
+  "usage_spend_cap_exhausted": {
+    "title": "已达到本月预付上限",
+    "body": "本月从预付 credits 扣的已达到你设置的上限：需要预付的任务不再开始，进行中的会停在已产出处并按实际用量计费。订阅包含的额度不受影响；可在账户页调整上限。",
+    "action": "调整上限"
+  },
+  "signed_in": {
+    "title": "已登录",
+    "body": "浏览器里的登录已完成，服务端能力现在可以使用。",
+    "action": "查看连接"
+  },
+  "trust_rotated": {
+    "title": "服务端换了签名密钥，已自动更新",
+    "body": "这台服务端轮换了签名密钥，而这次轮换由上一代密钥签名背书、已核验通过，Lunarca 已自动改用新密钥。按流程需要重新登录一次；在那之前，服务端提供的对话、翻译与转写会失败，本机能力不受影响。",
+    "action": "重新登录"
+  },
+  "service_quick_note_saved": {
+    "title": "已存为速记",
+    "body": "选中的文字已存进速记。",
+    "action": "查看速记"
+  },
+  "service_quick_note_failed": {
+    "title": "没能存为速记",
+    "body": "选中的文字没有存下来。请打开 Lunarca，确认已经打开了笔记库，再试一次。",
+    "action": "打开 Lunarca"
+  },
+  "app_release_ask": {
+    "title": "要在启动时检查更新吗？",
+    "body": "Lunarca 默认不联网检查更新。在「设置 › 通用 › 关于与更新」里选一下。",
+    "action": "去选择"
+  },
+  "app_release_available": {
+    "title": "Lunarca 有新版本",
+    "body": "在「设置 › 通用 › 关于与更新」查看发布说明并安装。",
+    "action": "查看"
+  },
+  "app_release_installed": {
+    "title": "新版本已装好",
+    "body": "下次启动 Lunarca 就是新版本。",
+    "action": "查看"
+  }
+}

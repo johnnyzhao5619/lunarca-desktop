@@ -1,0 +1,61 @@
+[package]
+name = "luna-vault"
+description = "Lunarca 本地 Markdown Vault：原子写 / frontmatter round-trip / 自写抑制 / 快照 / trigram FTS 索引 / 边车 / 模板 / 回收站（TDD-06）"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+luna-core = { path = "../luna-core" }
+serde.workspace = true
+# 建档时间戳（`Vault::create` 写 `created`）：已是 workspace 依赖，无新增 License 面（ADR-005）。
+chrono.workspace = true
+serde_json.workspace = true
+serde_yaml_ng.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+uuid.workspace = true
+# 快速切换器的拼音 / 首字母匹配（PRD-07-040 ④）：汉字 → 拼音表（mozillazg/rust-pinyin，
+# 数据源 pinyin-data），MIT、无传递依赖（ADR-005 核查：License 面只增它一个 MIT 包）。
+# 只开 plain + heteronym：不要声调形式，多音字要。
+pinyin = { version = "0.11", default-features = false, features = ["plain", "heteronym"] }
+rusqlite.workspace = true
+notify-debouncer-full.workspace = true
+trash.workspace = true
+# 文件**对象身份**（不是路径字符串）：`Handle::from_file` 从一个**已打开的句柄**取身份，
+# 于是「检查」与「读取」可以绑在同一个对象上（见 `crate::open`）。
+#
+# **引入理由是 Windows**：Unix 侧 `MetadataExt::{dev, ino}` 是 stable 的，光靠标准库就够；
+# 但本仓要求 Windows 并行兼容（AGENTS.md §1），而 Windows 上等价的身份只有
+# `GetFileInformationByHandle` 给得出——它对应的 `MetadataExt::{volume_serial_number,
+# file_index}` 至今是 nightly（`windows_by_handle`）。`same-file` 正是这个调用的 stable 封装。
+# **看到只用了 dev/ino 就想删掉它的人请先回答：Windows 上拿什么取身份。**
+#
+# License 面为零：`same-file 1.0.6` 早已在 `Cargo.lock`（walkdir 的传递依赖），
+# 其 `Unlicense/MIT` 双许可中的 `Unlicense` 已在 `deny.toml` 的 allow 列表里（ADR-005）。
+same-file = "1"
+# HTML5 解析与 Markdown 序列化；0.27.0 已随 Tauri 入锁，MIT（ADR-005）。
+dom_query = "=0.27.0"
+# `lunarca://` 库内容链接的解析与生成（`uri`，ADR-141）：应用与 CLI 共用一份格式。2.5.8 已随
+# reqwest 入锁，MIT OR Apache-2.0（ADR-005），无新增 License 面。
+url = "2"
+# 名字比较前的 Unicode 规范化（NFC，ADR-148 ⑥）：macOS 列目录给的是文件落盘时的形态（可能是
+# NFD），而输入法敲出的是 NFC——按字节比必然对不上，于是 `[[Café]]` 指不到 `Café.md`。
+# 2.2.0 已随 url → idna 入锁，`Unicode-3.0` 已在 `deny.toml` 的 allow 列表里（ADR-005），
+# 无新增 License 面。只开编译期数据。
+icu_normalizer = { version = "2.2", default-features = false, features = ["compiled_data"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+# 批量写的轻量落盘（`atomic::write_atomic_batched`）：标准库的 `sync_all` 在 macOS 上是
+# `F_FULLFSYNC`（逼磁盘把缓存整个刷进介质，每次十几毫秒），一批几百篇各刷一次是十几秒的纯等待；
+# 这里每篇用 POSIX `fsync`，整批末尾再 `F_FULLFSYNC` 一次。本 crate `forbid(unsafe_code)`，
+# 故经 rustix 的安全封装而不是直接 `libc::fsync`。License 面为零：rustix 1.x 早已在
+# `Cargo.lock`（tempfile 等的传递依赖），Apache-2.0 WITH LLVM-exception / MIT 已在 `deny.toml`
+# 的 allow 列表里（ADR-005）。
+rustix = { version = "1", features = ["fs"] }
+
+[dev-dependencies]
+tempfile = "3"

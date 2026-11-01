@@ -1,0 +1,252 @@
+:root {
+  --settings-reset-preview-max-block-size: 22rem;
+  /* ═══════════════════════════════════════════════════════════════════════
+   * Lunarca 配色系统「Ink & Moonlight」——语义 Token 单一入口（TDD-11 §2.1）。
+   * 颜色本身（背景 / 文字 / 描边 / 品牌金 / 状态色 / 遮罩 / 代码块 / 语法高亮）是主题包数据，
+   * 生成在 `themes.generated.css`（ADR-169 ③，配色理由见 TDD-11 §2.1）；这里只放从它们
+   * 派生、不随主题改写的 Token。
+   * ═══════════════════════════════════════════════════════════════════════ */
+  /* 焦点环：派生自 border-focus，只定义一次（var 惰性解析，自动跟随各主题）。**实色**：此前是
+     40% 透明的光晕，浅色下对底只有约 1.5:1，键盘用户看不出焦点在哪（E4 对比度，WCAG 2.4.7 /
+     1.4.11 要求 ≥3:1）；`border-focus` 各主题已按 ≥3:1 校准。 */
+  --color-focus-ring: var(--color-border-focus);
+  /* 主题卡色块（`components/theme-swatch.css`）：Rust 按主题另给值，没装上之前取当前主题的。 */
+  --theme-swatch-canvas: var(--color-bg-canvas);
+  --theme-swatch-panel: var(--color-bg-panel);
+  --theme-swatch-accent: var(--color-action-primary);
+  --theme-swatch-text: var(--color-text-primary);
+  /* 原生选区/光标（派生自语义色，自动随主题与配色族） */
+  --editor-caret: var(--color-accent);
+  /* 选区底色**全应用共用**：编辑器与内容表面选中的是同一种"我圈了这段字"，
+     不该一处品牌金一处系统蓝（PRD-07-060）。 */
+  --color-selection: color-mix(in srgb, var(--color-accent) 26%, transparent);
+  --editor-active-line: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
+  /* 字重此前没有任何 Token，全靠字面量 `600`；而 caption / processing / playback /
+     transcribe 五处引用了 `--font-weight-semibold`——一个**从不存在**的名字，于是那几处
+     一直按继承的字重渲染，作者想要的半粗从来没出现过。补齐定义即同时修好那五处。 */
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  /* ── 笔记正文排版（PRD-06-017 三态视图）───────────────────────────────────
+   * **编辑面（CM6）与阅读面（React 只读渲染）共用这一组定义**。两面各自生长出
+   * 一套数值正是「同一篇笔记 ⌘E 切换、字号与纵向节奏跳变」的成因：编辑面从未声明过
+   * 正文字号，一路继承到 `.luna-workspace` 的 13px（= 侧栏按钮同号），阅读面却显式
+   * 写 15px。纪律与判据见 TDD-15 §3.4a，此处不复写理由。
+   * 16px 档对标 Typora / Obsidian 默认正文——正文不是界面外壳，刻意与 `--font-size-sm`
+   * 拉开；随 `--font-scale` 缩放（PRD-09-032 字号缩放）。 */
+  --editor-font-size: calc(16px * var(--font-scale));
+  --editor-line-height: 1.7;
+  /* 标题阶梯 = **相对正文的比例阶**，不是界面字号档：任何 `--font-scale` 下层级都可辨。
+     末两档刻意不靠字号区分——h5 只加粗、h6 再退到次级色（与正文差 1px 等于没有层级）。 */
+  --editor-h1-font-size: calc(var(--editor-font-size) * 1.7);
+  --editor-h2-font-size: calc(var(--editor-font-size) * 1.4);
+  --editor-h3-font-size: calc(var(--editor-font-size) * 1.2);
+  --editor-h4-font-size: calc(var(--editor-font-size) * 1.05);
+  --editor-h5-font-size: var(--editor-font-size);
+  --editor-h6-font-size: var(--editor-font-size);
+  /* 块级纵向节奏：块与块之间的呼吸 / 标题之上另加的章节留白（长文才有"章节"可言）。
+     编辑面由行装饰上 `padding-block-start`（CM6 不能给 `.cm-line` 加纵向 margin，
+     会破坏行高测量与滚动定位），阅读面由 `margin-block-start`——**取值同源**。
+     **块间距 = 一个正文行高**（Obsidian / Notion 口径；2026-09-04 裁决）：编辑面的空行
+     本身就占一整行高，它已经是这份间距，块首行只在上一行非空时才补（block-spacing.ts）；
+     此前写死 16px 且不看空行，段落之间成了"一行空白 + 16px"的双份。用绝对量（行高 ×
+     正文字号）而不是 `1em`：标题行的字号更大，`em` 在那里会跟着涨。
+     章节留白是**叠在块间距之上**的增量，两面同加：标题上方 = 一行 + 12px，落在
+     Typora（h2 约 40px）与 Obsidian（一行）之间。 */
+  --editor-block-gap: calc(var(--editor-line-height) * var(--editor-font-size));
+  --editor-heading-gap: var(--space-3);
+  /* 列表：**层级步长、marker 字形与字形→正文间隙，两面同源**。编辑面的圆点是替换
+     `- ` 标记的定宽 widget（`.luna-md-bullet`），阅读面是 `ul` 内缘留白 + `li::before`
+     悬挂盒——两套 DOM 各自消费同一组值。
+     阅读面 marker 走 `::before` 而不是 `::marker`：`::marker` 的 `content` 覆盖在
+     WKWebView（Safari 引擎）长期不支持，整条声明被**静默丢弃**、退回默认样式——
+     Chromium 下全绿、真机上等于没改，正是 2026-08-23 真机反馈「问题依旧」的成因。
+     步长用 `em` 而不是 px 档：正文随 `--font-scale` 缩放（PRD-09-032），而 `.luna-markdown`
+     同时服务对话（界面字号）与阅读面（正文字号）——相对自身字号才在两处都成立。
+     步长 2em 对标 Typora（30px@16px）/ GitHub（2em）；字形→正文间隙单独成 Token——
+     字形在定宽盒内靠正文侧摆（`text-align: end`），没有这道间隙时正文会**贴着**字形，
+     空白全部错落在 marker 与 marker 之间（真机反馈的「空白错位」）。
+     三档字形取业界惯例（实心 / 空心 / 方块）；第 3 档起不再变化，同浏览器默认阶。 */
+  --editor-list-indent: 2em;
+  --editor-list-marker-gap: 0.5em;
+  --editor-list-marker-1: "•";
+  --editor-list-marker-2: "◦";
+  --editor-list-marker-3: "▪";
+  --editor-list-marker-color: var(--color-accent);
+  /* 字重也必须同源：同一枚字形 400/700 的点径肉眼可辨，此前两面各写了一次字面量 700。
+     **有序编号与无序字形共用这一组颜色/字重**：此前有序编号原样保留、毫无着色，
+     同一篇里"要点"是 accent 加粗圆点、"步骤 1./2./3." 是弱化色语法标记，两种列表的
+     视觉权重不等。编辑面给编号加的是**着色装饰**而不是 widget——编号是作者敲进文档的
+     真字符，换成 widget 就不可编辑了（同 §3.4a「同源的对象是排版量，不是渲染结果」）。 */
+  --editor-list-marker-weight: 700;
+  /* 标题行高：标题已是比例阶（h1 = 1.7em），再套正文的 1.7 行高会让一行占到近 3 倍
+     正文行距。它是**独立于正文的一档**，两面消费**同一条声明**——此前阅读面走界面档
+     `--line-height-base`(1.5)、编辑面继承 `--editor-line-height`(1.7)。
+     **为什么是 `max(…)` 而不是光写 1.25**：编辑面的标题是 `.cm-line` 里的 inline span，
+     行盒高 = max(该行 strut, 各 inline 盒)，strut 由正文行高给——即"标题行永远不会比
+     一行正文更矮"。阅读面的标题是块元素，没有这个 strut，光写 1.25 会让 h5/h6（字号
+     刻意等于正文）比编辑面矮出约 7px，⌘E 一切又跳一次。把 strut 规则写进这一条，两面
+     于是逐像素同形：`1em` 在使用处解析为该级标题自己的字号，右半边是正文行距的绝对值。
+     `max()` / `calc()` 是全引擎基线（WebKit 自 Safari 11.1 支持），不属于 WKWebView 雷区。 */
+  --editor-heading-line-height-ratio: 1.25;
+  --editor-heading-line-height: max(
+    calc(var(--editor-heading-line-height-ratio) * 1em),
+    calc(var(--editor-line-height) * var(--editor-font-size))
+  );
+  /* 引用块（两面同源）：accent 边条 + 淡底 + 次级文字。此前编辑面是 accent 边条 + 底色，
+     阅读面是 `--color-border-subtle` 三倍细边、无底色、muted 文字——同一段引用两个样子。
+     **两面都不斜体**：GitHub / Typora / Obsidian 均不斜体；中日文没有真正的斜体字形，
+     浏览器只能合成倾斜，长引用整段读起来更累。视觉边界由边条 + 底色承担，够了。 */
+  --editor-quote-border-width: var(--border-width-thick);
+  --editor-quote-border-color: var(--color-accent);
+  --editor-quote-surface: var(--color-accent-surface);
+  --editor-quote-text: var(--color-text-secondary);
+  /* 正在播放的那一行（PRD-04-066）：底色 + 起始边条。**从 accent 派生而不是写死一抹黄**
+     ——配色族与明暗切换才跟得上；此前这两个值只作为 CM6 baseTheme 里的 `hsl()` 兜底存在，
+     而那条兜底一直在生效（Token 本身从未定义过）。 */
+  --editor-cue-active-surface: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  --editor-cue-active-border: var(--color-accent);
+  --editor-quote-pad-inline: var(--space-3);
+  /* 行内代码（两面同源）：此前编辑面 `--code-surface` + `--font-size-sm`（界面档 13px 绝对值）、
+     阅读面 `--color-bg-muted` + `0.9em`——两个底色、两种字号表达。收敛为代码色板 + **相对
+     所在正文**的字号：`.luna-markdown` 同时服务对话气泡（界面字号）与阅读面（正文字号），
+     只有相对值在两处都成立（同列表步长用 `em` 的理由）。 */
+  --editor-code-inline-surface: var(--code-surface);
+  --editor-code-inline-color: var(--code-text);
+  --editor-code-inline-font-size: 0.9em;
+  /* 正文链接（两面同源）：常态**只有颜色、不加下划线**，与仓库既有内容链接一致
+     （wiki-link、行内标签、看板链接都是「常态无下划线 / hover 加下划线」）。此前阅读面
+     常驻下划线、编辑面没有。hover 下划线只发给**真的能点**的那一面：编辑面的链接文字
+     是源码不是控件，给它悬停反馈是骗人。 */
+  --editor-link-color: var(--color-accent);
+  --editor-link-underline-offset: 2px;
+  /* 就地图片的显示上限（两面同源）：此前编辑面写死 `min(100%, 720px)` / `480px` 裸像素，
+     阅读面**只有** `max-inline-size: 100%`、纵向完全不封顶——同一张竖构图截图在编辑面是
+     一块 480px 高的缩略图，⌘E 切过去占满整屏。上限用 `rem`（= 根字号的倍数，与
+     `--editor-content-max-inline` 同量纲），不随正文 `--font-scale` 抖动：图片是像素资产，
+     它该跟版心走、不该跟字号走。45rem 落在 50rem 版心之内，30rem ≈ 一屏可见高度的一半。
+     两面都只设上限、两个方向都留 `auto`，浏览器据固有宽高比自行等比缩放。 */
+  --editor-image-max-inline: 45rem;
+  --editor-image-max-block: 30rem;
+  /* 专注模式（PRD-06-014）非活动段落的淡化程度。刻意不复用界面档 `--opacity-idle`(0.42)：
+     那一档服务于「控件此刻不可用」，这一档服务于长文写作时的视线聚焦，两者改动的理由
+     互不相干（同标题阶梯不挑界面字号档的判据，§3.4a）。 */
+  --editor-focus-dim-opacity: 0.35;
+  --editor-content-max-inline: 50rem;
+  --editor-content-pad-block: var(--space-4);
+  --editor-content-pad-inline: var(--space-6);
+  /* 主区标签页（PRD-07-035）：单标签最大宽（超长文件名截断）。 */
+  --tab-max-inline-size: 180px;
+  /* 代码块的缩进宽度（颜色随主题包）。 */
+  --code-tab-size: 2;
+
+  /* 关系图谱绘制层（PRD-06-034，Canvas 消费；全部派生自语义色 var 引用，计算样式
+   * 已完成替换可直接作 fillStyle，自动随主题——不引入 color-mix（canvas 不解析）。
+   * 半透明光晕由绘制侧 globalAlpha 实现，故 halo 用实色。 */
+  --graph-node-note: var(--color-text-secondary);
+  --graph-node-quick: var(--color-status-warning);
+  --graph-node-recording: var(--color-status-active);
+  /* 转写（导入媒体）——节点配色是**分类色板**而非语义色：与「录音=active」「速记=warning」
+   * 同一先例（录音并非"活动中"、速记也不是"警告"），此处借 error 的玫红仅作第五种可辨色相，
+   * 不携带任何错误语义（侧栏对应开关直接带同色标记）。不用 color-mix 调新色：见上方 canvas 约束。 */
+  --graph-node-transcript: var(--color-status-error);
+  --graph-node-chat: var(--color-status-ai);
+  /* 导入的文档（ADR-164）与转写同属「导入的资料」，同色。 */
+  --graph-node-document: var(--graph-node-transcript);
+  --graph-node-tag: var(--color-accent);
+  /* 主题节点只出现在主题级网络里（PRD-16-062），那张图上没有标签节点，故与标签同取强调色。 */
+  --graph-node-topic: var(--color-accent);
+  --graph-node-ghost: var(--color-text-muted);
+  --graph-edge: var(--color-border-strong);
+  --graph-label: var(--color-text-secondary);
+  --graph-halo: var(--color-accent);
+  --graph-focus-ring: var(--color-border-focus);
+  --graph-label-max-width: 220px;
+  /* 知识网络主题预览卡的宽度（PRD-16-062）：窄于侧栏，放得下三条结论。 */
+  --graph-preview-width: 300px;
+  /* 侧栏页头里过滤框的最小宽度：再窄就放不下一个能读的占位提示，同行的其余控件应换行让位。 */
+  --query-box-min-inline-size: 140px;
+  --help-popover-width: 24rem;
+  /* 「应用」详情页（ADR-168 ⑥）：信息栏定宽；正文窄于下限时信息栏换到正文下面（flex-wrap，不靠断点）。 */
+  --apps-info-inline: 16rem;
+  --apps-main-min-inline: 24rem;
+  --help-popover-max-block: 60vh;
+  --graph-label-gap: 6px;
+
+  /* 说话人配色槽（PRD-04-056）：会议里「谁在说」靠颜色一眼分辨，故每位说话人占一个槽位
+   * （槽位 = 名册首次出现序，六槽循环）。全部**派生自既有语义色**（var 惰性解析 → 自动
+   * 随主题，与 --graph-* 同一手法），刻意不引入独立色板：新增一套色值就要在三个主题块里
+   * 各维护一份，且与语义色的对比度关系无人校准。此处借的是**色相**不是语义，故把红（错误
+   * 色相）排在最后一槽——六人以上会议才会用到，日常不会让人误读成告警。 */
+  --speaker-1: var(--color-accent);
+  --speaker-1-surface: var(--color-accent-surface);
+  --speaker-2: var(--color-status-ai);
+  --speaker-2-surface: var(--color-status-ai-surface);
+  --speaker-3: var(--color-status-success);
+  --speaker-3-surface: var(--color-status-success-surface);
+  --speaker-4: var(--color-status-warning);
+  --speaker-4-surface: var(--color-status-warning-surface);
+  --speaker-5: var(--color-status-muted);
+  --speaker-5-surface: var(--color-status-muted-surface);
+  --speaker-6: var(--color-status-error);
+  --speaker-6-surface: var(--color-status-error-surface);
+
+  /* 品牌渐变（主题不变量，Logo 专用） */
+  --color-brand-gradient-start: #f3d998;
+  --color-brand-gradient-end: #45454c;
+
+  /* 0 档 = 空闲基线（一条细线，不是一排方点——那读作加载中，真机 2026-09-07）。 */
+  --hud-meter-size-0: 2px;
+  --hud-meter-size-1: 6px;
+  --hud-meter-size-2: 8px;
+  --hud-meter-size-3: 10px;
+  --hud-meter-size-4: 12px;
+  --hud-meter-size-5: 14px;
+  --hud-meter-size-6: 16px;
+  --hud-meter-size-7: 18px;
+  --hud-meter-size-8: 20px;
+  --hud-meter-size-9: 22px;
+  --hud-meter-size-10: 24px;
+}
+
+/* 正文宽度三档（`editor.body_width`，对标方案 E）：只重映射版心 Token，消费方零改动。默认
+   「中」= 上面的 50rem（约每行 50 个汉字）；「窄」约 40 字，落进 clreq 讨论的舒适区间；
+   「宽」给大屏与宽表格。图片上限（45rem）不跟着动：它本来就夹在正文列之内。 */
+:root[data-body-width="narrow"] {
+  --editor-content-max-inline: 40rem;
+}
+
+:root[data-body-width="wide"] {
+  --editor-content-max-inline: 64rem;
+}
+
+/* ─── 说话人配色槽位（PRD-04-056）───────────────────────────────────────────
+ * 任意元素带 data-speaker-slot 即拿到该说话人的前景/衬底两个变量，徽标 / 名册 chip /
+ * 菜单圆点共用这一处映射（DRY：加一位说话人不需要动组件样式）。0 = 无标签，中性配色。 */
+[data-speaker-slot="0"] {
+  --speaker-color: var(--color-text-secondary);
+  --speaker-surface: var(--color-bg-muted);
+}
+[data-speaker-slot="1"] {
+  --speaker-color: var(--speaker-1);
+  --speaker-surface: var(--speaker-1-surface);
+}
+[data-speaker-slot="2"] {
+  --speaker-color: var(--speaker-2);
+  --speaker-surface: var(--speaker-2-surface);
+}
+[data-speaker-slot="3"] {
+  --speaker-color: var(--speaker-3);
+  --speaker-surface: var(--speaker-3-surface);
+}
+[data-speaker-slot="4"] {
+  --speaker-color: var(--speaker-4);
+  --speaker-surface: var(--speaker-4-surface);
+}
+[data-speaker-slot="5"] {
+  --speaker-color: var(--speaker-5);
+  --speaker-surface: var(--speaker-5-surface);
+}
+[data-speaker-slot="6"] {
+  --speaker-color: var(--speaker-6);
+  --speaker-surface: var(--speaker-6-surface);
+}

@@ -1,0 +1,363 @@
+/*
+ * 语音输入 HUD（`.luna-voice`，PRD-02-018 / ADR-137）——一张实时表面，三档按内容长。
+ * 外壳与状态行归 `HudSurface` / `HudHeader`（components/hud.css）；这里只写本窗的零件。
+ */
+
+.luna-voice {
+  gap: var(--hud-gap);
+}
+
+/* 说话圆钮（身份位）：空闲 = 主色；采集中 =「完成」，中性强调（ADR-137 V3：红色只留给
+   录音指示与不可撤销的放弃）；处理中禁用。 */
+.luna-voice__orb {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--hud-control-size);
+  block-size: var(--hud-control-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  color: var(--color-action-primary-text);
+  background: var(--color-action-primary);
+  cursor: pointer;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.luna-voice__orb:hover:not(:disabled) {
+  box-shadow: var(--shadow-sm);
+}
+
+.luna-voice__orb:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.luna-voice__orb:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: var(--space-0-5);
+}
+
+.luna-voice__orb[data-kind="stop"] {
+  color: var(--color-bg-panel);
+  background: var(--color-text-primary);
+}
+
+.luna-voice__orb:disabled {
+  color: var(--color-text-muted);
+  background: var(--color-bg-muted);
+  cursor: progress;
+}
+
+/* 有结果时身份位换成结果标识（不可点）：这一屏的主动作在结果下面。 */
+.luna-voice__badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--hud-control-size);
+  block-size: var(--hud-control-size);
+  border-radius: var(--radius-full);
+  color: var(--color-status-ai);
+  background: var(--color-bg-selected);
+}
+
+/* 这一行的文字：只说一件事。 */
+.luna-voice__lane-text {
+  display: inline-flex;
+  align-items: center;
+  min-inline-size: 0;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-voice__lane-text[data-tone="muted"] {
+  color: var(--color-text-muted);
+}
+
+.luna-voice__lane-text[data-tone="danger"] {
+  color: var(--color-status-error);
+  font-weight: 600;
+}
+
+.luna-voice__destination {
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+
+/* 波形：胶囊里只是「在听」的证据。 */
+.luna-voice__meter {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-0-5);
+  block-size: var(--hud-meter-size-10);
+}
+
+/* 实时文字单行贴尾：右对齐、溢出裁掉左边——看到的永远是最新那几个字（ADR-112 ⑥⑶）。 */
+.luna-voice__live {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+  min-inline-size: 0;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  /* 被裁掉的左缘淡出而不是一刀切（真机 2026-10-02：半个字贴着波形）。 */
+  mask-image: linear-gradient(to right, transparent, black var(--space-6));
+}
+
+.luna-voice__clock {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 处理中：扫光就是进度条，阶段字（识别中 / 优化中 / 翻译中）写在它上面——不另起转圈。 */
+.luna-voice__scan {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-muted) 0%,
+    var(--color-accent-surface) 50%,
+    var(--color-bg-muted) 100%
+  );
+  background-size: 220% 100%;
+  font-size: var(--font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  animation: luna-proc-indeterminate 1.4s linear infinite;
+}
+
+/* 卡片档：结果编辑区 + 唯一的主动作。 */
+.luna-voice__result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hud-gap);
+}
+
+.luna-voice__result-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 唯一的主动作比同排按钮宽一点（高度与 HUD 档同为 28，不再另起一种按钮高）。 */
+.luna-voice__land {
+  padding-inline: var(--space-4);
+}
+
+/* 主按钮里的快捷键：淡字提示，不是一颗键帽（`kbd` 的元素级默认是键帽）。 */
+.luna-voice__kbd {
+  min-inline-size: 0;
+  block-size: auto;
+  margin-inline: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.luna-voice__source-preview {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.luna-voice__source-preview summary {
+  cursor: pointer;
+}
+
+.luna-voice__source-preview p {
+  margin: var(--space-1) 0 0;
+}
+
+.luna-voice__download {
+  display: grid;
+  gap: var(--space-1);
+}
+
+/* 面板档：配置。第一行是当前配置摘要，下面是各项。 */
+.luna-voice__control-panel {
+  display: grid;
+  gap: var(--space-2);
+  padding-block-start: var(--space-2);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-voice__settings-summary {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-voice__segmented,
+.luna-voice__option-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.luna-voice__segmented {
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.luna-voice__close-confirm {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-status-warning-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.luna-voice__close-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+/* 结果编辑稿（PRD-02-022）：落地前可修正识别/优化/翻译输出。不给缩放把手——窗口按内容
+   长，框里再拖一次只会和窗口的高度打架（真机 2026-10-02 截图上那只把手）。 */
+.luna-voice__result-edit {
+  inline-size: 100%;
+  padding: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-control);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+  resize: none;
+}
+
+.luna-voice__result-edit:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-border-focus);
+  outline-offset: calc(var(--border-width-thin) * -1);
+}
+
+.luna-voice__edited-badge {
+  margin-inline-start: var(--space-1);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-selected);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.luna-voice__live-hypothesis {
+  color: var(--color-text-muted);
+}
+
+.luna-voice__control-group {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.luna-voice label.luna-voice__control-group {
+  display: grid;
+  align-items: stretch;
+}
+
+.luna-voice__control-label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.luna-voice__option-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.luna-voice__segment {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.luna-voice__segment[aria-pressed="true"] {
+  border-color: var(--color-border-focus);
+  color: var(--color-text-primary);
+  background: var(--color-bg-selected);
+}
+
+.luna-voice__segment:disabled {
+  color: var(--color-text-muted);
+  background: var(--color-bg-disabled);
+  cursor: not-allowed;
+}
+
+.luna-voice label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+}
+
+.luna-voice__target-select select {
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-control);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  font: inherit;
+}
+
+.luna-voice__mode-select {
+  min-inline-size: var(--space-0);
+}
+
+.luna-voice__download-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.luna-voice__progress-bar {
+  width: 100%;
+  block-size: var(--space-1-5);
+  background: var(--color-bg-muted);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+
+.luna-voice__progress-fill {
+  inline-size: var(--progress-inline-size);
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: var(--radius-xs);
+  transition: inline-size var(--transition-base);
+}

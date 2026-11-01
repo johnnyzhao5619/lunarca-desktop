@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-account-deletion-preview"
+description = "Enables the account_deletion_preview command without any pre-configured scope."
+commands.allow = ["account_deletion_preview"]
+
+[[permission]]
+identifier = "deny-account-deletion-preview"
+description = "Denies the account_deletion_preview command without any pre-configured scope."
+commands.deny = ["account_deletion_preview"]

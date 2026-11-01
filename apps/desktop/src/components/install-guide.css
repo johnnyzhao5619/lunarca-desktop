@@ -1,0 +1,80 @@
+/* ── 外部工具的安装引导块（PRD-05-007）───────────────────────────────────────── */
+/* 设置的「外部工具」面板与「从链接导入」对话框共用，故住在 primitives 而非任一 feature。 */
+
+.luna-install-guide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  align-items: flex-start;
+}
+
+.luna-install-guide__label {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-install-guide__command {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-inline-size: 100%;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-bg-muted);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.luna-install-guide__command code {
+  overflow-x: auto;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.luna-install-guide__copy {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: var(--space-0-5);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.luna-install-guide__copy:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-install-guide__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* 官方说明页：链接形态而非按钮——它是"命令走不通时的另一条路"，不与主动作争视觉重量。 */
+.luna-install-guide__docs {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-0);
+  font-size: var(--font-size-xs);
+  background: transparent;
+  border: 0;
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+.luna-install-guide__docs:hover {
+  text-decoration: underline;
+}
+
+.luna-install-guide__hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}

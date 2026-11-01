@@ -1,0 +1,22 @@
+/*
+ * 分页控件原语（`.luna-pager`）——切分**已经在手**的那份列表（组件见 `ui/Pager.tsx`）。
+ *
+ * 与列尾的「加载更多」（`.luna-list-more`）形态刻意接近：同一个位置、同一档字号与间距，
+ * 因为它们在用户眼里是同一件事（"这份列表还有下面"）。差别只在语义——那一枚要再问后端
+ * 拿一页，这一枚只是换一页看。
+ */
+
+.luna-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding-block-start: var(--space-2);
+}
+
+.luna-pager__position {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  /* 数字变宽不该让两颗按钮左右跳（"第 9 / 10 页" → "第 10 / 10 页"）。 */
+  font-variant-numeric: tabular-nums;
+}

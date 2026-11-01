@@ -1,0 +1,77 @@
+{
+ "empty": "暂无用量记录",
+ "search_label": "搜索执行记录",
+ "search_placeholder": "搜索能力、入口或模型",
+ "action": {
+  "refresh": "刷新",
+  "clear": "清空",
+  "clear_title": "清空全部用量记录？",
+  "clear_desc": "本机的处理记录与 Token 统计将被删除，此操作不可撤销。"
+ },
+ "stat": {
+  "records": "总任务数",
+  "tokensIn": "输入 Token",
+  "tokensOut": "输出 Token",
+  "audio": "音频时长",
+  "truncated": "输出被截断",
+  "aiAccept": "笔记 AI 接受率",
+  "aiAcceptValue": "{{pct}}%",
+  "aiAcceptDetail": "采用 {{landed}} · 丢弃 {{discarded}}",
+  "savings": "本机省下",
+  "savingsHint": "按参考单价估算，在本机跑掉的那些",
+  "serverCost": "服务端花费",
+  "serverCostHint": "按参考单价估算，与账单无关"
+ },
+ "capability": {
+  "transcribe": "转写",
+  "translate": "翻译",
+  "summarize": "总结",
+  "refine": "润色",
+  "chat": "对话",
+  "embed": "嵌入",
+  "diarize": "说话人区分",
+  "ocr": "文字识别",
+  "custom": "自定义"
+ },
+ "origin": {
+  "popup_translate": "弹窗翻译",
+  "voice_input": "语音输入",
+  "recording": "录音",
+  "batch": "批量转写",
+  "floating_menu": "笔记 AI",
+  "cli": "命令行",
+  "second_pass": "二次精修",
+  "chat": "快捷对话",
+  "screenshot": "截屏翻译",
+  "graph_tags": "关系标签",
+  "distill": "整理成知识笔记",
+  "settle": "转为正式笔记",
+  "ingest": "归入主题页",
+  "embed": "语义索引",
+  "checkup": "知识体检",
+  "self_check": "试跑自检"
+ },
+ "termstatus": {
+  "finished": "已完成",
+  "completed": "已完成",
+  "failed": "失败",
+  "cancelled": "已取消",
+  "degraded": "降级"
+ },
+ "row": {
+  "tokens": "输入 {{in}} · 输出 {{out}}",
+  "audio": "音频 {{duration}}",
+  "notApplicable": "—",
+  "lane": {
+   "realtime": "实时档",
+   "batch": "批量档"
+  },
+  "ran_on": "{{location}} · {{model}}"
+ },
+ "location": {
+  "device": "这台设备",
+  "local_service": "这台设备",
+  "cloud": "服务端"
+ },
+ "list_label": "执行记录明细"
+}

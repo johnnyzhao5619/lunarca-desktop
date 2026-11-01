@@ -1,0 +1,310 @@
+/* ── 统一处理队列（右上角入口 + 弹出面板，PRD-04-032/055）─────────────────── */
+.luna-proc-queue-anchor {
+  position: relative;
+  display: inline-flex;
+}
+
+.luna-proc-queue-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.luna-proc-queue-btn[aria-pressed="true"],
+.luna-proc-queue-btn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-proc-queue-btn__badge {
+  position: absolute;
+  inset-block-start: calc(-1 * var(--space-0-5));
+  inset-inline-end: calc(-1 * var(--space-0-5));
+  min-inline-size: var(--space-4);
+  padding-inline: var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: var(--color-action-primary-text);
+  font-size: var(--font-size-xs);
+  line-height: var(--space-4);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 活动中角标轻微呼吸，代替此前整枚图标旋转（旋转箭头 + 旋转 = 「正在刷新」的误读）。 */
+.luna-proc-queue-btn__badge[data-active="true"] {
+  animation: luna-proc-queue-breathe 1.6s ease-in-out infinite;
+}
+
+/* 全部跑完那一瞬入口短暂换成勾（宿主给 2 秒）：不靠颜色单独表意，字形本身就变了。 */
+.luna-proc-queue-btn[data-just-finished="true"] {
+  color: var(--color-status-active);
+}
+
+@keyframes luna-proc-queue-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+:root[data-reduce-motion="true"] .luna-proc-queue-btn__badge[data-active="true"] {
+  animation: none;
+}
+
+.luna-proc-queue {
+  position: absolute;
+  inset-block-start: calc(var(--size-full) + var(--space-1-5));
+  inset-inline-end: 0;
+  inline-size: 340px;
+  max-block-size: 66vh;
+  overflow: hidden auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-floating-menu);
+}
+
+.luna-proc-queue__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-proc-queue__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.luna-proc-queue__header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* 头部两枚清除按钮与关闭键的皮归 `.luna-btn--sm` / `IconButton` 原语（真机 2026-09-07：
+   自绘的那两份与全应用其它按钮不一致）；这里不再有它们的样式。 */
+
+.luna-proc-queue__empty {
+  padding: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.luna-proc-queue__body {
+  display: flex;
+  flex-direction: column;
+}
+
+.luna-proc-queue__section {
+  padding: var(--space-1) var(--space-1) var(--space-2);
+}
+
+.luna-proc-queue__section-title {
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.luna-proc-queue__list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-0);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+}
+
+.luna-proc-queue__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-1-5) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.luna-proc-queue__item-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-proc-queue__item-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--color-text-muted);
+}
+
+.luna-proc-queue__item[data-state="done"] .luna-proc-queue__item-icon {
+  color: var(--color-status-active);
+}
+
+.luna-proc-queue__item[data-state="failed"] .luna-proc-queue__item-icon {
+  color: var(--color-status-error);
+}
+
+/* 取消是用户意图不是故障（PRD-05-010）：叉号用中性色，不着错误色。 */
+.luna-proc-queue__item[data-state="cancelled"] .luna-proc-queue__item-icon {
+  color: var(--color-text-muted);
+}
+
+/* 任务类型胶囊（导入/二次转写/二次翻译/说话人细分） */
+.luna-proc-queue__kind {
+  flex: 0 0 auto;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.luna-proc-queue__item-name {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+}
+
+/* 行尾动作区：取消 / 重试 / 打开 / 调序与移除，一律在同一列，不再有的在行内、有的另起一行。 */
+.luna-proc-queue__item-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-0-5);
+  margin-inline-start: auto;
+}
+
+/* 行内动作一律走原语（ADR-137 H8 / ADR-111 ③）：文字动作 `.luna-btn--sm`、图标 `IconButton`、
+   排队项的调序与移除进行菜单——此前这里是两套自绘按钮壳（`__item-action` / `__icon-btn`）。 */
+
+/* 移除：常态与其余动作等重，只在 hover 时显出危险色（与全应用破坏性图标钮同一条判据）。 */
+.luna-proc-queue__remove:hover:not(:disabled) {
+  color: var(--color-status-error);
+}
+
+/* 行尾短状态（位次 / 已完成 / 已取消）。长句**不进这里**：失败原因走下面的
+   `__reason` 单独一行——此前原因也塞在这一格、被 45% 宽 + nowrap 截成
+   「任务未能完成。请检查所…」，精心写的可行动文案用户永远读不完。 */
+.luna-proc-queue__item-status {
+  flex: 0 0 auto;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+/* 失败原因：完整人话，两行截断、悬停全文（title）。诊断码另置等宽小字。 */
+.luna-proc-queue__reason {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-base);
+}
+
+.luna-proc-queue__code {
+  font-family: var(--font-family-mono);
+  color: var(--color-text-muted);
+}
+
+/* 执行者徽标（PRD-17-033）：只在**非本机**执行时出现。
+   本机是默认路径，给它也加徽标会让「没徽标」反而显得可疑。 */
+.luna-proc-queue__executor {
+  flex: 0 0 auto;
+  padding: 0 var(--space-1);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+/* 数据离开了部署方边界时用**警示色**，不是装饰：
+   「音频发去了第三方」与「发去了你自己的服务端」对用户是两件事。 */
+.luna-proc-queue__executor[data-leaves="true"] {
+  border-color: var(--color-status-warning);
+  color: var(--color-status-warning);
+  background: var(--color-status-warning-surface);
+}
+
+/* ── 统一处理进度条（任务面板 + 回放内联共用，PRD-04-055）────────────────── */
+.luna-proc-progress {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  flex: 1;
+}
+
+.luna-proc-progress__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+}
+
+.luna-proc-progress__label {
+  color: var(--color-text-secondary);
+}
+
+.luna-proc-progress__count {
+  margin-inline-start: auto;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-proc-progress__spinner {
+  inline-size: var(--space-3);
+  block-size: var(--space-3);
+  flex-shrink: 0;
+  border: var(--border-width-thick) solid var(--color-bg-muted);
+  border-block-start-color: var(--color-accent);
+  border-radius: var(--radius-full);
+  animation: luna-spin 0.9s linear infinite;
+}
+
+:root[data-reduce-motion="true"] .luna-proc-progress__spinner {
+  border-color: var(--color-accent);
+  animation: none;
+}
+
+/* 进度条外观已归位为 `components/progress.css` 的 `.luna-progress` 原语。 */
+
+/* 采集族空态（`.luna-capture-empty`，速记/录音/转写/副库共用）此前定义在这里——而它的
+   四个消费者没有一个属于处理队列。已按 §3.3a 收编进 `components/empty-state.css`
+   的 `.luna-empty-state`（脚注行与可滚动能力一并补进原语）。 */
+
+/* 服务端队列里的排位（ADR-049 ⑧）：「排队第 N 位 · 预计 X–Y 分钟」。
+   与进度条同一层级、比它更轻——它说的是「还没开始」，不该抢走进行中任务的视觉重量。 */
+.luna-proc-queue__server-queue {
+  margin-block: var(--space-1) 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--space-4);
+}

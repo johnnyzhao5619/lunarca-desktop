@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "创作者的额外要求作为内容拼进指令（ADR-166 ⑤，PRD-19-042）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "summarize",
+  "template": "creator.notes.extra",
+  "cases": [
+    {
+      "name": "原话带进去、但不压过规则",
+      "vars": {
+        "text": "说话直接，多用比喻。"
+      },
+      "must_contain": [
+        "说话直接，多用比喻。",
+        "does not conflict with the rules above or the required output format"
+      ],
+      "why": "「这次的额外要求」不能改掉输出形状"
+    }
+  ]
+}

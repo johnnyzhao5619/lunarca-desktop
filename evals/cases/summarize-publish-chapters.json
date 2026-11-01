@@ -1,0 +1,39 @@
+{
+  "_comment": [
+    "发布包「分章节」publish.chapters（PRD-19-021，ADR-162 ⑪）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "summarize",
+  "template": "creator.publish.chapters",
+  "cases": [
+    {
+      "name": "规则写全：首个 0:00、至少三章、每章 10 秒、递增",
+      "vars": {},
+      "must_contain": [
+        "first starting at 0:00",
+        "between 3 and 12 chapters",
+        "at least 10 seconds",
+        "in time order"
+      ],
+      "why": "YouTube 只认合规的章节；模型最常漏的是首个 0:00 与每章 10 秒，漏了就整组章节不显示"
+    },
+    {
+      "name": "时间只能取自转写，标题与转写同语言",
+      "vars": {},
+      "must_contain": [
+        "use only timestamps that appear in the text",
+        "same language as the transcript"
+      ],
+      "why": "模型会编出转写里没有的时间点（落在句子中间），或把中文视频的章节写成英文"
+    },
+    {
+      "name": "只回 JSON",
+      "vars": {},
+      "must_contain": [
+        "Output only JSON",
+        "\"chapters\""
+      ],
+      "why": "回成一段说明或 Markdown 列表时 Rust 解析不了，用户只看到「生成失败」"
+    }
+  ]
+}

@@ -1,0 +1,311 @@
+/* ── 库切换器（PRD-07-064）：状态栏最左，菜单向上弹出 ───────────────────────── */
+/* ── 副库独立窗口（PRD-06-050）：浏览/编辑/新建/重命名 + 只读图谱 ─────────── */
+/* 树行复用 `.luna-note-tree__*`（与主窗同一套视觉语言），此处只写壳层布局。 */
+
+.luna-vault-window {
+  display: flex;
+  block-size: 100vh;
+  background: var(--color-bg-canvas);
+}
+
+.luna-vault-window--empty {
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.luna-vault-window__side {
+  display: flex;
+  flex-direction: column;
+  inline-size: 260px;
+  flex-shrink: 0;
+  border-inline-end: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-bg-panel);
+  min-block-size: var(--space-0);
+}
+
+.luna-vault-window__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) var(--space-1);
+  color: var(--color-text-primary);
+}
+
+.luna-vault-window__name {
+  flex: 1;
+  min-inline-size: var(--space-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+}
+
+.luna-vault-window__hint {
+  margin: 0;
+  padding: 0 var(--space-3) var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-vault-window__views {
+  display: flex;
+  gap: var(--space-1);
+  margin: 0 var(--space-3) var(--space-2);
+}
+
+.luna-vault-window__tree {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 var(--space-2) var(--space-3);
+}
+
+.luna-vault-window__main {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: var(--space-0);
+}
+
+.luna-vault-window__main .luna-editor,
+.luna-vault-window__main .luna-graph {
+  flex: 1;
+  min-block-size: var(--space-0);
+  border: 0;
+  border-radius: 0;
+}
+
+.luna-vault-window__status {
+  position: absolute;
+  inset-block-end: var(--space-2);
+  inset-inline-end: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.luna-vault-switcher {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.luna-vault-switcher__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-inline-size: 12rem;
+  padding: var(--space-0-5) var(--space-1);
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.luna-vault-switcher__trigger:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-vault-switcher__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── 管理库弹窗（PRD-07-064）：清单的增删改，与确认卡同一形制 ────────────────── */
+
+/* 失效标记：此前借用切换器弹层里的那一份，而那份随自绘弹层一起删了——"共用"不等于
+   "把主体存在别人家"（§3.3b）。这里是它唯一的定义点。 */
+.luna-vault-manager__missing {
+  font-size: var(--font-size-xs);
+  color: var(--color-status-error);
+  flex-shrink: 0;
+}
+.luna-vault-manager {
+  max-inline-size: min(40rem, calc(100vw - var(--space-6)));
+}
+
+.luna-vault-manager__list {
+  list-style: none;
+  margin: var(--space-0);
+  padding: var(--space-0);
+  max-block-size: 40vh;
+  overflow-y: auto;
+}
+
+.luna-vault-manager__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1-5) 0;
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-vault-manager__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+}
+
+.luna-vault-manager__name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-0);
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  text-align: start;
+  cursor: text;
+}
+
+.luna-vault-manager__badge {
+  font-size: var(--font-size-xs);
+  color: var(--color-accent);
+  border: var(--border-width-thin) solid var(--color-accent);
+  border-radius: var(--radius-full);
+  padding: 0 var(--space-1);
+}
+
+.luna-vault-manager__path {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-vault-manager__actions {
+  display: flex;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+/* 差异区内的 `.luna-diff` 已自带边框与内距，嵌套时去掉外层的一重。 */
+.luna-distill-preview__diff .luna-diff {
+  border: none;
+  border-radius: var(--space-0);
+}
+
+/* ── 批量整理进行中的常驻条（PRD-06-044）：贴底浮起，不占布局、不挡内容 ─────── */
+.luna-distill-batch-bar {
+  position: fixed;
+  inset-block-end: var(--space-3);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-notification);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-inline-size: min(32rem, calc(100vw - var(--space-6)));
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-panel);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md);
+}
+
+/* 带「被挡下的篇目」时它不再是一句话，胶囊改成一张竖排的小卡。 */
+.luna-distill-batch-bar[data-detailed="true"] {
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: var(--radius-md);
+}
+
+/* 逐篇的拒绝理由：是哪一篇、为什么。条数可能很多（整批被余量挡下时），故自带滚动。 */
+.luna-distill-batch-bar__rejected {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-block-size: 12rem;
+  margin: var(--space-0);
+  padding: var(--space-0);
+  overflow-y: auto;
+  list-style: none;
+}
+
+.luna-distill-batch-bar__rejected li {
+  display: flex;
+  flex-direction: column;
+}
+
+.luna-distill-batch-bar__rejected-head {
+  color: var(--color-text-primary);
+}
+
+.luna-distill-batch-bar__rejected strong {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* 确认卡内部零件（页头 / 范围胶囊 / 计数 / 说明 / 错误 / 动作区）此前叫
+   `.luna-graph-rescan__*` 并住在本文件——而它们被五个 feature 的对话框共用。
+   已按 §3.3a 归位为 `components/dialog.css` 的 `.luna-dialog__*`。 */
+
+/* AI 操作面板：关系标签生成结果（PRD-06-035 手动入口，标签胶囊列表）。 */
+.luna-floating-menu__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.luna-floating-menu__tag {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-0-5) var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-surface);
+  color: var(--color-accent-strong);
+  font-size: var(--font-size-xs);
+}
+
+/* 蒸馏预览 的样式已按 TDD-15 §3.3a 归位到 features/distill/distill.css。 */
+
+/* ── 无库空状态的三条出路（ADR-151 修订 2026-10-15「续二」）：新建 / 打开文件夹 / 下载云端库 ── */
+
+.luna-vault-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.luna-vault-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.luna-vault-empty__cloud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.luna-vault-empty__heading {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-vault-empty__list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1-5);
+  list-style: none;
+  margin: var(--space-0);
+  padding: var(--space-0);
+}

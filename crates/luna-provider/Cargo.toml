@@ -1,0 +1,38 @@
+[package]
+name = "luna-provider"
+description = "Provider 实现与路由（MockProvider / Router / 契约检查 / 随包引擎 / openai-compat / 云端）"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+luna-core = { path = "../luna-core" }
+# 自签部署按服务端钉住的根证书（ADR-153）：云通道的 HTTP / WebSocket 客户端从这里取。
+luna-model-fetch = { path = "../luna-model-fetch" }
+native-tls.workspace = true
+async-trait.workspace = true
+async-stream.workspace = true
+futures.workspace = true
+reqwest.workspace = true
+httpdate.workspace = true
+serde = { workspace = true }
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tokio-tungstenite.workspace = true
+opusic-c.workspace = true
+lingua.workspace = true
+
+[dev-dependencies]
+# 真机冒烟必须走**真的分段器**：它产的是重解窗（增长快照 + padding + overlap），
+# 测试自己切片会绕开这条链路上最贵的一个错误（照单上行 = 计费与明文上行量放大 7 倍）。
+luna-audio = { path = "../luna-audio" }
+# 主题生成实时冒烟要用隔离 Vault 的真实片段提取、封闭解析与预览契约。
+luna-vault = { path = "../luna-vault" }
+tempfile = "3"
+uuid.workspace = true
+# 原生 Provider 的隐私契约测试要起真实 loopback TCP 流，验证的是“门关后零 HTTP 请求”，
+# 不能把 HTTP 客户端换成假实现后只测一个分支。
+tokio = { workspace = true, features = ["net", "io-util"] }

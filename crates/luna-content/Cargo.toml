@@ -1,0 +1,16 @@
+[package]
+name = "luna-content"
+description = "内容基座的 IO 层（ADR-169 ①）：内容层存储、分层查找与安装管线；本地导入与市场安装共用"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+luna-content-schema = { path = "../luna-content-schema" }
+sha2.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

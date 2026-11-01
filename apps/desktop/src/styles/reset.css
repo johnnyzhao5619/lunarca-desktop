@@ -1,0 +1,34 @@
+html,
+body,
+#root {
+  width: var(--size-full);
+  height: var(--size-full);
+  margin: 0;
+  overflow: hidden;
+}
+
+/* ─── 全局滚动条统一样式（TDD-15：尺寸走 Token，禁 inline） ────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-subtle);
+  border-radius: calc(var(--border-width-thin) * 3);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ─── `hidden` 属性必须真的隐藏 ─────────────────────────────────────────
+ * 没有这一条时，任何带 `display` 的类都会盖掉 `[hidden]` 的默认隐藏——类选择器的
+ * 特异性高于属性选择器。它失败得**完全无声**：markup 里 `hidden` 在、快照测试断言得到
+ * 它、可及树也当它隐藏，而屏幕上那块东西照常摆着（真机 2026-09-11：连接卡收起态下
+ * 四步清单仍然铺开，`.luna-connect__steps { display: grid }` 盖掉了它）。
+ * 故用 `!important`：`hidden` 是平台语义，不该由某个组件的 `display` 来推翻。 */
+[hidden] {
+  display: none !important;
+}

@@ -1,0 +1,92 @@
+/*
+ * 进度条原语（`.luna-progress`）——原生 `<progress>` 的统一外观。
+ *
+ * **此前只有处理队列那一处把默认外观关干净了**（`appearance: none` + 两个
+ * `::-webkit-progress-*` 伪元素 + 不定量动画）；图谱侧栏只设了 `accent-color`、知识体检与
+ * 语义索引则是**完全裸的原生控件**。TDD-15 §3.3a 明文要求原生控件的默认外观必须显式关掉——
+ * 而"这一页上唯一一处长得像浏览器默认控件的东西"正是用户报过的那类缺陷。
+ */
+
+.luna-progress {
+  inline-size: var(--size-full);
+  block-size: var(--space-1-5);
+  appearance: none;
+  -webkit-appearance: none;
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-muted);
+  overflow: hidden;
+}
+
+.luna-progress::-webkit-progress-bar {
+  background: var(--color-bg-muted);
+  border-radius: var(--radius-full);
+}
+
+.luna-progress::-webkit-progress-value {
+  background: var(--color-accent);
+  border-radius: var(--radius-full);
+  transition: inline-size 0.2s ease;
+}
+
+.luna-progress:indeterminate::-webkit-progress-bar {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-muted) 0%,
+    var(--color-accent) 50%,
+    var(--color-bg-muted) 100%
+  );
+  background-size: 220% 100%;
+  animation: luna-proc-indeterminate 1.4s linear infinite;
+}
+
+@keyframes luna-proc-indeterminate {
+  from {
+    background-position: 220% 0;
+  }
+  to {
+    background-position: -220% 0;
+  }
+}
+
+:root[data-reduce-motion="true"] .luna-progress:indeterminate::-webkit-progress-bar {
+  background: var(--color-bg-muted);
+  animation: none;
+}
+
+/*
+ * 自绘进度条的不定量动画（一段 40% 宽的填充滑过轨道）。
+ *
+ * **原名 `luna-onboarding-indeterminate`，而它的消费者有三个、只有两个属于引导**——第三个
+ * 是设置页的 CoreML 行。名字把一条共享原语说成了某个 feature 的私产，于是把引导样式拆出去
+ * 时才发现 settings.css 依赖着一个"引导的"动画。与 `luna-proc-indeterminate` 的区别是载体：
+ * 那条服务原生 `<progress>`（改 background-position），这条服务自绘的 div 轨道（改 transform）。
+ */
+@keyframes luna-bar-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+/*
+ * 转圈（不定量的小图标级等待）。**原名 `luna-voice-spin`，定义在语音 HUD 的样式里**，而它的
+ * 消费者是处理队列与编辑器——语音 HUD 改为扫光后自己反倒不用了。与 `luna-bar-indeterminate`
+ * 同一条判据：共享动画住在原语层，名字不挂某个 feature。
+ */
+@keyframes luna-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 呼吸（「正在进行」的指示点：录音红点、便签正在存）。原名 `rec-dot-breath`，定义在语音
+   HUD 的样式里——两个使用者都不是它。 */
+@keyframes luna-breath {
+  0% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.4; transform: scale(0.9); }
+}

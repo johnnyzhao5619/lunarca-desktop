@@ -1,0 +1,61 @@
+/*
+ * 通知卡语言（`.luna-notice-card`）——右下/右上浮起的那种"值得知道的一句话"卡片。
+ *
+ * 通知卡与知识回执卡**共用同一套语言**是既有裁决（回执此前自造左侧色条与原生按钮，
+ * 已收敛过一轮）。但"共用"不等于"其中一方替另一方存放主体"：此前这套语言写在
+ * `features/notifications/`，于是知识回执的主体规则一半在通知家、一半在自己家——
+ * 改回执的人得同时改两个 feature，而两边的作者都不认为自己在维护对方。
+ * 提为原语后，两边各自只留自己独有的那点（严重度描边 / 折叠计数 / 队列步骤）。
+ */
+
+.luna-notice-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  box-shadow: var(--space-0) var(--space-2) var(--space-5) var(--color-border-subtle);
+  pointer-events: auto;
+}
+
+.luna-notice-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.luna-notice-card__header strong {
+  flex: 1;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+}
+
+.luna-notice-card__body {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+/* 卡内文字动作（「前往」「查看历史」…）：强调色、无边框；关闭叉走 `.luna-icon-btn`。 */
+.luna-notice-card__action {
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-accent);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.luna-notice-card__action:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-notice-card__action--primary {
+  border: var(--border-width-thin) solid var(--color-accent);
+}

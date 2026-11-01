@@ -1,0 +1,96 @@
+# luna-cloud —— 云客户端（tauri 插件「lunarca-cloud」）。ADR-037 后为公开仓普通成员：
+# 客户端全量 AGPL 开源，收费边界在服务端权益，不在客户端功能。
+# 职责：cp-api 客户端（device-code 登录 / 会话 / 设备管理 / Entitlement Lease）+
+# 目录/制品客户端 + 凭据存储接口（实现由宿主注入：本机保险箱）+ typed 前端绑定导出。业务全在 Rust（ADR-003）。
+[package]
+name = "luna-cloud"
+version.workspace = true
+edition.workspace = true
+# AGPL 与其余公开 crate 一致（ADR-037）。闭源仓时期无 SPDX 字段，迁入必须声明——
+# 否则 `cargo deny` 的 unlicensed 门禁当场判红。
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+# 不发布到 crates.io（本 crate 只随桌面应用分发）。归示清单据此跳过它——机制是
+# about.toml 的 `[private] ignore = true`，见那里的注释；许可执法侧不受影响：
+# `cargo deny licenses` 照常校验本 crate 的 AGPL 声明。
+publish = false
+# tauri-plugin 的 ACL 生成要求 `links == package.name`（据此定位插件权限清单）。
+links = "luna-cloud"
+
+[lib]
+name = "luna_cloud"
+
+[build-dependencies]
+# 生成插件 ACL 权限清单（见 build.rs 头注释：公开仓启用了 capabilities，ACL 是强制的）。
+tauri-plugin = { version = "2", features = ["build"] }
+
+# typed 绑定导出（tauri-specta，与主仓 `export-bindings` 同一条生成管线）：
+# `cargo run -p luna-cloud --bin export-cloud-bindings`
+# → apps/desktop/src/ipc/cloud-bindings.ts（提交入库，重生成后 diff 应为空）。
+[[bin]]
+name = "export-cloud-bindings"
+path = "src/bin/export_bindings.rs"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+reqwest = { workspace = true }
+# 只为按类型认出 TLS 握手失败（`NetworkFailureKind::classify`）：错误文字随系统语言本地化，
+# 中文 Windows 的 Schannel 报错里没有任何英文关键字。与 reqwest 底下同一份，不引入新依赖。
+native-tls = { workspace = true }
+# `io-util`：账户数据导出把响应体逐块写进临时文件（`account_data::stream_to_file`），不整块进内存。
+tokio = { workspace = true, features = ["io-util"] }
+# 临时文件：导出写到目标同目录的临时文件、收完再改名；出错 / 取消时随析构删除。
+tempfile = "3"
+# 导出文件默认名里的本机日期（`lunarca-account-export-<YYYY-MM-DD>.json`）；已在依赖树里，零新增。
+chrono = { workspace = true }
+# 能力提示词集合与注册表（目录验签后装进进程级注册表，ADR-050）。凭据不在本 crate 落盘：
+# 存储由宿主注入（`CredentialStoreFactory`，本机保险箱，TDD-12 §2），本 crate 不碰系统钥匙串。
+luna-core = { path = "../luna-core" }
+
+tauri = { workspace = true }
+tauri-specta = { workspace = true }
+specta = { workspace = true }
+specta-typescript = { workspace = true }
+base64 = { workspace = true }
+# Lease JWT / 目录 envelope 本地离线验签（Ed25519 公钥侧）。
+ed25519-dalek = { workspace = true }
+# 单源下载、流式 sha256 终验与目录来源跳转白名单：与直连下载同一份（ADR-144）。
+luna-model-fetch = { path = "../luna-model-fetch" }
+# 本地模型目录条目的唯一定义（ADR-145）：验签后逐条解析、装进进程级覆盖层。
+luna-model-catalog = { path = "../luna-model-catalog" }
+# 目录灰度分桶与连接链接指纹。
+sha2 = { workspace = true }
+# 设备名默认取主机名（设备列表可读性）。
+gethostname = { workspace = true }
+# 设备指纹的退路随机 id（纵切 3 C5，`fingerprint`）：v4 已随 luna-engine 进入依赖树，零新增。
+uuid = { workspace = true, features = ["v4"] }
+# 应用内口令登录（ADR-158，`opaque_auth` / `first_contact`）：OPAQUE 握手；信任包用会话密钥经
+# HKDF-SHA512 派生的 AES-256-GCM 密钥解开；随机数取 aes-gcm 自带的 OsRng（rand_core 0.6，与 opaque-ke 同代）。
+opaque-ke = { workspace = true }
+hkdf = { workspace = true }
+aes-gcm = { workspace = true }
+zeroize = { workspace = true }
+# 邮箱规整的 NFKC（`opaque_auth::normalize_email`，两端同一条规则）：已随 url → idna 进入依赖树，零新增 crate。
+icu_normalizer = "2"
+
+# 设备指纹的硬件标识（纵切 3 C5，`fingerprint`）。两者都已在依赖树里（core-foundation 随 src-tauri
+# 的 IOKit 采样、winreg 随 Windows 资源嵌入），只按平台编入，零新增 crate。
+[target.'cfg(target_os = "macos")'.dependencies]
+# IOKit 读 `IOPlatformUUID`（MIT / Apache-2.0）。
+core-foundation = "0.10"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+# 读注册表 `MachineGuid`（MIT）。
+winreg = "0.55"
+
+[dev-dependencies]
+# 客户端↔服务端**契约测试不在本仓**：它需要真起一个 cp-api，而服务端是闭源的
+# （ADR-037：仅客户端开源）。公开仓绝不 dev-depend 闭源 crate——那会让开源构建
+# 无法离线自证。契约测试随服务端留在商业仓（对着 pinned upstream 的本 crate 跑）。
+tokio = { workspace = true }
+tempfile = "3"
+# 中继到另一台部署的 3DH 失败用例要一颗确定的随机源（互通向量本身用循环随机数脚本，见 `opaque_auth`）。
+rand_chacha = "0.3"

@@ -1,0 +1,6 @@
+# 工具链钉死（脚手架首个 commit 即落，防"从第一天就环境漂"）。
+# 事实源与理由：TDD-13 §3。
+[toolchain]
+channel = "1.96.0"
+components = ["rustfmt", "clippy"]
+profile = "minimal"

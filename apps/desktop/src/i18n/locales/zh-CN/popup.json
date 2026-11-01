@@ -1,0 +1,102 @@
+{
+  "action": {
+    "add_compare": "添加对比结果",
+    "remove_compare": "移除对比结果",
+    "close": "$t(common:hud.action.close)",
+    "copy": "$t(common:hud.action.copy)译文",
+    "copied": "已复制",
+    "generate": "生成译文",
+    "more": "更多操作",
+    "regenerate": "$t(common:hud.action.regenerate)",
+    "stop": "$t(common:hud.action.stop)",
+    "replace": "替换原文",
+    "save_note": "$t(common:hud.action.save_note)",
+    "open_saved_note": "打开已保存的笔记",
+    "voice_start": "语音输入",
+    "voice_stop": "完成语音",
+    "screenshot": "截屏翻译",
+    "speak_source": "朗读原文",
+    "speak_translation": "朗读译文",
+    "speak_stop": "停止朗读",
+    "pin": "固定（失焦不收起）",
+    "unpin": "取消固定"
+  },
+  "title": "翻译",
+  "input": {
+    "placeholder": "输入要翻译的文本…",
+    "hint": "Enter 生成 · Shift+Enter 换行"
+  },
+  "preset": {
+    "email": "邮件",
+    "general": "通用翻译",
+    "polish_en": "英文润色",
+    "slack": "Slack 口吻",
+    "to_en": "英语",
+    "to_ja": "日语",
+    "to_ko": "韩语",
+    "to_zh": "中文"
+  },
+  "presetSelector": {
+    "label": "选择目标语言或表达方式",
+    "styleGroup": "表达方式"
+  },
+  "target": {
+    "label": "目标语言"
+  },
+  "meta": {
+    "refine": "润色",
+    "translate": "翻译",
+    "uncertain": "判定不确定",
+    "summary": "{{mode}} → {{target}} · {{preset}}",
+    "summaryUncertain": "{{mode}} → {{target}} · {{preset}} · {{uncertain}}"
+  },
+  "slot": {
+    "title": "结果",
+    "editOutput": "使用前校正结果",
+    "compareLabel": "对比结果"
+  },
+  "status": {
+    "cache_hit": "缓存命中",
+    "cancelled": "已取消",
+    "copied": "已复制译文（可 Cmd+V 粘贴）",
+    "done": "完成",
+    "error": "错误",
+    "error_detail": "操作失败：{{detail}}",
+    "failed": "失败",
+    "idle": "等待生成",
+    "clipboard_not_restored": "读取选区时借用了剪贴板，没能把你原来的剪贴板内容放回去",
+    "replace_copied_fallback": "目标应用不支持自动替换，已复制译文，请手动粘贴",
+    "replace_target_changed": "原窗口已不在前台，已复制译文，请手动粘贴",
+    "replaced": "已替换原文",
+    "replaced_clipboard_not_restored": "已替换原文，但没能把你原来的剪贴板内容放回去",
+    "saved_note": "已存入笔记：{{path}}",
+    "voice_error": "语音输入不可用",
+    "voice_ready": "可用语音填入原始转写",
+    "voice_recording": "正在录入语音…",
+    "running": "正在生成译文…"
+  },
+  "source": {
+    "label": "原文",
+    "edit": "编辑原文",
+    "expand": "展开原文",
+    "collapse": "收起原文"
+  },
+  "overlay": {
+    "hint": "拖拽框选要识别的文字 · 松手后可调整 · 右键或 Esc 取消",
+    "failed": "没有完成截屏",
+    "retry": "请重新框选，或右键取消。",
+    "translate": "翻译",
+    "cancel": "取消"
+  },
+  "desktopLens": {
+    "frameAria": "译境取景范围",
+    "controlsAria": "译境快捷控制",
+    "adjust": "调整取景范围",
+    "editTitle": "调整译境 · 拖动定位，拖右下角改变大小",
+    "capture": "捕捉并翻译",
+    "capturing": "正在获取…",
+    "done": "完成",
+    "close": "关闭译境",
+    "resize": "调整译境大小"
+  }
+}

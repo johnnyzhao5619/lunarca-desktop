@@ -1,0 +1,562 @@
+.luna-workspace {
+  display: grid;
+  grid-template-areas:
+    "topbar  topbar   topbar  topbar"
+    "banner  banner   banner  banner"
+    "rail    sidebar  main    panel"
+    "status  status   status  status";
+  /* 活动栏（rail，常驻 52px 纯图标）+ 主侧栏（sidebar，auto = 元素自控宽可拖拽/收起）+
+     编辑区（main，1fr）+ 上下文检视器（panel，auto，可折叠）。PRD-07-057。 */
+  grid-template-columns: var(--workspace-rail-inline) auto minmax(0, 1fr) auto;
+  /* banner 行：「完成设置」横幅在场时才有高度（PRD-14-064），没有时 auto = 0。 */
+  grid-template-rows: 40px auto minmax(0, 1fr) var(--workspace-statusbar-block);
+  height: var(--size-full);
+  max-height: var(--size-full);
+  overflow: hidden;
+  color: var(--color-text-primary);
+  background: var(--color-bg-canvas);
+  /* 字体栈不在这里再声明一遍：它从 `html,body,#root` 继承下来，唯一定义点是
+     `--font-family-base`（tokens/primitive.css）。此前这里那份**短了两个字体名**，
+     且特异性更高——于是全应用实际用的一直是这份，长栈从未生效（§3.3c 的孪生形态）。 */
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+}
+
+.luna-workspace__topbar {
+  grid-area: topbar;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-inline: var(--space-4);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-bg-surface);
+}
+
+/* 左组必须**可收缩**（`min-inline-size: 0`）：flex 项默认 `min-width: auto`，于是一个
+   长笔记名会把整条顶栏撑开，把右侧那排动作（搜索 / 信息 / 翻译…）挤出可视区。真机上
+   那个名字长达 40 余字，窄一点的窗口就会撞上。 */
+.luna-workspace__topbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: var(--space-0);
+}
+
+.luna-workspace__topbar-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* 只截断**最后一段**（当前对象名）：父级目录名短且是定位信息，先截它等于先丢定位。
+   （本块与分隔符、右组三条原住在 `features/settings/settings.css`——顶栏不属于设置
+   feature，一并归位；`.luna-workspace__topbar-breadcrumb-item` 因此只有这一个定义点。） */
+.luna-workspace__topbar-breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: var(--space-0);
+}
+
+.luna-workspace__topbar-breadcrumb-separator {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.luna-workspace__topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.luna-workspace__topbar-breadcrumb-item:last-child {
+  overflow: hidden;
+}
+
+.luna-workspace__topbar-breadcrumb-item:last-child > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-workspace__topbar-breadcrumb-item:not(:last-child) {
+  flex-shrink: 0;
+}
+
+.luna-workspace__topbar strong {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.luna-workspace__topbar nav,
+.luna-workspace__rail {
+  display: flex;
+}
+
+.luna-workspace__topbar nav {
+  gap: var(--space-1);
+}
+
+/* 这里此前是四块 `.luna-workspace__topbar button` / `.luna-workspace__rail button`
+   元素兜底，把几何、hover 与按下态（`[aria-pressed]`）全写在标签选择器上（§3.3c）——
+   顶栏那一排图标钮因此**一个类名都没有**，谁也说不出它们是什么控件；而它们与侧栏面板头
+   的图标动作、HUD 的图标键本是同一种东西。整块删除，改挂 `components/icon-button.css`
+   的 `.luna-icon-btn` 原语。活动栏项不是通用图标钮（它是导航项：40px、带选中左缘条），
+   保留自己的类，只把兜底带出来的那三条基础重置补进它自己的定义里。 */
+
+/* ── 活动栏（rail）：常驻纯图标，切换目的地（PRD-07-057，Obsidian ribbon / VS Code 活动栏） ── */
+.luna-workspace__rail {
+  grid-area: rail;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-0-5);
+  min-block-size: var(--space-0);
+  padding: var(--space-3) var(--space-1);
+  border-inline-end: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-bg-panel);
+  /* 名称提示在 body 的 portal 中呈现，不受内容导航滚动区裁剪。 */
+  overflow: visible;
+}
+
+.luna-workspace__rail-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-block-end: var(--space-2);
+  min-block-size: 32px;
+  flex-shrink: 0;
+}
+
+.luna-workspace__rail-logo {
+  display: block;
+  opacity: 0.9;
+  transition: opacity var(--transition-base);
+}
+
+.luna-workspace__rail-logo:hover {
+  opacity: 1;
+}
+
+.luna-workspace__rail-list,
+.luna-workspace__rail-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-0-5);
+}
+
+/* 内容区撑满到系统区：图标下面那一大片空白也属于它——空白处右键「显示已隐藏的空间」
+   （PRD-07-003）落点就在这里，`<nav>` 只到最后一格为止的话那片空白谁也接不到。 */
+.luna-workspace__rail-list {
+  flex: 1;
+  inline-size: var(--size-full);
+  min-block-size: var(--space-0);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+/* 活动栏放不下时、还有内容那一端的滚动箭头（macOS 菜单溢出惯例）：一行窄条，与活动栏格
+   同色阶，hover 才提亮——它是提示兼捷径，不是第十个目的地。 */
+.luna-workspace__rail-scroll {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--size-full);
+  block-size: var(--space-4);
+  flex-shrink: 0;
+  padding: var(--space-0);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.luna-workspace__rail-scroll:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-workspace__rail-footer {
+  margin-block-start: auto;
+  padding-block-start: var(--space-2);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+  flex-shrink: 0;
+}
+
+/* ── 主侧栏（sidebar）：随活动栏选中项渲染列表；auto 网格轨道由元素 inline-size 决定 ── */
+.luna-workspace__sidebar {
+  grid-area: sidebar;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  inline-size: var(--sidebar-width, var(--workspace-sidebar-inline));
+  min-inline-size: 0;
+  overflow: hidden;
+  border-inline-end: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-bg-panel);
+  transition: inline-size var(--transition-base);
+}
+
+.luna-workspace__sidebar[data-hidden="true"] {
+  inline-size: 0;
+  border-inline-end-width: 0;
+}
+
+/* 列表容器：给出确定高度供 height:100% 的列表（NoteTree / FilteredNoteList）内部滚动；
+   自然高度的列表（TagTreePanel / ChatHistoryList）超高时由本容器滚动兜底。 */
+.luna-workspace__sidebar-body {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  box-sizing: border-box;
+}
+
+/* 标签树进主侧栏后，去掉其自带的右边框与宽度上限（改由侧栏统一承载宽度/边框）；
+   自然高度，超高时由 sidebar-body 滚动兜底（与历史会话同一模型）。 */
+.luna-workspace__sidebar .luna-tags-panel {
+  max-inline-size: none;
+  border-inline-end: 0;
+}
+
+/* 侧栏/主区拖拽调宽手柄（贴侧栏右缘，PRD-07-057；双击复位默认宽） */
+.luna-sidebar-resizer {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: var(--space-2);
+  cursor: col-resize;
+}
+
+.luna-sidebar-resizer::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: var(--border-width-thin);
+  background: transparent;
+  transition: background var(--transition-fast);
+}
+
+.luna-sidebar-resizer:hover::after,
+.luna-sidebar-resizer:active::after {
+  background: var(--color-accent);
+}
+
+/* 顶栏主侧栏收起/展开钮：无列表的目的地禁用（不隐藏，防面包屑抖动） */
+.luna-sidebar-toggle:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* 采集入口（录音/速记页头部主按钮 + 空态引导，PRD-04-001 / PRD-02） */
+.luna-capture-start {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1-5);
+  inline-size: 100%;
+  min-inline-size: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* 窄侧栏 + 大字号放不下时（真机 2026-10-06：「Start Recording ⌘⇧R」顶出按钮右缘；按收缩系数让位
+   又会把「⌘⇧R」拦腰截成像「⌘⇧F」）：快捷键提示要么整颗在、要么整颗不在。做法是让它可以
+   折到第二行，而这一层只有一行高、溢出裁掉——放不下的那颗就落进看不见的第二行。图标 + 文字
+   是一个整体，永远在第一行；它自己也放不下时文字打省略号。完整名字仍在 title 与读屏名里。 */
+.luna-capture-start__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  column-gap: var(--space-2);
+  block-size: 1lh;
+  min-inline-size: 0;
+  max-inline-size: var(--size-full);
+  overflow: hidden;
+}
+
+.luna-capture-start__main {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  min-inline-size: 0;
+  max-inline-size: var(--size-full);
+}
+
+.luna-capture-start__label {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.luna-capture-toolbar {
+  display: grid;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* 按钮上的快捷键提示（`CaptureStartButton`）。
+   **不能落到那条裸 `kbd` 规则上**：`features/settings/settings.css` 里有一条全应用
+   生效的 `kbd { display: inline-flex; height: 24px; … }`——24px 的立体键帽塞进内容行高
+   只有 18px 的主按钮，整颗按钮被撑到 40px，比隔壁那几条侧栏高出一截（真机 2026-09-08
+   「速记的按钮比别的都高」）。这里按主按钮上的提示应有的形态重写：贴着文字的一枚扁平
+   小标，高度随行高走。
+   实色主按钮上**不做色块**（真机同日：半透明块在黄底上是一块脏色），只做同色淡字——
+   Linear / Raycast / Arc 的做法都是这样：提示比文字轻一档，不抢主动作。 */
+.luna-capture-start__kbd {
+  flex: 0 0 auto;
+  block-size: auto;
+  padding: var(--space-0);
+  border: 0;
+  border-radius: var(--space-0);
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  opacity: var(--opacity-idle);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.luna-transcribe-actions > .luna-capture-start {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+/* 拆分按钮的尾键（「从链接」）：与主键同一行高档、同一圆角，描边而非透明——它是主动作
+   的第二个来源，不是一枚悬浮的工具图标。 */
+.luna-transcribe-actions__tail {
+  flex: 0 0 auto;
+  /* 与主键同高：图标键原语是定尺寸的，这里放开让它随行拉伸。 */
+  inline-size: auto;
+  block-size: auto;
+  min-inline-size: var(--control-height-md);
+  min-block-size: var(--control-height-md);
+  padding-inline: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+}
+
+/* 拖入音/视频的放置态（PRD-05-001）：整窗描边提示"松手即导入"，不遮挡内容。
+   窗口级而非某个区域级——用户拖到哪儿都受理，不必先切到「转写」再瞄准一个小方框。 */
+.luna-workspace[data-media-drop]::after {
+  content: "";
+  position: fixed;
+  inset: var(--space-0);
+  border: var(--border-width-thick) dashed var(--color-border-focus);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-selected);
+  opacity: var(--opacity-idle);
+  pointer-events: none;
+  z-index: var(--z-floating-menu);
+}
+
+/* 指针拖拽的拖影（文件树 / 标签条共用，`lib/pointer-drag.ts`）。 */
+.luna-drag-ghost {
+  position: fixed;
+  inset-block-start: var(--drag-y);
+  inset-inline-start: var(--drag-x);
+  max-inline-size: 240px;
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+  z-index: var(--z-floating-menu);
+}
+
+/* ==========================================================================
+   前端风格统一与体验一致性优化新增样式
+   ========================================================================== */
+
+.luna-workspace__topbar-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-inline-end: var(--space-2);
+  border-inline-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-workspace__tool-button {
+  position: relative;
+}
+
+.luna-workspace__tool-button::after {
+  content: "";
+  position: absolute;
+  inset-block-end: var(--space-0-5);
+  inset-inline: var(--space-2);
+  block-size: var(--border-width-thick);
+  border-radius: var(--radius-full);
+  background: transparent;
+  transition: background var(--transition-fast);
+}
+
+.luna-workspace__tool-button:hover::after,
+.luna-workspace__tool-button:focus-visible::after {
+  background: var(--color-accent);
+}
+
+/* 切换型工具键（译境）：开启中必须**持续**可见，否则用户无从判断会话是否还在运行。
+   按下态的底色与字色由 `.luna-icon-btn[aria-pressed]` 统一给（此处曾再写一遍 `color`，
+   是同一属性的第二个负责者）；这里只补它独有的那条下划线。 */
+.luna-workspace__tool-button[aria-pressed="true"]::after {
+  background: var(--color-accent);
+}
+
+/* 状态栏布局与子项 */
+/* 左侧（库名 + 状态消息）让位，右侧各项不折行：状态栏行高固定，折行只会溢出。 */
+.luna-workspace__statusbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: var(--space-0);
+}
+
+.luna-workspace__statusbar-message {
+  min-inline-size: var(--space-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-workspace__statusbar-right {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-4);
+  white-space: nowrap;
+}
+
+.luna-workspace__statusbar-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* 字数目标达成（W6b）：同一行字换成强调色，不另起徽标。 */
+.luna-workspace__statusbar-words[data-goal-reached] {
+  color: var(--color-accent);
+}
+
+/* 「正在录音」指示（可点，跳到录音目的地）。`border`/`background`/`cursor` 此前是从
+   `.luna-workspace__statusbar button` 元素兜底继承来的，兜底删除后由它自己声明。 */
+.luna-workspace__statusbar-recording {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-status-active);
+  font: inherit;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.luna-workspace__statusbar-recording:hover {
+  background: var(--color-bg-hover);
+}
+
+/* CPU / GPU 收进一颗按钮（R5）：与状态栏其余文字按钮同一形态，展开时数值接在图标后。 */
+.luna-workspace__statusbar-res {
+  gap: var(--space-2);
+  font-variant-numeric: tabular-nums;
+  border: 0;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  padding: var(--space-0-5) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.luna-workspace__statusbar-res:hover,
+.luna-workspace__statusbar-res[aria-pressed="true"] {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-workspace__statusbar-res-metric {
+  color: var(--color-text-muted);
+}
+
+/* 状态栏里的文字按钮：算力标签与「Tab 移动焦点」指示同一形态。 */
+.luna-workspace__statusbar-compute-btn,
+.luna-workspace__statusbar-sync-btn,
+.luna-workspace__statusbar-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+  padding: var(--space-0-5) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.luna-workspace__statusbar-compute-btn:hover,
+.luna-workspace__statusbar-sync-btn:hover,
+.luna-workspace__statusbar-mode-btn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+/* 要用户动手的同步状态（待确认删除、待解锁、只读、出错）用警示色，安静的状态不抢眼。 */
+.luna-workspace__statusbar-sync-btn[data-attention="true"] {
+  color: var(--color-status-warning);
+}
+
+.luna-workspace__statusbar-notification-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+  padding: var(--space-0-5) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.luna-workspace__statusbar-notification-btn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-workspace__statusbar-notification-btn[data-unread="true"] {
+  background: var(--color-bg-selected);
+  color: var(--color-accent);
+}
+
+/* 转写清单筛选条与动作区 的样式已按 TDD-15 §2.3 归位到 features/transcribe/transcribe.css。 */
+
+/* 字幕质量角标 的样式已按 TDD-15 §3.3a 归位到 features/playback/playback.css。 */
+
+/* 清单行尾徽标 的样式已按 TDD-15 §3.3a 归位到 features/workspace/workspace.css。 */

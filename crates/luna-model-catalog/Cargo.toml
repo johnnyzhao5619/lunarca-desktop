@@ -1,0 +1,12 @@
+[package]
+name = "luna-model-catalog"
+description = "本地模型目录的唯一条目定义与随包目录（ADR-145）：零 IO 叶子，客户端与服务端共用"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true

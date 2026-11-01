@@ -1,0 +1,38 @@
+{
+  "_comment": [
+    "视频脚本改稿动作「script.tighten」（PRD-19-013/014，ADR-162）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "editor",
+  "template": "creator.script.tighten",
+  "cases": [
+    {
+      "name": "精简：保留事实与顺序，不加新内容",
+      "vars": {
+        "language_lock": "The output must stay in Chinese.",
+        "context": ""
+      },
+      "must_contain": [
+        "fewer words",
+        "Keep every fact",
+        "do not add new points",
+        "must stay in Chinese",
+        "Output only"
+      ],
+      "why": "精简最常见的失败是顺手补一句「总结」或把论点重排——那等于改了作者的稿"
+    },
+    {
+      "name": "标记与 broll 块原样保留",
+      "vars": {
+        "language_lock": "The output must stay in English.",
+        "context": ""
+      },
+      "must_contain": [
+        "`broll` code blocks",
+        "[口播]",
+        "exactly as they are"
+      ],
+      "why": "改稿若吃掉 broll 块或行首标记，脚本的分段时长与画面清单就全乱了（PRD-19-010）"
+    }
+  ]
+}

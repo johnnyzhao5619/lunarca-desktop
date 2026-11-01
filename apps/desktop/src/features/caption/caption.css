@@ -1,0 +1,556 @@
+/* ─── 实时字幕视图（录音 HUD 与字幕面板共用）─────────────────────────────────── */
+
+.luna-subtitle {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-panel);
+}
+
+/* hud 变体：紧凑（面板内），限高滚动。cue 间留白更大（gap space-4），使连续两句不再糊成一片；
+ * 组内原文↔译文靠 cue 自身 gap 紧贴，「转写一组、转译一行」层次分明（用户"分开显示"诉求）。 */
+.luna-subtitle[data-variant="hud"] {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  gap: var(--space-4);
+  font-size: var(--font-size-sm);
+}
+
+/* caption 变体：大字（影片字幕/歌词式），透明底贴近覆盖字幕。填满窗口可用高度、内容滚动**贴底**
+ * （最新字幕在下沿，对标主流播放器字幕）；窗口可拖拽调整大小，高度由用户决定。 */
+.luna-subtitle[data-variant="caption"] {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  text-align: center;
+}
+/* 内容贴底：零高 ::before 吸收上方空白，把字幕推到下沿（避免 justify-content:flex-end 的溢出裁切 bug）。 */
+.luna-subtitle[data-variant="caption"]::before {
+  content: "";
+  margin-block-start: auto;
+}
+
+.luna-subtitle__cue {
+  min-inline-size: 0;
+}
+
+/* hud：原文 + 译文紧密成组（组内小间距；组间大间距由容器 gap 给出）。caption 保持块流——
+ * 沉浸模式下源/译文以 inline-block 衬底「贴字」，不能被 flex 项 blockify（否则衬底铺满整行）。 */
+.luna-subtitle[data-variant="hud"] .luna-subtitle__cue {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.luna-subtitle__source {
+  margin: var(--space-0);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-base);
+}
+
+/* 轨级说话人标签（PRD-04-053 L0）：cue 行首小徽标，「我」中性、「对方」强调色。 */
+.luna-subtitle__track {
+  display: inline-block;
+  margin-inline-end: var(--space-2);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-base);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-muted);
+  vertical-align: baseline;
+}
+
+.luna-subtitle__track[data-track="remote"] {
+  color: var(--color-accent);
+  background: var(--color-accent-surface);
+}
+
+/* 说话人配色槽位（`[data-speaker-slot]` → `--speaker-color` / `--speaker-surface`）已归位到
+   `styles/tokens/base.css`：它是 caption 声明、playback 消费的**跨 feature 映射契约**，
+   住在其中一方的样式表里等于让另一方去别人家找自己依赖的变量。 */
+
+/* 回放说话人徽标（PRD-04-054 改名 / PRD-04-056 指派）：按槽位着色，点击开指派菜单。 */
+.luna-subtitle__track[data-speaker-slot] {
+  color: var(--speaker-color);
+  background: var(--speaker-surface);
+}
+
+/* 未指派（校对模式下的占位入口）：虚线描边表达「这里还缺一个归属」。 */
+.luna-subtitle__track[data-unassigned="true"] {
+  border-style: dashed;
+  border-color: var(--color-border-default);
+  color: var(--color-text-muted);
+  background: transparent;
+}
+
+button.luna-subtitle__track--editable {
+  border: var(--border-width-thin) solid transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button.luna-subtitle__track--editable:hover,
+button.luna-subtitle__track--editable:focus-visible {
+  border-color: var(--speaker-color, var(--color-accent));
+}
+
+button.luna-subtitle__track--editable:disabled {
+  cursor: default;
+  opacity: var(--opacity-disabled);
+}
+
+.luna-subtitle[data-variant="hud"] .luna-subtitle__source {
+  font-weight: 550;
+}
+
+.luna-subtitle[data-variant="caption"] .luna-subtitle__source {
+  font-size: var(--caption-source-size, 1.7rem);
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.luna-subtitle__translation {
+  margin: var(--space-0);
+  color: var(--color-accent);
+  line-height: var(--line-height-base);
+}
+
+/* hud 变体：译文以强调色左轨 + 缩进「悬挂」在原文之下，一眼读作「此句的转译」，
+ * 与上方的转写原文明确分列——这是 Chrome / 影片双语字幕的通行呈现（用户参照诉求）。 */
+.luna-subtitle[data-variant="hud"] .luna-subtitle__translation {
+  padding-inline-start: var(--space-2);
+  border-inline-start: var(--border-width-thick) solid var(--color-accent);
+}
+
+.luna-subtitle[data-variant="caption"] .luna-subtitle__translation {
+  margin-block-start: var(--space-1);
+  font-size: var(--caption-translation-size, 1.35rem);
+  font-weight: 550;
+}
+
+.luna-subtitle__hypothesis {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.luna-subtitle__empty {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* 这里此前还有两块 `.luna-rec-hud .luna-icon-btn`（尺寸/底色 + hover/展开/按下），
+   逐条都与 `.luna-icon-btn` 的基定义**一模一样**——它们存在的唯一理由就是把上面
+   那块元素兜底压回去。兜底没了，它们也就没有内容了，整块删除（同一个类不该有第二个
+   定义点，§3.3b）。 */
+
+/* 转译目标外语选择器（录音 HUD / 字幕面板共用） */
+/* 外观归 `.luna-select` 原语（2026-09-08 收编），这里只管占位；沉浸态的配色覆盖在下面。 */
+.luna-subtitle-target {
+  min-inline-size: var(--space-0);
+}
+
+/* 语言流条（PRD-04-046，Chrome Live Caption 对标）：[源语言 ▾] → [目标语言 ▾]。 */
+.luna-subtitle-langflow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  min-width: var(--space-0);
+}
+
+.luna-subtitle-langflow__arrow {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ─── 实时字幕面板（live-caption，PRD-04-040 / ADR-137 H6）────────────────────── */
+
+/* 字幕窗为透明窗口：body 透明，背景只由「背景浓淡」决定（0 = 全透明的沉浸）。 */
+html:has(.luna-caption),
+body:has(.luna-caption),
+#root:has(.luna-caption) {
+  background: transparent;
+}
+
+/*
+ * 纯内容浮层（ADR-137 H6，对标 macOS 实时字幕 / Chrome Live Caption）：外壳（圆角、透明窗）归
+ * `.luna-hud-surface`；这里只把底色换成字幕式的暗衬——**不再有「框体 / 沉浸」两种皮**，浓淡
+ * 由一根滑杆（`--caption-frame-alpha`，设置驱动）连续调，0 即沉浸。字幕窗为用户可调整大小的
+ * 稳定窗口（resizable、不挂 autoGrow），内容在框内滚动贴底；工具药丸绝对定位、悬浮其上。
+ */
+.luna-caption {
+  position: relative;
+  border-color: transparent;
+  background: rgb(0 0 0 / var(--caption-frame-alpha, 0));
+}
+
+/* 字幕字号档（设置驱动，PRD-04-040）：变量随 data-font-size 变，源/译文字号据此缩放。 */
+.luna-caption-look[data-font-size="small"] {
+  --caption-source-size: 1.25rem;
+  --caption-translation-size: 1.05rem;
+}
+.luna-caption-look[data-font-size="medium"] {
+  --caption-source-size: 1.5rem;
+  --caption-translation-size: 1.2rem;
+}
+.luna-caption-look[data-font-size="large"] {
+  --caption-source-size: 1.85rem;
+  --caption-translation-size: 1.45rem;
+}
+.luna-caption-look[data-font-size="xlarge"] {
+  --caption-source-size: 2.3rem;
+  --caption-translation-size: 1.8rem;
+}
+
+/* 字幕文字颜色档（对标播放器字幕：白/黄/青/绿）——任何背景浓淡下都生效（此前只在沉浸态生效）。 */
+.luna-caption-look[data-text-color="white"] {
+  --caption-text-color: var(--caption-color-white);
+}
+.luna-caption-look[data-text-color="yellow"] {
+  --caption-text-color: var(--caption-color-yellow);
+}
+.luna-caption-look[data-text-color="cyan"] {
+  --caption-text-color: var(--caption-color-cyan);
+}
+.luna-caption-look[data-text-color="green"] {
+  --caption-text-color: var(--caption-color-green);
+}
+
+/* 逐行暗底紧贴文字（Netflix / YouTube 字幕惯例）：alpha 由 `--caption-bg-alpha`（设置驱动）控制，
+   0 = 纯描边无底。整块背景再浓，这一层也照样在——两者独立叠加。 */
+.luna-caption-look .luna-subtitle__source,
+.luna-caption-look .luna-subtitle__translation,
+.luna-caption-look .luna-subtitle__hypothesis {
+  display: inline-block;
+  padding: 0.08em 0.42em;
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / var(--caption-bg-alpha, 0.55));
+  text-shadow: var(--caption-text-shadow);
+}
+
+.luna-caption-look .luna-subtitle__source {
+  color: var(--caption-text-color, var(--caption-immersive-text));
+}
+
+.luna-caption-look .luna-subtitle__translation {
+  color: var(--caption-text-color, var(--caption-immersive-text));
+  opacity: 0.9;
+}
+
+/* 正在听写的暂定句：与定稿行同一层暗底（此前只有一圈投影，浅色背景上是一团糊的灰字）。 */
+.luna-caption-look .luna-subtitle__hypothesis {
+  color: var(--caption-immersive-text);
+  opacity: 0.8;
+}
+
+/*
+ * 空态提示（「点击『开始』…」）：一枚暗衬小药丸，与工具药丸同一套皮——**不靠文字投影**。
+ * 透明窗下它可能落在任何颜色上：白字 + 黑色投影在浅色背景上会晕成一圈脏边（真机
+ * 2026-10-02 截图）；暗衬托底在深浅背景上都清楚。
+ */
+.luna-caption .luna-subtitle__empty {
+  align-self: center;
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width-thin) solid var(--caption-immersive-hairline);
+  border-radius: var(--radius-full);
+  color: var(--caption-immersive-text);
+  background: var(--caption-immersive-scrim-strong);
+  text-shadow: none;
+}
+
+/* 沉浸（浓淡 0）：只留最新一句，居中在安全区里。 */
+.luna-caption[data-immersive="true"] .luna-subtitle {
+  padding-block: var(--caption-safe-block);
+  padding-inline: var(--caption-safe-inline);
+  overflow: hidden;
+}
+
+.luna-caption[data-immersive="true"] .luna-subtitle__cue,
+.luna-caption[data-immersive="true"] .luna-subtitle__hypothesis {
+  max-inline-size: min(var(--caption-line-measure), var(--size-full));
+  margin-inline: auto;
+  text-wrap: balance;
+}
+
+/*
+ * 工具药丸（`HudHeader` 挂 `.luna-caption__toolbar`）：顶部居中、暗衬亮字（遮在任意内容上恒可读，
+ * 不随主题）。空闲时常显——用户要能找到「开始」；会话中只在指针进窗或键盘聚焦时浮现，否则
+ * 不挡字幕（ADR-112 ⑥⑵：悬停才出现的东西必须有键盘等价物，`:focus-within` 即是）。
+ */
+.luna-caption__toolbar {
+  position: absolute;
+  inset-block-start: var(--space-2);
+  inset-inline-start: 50%;
+  z-index: 2;
+  max-inline-size: calc(var(--size-full) - var(--space-4));
+  padding: var(--space-1);
+  border: var(--border-width-thin) solid var(--caption-immersive-hairline);
+  border-radius: var(--radius-full);
+  color: var(--caption-immersive-text);
+  background: var(--caption-immersive-scrim-strong);
+  /* 不写投影：药丸离窗口上缘只有一格，投影被透明窗的边缘切断，留下一道发毛的硬边（真机
+     2026-10-02）。暗衬 + 发丝边已足够把它从字幕上托起来。 */
+  transform: translateX(-50%);
+  transition: opacity var(--transition-base);
+}
+
+.luna-caption[data-session="open"] .luna-caption__toolbar {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.luna-caption[data-session="open"]:hover .luna-caption__toolbar,
+.luna-caption[data-session="open"]:focus-within .luna-caption__toolbar,
+.luna-caption[data-panel-open] .luna-caption__toolbar {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/*
+ * 窗口边界（真机 2026-10-02：背景浓淡为 0 时两扇字幕窗都透明，分不清各在哪、有多大）：
+ * 指针进窗、空闲或外观面板开着时画一圈虚线框——中灰在深浅背景上都看得见；会话中指针离开
+ * 即消失，不挡画面。
+ */
+.luna-caption[data-immersive="true"]:hover,
+.luna-caption[data-immersive="true"][data-session="idle"],
+.luna-caption[data-immersive="true"][data-panel-open] {
+  outline: var(--border-width-thin) dashed var(--caption-bounds-outline);
+  outline-offset: calc(-1 * var(--border-width-thin));
+}
+
+/* 一句 = 一组：原文与译文各占一行、居中（电影双语字幕的排法）。 */
+.luna-caption-look .luna-subtitle__cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* 译文在上（`caption.translation_first`）：译文是主行、原文小一号作参照。 */
+.luna-caption-look[data-order="translation-first"] .luna-subtitle__translation {
+  font-size: var(--caption-source-size, 1.7rem);
+  font-weight: 650;
+  opacity: 1;
+}
+
+.luna-caption-look[data-order="translation-first"] .luna-subtitle__source {
+  font-size: var(--caption-translation-size, 1.35rem);
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+/* 药丸里的分段（显示方式）与外观面板里的分段同一套皮：暗衬上的一排胶囊。 */
+.luna-caption-preview__windows {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.luna-caption-preview__window {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.luna-caption-preview__sample {
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: rgb(0 0 0 / var(--caption-frame-alpha, 0));
+}
+
+.luna-caption-preview__sample .luna-subtitle[data-variant="caption"] {
+  block-size: auto;
+  max-block-size: none;
+  overflow: visible;
+  padding: var(--space-4);
+}
+
+.luna-caption__segmented {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: var(--space-0-5);
+  padding: var(--space-0-5);
+  border-radius: var(--radius-full);
+  background: var(--caption-immersive-hairline);
+}
+
+.luna-caption__segment {
+  min-block-size: calc(var(--hud-control-size) - var(--space-1));
+  padding: 0 var(--space-2-5);
+  border: 0;
+  border-radius: var(--radius-full);
+  color: var(--caption-immersive-text);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.luna-caption__segment[aria-pressed="true"] {
+  color: var(--shot-badge-bg);
+  background: var(--caption-immersive-text);
+  font-weight: 600;
+}
+
+.luna-caption__segment:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.luna-caption__segment:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+}
+
+/* 外观面板：从工具药丸下方展开，同一枚暗衬。 */
+.luna-caption__appearance {
+  position: absolute;
+  inset-block-start: calc(var(--space-2) * 2 + var(--hud-control-size) + var(--space-2));
+  inset-inline-start: 50%;
+  z-index: 2;
+  display: grid;
+  gap: var(--space-2);
+  inline-size: min(var(--caption-appearance-inline), calc(var(--size-full) - var(--space-4)));
+  /* 字幕窗默认只有两行字幕高（不随内容长高，TDD-07 §6）：面板放不下就在自己里面滚，
+     底边留一档空，不贴着窗底被裁掉。 */
+  max-block-size: calc(
+    var(--size-full) - var(--space-2) * 4 - var(--hud-control-size)
+  );
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--caption-immersive-hairline);
+  border-radius: var(--radius-lg);
+  color: var(--caption-immersive-text);
+  background: var(--caption-immersive-scrim-strong);
+  font-size: var(--font-size-sm);
+  transform: translateX(-50%);
+}
+
+.luna-caption__appearance-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.luna-caption__appearance-label {
+  opacity: 0.8;
+}
+
+.luna-caption__appearance-slider {
+  inline-size: 9rem;
+}
+
+.luna-caption__swatches {
+  display: inline-flex;
+  gap: var(--space-1-5);
+}
+
+.luna-caption__swatch {
+  inline-size: var(--space-5);
+  block-size: var(--space-5);
+  padding: 0;
+  border: var(--border-width-thick) solid transparent;
+  border-radius: var(--radius-full);
+  background: var(--swatch-tint);
+  cursor: pointer;
+}
+
+.luna-caption__swatch[data-swatch="white"] { --swatch-tint: var(--caption-color-white); }
+.luna-caption__swatch[data-swatch="yellow"] { --swatch-tint: var(--caption-color-yellow); }
+.luna-caption__swatch[data-swatch="cyan"] { --swatch-tint: var(--caption-color-cyan); }
+.luna-caption__swatch[data-swatch="green"] { --swatch-tint: var(--caption-color-green); }
+
+.luna-caption__swatch[aria-pressed="true"] {
+  border-color: var(--caption-immersive-text);
+  box-shadow: 0 0 0 var(--border-width-thick) var(--shot-badge-bg);
+}
+
+/* 会话中声音来源锁住的原因：音频流已按开始时的来源打开。 */
+.luna-caption__appearance-note {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  opacity: 0.7;
+}
+
+.luna-caption__appearance-more {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  color: var(--caption-immersive-text);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  opacity: 0.8;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.luna-caption__toolbar .luna-hud-title,
+.luna-caption__toolbar .luna-icon-btn,
+.luna-caption__toolbar .luna-subtitle-langflow__arrow {
+  color: var(--caption-immersive-text);
+}
+
+.luna-caption__toolbar .luna-icon-btn:hover,
+.luna-caption__toolbar .luna-icon-btn:focus-visible {
+  background: var(--caption-immersive-hairline);
+}
+
+/* 药丸里的下拉不被压窄（真机 2026-10-02：「自动检测」被挤成半截），且与同排按钮同形——
+   胶囊形、同高，不再是药丸里嵌着几块方角黑块。 */
+.luna-caption__toolbar .luna-subtitle-target {
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  color: var(--caption-immersive-text);
+  border-color: var(--caption-immersive-hairline);
+  background: var(--caption-immersive-scrim-strong);
+}
+
+/* 下拉按内容宽：原语的内层是 0 基准的弹性项（为了在窄侧栏里省略），放进不定宽的药丸里
+   就会被压到比字还窄。 */
+.luna-caption__toolbar .luna-select__control {
+  flex: 0 0 auto;
+}
+
+/* 主动作（开始 / 停止）在药丸里不撑满。 */
+.luna-caption__primary {
+  flex-shrink: 0;
+}
+
+/* 回执线在字幕之上也要可读（与药丸同一枚暗衬）。 */
+.luna-caption .luna-hud-receipt {
+  align-self: center;
+  color: var(--caption-immersive-text);
+  background: var(--caption-immersive-scrim-strong);
+}
+
+.luna-caption__language-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 32rem) {
+  .luna-caption__toolbar {
+    inset-inline: var(--space-2);
+    transform: none;
+  }
+
+  .luna-caption__toolbar .luna-hud-header-lane {
+    display: none;
+  }
+}
+
+/* 录音 HUD 的样式已按 TDD-15 §3.3 归位到 features/recording/recording.css。 */
+
+/* 回放与说话人 的样式已按 TDD-15 §2.3 归位到 features/playback/playback.css。 */

@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    // `ES2021.Intl` 只补 `Intl.ListFormat` 这一族的**类型**（运行时 WKWebView 早已有它）：
+    // 「对话与翻译、语义索引」这种列表的分隔符必须由语言决定，中文的顿号与英文的 and
+    // 在 i18n 文案里手写就会在第三种语言上露馅。target 不动——这里要的只是类型。
+    "lib": ["ES2020", "ES2021.Intl", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["src"]
+}

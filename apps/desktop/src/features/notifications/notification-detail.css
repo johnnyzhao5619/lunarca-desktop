@@ -1,0 +1,127 @@
+/* ─── 通知详情预览（NotificationDetail，PRD-07 通知中心） ─────────────────── */
+/* 通知详情**就是** `.luna-dialog` 基类（带内距、内容自滚），只是宽一点、外加一条按
+   严重度着色的左缘条。此前它整套外壳自写了一遍。 */
+.luna-notification-detail {
+  inline-size: min(32rem, 92vw);
+  border-inline-start: var(--border-width-thick) solid var(--color-status-muted);
+}
+
+.luna-notification-detail[data-severity="warning"] {
+  border-inline-start-color: var(--color-status-warning);
+}
+
+.luna-notification-detail[data-severity="error"],
+.luna-notification-detail[data-severity="critical"] {
+  border-inline-start-color: var(--color-status-error);
+}
+
+.luna-notification-detail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.luna-notification-detail__badges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-notification-detail__severity,
+.luna-notification-detail__class {
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.luna-notification-detail__severity {
+  color: var(--color-status-muted);
+  background: var(--color-status-muted-surface);
+}
+
+.luna-notification-detail__severity[data-severity="warning"] {
+  color: var(--color-status-warning);
+  background: var(--color-status-warning-surface);
+}
+
+.luna-notification-detail__severity[data-severity="error"],
+.luna-notification-detail__severity[data-severity="critical"] {
+  color: var(--color-status-error);
+  background: var(--color-status-error-surface);
+}
+
+.luna-notification-detail__class {
+  color: var(--color-text-secondary);
+  background: var(--color-bg-muted);
+}
+
+.luna-notification-detail__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.luna-notification-detail__close:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+.luna-notification-detail__title {
+  margin: var(--space-0);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  line-height: var(--line-height-base);
+}
+
+.luna-notification-detail__body {
+  margin: var(--space-0);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+.luna-notification-detail__meta {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-0);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.luna-notification-detail__meta-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.luna-notification-detail__meta-row dt {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-notification-detail__meta-row dd {
+  margin: var(--space-0);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  text-align: end;
+  overflow-wrap: anywhere;
+}
+
+.luna-notification-detail__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}

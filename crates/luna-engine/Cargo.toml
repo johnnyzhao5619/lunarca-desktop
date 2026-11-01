@@ -1,0 +1,45 @@
+[package]
+name = "luna-engine"
+description = "本地推理引擎部署：llama-server 路由器监管（ADR-143）、whisper-rs 进程内 ASR（TDD-03、ADR-013）"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+luna-core = { path = "../luna-core" }
+# 目录条目的 GGUF 角色 → preset 角色只此一处换算（应用与 `luna` CLI 共用）。
+luna-model-catalog = { path = "../luna-model-catalog" }
+async-trait.workspace = true
+async-stream.workspace = true
+futures.workspace = true
+reqwest.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+# 路由器密钥（ADR-143 ③）：v4 = 系统 CSPRNG。
+uuid = { workspace = true, features = ["v4"] }
+# 进程内 ASR（whisper.cpp FFI，ADR-010/013）。非 macOS 只编 CPU 后端：`metal` 会让 ggml 的
+# CMake 去找 Apple Foundation 框架，Windows 上配置期即失败。
+whisper-rs = { version = "0.14", default-features = false }
+
+# macOS 编入 Metal 与 CoreML。`metal` feature 仅决定**构建期**编入 Metal 后端；
+# **运行期后端由进程外探针决定**（src-tauri `whisper_backend`）：首次遇到某模型在独立子进程试跑
+# Metal 初始化+微解码，成功→持久化并进程内启用 Metal，原生崩溃/超时→安全回退 CPU（缓存结论，
+# 不反复探测）。`LUNA_WHISPER_BACKEND=cpu|metal` 可强制覆盖。
+# CoreML 编码器后端（ADR-115）：whisper.cpp 以 `WHISPER_COREML_ALLOW_FALLBACK`
+# 构建——`<weights>-encoder.mlmodelc` 在场即用 ANE 跑 encoder，缺席或加载失败自动回落
+# Metal/CPU，运行期不需要开关。工件由模型管理下载（预转换发布物，不在本机转换）。
+[target.'cfg(target_os = "macos")'.dependencies]
+whisper-rs = { version = "0.14", default-features = false, features = ["metal", "coreml"] }
+
+# Windows 上 whisper 默认线程数取物理核数（`default_threads`，TDD-03 §4）；标准库只给逻辑核数。
+# 与 src-tauri 同版本同特性，不引入新 crate。
+[target.'cfg(windows)'.dependencies]
+sysinfo = { version = "0.33", default-features = false, features = ["system"] }
+
+[dev-dependencies]
+# 仅 `real_model_transcribes_jfk`（#[ignore]，真机）读 wav 用。
+hound = "3"
+# `tests/llama_live.rs`（#[ignore]，真机）拼请求体。
+serde_json.workspace = true

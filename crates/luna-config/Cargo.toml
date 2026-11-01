@@ -1,0 +1,33 @@
+[package]
+name = "luna-config"
+description = "配置与设置注册表（单一来源）+ 本机密钥保险箱（TDD-05 §7、TDD-12 §2）"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+toml.workspace = true
+thiserror.workspace = true
+luna-content-schema = { path = "../luna-content-schema" }
+# 钥匙串里只存保险箱主密钥那一条（TDD-12 §2）；apple-native / windows-native 见工作区声明。
+keyring.workspace = true
+# 失败退避原语（主密钥读不到时的静默期）——纯逻辑、零 IO，与网络熔断同一条策略。
+luna-core = { path = "../luna-core" }
+# 保险箱逐条加密（AES-256-GCM，随机 nonce 取 aes-gcm 自带的 OsRng）：与同步客户端、云插件
+# 同一份 RustCrypto 实现（MIT OR Apache-2.0，ADR-005 已核），零新增 crate。
+aes-gcm = { workspace = true }
+zeroize = { workspace = true }
+base64 = { workspace = true }
+serde_json.workspace = true
+# 原子写：同目录临时文件 → fsync → 改名（已在依赖树里，原为 dev 依赖）。
+tempfile = "3"
+# 首启目录迁移要按系统约定定位应用目录的父目录（identity 模块，ADR-030）；与 luna-cli 同一版本，零新增 crate。
+dirs = "6"
+
+# 旧钥匙串条目「只删不读」：`SecItemDelete` 按 service + account 删除、不取内容（keyring 的删除会先
+# 读内容，读即弹授权框）。3.x 已随 native-tls 进入依赖树，零新增 crate（MIT OR Apache-2.0）。
+[target.'cfg(target_os = "macos")'.dependencies]
+security-framework = "3"

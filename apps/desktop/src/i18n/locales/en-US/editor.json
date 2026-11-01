@@ -1,0 +1,535 @@
+{
+  "title": "Editor",
+  "canvas": {
+    "notes": {
+      "placeholder": "Start writing…",
+      "empty": "Start typing to create a note.",
+      "title": "New note"
+    },
+    "drafts": {
+      "placeholder": "Jot a quick note…",
+      "empty": "Write here and it's saved as a quick note automatically.",
+      "title": "New quick note"
+    }
+  },
+  "folderPlaceholder": "This is a folder. Select a note to start editing.",
+  "foldersCount": "folders",
+  "filesCount": "notes",
+  "save": "Save",
+  "dirty": "Unsaved",
+  "clean": "Saved",
+  "loading": "Loading",
+  "saving": "Saving",
+  "renaming": "Renaming",
+  "rename": "Rename",
+  "nameLabel": "Note name",
+  "namePlaceholder": "Enter note name",
+  "nameEmpty": "Note name is required",
+  "externalReload": "External change synced",
+  "externalConflict": "This file changed elsewhere. Autosave is paused; choose how to handle your local edits.",
+  "externalDeleted": "This file was deleted elsewhere. Autosave is paused; save your local edits as a copy.",
+  "savedIndexPending": "File saved; the index update failed. Search results may be temporarily outdated.",
+  "conflictSaveCopy": "Save local copy",
+  "conflictCopySaved": "Local edits saved as a copy",
+  "conflictCompare": "Compare disk and local edits",
+  "conflictMerge": "Merge both edits",
+  "conflictMerged": "Merged both edits. You can undo this.",
+  "conflictMergeOverlap": "Both sides changed the same lines, so they can't be merged automatically. Compare them to choose.",
+  "conflictMergeTooLarge": "Too many changes to merge automatically. Compare them to choose.",
+  "reload": "Reload",
+  "loadFailedNotice": "Couldn't open this note; the file on disk was not changed. {{error}}",
+  "loadRetry": "Try again",
+  "keepLocal": "Overwrite with local edits",
+  "error": "Error",
+  "words": "Words",
+  "linkPlaceholder": "url",
+  "tableEditing": {
+    "cell": "Table row {{row}}, column {{column}}",
+    "rowHandle": "Row {{row}} actions",
+    "columnHandle": "Column {{column}} actions",
+    "appendRow": "Add a row at the end",
+    "appendColumn": "Add a column at the right",
+    "menu": {
+      "insert": "Insert",
+      "rowAbove": "Row above",
+      "rowBelow": "Row below",
+      "columnLeft": "Column left",
+      "columnRight": "Column right",
+      "moveRowUp": "Move row up",
+      "moveRowDown": "Move row down",
+      "moveColumnLeft": "Move column left",
+      "moveColumnRight": "Move column right",
+      "deleteRow": "Delete row",
+      "deleteColumn": "Delete column",
+      "headerRowFixed": "The header row can't be deleted or moved",
+      "lastColumnFixed": "A table needs at least one column",
+      "sortAscending": "Sort ascending by this column",
+      "sortDescending": "Sort descending by this column",
+      "align": "Align",
+      "alignLeft": "Left",
+      "alignCenter": "Center",
+      "alignRight": "Right",
+      "alignNone": "Default",
+      "copyAs": "Copy table as",
+      "copyMarkdown": "Markdown",
+      "copyCsv": "CSV",
+      "copyRich": "Formatted (for documents and spreadsheets)",
+      "tidySource": "Tidy table source (align columns)",
+      "deleteTable": "Delete table",
+      "toText": "Convert table to text (tab-separated)",
+      "aiSummarize": "Summarize this table with AI",
+      "aiFillColumn": "Fill this column with AI…"
+    },
+    "picker": {
+      "title": "Insert table: choose a size",
+      "size": "{{columns}} × {{rows}} table"
+    }
+  },
+  "properties": {
+    "label": "Properties",
+    "empty": "No properties yet",
+    "add": "Add property",
+    "newKeyPlaceholder": "Property name",
+    "addItem": "Add item",
+    "addItemTo": "Add an item to {{key}}",
+    "remove": "Remove property {{key}}",
+    "removeItem": "Remove {{item}}",
+    "keyLabel": "Property name {{key}}",
+    "valueLabel": "Value of {{key}}",
+    "typeLabel": "Type of {{key}}",
+    "editSource": "Edit in source",
+    "kind": {
+      "text": "Text",
+      "number": "Number",
+      "checkbox": "Checkbox",
+      "date": "Date",
+      "date_time": "Date & time",
+      "list": "List"
+    },
+    "skip": {
+      "unsupported_form": "This form can't be edited in the panel",
+      "inline_comment": "The value has a comment that editing here would lose",
+      "multi_line": "Multi-line values can't be edited here",
+      "nested": "Nested structures can't be edited here",
+      "duplicate_key": "This property name appears more than once",
+      "unclosed": "The opening --- isn't closed; fix it in source first",
+      "key_exists": "A property with this name already exists",
+      "invalid_key": "Names can't be empty, contain a colon or #, or be luna",
+      "not_found": "This property is gone; it may have just changed",
+      "invalid_value": "That value doesn't fit the type: numbers like 12 or 1.5, dates like 2026-10-04"
+    }
+  },
+  "frontmatter": {
+    "label": "Metadata (YAML)",
+    "labelCount": "Metadata ({{count}} properties)",
+    "expandTitle": "Click to expand metadata",
+    "collapseTitle": "Click to collapse metadata",
+    "expandAction": "Expand",
+    "collapseAction": "Collapse"
+  },
+  "floating": {
+    "title": "AI actions",
+    "trigger": "AI",
+    "trigger_title": "Run AI actions on the entire note",
+    "scope": {
+      "selection": "Selection",
+      "cursor": "At cursor",
+      "doc": "Entire note"
+    },
+    "ask_label": "AI instruction",
+    "ask_placeholder": "Tell AI what to do, or pick an action below…",
+    "followup_placeholder": "Follow up to refine this result…",
+    "truncated": "Input too long; only the first {{count}} characters were processed",
+    "bubble": {
+      "ai": "AI",
+      "ai_title": "AI actions ({{shortcut}})",
+      "related": "Related notes",
+      "quote": "Save as quote"
+    },
+    "group": {
+      "edit": "Edit",
+      "generate": "Generate",
+      "understand": "Understand",
+      "vault": "This vault",
+      "presets": "Presets"
+    },
+    "action": {
+      "summarize": "Summarize",
+      "translate": "Translate",
+      "optimize": "Refine",
+      "continue": "Continue writing",
+      "search": "Related notes",
+      "send": "Send instruction",
+      "stop": "Stop",
+      "retry": "Retry",
+      "close": "Close",
+      "accept": "Accept",
+      "replace": "Replace selection",
+      "insert_below": "Insert below",
+      "insert_top": "Insert at top",
+      "insert_end": "Insert at end",
+      "insert_cursor": "Insert here",
+      "reject": "Discard",
+      "graph_tags": "Graph tags",
+      "copy": "Copy",
+      "speak": "Read result aloud",
+      "proofread": "Fix spelling & grammar",
+      "tone": "Change tone",
+      "stop_close": "Stop and close",
+      "background": "Run in background",
+      "background_title": "Hand it to the processing queue and close the panel; you get a notification when it finishes",
+      "table_from_text": "Turn into a table",
+      "script": "Script"
+    },
+    "route": {
+      "local": "On this Mac · offline",
+      "server_selection": "Cloud · sends the selection",
+      "server_context": "Cloud · sends the selection and surrounding paragraphs",
+      "server_cursor": "Cloud · sends the text before the cursor",
+      "server_doc": "Cloud · sends the entire note",
+      "server_sent": "Cloud · sent {{count}} characters"
+    },
+    "context": {
+      "on": "With surrounding paragraphs",
+      "off": "Selection only",
+      "toggle_title": "Whether to send the paragraphs before and after the selection as reference (only the selection is rewritten)"
+    },
+    "hint": "{{toggle}} open or close · Esc stop or close · {{accept}} accept",
+    "hint_no_toggle": "Esc to stop or close · {{accept}} to accept",
+    "no_match": "No matching action; press Enter to run this instruction as is",
+    "landed": {
+      "replace": "Selection replaced",
+      "insert": "Inserted",
+      "undo": "Undo"
+    },
+    "status": {
+      "idle": "Ready",
+      "running": "Generating",
+      "done": "Done",
+      "failed": "Generation failed",
+      "cancelled": "Stopped",
+      "error": "Error"
+    },
+    "search": {
+      "loading": "Searching",
+      "error": "Search failed",
+      "empty": "No matches",
+      "count": "{{count}} results"
+    },
+    "back": "Back",
+    "tone": {
+      "formal": "Formal",
+      "casual": "Casual",
+      "concise": "Concise"
+    },
+    "summary": {
+      "bullets": "Key points",
+      "paragraph": "Paragraph",
+      "one_line": "One sentence"
+    },
+    "translate": {
+      "auto": "Follow settings (auto)"
+    },
+    "result": {
+      "show_original": "Show original",
+      "candidates": "Candidates",
+      "candidate": "{{index}} / {{count}}",
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "diff": {
+      "none": "Nothing to fix",
+      "count": "{{count}} changes, {{accepted}} accepted",
+      "accept_all": "Accept all",
+      "reject_all": "Reject all",
+      "toggle_title": "Click to accept or reject this change",
+      "explain": "Why this change",
+      "explaining": "Explaining…",
+      "explain_failed": "Could not explain this one"
+    },
+    "presets": {
+      "save": "Save as preset",
+      "name_placeholder": "Name this instruction",
+      "confirm": "Save",
+      "delete": "Delete preset",
+      "saved": "Preset saved; it will be in the list next time",
+      "fromPack": "{{name}} · {{pack}}"
+    },
+    "preflight": {
+      "chunked": "{{count}} characters exceed the {{limit}} limit: Summarize will digest {{chunks}} parts, then combine them",
+      "truncated": "{{count}} characters exceed the {{limit}} limit: only the first {{limit}} will be processed",
+      "tail": "Long preceding text: only the part nearest the cursor is used as context",
+      "chunked_done": "digested in {{count}} parts",
+      "progress": "Digesting part {{done}} of {{total}}"
+    },
+    "pending": {
+      "notice": "This finished in the background and is waiting for you to land it"
+    },
+    "drag_hint": "Drag here to move the panel",
+    "table": {
+      "fill_placeholder": "What should the \"{{column}}\" column contain? For example: a one-line pitch based on the product name",
+      "fill_progress": "Filling row {{done}} of {{total}}",
+      "fill_rows": "Row by row, {{count}} rows"
+    },
+    "rejected": {
+      "not_a_table": "The AI's answer didn't contain a complete table, so your note wasn't changed. Try rephrasing, or use Insert ▸ Convert selection to table to split by delimiters.",
+      "not_a_table_source": "This isn't a table that can be filled row by row (it needs a header and at least one row)."
+    },
+    "script": {
+      "tighten": "Tighten",
+      "hook": "Rewrite the hook",
+      "spoken": "Make it conversational",
+      "dictation": "Clean up dictation"
+    }
+  },
+  "version": {
+    "open": "Version history",
+    "title": "Version history",
+    "close": "Close",
+    "empty": "No historical versions",
+    "preview": "Version preview",
+    "restore": "Restore this version",
+    "restore_confirm": "Restoring overwrites the current content with this version (the current content is snapshotted first).",
+    "size_bytes": "{{count}} B",
+    "emptyHint": "A version is kept automatically before every save, external-change merge and AI rewrite.",
+    "viewMode": "Compare mode",
+    "viewDiff": "Diff",
+    "viewFull": "Full text",
+    "diffIdentical": "This version matches the current content",
+    "diffDegraded": "The changed region is too large — shown as a coarse block replacement.",
+    "restoreConfirmYes": "Restore",
+    "restoreConfirmNo": "Cancel"
+  },
+  "mode": {
+    "label": "View mode",
+    "live": "Live preview",
+    "source": "Source mode",
+    "reading": "Reading view"
+  },
+  "more": {
+    "label": "More actions",
+    "formats": "More formatting"
+  },
+  "embed": {
+    "open": "Open",
+    "missing": "The embedded note or file can't be found"
+  },
+  "linkPreview": {
+    "label": "Link preview",
+    "open": "Open",
+    "loading": "Loading…",
+    "missing": "This note doesn't exist yet"
+  },
+  "reading": {
+    "properties": "Properties",
+    "openTag": "Open tag #{{tag}}"
+  },
+  "paste": {
+    "asMarkdown": "Paste as Markdown",
+    "readFailed": "Cannot read the clipboard. Your note was not changed.",
+    "saving": "Saving attachment…",
+    "saveFirst": "Save the note first, then paste attachments",
+    "failed": "Failed to save attachment",
+    "downloading": "Downloading remote image…",
+    "converting": "Converting clipboard content…",
+    "cancelled": "Paste cancelled; document unchanged",
+    "conversionFailed": "Format conversion failed; pasted as plain text",
+    "previewTitle": "Review paste formatting",
+    "previewHint": "Markdown cannot fully represent this content. Review the conversion or paste plain text.",
+    "cancel": "Cancel",
+    "insertPlain": "Paste plain text",
+    "insertConverted": "Insert converted content",
+    "firstRowHeader": "Use the original first row as the header",
+    "tableFillTitle": "Confirm table fill",
+    "tableFillHint": "Content will fill the table from the current cell. Review the affected range and expanded table; plain text goes into the current cell only.",
+    "tableFillRange": "Fill {{rows}} rows × {{columns}} columns starting at row {{row}}, column {{column}}.",
+    "tableFillChanges": "Change {{replacedCells}} existing non-empty cells; add {{addedRows}} rows and {{addedColumns}} columns.",
+    "fillTable": "Fill table",
+    "warning": {
+      "formatting_simplified": "Fonts, colors and specialized layouts are simplified to Markdown. Check emphasis and structure.",
+      "complex_table": "Merged cells, nested or irregular tables will be simplified. Content remains; layout may change.",
+      "missing_header": "A blank header is added; the original first data row is preserved.",
+      "images_omitted": "Image descriptions are kept; remote resources are not downloaded. Use attachments to insert images.",
+      "unsafe_links": "Unsafe links are removed; their text is retained."
+    }
+  },
+  "window": {
+    "missing": "Note not found or closed"
+  },
+  "quickNote": {
+    "products": "Quick note versions",
+    "adopted": "Adopted version",
+    "adoptedMark": "adopted",
+    "chars": "{{count}} chars",
+    "audio": "Original recording",
+    "version": {
+      "raw": "Raw transcript",
+      "refined": "Polished text",
+      "second_pass": "Second pass"
+    }
+  },
+  "print": {
+    "hint": "Choose “Save as PDF” in the system print panel to export.",
+    "again": "Print again",
+    "close": "Close",
+    "loading": "Preparing to print…"
+  },
+  "asset": {
+    "openExternal": "Open externally",
+    "loadFailed": "Cannot load a preview for this file",
+    "pdfHint": "Inline PDF preview isn't supported yet — open it with an external app.",
+    "binaryHint": "This file type has no inline preview — open it with an external app."
+  },
+  "table": {
+    "insert": "Insert table",
+    "noColumns": "Couldn't find columns in the selection. Separate them with tabs, commas or two or more spaces."
+  },
+  "menu": {
+    "insertLink": "Add link",
+    "insertWikiLink": "Add wiki link",
+    "textFormat": "Text format",
+    "paragraph": "Paragraph",
+    "insert": "Insert",
+    "bold": "Bold",
+    "italic": "Italic",
+    "strike": "Strikethrough",
+    "inlineCode": "Inline code",
+    "paragraphText": "Body",
+    "h1": "Heading 1",
+    "h2": "Heading 2",
+    "h3": "Heading 3",
+    "quote": "Quote",
+    "bulletList": "Bulleted list",
+    "orderedList": "Numbered list",
+    "taskList": "Task list",
+    "codeBlock": "Code block",
+    "callout": "Callout",
+    "hr": "Divider",
+    "tidyListLevels": "Tidy list levels…",
+    "insertAttachment": "Insert image / attachment…",
+    "insertTemplate": "Insert template…",
+    "aiActions": "AI actions…",
+    "textToTable": "Convert selection to table",
+    "noSpellingGuesses": "No Guesses Found",
+    "learnSpelling": "Learn Spelling"
+  },
+  "toolbar": {
+    "label": "Formatting toolbar",
+    "headingTitle": "Paragraph style",
+    "labelShortcut": "{{label}} ({{shortcut}})",
+    "show": "Show formatting toolbar"
+  },
+  "writing": {
+    "label": "Writing modes",
+    "typewriter": "Typewriter mode",
+    "typewriterHint": "Keep the current line vertically centered while typing",
+    "focus": "Focus mode",
+    "focusHint": "Dim paragraphs other than the current one",
+    "spellcheck": "Spell Check",
+    "spellcheckHint": "Underline misspelled words in Latin-script languages; right-click for corrections"
+  },
+  "tidyList": {
+    "title": "Tidy list levels",
+    "desc": "Found {{count}} lines with empty nested list chains; each will be collapsed to a single list marker. Nothing is written until you confirm.",
+    "lineNo": "Line {{line}}",
+    "snapshotNote": "A version snapshot is kept before writing; recover it from version history.",
+    "cancel": "Cancel",
+    "confirm": "Tidy {{count}} lines",
+    "nothing": "Nothing to tidy: no empty nested list chains found",
+    "done": "Tidied {{count}} lines"
+  },
+  "graphTags": {
+    "group": "Knowledge network",
+    "viewGraph": "View in knowledge network",
+    "generate": "Update graph tags (AI)",
+    "generating": "Generating graph tags…",
+    "done": "Graph tags updated ({{count}})",
+    "panelDone": "Generated {{count}} graph tags and saved them to the note",
+    "saveFailed": "Save the note first to generate graph tags",
+    "ok": "Done"
+  },
+  "read": {
+    "readDoc": "Read aloud",
+    "stopDoc": "Stop reading",
+    "selection": "Read selection aloud",
+    "controls": "Reading controls",
+    "pause": "Pause",
+    "resume": "Resume",
+    "stop": "Stop",
+    "speed": "Speed"
+  },
+  "empty": "Pick something on the left to write up, or just start writing — turn it into a proper note once it is ready",
+  "search": {
+    "find": "Find",
+    "replace": "Replace",
+    "next": "next",
+    "previous": "previous",
+    "all": "all",
+    "matchCase": "match case",
+    "regexp": "regexp",
+    "byWord": "by word",
+    "replaceOne": "replace",
+    "replaceAll": "replace all",
+    "close": "close",
+    "currentMatch": "current match",
+    "onLine": "on line",
+    "goToLine": "Go to line",
+    "go": "go",
+    "replacedMatches": "replaced $ matches",
+    "replacedOnLine": "replaced match on line $"
+  },
+  "timecode": {
+    "playFromHere": "Play from this line (⌘/Ctrl-click the line does the same)"
+  },
+  "image": {
+    "view": "View larger",
+    "resize": "Drag to resize, double-click to reset",
+    "lightbox": "Image viewer",
+    "close": "Close",
+    "previous": "Previous image",
+    "next": "Next image"
+  },
+  "fold": {
+    "fold": "Fold",
+    "unfold": "Unfold"
+  },
+  "conflictCopy": {
+    "copyOf": "This is a conflicted copy of “{{name}}” ({{source}}): the note was changed in two places at once and the sync could not merge them.",
+    "source": {
+      "syncthing": "from Syncthing",
+      "dropbox": "from Dropbox",
+      "icloud": "from iCloud",
+      "git_markers": "git"
+    },
+    "compare": "Compare with original",
+    "keepCopy": "Keep this copy",
+    "keepOriginal": "Keep original",
+    "keepCopyTitle": "Replace “{{name}}” with this copy?",
+    "keepCopyDesc": "The original is saved as a version first and can be restored from Version history. This copy is then removed: {{consequence}}",
+    "keepOriginalTitle": "Keep the original and remove this copy?",
+    "keepOriginalDesc": "The original stays as it is. This copy is removed: {{consequence}}",
+    "keptCopy": "Replaced the original with this copy. The old text is in Version history.",
+    "keptOriginal": "Kept the original and removed the copy.",
+    "gitMarkers": "This note contains unresolved git merge conflict markers (<<<<<<< / ======= / >>>>>>>). Keep the parts you need and delete the markers.",
+    "badge": "Conflicted copy"
+  },
+  "templateInsert": {
+    "title": "Insert template",
+    "hint": "Pick a template to insert at the cursor; its variables are filled in now. The template's properties (frontmatter) are not inserted."
+  },
+  "wordGoal": {
+    "menu": "Word Goal…",
+    "title": "Word goal for this note",
+    "label": "Target words",
+    "desc": "How many words this note should reach. The status bar shows “written / goal”; the goal is kept in this note’s frontmatter.",
+    "descCurrent": "The current goal is {{goal}} words. Enter 0 to remove it.",
+    "confirm": "Set",
+    "invalid": "Enter a whole number for the word goal (0 removes it)",
+    "set": "Word goal: {{goal}} words",
+    "cleared": "Word goal removed",
+    "saveFirst": "This note has unsaved changes — save it before setting a goal"
+  },
+  "quote": {
+    "saved": "Saved to the quotes in “{{note}}”."
+  }
+}

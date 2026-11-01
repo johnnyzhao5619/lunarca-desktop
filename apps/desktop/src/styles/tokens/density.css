@@ -1,0 +1,23 @@
+/*
+ * 信息密度档（PRD-12-021 / PRD-12-022）：只重映射 spacing 与行高 Token，组件零改动。
+ * 默认「紧凑」即 primitive.css 的原值（PRD-12-020 对标 Obsidian）；「舒适」整体放宽约 1.25×。
+ * 与明暗 / 配色族 / 高对比正交：只动尺寸，不碰颜色。最小可点击区域由 `--space-*` 放大
+ * 而不缩小，故不会低于紧凑档（PRD-12-023）。
+ */
+:root[data-density="comfortable"] {
+  --space-0-5: 3px;
+  --space-1: 5px;
+  --space-1-5: 8px;
+  --space-2: 10px;
+  --space-2-5: 12px;
+  --space-3: 15px;
+  --space-4: 20px;
+  --space-5: 24px;
+  --space-6: 30px;
+  --space-7: 34px;
+  --line-height-base: 1.6;
+  /* 控件行高档与 `--space-*` 同比放宽（约 1.25×）：它是独立的一层 Token，不会被
+     spacing 的重映射顺带带上，漏改的表现就是"舒适档下控件没变高、只有间距变大"。 */
+  --control-height-md: 36px;
+  --control-height-sm: 32px;
+}

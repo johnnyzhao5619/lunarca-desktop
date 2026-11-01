@@ -1,0 +1,401 @@
+/*
+ * 「AI 在哪跑」状态卡片。首屏唯一必看的东西，故给它比设置行更强的存在感，
+ * 但仍走既有 token —— 不引入任何新色值/新尺寸（AGENTS.md §4 禁硬编码）。
+ *
+ * 边界与间距归共用的 `.luna-settings-card`（settings.css）：这一页四块并列，
+ * 外壳写四份就是四种说法。这里只写这张卡自己的布局。
+ */
+
+.luna-compute-card {
+  display: flex;
+  flex-direction: column;
+  /* 块间 1.5 档：三条带各自带着分隔线与自己的上边距，块与块之间再留一整档就偏松。 */
+  gap: var(--space-1-5);
+}
+
+.luna-compute-card__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.luna-compute-card__where {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+/*
+ * 严格本地与服务端形态用不同颜色：这是用户一眼要读到的「我的音频出不出去」。
+ * 只靠文字的话，两种完全相反的状态在余光里长得一样。
+ */
+.luna-compute-card__where[data-location="strict_local"],
+.luna-compute-card__where[data-location="on_device"] {
+  color: var(--color-status-success);
+}
+
+.luna-compute-card__where[data-location="official_cloud"],
+.luna-compute-card__where[data-location="organization"] {
+  color: var(--color-text-primary);
+}
+
+.luna-compute-card__address {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.luna-compute-card__body {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* 列数跟着 Rust 下发的能力条数走：写死三列时，多一条能力就会裂成 3 + 1，
+   而窄窗口下三列又会把每格挤成一字一行。 */
+.luna-compute-card__routes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-2);
+  margin: 0 0 var(--space-1);
+}
+
+/* 三格等高、「更改」贴底：内容长短差很多（带本机备用的那格有三行，别的只有一行），
+   不钉底的话三个「更改」各停在各自内容的末尾，读起来像三张不同的卡。 */
+.luna-compute-card__route {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+}
+
+.luna-compute-card__route dt,
+.luna-compute-card__route dd {
+  margin: 0;
+  font-size: var(--font-size-xs);
+}
+
+.luna-compute-card__route dt {
+  color: var(--color-text-muted);
+}
+
+.luna-compute-card__route dd {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.luna-compute-card__route dd[data-location="local"] {
+  color: var(--color-status-success);
+}
+
+.luna-compute-card__route-where {
+  font-weight: var(--font-weight-semibold);
+}
+
+/* 「为什么是它」是解释，不与位置抢注意力。 */
+.luna-compute-card__route-why {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-base);
+}
+
+/* 就地切换：**按钮而不是链接文字**（ADR-125 ⑱）。它是这张卡上唯一的逐能力动作，紧跟在
+   一段同字号的说明之后，链接形态读不出「这里可以点」；而卡上其余动作（交接、登录、
+   连接）本来就是 `.luna-btn--secondary`——同一张卡不该有第三种动作语言。
+   `margin-block-start: auto` 把它推到格底，于是三格的按钮在同一水平线上。 */
+.luna-compute-card__route-switch {
+  margin-block-start: auto;
+  align-self: start;
+}
+
+/* 一次性交接提示：连上服务端后仍钉在本机的那几项（ADR-059 ④）。 */
+.luna-compute-card__handover {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+}
+
+.luna-compute-card__handover p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.luna-compute-card__handover-title {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* 与设置行同构：说明列在左、控件在右（PRD-09-074「信息行与设置行同构」）。
+   `fieldset` 只借「整组不可用」的语义，它的原生外观（`legend` 的边框缺口）本就没有
+   `legend`，其余默认样式在此显式归零。 */
+/* 转写同意与上面那张能力表之间要有一条线：不分隔的话它读起来像第四条能力，
+   而它是一次**同意**，不是一个状态（ADR-038 ④）。
+   行本身用的是设置行原语（`PanelSettingRow`），这里只负责它在卡里的位置。 */
+.luna-compute-card__consent {
+  margin-block-start: var(--space-3);
+  padding-block-start: var(--space-3);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* 本机候选：格内的一段次要事实（服务端跑时是备用，本机跑时是正在用的那一个），
+   用上分隔线分组而不是再填一层底色——卡片、能力格、候选块三层背景叠在一起时，
+   最里那层读起来像另一张卡。 */
+.luna-compute-card__candidate {
+  display: grid;
+  gap: var(--space-0-5);
+  margin-block-start: var(--space-1-5);
+  padding-block-start: var(--space-1-5);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* 标签是这一段的名字，不是第二个状态：格里已经有一个粗体（此刻在哪跑），
+   再来一个就分不出主次。退到次要色、常规字重。 */
+.luna-compute-card__candidate-label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-compute-card__candidate small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* 不是「模型未加载」：后端已经区分未装、运行时不可达与不适用。 */
+.luna-compute-card__candidate[data-readiness="model_missing"],
+.luna-compute-card__candidate[data-readiness="runtime_unavailable"] {
+  border-inline-start: var(--border-width-thin) solid var(--color-status-warning);
+}
+
+/* 「只有最小档」是**建议**不是警告：左侧一条注意色的线就够，整块底色会在卡底压出
+   一个色块，读起来像出了错（ADR-127）。 */
+.luna-compute-card__hint {
+  margin: 0;
+  padding-inline-start: var(--space-3);
+  border-inline-start: var(--border-width-thick) solid var(--color-status-attention);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+}
+
+.luna-compute-card__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/*
+ * 信任锚面板（ADR-060 / ADR-071）。全部走既有 token —— 不引入任何新色值/新尺寸。
+ */
+
+.luna-trust {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.luna-trust__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* 已核验时公钥收进 details：核对由链接与文件自动完成，hex 只在用户主动要看时出现（ADR-116）。 */
+.luna-trust__details {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.luna-trust__details > summary {
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+/* 阻断态用 error 而不是 attention：它不是「有件事要告诉你」，而是「在你亲自核对
+   并点同意之前，应用不会把任何请求发给这台服务器」。 */
+.luna-trust__blocked {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-bg-muted);
+  border: var(--border-width-thin) solid var(--color-status-error);
+  border-radius: var(--radius-sm);
+}
+
+.luna-trust__blocked-title {
+  margin: var(--space-0);
+  color: var(--color-status-error);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.luna-trust__blocked-body {
+  margin: var(--space-0);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.luna-trust__keys {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.luna-trust__keys-label {
+  margin: var(--space-0);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.luna-trust__keys-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-0);
+}
+
+.luna-trust__keys-name {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* 完整 64 位 hex：等宽 + 允许在任意处折行。不截断——用户要逐字比对，
+   而 `text-overflow: ellipsis` 会把这件事变成不可能。 */
+.luna-trust__hex {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.luna-trust__deployment {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-trust__ok {
+  margin: var(--space-0);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+/* 「现在怎么跑的」两行（ADR-127）：标准投影下逐项那张表收进折叠，而这两行不收——
+   它们是这张卡的隐私事实，比承诺句重一档。位置在行首，两行起点对齐。 */
+.luna-compute-card__summary {
+  display: grid;
+  gap: var(--space-0-5);
+  margin-block-start: var(--space-1);
+}
+
+.luna-compute-card__summary p {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+}
+
+/* 留在本机的那一行用成功色：整张卡里「什么没出去」是最该被余光认出来的一条。 */
+.luna-compute-card__summary p[data-where="local"] {
+  color: var(--color-status-success);
+}
+
+/* 设置带：两个可改项连续排列，右侧控件对齐成一条线。 */
+.luna-compute-card__controls {
+  display: grid;
+  margin-block-start: var(--space-2);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* **横向内距归零**：设置行原语自带 `padding-inline`，那是给"行卡片列表"用的；在这张卡
+   里它让左边缘比状态带与页脚带多缩一截，扫视时左边缘在两个位置之间跳（ADR-127 第 5 条
+   诊断①）。同形先例：模型库 sheet 里的面板也去掉自己的外框与内距。 */
+.luna-compute-card__controls .luna-settings-field {
+  padding-inline: 0;
+}
+
+/* 页脚带：说明在左、动作在右。两者基线对齐，左列可换行而按钮不被压扁。 */
+.luna-compute-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+  padding-block-start: var(--space-3);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-compute-card__footer-text {
+  margin: 0;
+  min-inline-size: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+}
+
+/* 跑过之后这句话是结论而不是说明：成功与失败各一个状态色，余光即可分辨。 */
+.luna-compute-card__footer-text[data-ok="true"] {
+  color: var(--color-status-success);
+}
+
+.luna-compute-card__footer-text[data-ok="false"] {
+  color: var(--color-status-error);
+}
+
+.luna-compute-card__footer > .luna-btn {
+  flex: 0 0 auto;
+}
+
+/* 逐项表的入口：卡头右端一颗轻按钮（受控折叠，见组件）。原来它是卡头下面独占一行的
+   `<details> summary`；挪进卡头之后整张卡少一行，而入口反而离标题更近。 */
+.luna-compute-card__routes-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-inline-start: auto;
+  padding: var(--space-0-5) var(--space-1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.luna-compute-card__routes-toggle:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+/* 指示符跟着开合转：收起指下、展开指上。 */
+.luna-compute-card__routes-toggle > svg {
+  transition: transform var(--transition-fast);
+}
+
+.luna-compute-card__routes-toggle[aria-expanded="true"] > svg {
+  transform: rotate(180deg);
+}
+
+/* 落在本机却还用不了的能力（2026-10-08 F15/F16）：与提示同一条左侧提醒色带，
+   行尾就地给「本地模型」去处——它在折叠表之外常显，不随逐项表收起。 */
+.luna-compute-card__unready {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: var(--space-3);
+  border-inline-start: var(--border-width-thick) solid var(--color-status-attention);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+}

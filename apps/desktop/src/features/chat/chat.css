@@ -1,0 +1,904 @@
+.luna-chat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: var(--size-full);
+  inline-size: 100%;
+  color: var(--color-text-primary);
+  box-sizing: border-box;
+}
+
+/* 主窗口变体：透明坐在 canvas 上（与活动/通知等视图统一，不做独立背景块），
+   头部/正文/输入区/关闭提示对齐到同一居中可读列宽（随窗口自适应，ChatGPT/Claude 对标）。 */
+.luna-chat:not([data-panel="true"]) {
+  padding-block: var(--space-1) var(--space-2);
+}
+
+.luna-chat:not([data-panel="true"]) > .luna-chat__header,
+.luna-chat:not([data-panel="true"]) > .luna-chat__body,
+.luna-chat:not([data-panel="true"]) > .luna-chat__composer {
+  inline-size: 100%;
+  max-inline-size: 820px;
+  margin-inline: auto;
+}
+
+/* 快捷面板的浮层皮（描边、圆角、透明窗上的系统阴影）全归 `.luna-hud-surface`
+   （ADR-111 ② / ADR-137 V1）——此前这里自补了一份圆角 8 + CSS 阴影，与其余悬浮窗不一致，
+   而 CSS 阴影在窗口边缘本来就被裁掉。 */
+
+.luna-chat[data-panel="true"] {
+  overflow: hidden;
+}
+
+/* 几何与分隔线归 `.luna-main-header` 原语；这里只留历史弹层的定位锚。 */
+.luna-chat__header {
+  position: relative;
+}
+
+/* 面板窗口栏归 `HudHeader`（ADR-111 ② 批 C）：拖动形态与紧凑内距由原语带；
+   这里只留历史弹层的锚（弹层是窗口栏的后代，绝对定位以它为参照）。 */
+.luna-chat-panel__header {
+  position: relative;
+}
+
+/* 外形（margin / 字号）归 `.luna-main-header__title > h1`；这里只留对话页头私有的两条。 */
+.luna-chat__header h1 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.luna-chat__preset-badge {
+  font-size: var(--font-size-xs);
+  color: var(--color-accent);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  padding: var(--space-0-5) var(--space-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 临时对话徽标（PRD-03-012）：与预设徽标互斥展示，弱化中性色区分"不落盘"。 */
+.luna-chat__temp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  border: var(--border-width-thin) dashed var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  padding: var(--space-0-5) var(--space-2);
+  white-space: nowrap;
+}
+
+.luna-chat__notice {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.luna-chat__notice[data-kind="error"] {
+  color: var(--color-status-error);
+}
+
+/* 面板状态行里的模型：只读信息，纯文字（ADR-137 H7）——此前是同排最重的一枚描边徽标，
+   而它恰恰是这一行里唯一不能直接操作的东西。点开仍去模型分配。 */
+.luna-chat-panel__header .luna-chat__model-badge {
+  max-inline-size: var(--size-full);
+  padding: var(--space-0-5) var(--space-1);
+  border-color: transparent;
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+}
+
+.luna-chat-panel__header .luna-chat__model-badge:hover,
+.luna-chat-panel__header .luna-chat__model-badge:focus-visible {
+  border-color: transparent;
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+/* 顶栏模型徽标：只读展示本轮有效 LLM，点击深链到模型分配（PRD-03-003）。
+   类名此前叫 `__model-select`——它**不是**下拉，写全局默认的唯一入口在设置页；
+   一个说自己是 select 的只读徽标，会让下一个人以为这里能改模型（§1.3 类名须述真）。 */
+.luna-chat__model-badge {
+  appearance: none;
+  background: var(--color-bg-panel);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition-base), background var(--transition-base);
+  font-weight: 500;
+  max-inline-size: 180px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.luna-chat__model-badge:hover {
+  border-color: var(--color-border-focus);
+  background: var(--color-bg-selected);
+}
+
+/* Message stream */
+.luna-chat__body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+}
+
+.luna-chat__messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  overflow-y: auto;
+  padding-block: var(--space-4);
+  padding-inline: var(--space-1);
+  scrollbar-gutter: stable;
+}
+
+.luna-chat[data-panel="true"] .luna-chat__messages {
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+}
+
+.luna-chat__jump-latest {
+  position: absolute;
+  inset-block-end: var(--space-3);
+  inset-inline-end: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: var(--radius-full);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-bg-panel);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background var(--transition-base), border-color var(--transition-base);
+}
+
+.luna-chat__jump-latest:hover {
+  background: var(--color-bg-selected);
+  border-color: var(--color-border-focus);
+}
+
+/* Empty state：问候 + 角色预设 chips（PRD-03-010） */
+/* 对话空态此前是本文件里的第四套实现（自己的图标、标题层级与内距）。已改用
+   `.luna-empty-state` 原语；这里只留**面板形态**真正不同的那点：侧边面板窄且贴着
+   输入框，空态贴底左对齐，而不是在一条窄柱子中间居中。 */
+.luna-chat[data-panel="true"] .luna-empty-state {
+  justify-content: flex-end;
+  align-items: stretch;
+  text-align: start;
+  padding: var(--space-2) var(--space-1);
+}
+
+.luna-chat__preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+.luna-chat[data-panel="true"] .luna-chat__preset-chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-content: stretch;
+  gap: var(--space-1);
+  margin-block-start: var(--space-0);
+}
+
+.luna-chat[data-panel="true"] .luna-chat__preset-chip {
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  text-align: start;
+}
+
+.luna-chat__preset-chip {
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-bg-panel);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: border-color var(--transition-base), background var(--transition-base),
+    color var(--transition-base);
+}
+
+.luna-chat__preset-chip:hover {
+  border-color: var(--color-border-focus);
+  background: var(--color-bg-selected);
+}
+
+.luna-chat__preset-chip[data-active="true"] {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-bg-selected);
+}
+
+/* Messages：assistant 全宽文档流 / user 右对齐气泡（ChatGPT/Claude 对标） */
+.luna-chat-message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  animation: lunaFadeInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes lunaFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luna-chat-message {
+    animation: none;
+  }
+}
+
+.luna-chat-message[data-role="user"] {
+  align-items: flex-end;
+  align-self: flex-end;
+  max-inline-size: 82%;
+}
+
+.luna-chat-message__bubble {
+  background: var(--color-bg-selected);
+  border-radius: var(--radius-md);
+  border-end-end-radius: var(--radius-xs);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-md);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.luna-chat-message[data-role="assistant"] {
+  align-items: stretch;
+  align-self: stretch;
+  font-size: var(--font-size-md);
+  line-height: 1.65;
+}
+
+/* Hover 操作条（PRD-03-002：单条消息快捷动作） */
+.luna-chat-message__actions {
+  display: flex;
+  gap: var(--space-1);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.luna-chat-message:hover .luna-chat-message__actions,
+.luna-chat-message__actions:focus-within {
+  opacity: 1;
+}
+
+/* 消息级状态旗标：截断提示 / 已停止 */
+.luna-chat-message__flag {
+  align-self: flex-start;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  padding: var(--space-0-5) var(--space-2);
+}
+
+/* 失败卡与其动作钮已收敛为 `.luna-failure-card` 原语（components/failure-card.css，
+   ADR-111 ④ 批 E2）：此前这里是与翻译弹窗几乎逐字相同的第二张红卡 + 第二种动作钮皮。 */
+
+/* Streaming Blinking Cursor */
+.luna-chat-cursor {
+  display: inline-block;
+  inline-size: 6px;
+  block-size: 14px;
+  background-color: var(--color-border-focus);
+  margin-inline-start: var(--space-1);
+  vertical-align: middle;
+  animation: lunaBlink 0.8s step-end infinite;
+  border-radius: var(--border-width-thin);
+}
+
+@keyframes lunaBlink {
+  from, to { background-color: transparent }
+  50% { background-color: var(--color-border-focus) }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luna-chat-cursor {
+    animation: none;
+    background-color: var(--color-border-focus);
+  }
+}
+
+/* Composer */
+.luna-chat__composer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-panel);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  margin-block-start: var(--space-2);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.luna-chat[data-panel="true"] .luna-chat__composer {
+  margin-block-start: var(--space-0);
+}
+
+.luna-chat__composer:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 1px var(--color-border-focus);
+}
+
+/* 输入框随内容长（镜像格子，ADR-137 H7）：`::after` 拿同一段文本占位，textarea 恰好长到内容
+   那么高，封顶后在格子里滚动。两者必须逐字同排版。 */
+.luna-chat__composer-grow {
+  display: grid;
+  max-block-size: var(--chat-composer-max-block-size);
+  overflow-y: auto;
+}
+
+.luna-chat__composer-grow::after {
+  content: attr(data-value) " ";
+  visibility: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.luna-chat__composer-grow > textarea,
+.luna-chat__composer-grow::after {
+  grid-area: 1 / 1 / 2 / 2;
+  padding: var(--space-2);
+  font-family: inherit;
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+}
+
+.luna-chat__composer-grow > textarea {
+  inline-size: 100%;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  resize: none;
+  color: var(--color-text-primary);
+  outline: none;
+  box-sizing: border-box;
+}
+
+/* 选区带入上下文 chip（PRD-03-008：可移除） */
+.luna-chat__context-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  padding: var(--space-1) var(--space-2);
+  margin: var(--space-1) var(--space-1) var(--space-0);
+  min-inline-size: 0;
+}
+
+.luna-chat__context-chip-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+.luna-chat__context-chip-text {
+  flex: 1;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 脚注行（ADR-111 ⑤⑷）：知识库芯片 / 单条提示 / 发送区。提示占满余宽并可省略——
+   此前是 space-between 排四个不可收缩的子项，560px 面板首帧必然互相挤压。 */
+.luna-chat__composer-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-inline: var(--space-2);
+  padding-block-start: var(--space-1);
+}
+
+.luna-chat__composer-hint {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-align: end;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-chat__composer-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* 历史会话列表（PRD-03-013）：主窗口「主侧栏」（PRD-07-057）+ 快捷面板头部弹层共用同一渲染。 */
+.luna-chat-history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* 「新对话」此前是本文件里自绘的一份中性描边钮（含写死的 `1px`），而录音/速记/转写
+   三条侧栏的主动作用的是 `.luna-btn--primary.luna-capture-start`——同一位置、同一意图，
+   四条采集侧栏两种按钮。已改挂共用形态，本块删除。
+
+   `.luna-chat-history__heading` 同时挂着 `.luna-sidebar-header`，而它这几条
+   （`font-size: xs` / `color: muted` / 全大写）本意是压过页头原语。原语的 `h1` 规则
+   特异性更高，于是三条里两条是**死码**，只有 `text-transform` 经继承漏了出去——英文
+   下页头因此渲染成 "HISTORY"，与隔壁「Transcribe」不是一款。整块删除，页头交给原语。
+
+   空态改用 `.luna-empty-state`（此前是一行裸 `<p>`：没有图标、没有标题层级、更没有
+   「新建一个」的出路，而隔壁转写侧栏的空态给得很全）。
+
+   本类只剩"这个页头怎么排"——排版归原语，容器归各面板（原语注释里写明的分工）。 */
+.luna-chat-history__list {
+  list-style: none;
+  margin: var(--space-0);
+  padding: var(--space-0);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+}
+
+/* 行 = 行主体（可选中的那颗按钮）+ 行内动作，两者是兄弟：按钮不能嵌按钮。 */
+.luna-chat-history__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.luna-chat-history__item {
+  display: flex;
+  flex: 1;
+  min-inline-size: var(--space-0);
+  flex-direction: column;
+  gap: var(--space-0-5);
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+  transition: background var(--transition-base);
+}
+
+/* hover 底色此前是 `--color-bg-panel`——而主侧栏本身就是 `--color-bg-panel`，
+   于是在工作区侧栏里悬停**完全没有反馈**（只有浮在 surface 上的面板变体看得见）。
+   与全应用所有清单行统一为 `--color-bg-hover`。 */
+.luna-chat-history__item:hover,
+.luna-chat-history__item:focus-visible {
+  background: var(--color-bg-hover);
+  outline: none;
+}
+
+/* 「这一条正开着」与「这一批被选中」是两件事（PRD-06-059）：前者在这里，后者是全应用
+   唯一那一处 `[data-row-path][aria-selected="true"]`（`workspace.css`）。此前这里写的是
+   自造的 `data-active`，于是这条清单与另外五条讲的不是同一种话。 */
+.luna-chat-history__item[aria-current] {
+  background: var(--color-bg-selected);
+}
+
+.luna-chat-history__item[aria-current] .luna-chat-history__item-title {
+  color: var(--color-accent);
+}
+
+.luna-chat-history__item-title {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-inline-end: var(--space-6);
+}
+
+.luna-chat-history__item-time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-chat-history__item-actions {
+  position: absolute;
+  inset-block-start: var(--space-2);
+  inset-inline-end: var(--space-2);
+  display: flex;
+  gap: var(--space-0-5);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.luna-chat-history__row:hover .luna-chat-history__item-actions,
+.luna-chat-history__item-actions:focus-within {
+  opacity: 1;
+}
+
+/* 面板变体：头部历史弹层 */
+.luna-chat-history-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-overlay);
+}
+
+.luna-chat-history-popover {
+  position: absolute;
+  inset-block-start: calc(100% + var(--space-2));
+  inset-inline-end: var(--space-0);
+  inline-size: min(320px, 90vw);
+  max-block-size: 60vh;
+  overflow-y: auto;
+  /* 需盖过同层 backdrop（backdrop 在 DOM 更后）。 */
+  z-index: calc(var(--z-overlay) + 1);
+  background: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-3);
+}
+
+/* ── 库内问答的出处呈现（PRD-16-005/006/012）─────────────────────────────────
+   角标与芯片都是真正的可交互元素（可聚焦、有可访问名），不是装饰性上标——
+   「容易显示、难以点开」的引用恰恰是在制造过度信任（ADR-026 ⑥）。 */
+
+.luna-chat__grounding-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-inline-end: auto;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  background: transparent;
+  padding: var(--space-1) var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.luna-chat__grounding-chip:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
+}
+
+.luna-chat__grounding-chip[aria-pressed="true"] {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: var(--color-accent-surface);
+}
+
+.luna-chat-sources {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-block-start: var(--space-2);
+}
+
+.luna-chat-sources__transparency {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.luna-chat-sources__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.luna-chat-sources__toggle:hover {
+  color: var(--color-text-primary);
+}
+
+.luna-chat-sources__toggle svg[data-open] {
+  transform: rotate(180deg);
+}
+
+.luna-chat-sources__flag {
+  color: var(--color-status-warning);
+  font-size: var(--font-size-xs);
+}
+
+.luna-chat-sources__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  padding: var(--space-2);
+}
+
+.luna-chat-sources__candidates {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.luna-chat-sources__candidates li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.luna-chat-sources__candidate-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.luna-chat-sources__material {
+  flex-shrink: 0;
+  border-radius: var(--radius-xs);
+  background: var(--color-bg-surface);
+  padding: 0 var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* 「来自记录」标注（PRD-16-041）：与「资料」标注同一格几何——它们在版式上是对等的两个
+   身份陈述。区别沿用全应用一致的那条线索：资料是**实底**（另一类内容），记录是**虚线
+   描边**（同一类内容但还没定稿）。虚线描边是 CSS2 能力，全引擎（含 WKWebView）通用。 */
+.luna-chat-sources__draft {
+  flex-shrink: 0;
+  border: var(--border-width-thin) dashed var(--color-border-subtle);
+  border-radius: var(--radius-xs);
+  padding: 0 var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-chat-sources__drop {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  border: none;
+  background: transparent;
+  padding: var(--space-0);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.luna-chat-sources__drop:hover:not(:disabled) {
+  color: var(--color-status-error);
+}
+
+.luna-chat-sources__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.luna-chat-sources__hint,
+.luna-chat-sources__empty {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-base);
+}
+
+.luna-chat-sources__cited {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.luna-chat-sources__cited-label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-chat-sources__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-inline-size: 18rem;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-surface);
+  padding: 0 var(--space-2) 0 var(--space-1);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.luna-chat-sources__chip:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+.luna-chat-sources__chip-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 1.25rem;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-surface);
+  color: var(--color-accent);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-chat-sources__chip-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 正文内的引用角标：贴着句尾，尺寸克制到不打断阅读节奏，但仍是可聚焦按钮。 */
+.luna-chat-sources__marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 1.1rem;
+  margin-inline: 0.1em;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: var(--color-accent-surface);
+  padding: 0 0.25em;
+  color: var(--color-accent);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  vertical-align: super;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.luna-chat-sources__marker:hover,
+.luna-chat-sources__marker:focus-visible {
+  background: var(--color-accent);
+  color: var(--color-action-primary-text);
+}
+
+/* ── `@` 定范围（PRD-16-009）──────────────────────────────────────────────────
+   范围控制的第三层，落在输入框正上方——它属于"这一条消息"，与会话级的知识库芯片
+   （在下方工具行）、事后纠正的检索透明行（在回答上方）各在其位。 */
+
+.luna-chat__mention-list {
+  max-block-size: 12rem;
+  overflow-y: auto;
+  margin: 0 0 var(--space-1);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-1);
+  list-style: none;
+}
+
+.luna-chat__mention-list button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  padding: var(--space-1) var(--space-2);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-chat__mention-list button[data-active] {
+  background: var(--color-bg-hover);
+}
+
+.luna-chat__mention-kind {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.luna-chat__mention-label {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-chat__mention-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-block-end: var(--space-1);
+}
+
+.luna-chat__mention-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  padding: 0 var(--space-1) 0 var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.luna-chat__mention-chip button {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  padding: var(--space-1);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.luna-chat__mention-chip button:hover {
+  color: var(--color-text-primary);
+}
+
+/* 知识回执是短暂的写入闭环，不进入活动中心，也不与系统通知争同一栈。 */
+/* 出处失效提示（PRD-16-012）：与知识回执同一套卡片外观，只是它是一行文字 + 关闭叉，
+   故不进「纵向卡片」那条共享规则。位置在右下，与左下的知识回执互不遮挡。 */
+.luna-citation-outcome {
+  position: fixed;
+  inset-inline-end: var(--space-4);
+  inset-block-end: var(--space-6);
+  z-index: var(--z-notification);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  max-width: min(28rem, calc(100vw - 2 * var(--space-4)));
+  margin: var(--space-0);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  background: var(--color-bg-surface);
+  box-shadow: var(--space-0) var(--space-2) var(--space-5) var(--color-border-subtle);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+/* Markdown 渲染 的样式已按 TDD-15 §3.3a 归位到 components/markdown.css。 */

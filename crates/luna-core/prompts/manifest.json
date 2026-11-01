@@ -1,0 +1,431 @@
+{
+  "manifest_version": 12,
+  "scopes": [
+    {
+      "scope": "common",
+      "templates": [
+        {
+          "name": "structure",
+          "since": 1
+        },
+        {
+          "name": "glossary_constraint",
+          "since": 2
+        }
+      ]
+    },
+    {
+      "scope": "translate",
+      "templates": [
+        {
+          "name": "system",
+          "since": 1
+        },
+        {
+          "name": "user",
+          "since": 1
+        },
+        {
+          "name": "source_hint",
+          "since": 1
+        },
+        {
+          "name": "style",
+          "since": 1
+        },
+        {
+          "name": "preset_style.slack",
+          "since": 1
+        },
+        {
+          "name": "preset_style.email",
+          "since": 1
+        },
+        {
+          "name": "preset_style.polish_en",
+          "since": 1
+        },
+        {
+          "name": "voice_instruction",
+          "since": 1
+        },
+        {
+          "name": "live_context",
+          "since": 1
+        },
+        {
+          "name": "document_context",
+          "since": 1
+        }
+      ]
+    },
+    {
+      "scope": "summarize",
+      "templates": [
+        {
+          "name": "system",
+          "since": 1
+        }
+      ]
+    },
+    {
+      "scope": "refine",
+      "templates": [
+        {
+          "name": "system",
+          "since": 1
+        },
+        {
+          "name": "default_rule",
+          "since": 1
+        },
+        {
+          "name": "voice_instruction",
+          "since": 1
+        },
+        {
+          "name": "voice_style.general",
+          "since": 1
+        },
+        {
+          "name": "voice_style.email",
+          "since": 1
+        },
+        {
+          "name": "voice_style.slack",
+          "since": 1
+        },
+        {
+          "name": "voice_style.code_comment",
+          "since": 1
+        },
+        {
+          "name": "popup_rule",
+          "since": 2
+        },
+        {
+          "name": "popup_style",
+          "since": 2
+        }
+      ]
+    },
+    {
+      "scope": "chat",
+      "templates": [
+        {
+          "name": "role.chat_general",
+          "since": 1
+        },
+        {
+          "name": "role.chat_translator",
+          "since": 1
+        },
+        {
+          "name": "role.chat_coder",
+          "since": 1
+        },
+        {
+          "name": "role.chat_summarizer",
+          "since": 1
+        }
+      ]
+    },
+    {
+      "scope": "editor",
+      "templates": [
+        {
+          "name": "lang_lock.named",
+          "since": 2
+        },
+        {
+          "name": "lang_lock.same",
+          "since": 2
+        },
+        {
+          "name": "language_lock",
+          "since": 2
+        },
+        {
+          "name": "optimize",
+          "since": 2
+        },
+        {
+          "name": "proofread",
+          "since": 2
+        },
+        {
+          "name": "tone",
+          "since": 2
+        },
+        {
+          "name": "tone.formal",
+          "since": 2
+        },
+        {
+          "name": "tone.casual",
+          "since": 2
+        },
+        {
+          "name": "tone.concise",
+          "since": 2
+        },
+        {
+          "name": "continue",
+          "since": 2
+        },
+        {
+          "name": "continue_lang.named",
+          "since": 2
+        },
+        {
+          "name": "continue_lang.same",
+          "since": 2
+        },
+        {
+          "name": "context.intro",
+          "since": 2
+        },
+        {
+          "name": "context.before",
+          "since": 2
+        },
+        {
+          "name": "context.after",
+          "since": 2
+        },
+        {
+          "name": "summary.bullets",
+          "since": 2
+        },
+        {
+          "name": "summary.paragraph",
+          "since": 2
+        },
+        {
+          "name": "summary.one_line",
+          "since": 2
+        },
+        {
+          "name": "meeting_minutes",
+          "since": 2
+        },
+        {
+          "name": "ask.cursor",
+          "since": 2
+        },
+        {
+          "name": "ask.selection",
+          "since": 2
+        },
+        {
+          "name": "chunk_digest",
+          "since": 2
+        },
+        {
+          "name": "explain_change",
+          "since": 2
+        },
+        {
+          "name": "explain_lang.named",
+          "since": 2
+        },
+        {
+          "name": "explain_lang.same",
+          "since": 2
+        },
+        {
+          "name": "explain_what.insert",
+          "since": 2
+        },
+        {
+          "name": "explain_what.remove",
+          "since": 2
+        },
+        {
+          "name": "explain_what.change",
+          "since": 2
+        },
+        {
+          "name": "table.from_text",
+          "since": 4
+        },
+        {
+          "name": "table.explain",
+          "since": 4
+        },
+        {
+          "name": "table.fill_cell",
+          "since": 4
+        }
+      ]
+    },
+    {
+      "scope": "distill",
+      "templates": [
+        {
+          "name": "instruction",
+          "since": 2
+        },
+        {
+          "name": "preamble.conversation",
+          "since": 2
+        },
+        {
+          "name": "preamble.transcript",
+          "since": 2
+        },
+        {
+          "name": "preamble.attribution",
+          "since": 2
+        },
+        {
+          "name": "preamble.written_notes",
+          "since": 2
+        },
+        {
+          "name": "known_facts",
+          "since": 2
+        },
+        {
+          "name": "known_facts.action_items",
+          "since": 2
+        },
+        {
+          "name": "known_facts.dates",
+          "since": 2
+        },
+        {
+          "name": "chunk",
+          "since": 2
+        },
+        {
+          "name": "rewrite",
+          "since": 2
+        },
+        {
+          "name": "merge",
+          "since": 2
+        }
+      ]
+    },
+    {
+      "scope": "knowledge",
+      "templates": [
+        {
+          "name": "grounding",
+          "since": 2
+        }
+      ]
+    },
+    {
+      "scope": "tags",
+      "templates": [
+        {
+          "name": "system",
+          "since": 2
+        },
+        {
+          "name": "vocabulary",
+          "since": 2
+        },
+        {
+          "name": "language",
+          "since": 2
+        }
+      ]
+    },
+    {
+      "scope": "ingest",
+      "templates": [
+        {
+          "name": "topic_generation",
+          "since": 3
+        },
+        {
+          "name": "topic_update",
+          "since": 3
+        }
+      ]
+    },
+    {
+      "scope": "checkup",
+      "templates": [
+        {
+          "name": "verdict",
+          "since": 2
+        },
+        {
+          "name": "material",
+          "since": 2
+        }
+      ]
+    },
+    {
+      "scope": "quick_note",
+      "templates": [
+        {
+          "name": "refine",
+          "since": 2
+        }
+      ]
+    }
+  ],
+  "apps": [
+    {
+      "app": "creator",
+      "scope": "summarize",
+      "templates": [
+        "creator.publish.chapters",
+        "creator.swipe.patterns",
+        "creator.research.guide",
+        "creator.research.brief",
+        "creator.research.topics",
+        "creator.research.script",
+        "creator.distribute.blog",
+        "creator.distribute.newsletter",
+        "creator.distribute.thread",
+        "creator.distribute.shorts",
+        "creator.publish.package",
+        "creator.publish.package.limit.title",
+        "creator.publish.package.limit.description",
+        "creator.publish.package.limit.tags",
+        "creator.publish.package.limit.tag",
+        "creator.publish.package.limit.none",
+        "creator.publish.package.style.none",
+        "creator.publish.package.style.youtube",
+        "creator.publish.package.style.bilibili",
+        "creator.distribute.channel.none",
+        "creator.distribute.limit.title",
+        "creator.distribute.limit.body",
+        "creator.distribute.limit.post",
+        "creator.distribute.limit.clip",
+        "creator.distribute.limit.none",
+        "creator.distribute.style.none",
+        "creator.distribute.style.x",
+        "creator.distribute.style.weibo",
+        "creator.distribute.style.linkedin",
+        "creator.distribute.style.xiaohongshu_note",
+        "creator.distribute.style.wechat_article",
+        "creator.distribute.style.youtube_shorts",
+        "creator.distribute.style.tiktok",
+        "creator.distribute.style.instagram_reels",
+        "creator.distribute.style.douyin",
+        "creator.distribute.style.kuaishou",
+        "creator.distribute.style.weixin_channels",
+        "creator.distribute.style.xiaohongshu_video",
+        "creator.notes.voice",
+        "creator.notes.extra"
+      ]
+    },
+    {
+      "app": "creator",
+      "scope": "editor",
+      "templates": [
+        "creator.script.tighten",
+        "creator.script.hook",
+        "creator.script.spoken",
+        "creator.script.dictation"
+      ]
+    }
+  ]
+}

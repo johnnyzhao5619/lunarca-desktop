@@ -1,0 +1,24 @@
+[package]
+name = "luna-audio"
+description = "音频管线：采集 · 归一化 · VAD · 端点分段 · 波形（TDD-02、ADR-009/011/012）"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+luna-core = { path = "../luna-core" }
+thiserror.workspace = true
+serde.workspace = true
+# 采集/重采样在后续增量按模块引入：
+rubato.workspace = true
+hound.workspace = true
+symphonia.workspace = true
+fs4.workspace = true
+cpal.workspace = true
+rtrb.workspace = true
+
+# AEC3（TDD-02 §3.1-I 层③）：仅 macOS（bundled meson 构建链未在 Windows 验证，批次 6 评估）。
+[target.'cfg(target_os = "macos")'.dependencies]
+webrtc-audio-processing.workspace = true

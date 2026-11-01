@@ -1,0 +1,319 @@
+/* ── 知识笔记徽标（PRD-06-044 / ADR-024）：资料页头上的四态入口 ─────────────── */
+.luna-distill-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+/* 分裂按钮（PRD-06-051）：主区一点即走，尾部箭头开选项浮层。
+   两枚按钮拼成一枚胶囊——相邻边收圆角、共用一条描边。 */
+.luna-distill-badge__split {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+/* 与页头右段同一副尺寸（`.luna-btn--sm` 的内距与字号、`--radius-sm` 圆角）：此前左段三枚
+   是胶囊、右段是矩形按钮，高度与圆角两套，同一行里像两套设计（真机评审 2026-09-02）。
+   胶囊形状只留给**不可点**的身份徽标语义已不成立——「资料」也随之改为同高的矩形标签。 */
+/* 拆分键的两半：外形归 `.luna-btn--secondary.luna-btn--sm`（与页头其余动作同一形态，
+   真机 2026-09-08「页头按钮样式与别处不统一」），这里只有"拼成一枚"的几何。 */
+.luna-distill-badge__btn {
+  border-start-end-radius: var(--radius-none);
+  border-end-end-radius: var(--radius-none);
+  white-space: nowrap;
+}
+
+.luna-distill-badge__more {
+  padding-inline: var(--space-1);
+  border-inline-start: none;
+  border-start-start-radius: var(--radius-none);
+  border-end-start-radius: var(--radius-none);
+}
+
+.luna-distill-badge__more:hover:not(:disabled),
+.luna-distill-badge__more[data-open="true"] {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* ── 生成选项浮层（模板 + 整理稿）───────────────────────────────────────── */
+.luna-distill-options {
+  /* portal 到 body、按打开那一刻的徽标位置定位；右缘留够 20rem 不出视口。 */
+  position: fixed;
+  inset-block-start: var(--popover-y);
+  inset-inline-start: min(var(--popover-x), calc(100vw - 20rem - var(--space-4)));
+  z-index: var(--z-floating-menu);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  inline-size: 20rem;
+  max-inline-size: min(20rem, 90vw);
+  padding: var(--space-3);
+  background: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.luna-distill-options__hint {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-distill-options__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.luna-distill-options__group legend {
+  padding: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.luna-distill-options__choice,
+.luna-distill-options__toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.luna-distill-options__choice-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-width: 0;
+}
+
+.luna-distill-options__choice-name {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.luna-distill-options__choice-desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* 代价在点开始之前说清：整理稿是把内容重写一遍，耗时成倍增加。 */
+.luna-distill-options__cost {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-status-attention);
+}
+
+.luna-distill-options__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* 批量确认卡的整批模板选择：标签与下拉同排，下拉占满余宽。 */
+.luna-distill-batch__template {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-distill-batch__template-select {
+  flex: 1;
+  min-inline-size: var(--space-0);
+}
+
+/* 管理入口靠左，与右侧的取消/开始拉开——它不是这次生成的动作。 */
+.luna-distill-options__manage {
+  margin-inline-end: auto;
+  padding: 0;
+  font-size: var(--font-size-xs);
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.luna-distill-options__manage:hover {
+  color: var(--color-accent);
+}
+
+/* ── 自定义模板管理（PRD-06-051 批次 2）───────────────────────────────────── */
+/* 自含面板（外壳是共享的 .luna-overlay）：底色/描边/阴影不依赖不存在的基类。 */
+.luna-distill-templates {
+  inline-size: min(34rem, 92vw);
+  max-block-size: 80vh;
+}
+
+.luna-distill-templates__header h2 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+}
+
+.luna-distill-templates__header p {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-distill-templates__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.luna-distill-templates__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-distill-templates__row-main {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-2);
+  background: var(--color-bg-muted);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: start;
+}
+
+.luna-distill-templates__row-main:hover {
+  border-color: var(--color-accent);
+}
+
+.luna-distill-templates__row-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-distill-templates__row-meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-distill-templates__row-delete {
+  display: inline-flex;
+  padding: var(--space-1);
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.luna-distill-templates__row-delete:hover {
+  color: var(--color-status-error);
+}
+
+.luna-distill-templates__empty {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-distill-templates__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-distill-templates__sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.luna-distill-templates__sections legend {
+  padding: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* 标题窄、指导语宽：指导语是给模型的一句话，通常长得多。 */
+.luna-distill-templates__section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.luna-distill-templates__error {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-status-error);
+}
+
+.luna-distill-templates__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.luna-distill-badge__btn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* 已生成 = 中性完成态（不抢眼，它只是"可以去看"）。 */
+.luna-distill-badge__btn[data-state="ready"] {
+  color: var(--color-status-success);
+  border-color: var(--color-status-success);
+}
+
+/* 源已更新 = 唯一需要用户决定的一态，故给注意色；其余三态一律不喧哗。 */
+.luna-distill-badge__btn[data-state="stale"] {
+  color: var(--color-status-attention);
+  border-color: var(--color-status-attention);
+}
+
+.luna-distill-badge__error {
+  font-size: var(--font-size-xs);
+  color: var(--color-status-error);
+}
+
+/* ── 重生成差异预览（PRD-06-045）：与确认卡同一形制，差异区可滚不撑破对话框 ───── */
+.luna-distill-preview {
+  max-inline-size: min(48rem, calc(100vw - var(--space-6)));
+}
+
+.luna-distill-preview__diff {
+  max-block-size: 40vh;
+  overflow: auto;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+}
+
+/* 「资料」身份徽标（PRD-06-048 ②/⑥）：中性弱标记——它是身份陈述不是警告，不该抢蒸馏
+   入口的注意力。
+   **规则住在自己的 feature 里**：它此前落在 `features/graph/graph.css`（当时紧挨着
+   文件树的三态段控规则，那些已随 ADR-087 删除），而消费它的是蒸馏的页头徽标与笔记树的
+   行内徽标——两个都与图谱无关。样式住在哪个文件不影响层叠（唯一入口 `styles/index.css`
+   定序），但它决定下一个人会不会找到、会不会再抄一份（TDD-15 §3.3）。 */
+/* 文件树的类型徽标（`.luna-source-badge`）已按 TDD-15 §2.3 归位到 features/workspace/workspace.css。 */

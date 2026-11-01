@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "note-editor",
+  "description": "弹出编辑器与副库独立窗口专属能力（PRD-07-036 / PRD-06-050）。allow-destroy：Tauri `onCloseRequested` 包装器在未 preventDefault 时经 window.destroy() 真正关窗，故弹出窗口与副库窗口必须授此权限才能被关闭（副库窗口在换账户后被 Rust 关闭时同样先落盘）——而主窗刻意不授（红叉走 Rust 端 prevent_close + hide，退出仅经托盘「退出 Lunarca」，见 lib.rs）。allow-set-title：窗口标题跟随笔记名/重命名。",
+  "windows": [
+    "note-editor-*",
+    "note-print-*",
+    "vault-window-*"
+  ],
+  "permissions": [
+    "core:window:allow-destroy",
+    "core:window:allow-set-title"
+  ]
+}

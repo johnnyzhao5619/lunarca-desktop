@@ -1,0 +1,535 @@
+{
+  "title": "编辑器",
+  "canvas": {
+    "notes": {
+      "placeholder": "开始输入…",
+      "empty": "直接输入即可创建新笔记。",
+      "title": "新笔记"
+    },
+    "drafts": {
+      "placeholder": "记一条速记…",
+      "empty": "在这里写，会自动保存为一条速记。",
+      "title": "新速记"
+    }
+  },
+  "folderPlaceholder": "这是一个文件夹。选择一个笔记以开始编辑。",
+  "foldersCount": "个文件夹",
+  "filesCount": "篇笔记",
+  "save": "保存",
+  "dirty": "未保存",
+  "clean": "已保存",
+  "loading": "读取中",
+  "saving": "保存中",
+  "renaming": "重命名中",
+  "rename": "命名",
+  "nameLabel": "笔记名称",
+  "namePlaceholder": "输入笔记名称",
+  "nameEmpty": "笔记名称不能为空",
+  "externalReload": "已同步外部变更",
+  "externalConflict": "文件已在别处修改，自动保存已暂停。请选择如何处理本地改动。",
+  "externalDeleted": "文件已在别处删除，自动保存已暂停。可将本地改动另存为副本。",
+  "savedIndexPending": "文件已保存，索引更新失败；搜索结果可能暂未更新",
+  "conflictSaveCopy": "另存本地副本",
+  "conflictCopySaved": "本地改动已另存为副本",
+  "conflictCompare": "比较磁盘与本地改动",
+  "conflictMerge": "合并两边改动",
+  "conflictMerged": "已合并两边改动，可撤销",
+  "conflictMergeOverlap": "两边改了同一处，无法自动合并。请比较后选择。",
+  "conflictMergeTooLarge": "改动太多，无法自动合并。请比较后选择。",
+  "reload": "重载",
+  "loadFailedNotice": "这篇笔记打不开，磁盘上的文件没有被改动。{{error}}",
+  "loadRetry": "重试",
+  "keepLocal": "用本地改动覆盖文件",
+  "error": "错误",
+  "words": "字数",
+  "linkPlaceholder": "url",
+  "tableEditing": {
+    "cell": "表格第 {{row}} 行，第 {{column}} 列",
+    "rowHandle": "第 {{row}} 行的操作",
+    "columnHandle": "第 {{column}} 列的操作",
+    "appendRow": "在末尾添加一行",
+    "appendColumn": "在最右添加一列",
+    "menu": {
+      "insert": "插入",
+      "rowAbove": "在上方插入行",
+      "rowBelow": "在下方插入行",
+      "columnLeft": "在左侧插入列",
+      "columnRight": "在右侧插入列",
+      "moveRowUp": "上移此行",
+      "moveRowDown": "下移此行",
+      "moveColumnLeft": "左移此列",
+      "moveColumnRight": "右移此列",
+      "deleteRow": "删除此行",
+      "deleteColumn": "删除此列",
+      "headerRowFixed": "表头行不能删除或移动",
+      "lastColumnFixed": "表格至少要有一列",
+      "sortAscending": "按此列升序排列",
+      "sortDescending": "按此列降序排列",
+      "align": "对齐",
+      "alignLeft": "左对齐",
+      "alignCenter": "居中",
+      "alignRight": "右对齐",
+      "alignNone": "默认",
+      "copyAs": "复制表格为",
+      "copyMarkdown": "Markdown",
+      "copyCsv": "CSV",
+      "copyRich": "带格式（粘贴到文档或表格软件）",
+      "tidySource": "整理表格源码（对齐列宽）",
+      "deleteTable": "删除表格",
+      "toText": "表格转为文本（制表符分隔）",
+      "aiSummarize": "让 AI 总结这张表",
+      "aiFillColumn": "让 AI 填写这一列…"
+    },
+    "picker": {
+      "title": "插入表格：选择大小",
+      "size": "{{columns}} 列 × {{rows}} 行"
+    }
+  },
+  "properties": {
+    "label": "属性",
+    "empty": "还没有属性",
+    "add": "添加属性",
+    "newKeyPlaceholder": "属性名",
+    "addItem": "添加一项",
+    "addItemTo": "给 {{key}} 添加一项",
+    "remove": "删除属性 {{key}}",
+    "removeItem": "移除 {{item}}",
+    "keyLabel": "属性名 {{key}}",
+    "valueLabel": "{{key}} 的值",
+    "typeLabel": "{{key}} 的类型",
+    "editSource": "在源码中编辑",
+    "kind": {
+      "text": "文本",
+      "number": "数字",
+      "checkbox": "勾选",
+      "date": "日期",
+      "date_time": "日期时间",
+      "list": "列表"
+    },
+    "skip": {
+      "unsupported_form": "这种写法不能在面板里改",
+      "inline_comment": "值里带注释，面板里改会丢掉它",
+      "multi_line": "跨行的写法，面板里改不了",
+      "nested": "嵌套的结构，面板里改不了",
+      "duplicate_key": "这个属性名写了不止一次",
+      "unclosed": "开头的 --- 没有闭合，先在源码里修好",
+      "key_exists": "已经有同名属性",
+      "invalid_key": "属性名不能为空，也不能含冒号或 #，不能叫 luna",
+      "not_found": "这个属性已经不在了，可能刚被改过",
+      "invalid_value": "值的写法不对：数字写成 12 或 1.5，日期写成 2026-10-04"
+    }
+  },
+  "frontmatter": {
+    "label": "元数据 (YAML)",
+    "labelCount": "元数据（{{count}} 项）",
+    "expandTitle": "点击展开元数据",
+    "collapseTitle": "点击折叠元数据",
+    "expandAction": "展开",
+    "collapseAction": "折叠"
+  },
+  "floating": {
+    "title": "AI 操作",
+    "trigger": "AI",
+    "trigger_title": "对整篇笔记运行 AI 操作",
+    "scope": {
+      "selection": "选中内容",
+      "cursor": "光标处",
+      "doc": "整篇笔记"
+    },
+    "ask_label": "AI 指令",
+    "ask_placeholder": "告诉 AI 要做什么，或从下方选一个动作…",
+    "followup_placeholder": "追问：继续调整这个结果…",
+    "truncated": "输入超长，仅处理前 {{count}} 个字符",
+    "bubble": {
+      "ai": "AI",
+      "ai_title": "AI 操作（{{shortcut}}）",
+      "related": "相关笔记",
+      "quote": "存为引文"
+    },
+    "group": {
+      "edit": "编辑",
+      "generate": "生成",
+      "understand": "理解",
+      "vault": "本库",
+      "presets": "预设"
+    },
+    "action": {
+      "summarize": "总结",
+      "translate": "翻译",
+      "optimize": "优化",
+      "continue": "续写",
+      "search": "相关笔记",
+      "send": "发送指令",
+      "stop": "停止",
+      "retry": "重试",
+      "close": "关闭",
+      "accept": "接受",
+      "replace": "替换选区",
+      "insert_below": "插入下方",
+      "insert_top": "插入顶部",
+      "insert_end": "插入文末",
+      "insert_cursor": "插入此处",
+      "reject": "丢弃",
+      "graph_tags": "关系标签",
+      "copy": "复制",
+      "speak": "朗读结果",
+      "proofread": "修正拼写语法",
+      "tone": "改语气",
+      "stop_close": "停止并关闭",
+      "background": "转入后台",
+      "background_title": "交给处理队列继续跑，面板即刻关闭；跑完发通知，回到这篇笔记再决定怎么落地",
+      "table_from_text": "整理成表格",
+      "script": "脚本"
+    },
+    "route": {
+      "local": "本机 · 不联网",
+      "server_selection": "云 · 将发送选区",
+      "server_context": "云 · 将发送选区及前后段落",
+      "server_cursor": "云 · 将发送光标前文",
+      "server_doc": "云 · 将发送整篇",
+      "server_sent": "云 · 已发送 {{count}} 字符"
+    },
+    "context": {
+      "on": "附带前后段落",
+      "off": "只发选区",
+      "toggle_title": "改写时是否把选区前后各一段一并发给模型作参考（只改选区，不改前后文）"
+    },
+    "hint": "{{toggle}} 打开或关闭 · Esc 停止或关闭 · {{accept}} 接受",
+    "hint_no_toggle": "Esc 停止或关闭 · {{accept}} 接受",
+    "no_match": "没有匹配的动作，按 Enter 直接执行这条指令",
+    "landed": {
+      "replace": "已替换选区",
+      "insert": "已插入",
+      "undo": "撤销"
+    },
+    "status": {
+      "idle": "待处理",
+      "running": "生成中",
+      "done": "已完成",
+      "failed": "生成失败",
+      "cancelled": "已停止",
+      "error": "错误"
+    },
+    "search": {
+      "loading": "搜索中",
+      "error": "搜索失败",
+      "empty": "没有匹配结果",
+      "count": "{{count}} 个结果"
+    },
+    "back": "返回",
+    "tone": {
+      "formal": "正式",
+      "casual": "轻松",
+      "concise": "简洁"
+    },
+    "summary": {
+      "bullets": "要点",
+      "paragraph": "段落",
+      "one_line": "一句话"
+    },
+    "translate": {
+      "auto": "跟随设置（智能双向）"
+    },
+    "result": {
+      "show_original": "显示原文",
+      "candidates": "候选结果",
+      "candidate": "{{index}} / {{count}}",
+      "prev": "上一版",
+      "next": "下一版"
+    },
+    "diff": {
+      "none": "没有发现需要修正的地方",
+      "count": "{{count}} 处修改，已接受 {{accepted}} 处",
+      "accept_all": "全部接受",
+      "reject_all": "全部拒绝",
+      "toggle_title": "点击切换接受 / 拒绝这一处",
+      "explain": "为什么这样改",
+      "explaining": "正在解释…",
+      "explain_failed": "没能生成解释"
+    },
+    "presets": {
+      "save": "存为预设",
+      "name_placeholder": "给这条指令起个名字",
+      "confirm": "保存",
+      "delete": "删除预设",
+      "saved": "预设已保存，下次打开面板可直接用",
+      "fromPack": "{{name}} · {{pack}}"
+    },
+    "preflight": {
+      "chunked": "{{count}} 字符超过单次上限 {{limit}} 字符：总结将分 {{chunks}} 段摘要后汇总",
+      "truncated": "{{count}} 字符超过单次上限 {{limit}} 字符：只处理前 {{limit}} 字符",
+      "tail": "前文较长，只取离光标最近的一段作为语境",
+      "chunked_done": "已分 {{count}} 段摘要后汇总",
+      "progress": "正在摘要第 {{done}} / {{total}} 段"
+    },
+    "pending": {
+      "notice": "这是后台跑完的结果，等你决定怎么落地"
+    },
+    "drag_hint": "拖动这里可以挪开面板",
+    "table": {
+      "fill_placeholder": "这一列「{{column}}」要填什么？例如：根据产品名写一句卖点",
+      "fill_progress": "正在填写第 {{done}} / {{total}} 行",
+      "fill_rows": "逐行填写，共 {{count}} 行"
+    },
+    "rejected": {
+      "not_a_table": "AI 的回答里没有一张完整的表格，正文没有改动。可以换个说法再试，或用右键「插入 ▸ 将选中文字转为表格」按分隔符转换。",
+      "not_a_table_source": "这里不是一张能逐行填写的表格（至少要有表头和一行正文）。"
+    },
+    "script": {
+      "tighten": "精简",
+      "hook": "重写开头",
+      "spoken": "改成口语",
+      "dictation": "整理口述"
+    }
+  },
+  "version": {
+    "open": "版本历史",
+    "title": "版本历史",
+    "close": "关闭",
+    "empty": "暂无历史版本",
+    "preview": "版本预览",
+    "restore": "回滚到此版本",
+    "restore_confirm": "回滚会用这一版覆盖当前内容（当前内容会先留一份历史版本）。",
+    "size_bytes": "{{count}} B",
+    "emptyHint": "保存、外部改动合并与 AI 改写正文之前都会自动留一份历史版本。",
+    "viewMode": "对比方式",
+    "viewDiff": "差异",
+    "viewFull": "全文",
+    "diffIdentical": "该版本与当前内容一致",
+    "diffDegraded": "差异区过大，已按整段替换粗粒度呈现。",
+    "restoreConfirmYes": "回滚",
+    "restoreConfirmNo": "取消"
+  },
+  "mode": {
+    "label": "视图模式",
+    "live": "实时预览（所见即所得）",
+    "source": "源码模式",
+    "reading": "阅读模式"
+  },
+  "more": {
+    "label": "更多操作",
+    "formats": "更多格式"
+  },
+  "embed": {
+    "open": "打开",
+    "missing": "找不到嵌入的笔记或文件"
+  },
+  "linkPreview": {
+    "label": "链接预览",
+    "open": "打开",
+    "loading": "正在读取…",
+    "missing": "还没有这篇笔记"
+  },
+  "reading": {
+    "properties": "属性",
+    "openTag": "查看标签 #{{tag}}"
+  },
+  "paste": {
+    "asMarkdown": "粘贴并转换为 Markdown",
+    "readFailed": "无法读取剪贴板，未改写正文",
+    "saving": "正在保存附件…",
+    "saveFirst": "请先保存笔记，再粘贴附件",
+    "failed": "附件保存失败",
+    "downloading": "正在下载远程图片…",
+    "converting": "正在转换剪贴板内容…",
+    "cancelled": "粘贴已取消，未改写正文",
+    "conversionFailed": "格式转换失败，已按纯文本粘贴",
+    "previewTitle": "确认粘贴格式",
+    "previewHint": "这些内容无法完整表示为 Markdown。检查转换结果，也可粘贴纯文本。",
+    "cancel": "取消",
+    "insertPlain": "粘贴纯文本",
+    "insertConverted": "插入转换结果",
+    "firstRowHeader": "将原表格的第一行作为表头",
+    "tableFillTitle": "确认填入表格",
+    "tableFillHint": "内容将从当前单元格填入。请核对覆盖范围与扩展后的表格；纯文本只粘贴到当前格。",
+    "tableFillRange": "从第 {{row}} 行、第 {{column}} 列开始，填入 {{rows}} 行 × {{columns}} 列。",
+    "tableFillChanges": "将改写 {{replacedCells}} 个已有非空单元格，新增 {{addedRows}} 行、{{addedColumns}} 列。",
+    "fillTable": "填入表格",
+    "warning": {
+      "formatting_simplified": "字体、颜色与专用排版将简化为 Markdown；请核对重点与结构。",
+      "complex_table": "合并单元格、嵌套或不规则表格将简化；内容保留，布局可能改变。",
+      "missing_header": "原表格没有表头，转换后增加空表头，第一行数据保留。",
+      "images_omitted": "图片保留文字说明，不下载远程资源；请通过附件入口插入图片。",
+      "unsafe_links": "不安全的链接已移除，链接文字保留。"
+    }
+  },
+  "window": {
+    "missing": "笔记不存在或已关闭"
+  },
+  "quickNote": {
+    "products": "速记产物",
+    "adopted": "采用版本",
+    "adoptedMark": "采用",
+    "chars": "{{count}} 字",
+    "audio": "原始录音",
+    "version": {
+      "raw": "原始转写",
+      "refined": "优化结果",
+      "second_pass": "二次转写"
+    }
+  },
+  "print": {
+    "hint": "在系统打印面板里选择「存储为 PDF」即可导出。",
+    "again": "再次打印",
+    "close": "关闭",
+    "loading": "正在准备打印…"
+  },
+  "asset": {
+    "openExternal": "用外部程序打开",
+    "loadFailed": "无法加载该文件预览",
+    "pdfHint": "PDF 文档暂不支持内嵌预览，可用外部程序打开。",
+    "binaryHint": "该文件类型暂不支持内嵌预览，可用外部程序打开。"
+  },
+  "table": {
+    "insert": "插入表格",
+    "noColumns": "选中的文字看不出列：请用制表符、逗号或两个以上空格分隔各列"
+  },
+  "menu": {
+    "insertLink": "新增链接",
+    "insertWikiLink": "新增 wiki 链接",
+    "textFormat": "文本格式",
+    "paragraph": "段落设置",
+    "insert": "插入",
+    "bold": "加粗",
+    "italic": "斜体",
+    "strike": "删除线",
+    "inlineCode": "行内代码",
+    "paragraphText": "正文",
+    "h1": "标题 1",
+    "h2": "标题 2",
+    "h3": "标题 3",
+    "quote": "引用",
+    "bulletList": "无序列表",
+    "orderedList": "有序列表",
+    "taskList": "任务列表",
+    "codeBlock": "代码块",
+    "callout": "标注块",
+    "hr": "分隔线",
+    "tidyListLevels": "整理列表层级…",
+    "insertAttachment": "插入图片 / 附件…",
+    "insertTemplate": "插入模板…",
+    "aiActions": "AI 操作…",
+    "textToTable": "将选中文字转为表格",
+    "noSpellingGuesses": "没有拼写建议",
+    "learnSpelling": "学习拼写"
+  },
+  "toolbar": {
+    "label": "格式工具栏",
+    "headingTitle": "段落样式",
+    "labelShortcut": "{{label}}（{{shortcut}}）",
+    "show": "显示格式工具栏"
+  },
+  "writing": {
+    "label": "写作模式",
+    "typewriter": "打字机模式",
+    "typewriterHint": "键入时当前行保持在编辑器垂直居中",
+    "focus": "专注模式",
+    "focusHint": "淡化非当前段落",
+    "spellcheck": "西文拼写检查",
+    "spellcheckHint": "标出拼错的英文等西文单词，右键可选更正；中文不检查"
+  },
+  "tidyList": {
+    "title": "整理列表层级",
+    "desc": "发现 {{count}} 行空嵌套列表链，将折叠为单个列表标记。确认前不会写入文件。",
+    "lineNo": "第 {{line}} 行",
+    "snapshotNote": "写入前会保留当前版本快照，可从版本历史找回。",
+    "cancel": "取消",
+    "confirm": "整理 {{count}} 行",
+    "nothing": "无需整理：未发现空嵌套列表链",
+    "done": "已整理 {{count}} 行"
+  },
+  "graphTags": {
+    "group": "知识网络",
+    "viewGraph": "在知识网络中查看",
+    "generate": "更新关系标签（AI）",
+    "generating": "正在生成关系标签…",
+    "done": "关系标签已更新（{{count}} 个）",
+    "panelDone": "已生成 {{count}} 个关系标签，已写入笔记",
+    "saveFailed": "笔记尚未保存，无法生成关系标签",
+    "ok": "完成"
+  },
+  "read": {
+    "readDoc": "全文朗读",
+    "stopDoc": "停止朗读",
+    "selection": "朗读所选",
+    "controls": "朗读控制",
+    "pause": "暂停",
+    "resume": "继续",
+    "stop": "停止",
+    "speed": "语速"
+  },
+  "empty": "从左侧选中一条内容细写，或直接开始写——整理好了再转成正式笔记",
+  "search": {
+    "find": "查找",
+    "replace": "替换为",
+    "next": "下一个",
+    "previous": "上一个",
+    "all": "全选",
+    "matchCase": "区分大小写",
+    "regexp": "正则",
+    "byWord": "整词",
+    "replaceOne": "替换",
+    "replaceAll": "全部替换",
+    "close": "关闭",
+    "currentMatch": "当前匹配",
+    "onLine": "所在行",
+    "goToLine": "跳到行",
+    "go": "跳转",
+    "replacedMatches": "已替换 $ 处",
+    "replacedOnLine": "已替换第 $ 行的匹配"
+  },
+  "timecode": {
+    "playFromHere": "从这一句开始听（⌘/Ctrl 点击整行同效）"
+  },
+  "image": {
+    "view": "查看大图",
+    "resize": "拖动调整宽度，双击还原",
+    "lightbox": "查看图片",
+    "close": "关闭",
+    "previous": "上一张",
+    "next": "下一张"
+  },
+  "fold": {
+    "fold": "折叠",
+    "unfold": "展开"
+  },
+  "conflictCopy": {
+    "copyOf": "这是「{{name}}」的冲突副本（{{source}}）：两处同时改了这篇，同步时没能合并。",
+    "source": {
+      "syncthing": "Syncthing 产生",
+      "dropbox": "Dropbox 产生",
+      "icloud": "iCloud 产生",
+      "git_markers": "git"
+    },
+    "compare": "与原文对比",
+    "keepCopy": "保留这份",
+    "keepOriginal": "保留原文",
+    "keepCopyTitle": "用这份替换「{{name}}」？",
+    "keepCopyDesc": "原文会先留一个版本，可从版本历史找回。这份副本随后移走：{{consequence}}",
+    "keepOriginalTitle": "保留原文，移走这份副本？",
+    "keepOriginalDesc": "原文不变。这份副本移走：{{consequence}}",
+    "keptCopy": "已用这份替换原文，原文的旧内容在版本历史里。",
+    "keptOriginal": "已保留原文，副本已移走。",
+    "gitMarkers": "这篇笔记里有未解决的 git 合并冲突标记（<<<<<<< / ======= / >>>>>>>）。请保留需要的部分后删掉这些标记。",
+    "badge": "冲突副本"
+  },
+  "templateInsert": {
+    "title": "插入模板",
+    "hint": "选一份模板插到光标处，模板里的变量会换成此刻的值；模板开头的属性（frontmatter）不会插入。"
+  },
+  "wordGoal": {
+    "menu": "字数目标…",
+    "title": "这一篇的字数目标",
+    "label": "目标字数",
+    "desc": "写到多少字算完成。状态栏会显示「已写 / 目标」，目标记在这一篇的 frontmatter 里。",
+    "descCurrent": "现在的目标是 {{goal}} 字。填 0 取消目标。",
+    "confirm": "设定",
+    "invalid": "字数目标要填一个整数（填 0 取消）",
+    "set": "字数目标：{{goal}} 字",
+    "cleared": "已取消字数目标",
+    "saveFirst": "这一篇还有没存下的改动，存好后再设目标"
+  },
+  "quote": {
+    "saved": "已存进「{{note}}」的引文。"
+  }
+}

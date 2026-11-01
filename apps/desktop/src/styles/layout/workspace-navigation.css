@@ -1,0 +1,378 @@
+/* 活动栏图标钮：40×40 命中区、居中图标、三态（静息/hover/选中）清晰化（可发现性补偿）。
+   ⚠️ 本类是活动栏按钮字色的**唯一**归属地：`.luna-workspace__rail button`（0,1,1）会压过本类
+   (0,1,0)，此前那条共享的 `color: primary` 让静息与 hover 同为主文本色，三态塌成两态——
+   hover 只剩底色变化、没有字色反馈。字色一律写在本类及其修饰选择器上，不要再挂到后代选择器。 */
+.luna-workspace__rail-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 40px：活动栏项比通用图标钮大一档（它是导航目的地，不是工具键）。阶梯上没有 40，
+     故就地由阶梯算出来而不是写一个游离的字面量。 */
+  inline-size: calc(var(--space-7) + var(--space-3));
+  block-size: calc(var(--space-7) + var(--space-3));
+  flex-shrink: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.luna-workspace__rail-btn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-workspace__rail-btn[aria-current] {
+  background: var(--color-bg-selected);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+/* 临时显示（PRD-07-003）：用户收起了这一格，只因当前在场 / 录音进行中才画出来——给一圈
+   虚线让它与"我让它显示的"分得开，离开即消失。 */
+.luna-workspace__rail-btn[data-temporary] {
+  outline: var(--border-width-thin) dashed var(--color-border-subtle);
+  outline-offset: calc(-1 * var(--border-width-thin));
+}
+
+/* 拖拽排序（PRD-07-003 就地入口，指针拖拽基元）：被拖的那格变淡；落点 = 「插到这一格之前」，
+   在目标格上缘画一条强调线——与选中态的左缘条同一种语言（accent 细条），只是换了边。 */
+.luna-workspace__rail-btn[data-dragging] {
+  opacity: var(--opacity-idle);
+}
+
+.luna-workspace__rail-btn[data-drop-before]::after {
+  content: "";
+  position: absolute;
+  inset-inline: var(--space-1);
+  inset-block-start: calc(-1 * var(--space-1));
+  block-size: var(--space-0-5);
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  pointer-events: none;
+}
+
+/* 尾部落区：占满活动栏余下的空白 = "放到最后"；命中时在它上缘画同一条线。 */
+.luna-workspace__rail-drop-end {
+  position: relative;
+  flex: 1;
+  min-block-size: var(--space-4);
+  inline-size: var(--size-full);
+}
+
+.luna-workspace__rail-drop-end[data-drop-active]::after {
+  content: "";
+  position: absolute;
+  inset-inline: var(--space-1);
+  inset-block-start: calc(-1 * var(--space-1));
+  block-size: var(--space-0-5);
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+}
+
+/* 活动栏拖影：图标 + 名字并排（拖影原语只定框，内容归这里）。 */
+.luna-workspace__rail-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+/* 选中态左缘强调条（活动栏惯例）。 */
+.luna-workspace__rail-btn[aria-current]::before {
+  content: "";
+  position: absolute;
+  inset-block: var(--space-2);
+  inset-inline-start: calc(-1 * var(--space-1));
+  inline-size: calc(var(--border-width-thin) * 3);
+  background: var(--color-accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* hover/focus 悬浮标签（flyout，可发现性补偿）：纯图标 rail 的文字锚点，溢出到侧栏之上。 */
+.luna-workspace__rail-flyout {
+  position: fixed;
+  inset-inline-start: calc(var(--rail-label-inline) + var(--space-2));
+  inset-block-start: var(--rail-label-block);
+  transform: translateY(-50%);
+  padding: var(--space-1) var(--space-2-5);
+  border-radius: var(--radius-sm);
+  /* 这里此前写的是 `var(--color-bg-elevated, …)`，而 `--color-bg-elevated` **在整套
+     Token 里根本不存在**——它一直在静默走 fallback。一个永远走 fallback 的变量引用比
+     直接写目标值更糟：它让人以为存在一个可调的"浮起表面"色。 */
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  box-shadow: var(--shadow-md);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: var(--z-overlay);
+}
+
+/* 活动栏角标（`NavBadge`）：图标右上角一枚小圆点——`numeric` 省略时的形态，只答"有没有"。
+   它同时是数字形态的**共同底**：下面的 `[data-numeric]` 只改尺寸与偏移，
+   定位、圆角与底色都由本条给。 */
+/* 活动栏分隔线（PRD-07-003「区隔」）：锚点连续段与可配置连续段之间一根细线，位置由
+   `railDividerIndices` 按当前顺序重算——顺序可自定义，故区隔不能靠"锚点固定在顶部"。
+   不加背景色块、不改图标密度。 */
+.luna-workspace__rail-divider {
+  display: block;
+  inline-size: var(--space-5);
+  block-size: var(--border-width-thin);
+  margin-block: var(--space-1-5);
+  margin-inline: auto;
+  background: var(--color-border-subtle);
+}
+
+.luna-workspace__rail-badge {
+  position: absolute;
+  inset-block-start: var(--space-1-5);
+  inset-inline-end: var(--space-1-5);
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+}
+
+/*
+ * 计数角标（「笔记」项的未处理速记数，PRD-07-066）：同一个位置，但**摆的是数字**。
+ *
+ * 两种形态不是不统一，是它们回答的问题不同：圆点答的是"有没有"，而这一枚答的是
+ * "还剩几篇"——Drafts 的 inbox count 正是养成"清空收件箱"这个习惯的那个数字，只说
+ * "有"对它没有增量信息。故这一枚随内容长宽、贴住图标右上角。
+ */
+.luna-workspace__rail-badge[data-numeric] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inset-block-start: var(--space-0-5);
+  inset-inline-end: var(--space-0-5);
+  /* 数字被截断就是谎报（同 `.luna-count-badge` 的纪律），故只给下限不给上限。 */
+  inline-size: auto;
+  min-inline-size: var(--space-4);
+  block-size: auto;
+  padding: 0 var(--space-1);
+  color: var(--color-bg-canvas);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: var(--space-4);
+}
+
+.luna-workspace__main {
+  grid-area: main;
+  min-width: var(--space-0);
+  overflow: auto;
+  padding: var(--space-5);
+  background: var(--color-bg-canvas);
+  container-name: workspace-main;
+  container-type: inline-size;
+}
+
+.luna-workspace__panel {
+  grid-area: panel;
+  overflow: auto;
+  padding: var(--space-5);
+  border-inline-start: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-bg-panel);
+  width: 260px;
+  min-width: 0;
+  transition: width var(--transition-base), padding var(--transition-base), border var(--transition-base);
+}
+
+.luna-workspace__panel[data-collapsed="true"] {
+  inline-size: var(--space-0);
+  padding: 0;
+  border-inline-start-width: var(--space-0);
+}
+
+.luna-workspace__panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: var(--space-4);
+}
+
+/* 侧栏面板头的标题排版由 `.luna-sidebar-header`（layout/sidebar-header.css）单点承担；
+   此处只留不属于那套原语的两个面：右侧信息面板与主区空态。 */
+.luna-workspace__panel h2 {
+  margin: var(--space-0);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+}
+
+/* 主区空态（未选库）：它长在主区不在侧栏，故**不**共用侧栏页头的 15px 标题。 */
+.luna-workspace-placeholder {
+  max-inline-size: 54rem;
+}
+
+.luna-workspace-placeholder h1 {
+  margin: var(--space-0);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+  line-height: var(--line-height-base);
+}
+
+.luna-workspace__panel dl {
+  display: grid;
+  gap: var(--space-4);
+  margin-block: var(--space-4) var(--space-0);
+}
+
+.luna-workspace__panel dt,
+.luna-workspace__statusbar,
+.luna-note-tree small,
+.luna-filtered-list small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.luna-workspace__panel dd {
+  margin: var(--space-1) var(--space-0) var(--space-0);
+  overflow-wrap: anywhere;
+}
+
+.luna-workspace__statusbar {
+  grid-area: status;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-inline: var(--space-4);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-bg-panel);
+}
+
+/* 状态栏按钮此前也是一块写着 hover 的元素兜底（§3.3c 的第五处同型）——已改挂
+   `.luna-icon-btn` 原语，此处不再需要任何规则。 */
+
+@keyframes luna-pulse {
+  0% {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+}
+
+/* ── 二级分区导航（主侧栏顶部，PRD-07-057 ②）──────────────────────────────────
+   只有笔记 / 知识库 / 资料有它。它**就是这一格的名字**——面板不再自报标题
+   （PRD-07-065：同一事实在同一屏只呈现一次），故选中项按标题的字重与色阶呈现，
+   未选中项弱化为可点的同级名字。 */
+.luna-workspace__sections {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3) var(--space-0);
+}
+
+.luna-workspace__section-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.luna-workspace__section-btn:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+}
+
+.luna-workspace__section-btn[aria-current] {
+  color: var(--color-text-primary);
+  background: var(--color-bg-selected);
+  border-color: var(--color-border-focus);
+  font-weight: 600;
+}
+
+.luna-workspace__section-btn:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-border-focus);
+  outline-offset: var(--space-0-5);
+}
+
+/* 窄侧栏里**截断**而不逐字竖排（同 `.luna-sidebar-header` 的既定口径，PRD-06-006）：
+   「导入与转写」这类分区名在拖窄到下限时必然放不下。 */
+.luna-workspace__section-label {
+  min-inline-size: var(--space-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 待处理速记数（PRD-07-066）：与活动栏那颗**同数同源**，形态随所在位置。 */
+.luna-workspace__section-badge {
+  min-inline-size: var(--space-4);
+  padding-inline: var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: var(--color-action-primary-text);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: var(--space-4);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-pulse-dot {
+  color: var(--color-status-error);
+  display: inline-block;
+  animation: luna-pulse 1.5s infinite ease-in-out;
+}
+
+.luna-notification-host {
+  position: fixed;
+  z-index: var(--z-notification);
+  display: grid;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.luna-notification-host--banner {
+  inset-block-start: var(--space-3);
+  inset-inline: var(--space-4);
+}
+
+.luna-notification-host--toast {
+  inset-block-end: var(--space-6);
+  inset-inline-end: var(--space-4);
+  width: min(var(--notification-host-width), calc(var(--size-full) - var(--space-6)));
+}
+
+/* 「添加内容」的**唯一**落点（PRD-07-067 ②、ADR-095）：顶栏工具区最左，不随侧栏状态
+   迁移。此前它有侧栏页头与顶栏两套形态（`--topbar` 变体只用来抹掉侧栏那份内边距），
+   合并后变体本身失去存在理由，随之退役。
+   `position: relative` 仍必须留着——Popover 是绝对定位的，锚点是它自己这一格。 */
+/* 与右侧那组跨上下文工具（翻译 / 实时字幕 / 译境）之间留一道分隔：两者同处工具区，但
+   **不是同一类东西**——创建产生新内容，工具作用于你当前正看着的内容（[PRD-07-002a]、
+   ADR-095 已知代价 ①）。形制沿用工具组自己那道尾部分隔，不另造第二种分隔线。 */
+.luna-workspace__create {
+  position: relative;
+  padding-inline-end: var(--space-2);
+  border-inline-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* **不设 `inline-size: 100%`**：它是紧凑按钮，宽度由内容决定。此前那句全宽是侧栏
+   页头形态的遗留，在顶栏里会把整条工具区撑开。 */
+.luna-workspace__create-btn {
+  white-space: nowrap;
+}

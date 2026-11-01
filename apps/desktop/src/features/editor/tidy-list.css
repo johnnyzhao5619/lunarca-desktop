@@ -1,0 +1,56 @@
+/* ── 「整理列表层级」确认卡（PRD-06-056）───────────────────────────────────── */
+/* 卡片外壳与按钮走 `components/dialog.css` 原语；本文件只管逐行 before/after 清单：
+   等宽字体保真呈现列表标记与空白，超长单行截断（完整结果以写盘为准，预览只回答
+   「改哪几行、改成什么样」）。 */
+
+.luna-tidy-list {
+  inline-size: min(38rem, calc(100vw - var(--space-7)));
+}
+
+.luna-tidy-list__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-block-size: 18rem;
+  margin: var(--space-0);
+  padding: var(--space-2);
+  overflow-y: auto;
+  list-style: none;
+  background: var(--color-bg-muted);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.luna-tidy-list__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: baseline;
+  font-size: var(--font-size-xs);
+}
+
+.luna-tidy-list__line {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* before/after 都保留原始空白（`white-space: pre`）：前导缩进正是这条功能的主角。 */
+.luna-tidy-list__before {
+  overflow: hidden;
+  font-family: var(--font-family-mono);
+  color: var(--color-text-muted);
+  white-space: pre;
+  text-overflow: ellipsis;
+}
+
+.luna-tidy-list__after {
+  overflow: hidden;
+  font-family: var(--font-family-mono);
+  color: var(--color-text-primary);
+  white-space: pre;
+  text-overflow: ellipsis;
+}
+
+.luna-tidy-list__arrow {
+  color: var(--color-text-muted);
+}

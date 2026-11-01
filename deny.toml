@@ -1,0 +1,100 @@
+# cargo-deny：依赖许可证合规 + 安全 advisory（CI 阻断）。
+# 事实源/理由：TDD-04 §5、TDD-13 §2、
+# TDD-12 §7（按风味分别校验：OSS 允许 AGPL 兼容）。
+# 注：本文件为 OSS 风味（AGPL v3）。Official 风味更严（拒绝 GPL/AGPL 强 copyleft），
+# 上线官方构建时另出一份 deny.official.toml。
+
+[graph]
+all-features = true
+
+[licenses]
+# 允许的 SPDX 许可（permissive + 本项目自身 AGPL）。引入新依赖若许可不在此列表，CI 红。
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unicode-3.0",
+    "CC0-1.0",
+    "MPL-2.0",
+    "AGPL-3.0-only",
+    "Unlicense",
+    # webpki-roots（Mozilla CA 证书数据，sherpa-onnx-sys 的 build.rs 构建期下载工具链
+    # ureq 的传递依赖）：CDLA-Permissive-2.0 为宽松数据许可、AGPL 兼容，且仅构建期使用、
+    # 不进发行二进制（TDD-04 §5 台账登记）。
+    "CDLA-Permissive-2.0",
+]
+confidence-threshold = 0.9
+
+[advisories]
+# 使用 advisory DB v2 默认源；yanked 依赖与已知漏洞阻断。
+yanked = "deny"
+# 这些 advisory 当前来自上游 GUI/绑定链路，暂无安全升级路径；保留显式登记，
+# 让 cargo-deny 继续阻断新增漏洞/撤包，同时避免 CI 因已知上游 unmaintained 状态漂移。
+ignore = [
+    # crypto-bigint 0.5.5（RUSTSEC-2026-0387，常数时间运算里有依赖秘密的分支）：只经 opaque-ke 4.0.1
+    # → voprf / elliptic-curve 0.13 进来，修复在 0.7.6，要 elliptic-curve 换代；opaque-ke 最新稳定版
+    # 就是 4.0.1，没有可升的版本。crypto-bigint 只服务 NIST 曲线（P-256 等）的标量运算，而本仓与
+    # 服务端的 OPAQUE 套件都是 Ristretto255（curve25519-dalek，`luna-cloud::opaque_auth::Suite`），
+    # 出问题的代码路径不会被执行。去掉条件：opaque-ke 出了依赖 elliptic-curve 0.14 的稳定版。
+    "RUSTSEC-2026-0387",
+    # webpki-roots 0.26.11（RUSTSEC-2026-0381，2026-10-20 公布）：0.26 已是兼容壳，根证书全部转引
+    # webpki-roots 1.x，而锁文件里的 1.x 已升到修好的 1.0.10；0.26 没有更新的版本可升。只经
+    # sherpa-onnx-sys 的**构建脚本**（ureq 下载预编译库）进来，不进发行物。去掉条件：sherpa-onnx-sys
+    # 换掉 ureq 2.x，或 webpki-roots 0.26 出了新版。
+    "RUSTSEC-2026-0381",
+    # zvariant / zbus_names / zvariant_derive 2026-10 被标 unmaintained（不是漏洞，无已知安全问题）。
+    # 只经 tauri-plugin-notification → notify-rust → zbus 与 tauri-plugin-single-instance → zbus
+    # 进来，只在 Linux D-Bus 目标编译，macOS / Windows 发行物不含。去掉条件：上游（notify-rust /
+    # tauri-plugin-single-instance）换掉 zbus，或 zbus 出了维护中的替代版本。
+    "RUSTSEC-2026-0370",
+    "RUSTSEC-2026-0371",
+    "RUSTSEC-2026-0372",
+    # zip 4.6.1（RUSTSEC-2026-0367/0368/0369，解压时保留 SUID 位、符号链接指向目标目录外）：只经
+    # tauri-plugin-updater 2.12.0 进来，且只在 Windows 目标编译（macOS 发行物不含）。updater 先在
+    # download() 里用编进应用的 minisign 公钥验签、验过才解压，被解压的只可能是我们自己签的更新包。
+    # 修复在 zip 9，要 updater 2.14.1，而它要求 tauri ≥ 2.12（wry/tao 一起换代，碰 nspanel，单独一批真机验）。
+    # 去掉条件：tauri 升到 2.12 时一并升 updater ≥ 2.14.1；最迟在发 Windows 安装包之前。
+    "RUSTSEC-2026-0367",
+    "RUSTSEC-2026-0368",
+    "RUSTSEC-2026-0369",
+    # unsafe-libyaml（luna-vault 解析 frontmatter：serde_yaml_ng 的后端）2026-10 被标 unmaintained，
+    # 无已知漏洞。换维护中的 YAML 库是单独一批（解析行为要逐条对齐），在那之前显式登记。
+    "RUSTSEC-2024-0449",
+    # ttf-parser（RUSTSEC-2026-0192）2026 被标 unmaintained，无已知漏洞。只经 pdf-extract → lopdf 进来
+    # （文档导入的 PDF 取字，ADR-164 ⑧）；lopdf 只在「写 PDF 时嵌入字体」（font.rs 的 FontData）里调用它，
+    # 我们只读不写，那条路径不会执行。去掉条件：lopdf 换掉 ttf-parser（如 skrifa），或 PDF 取字改走 PDFium。
+    "RUSTSEC-2026-0192",
+    # Tauri/wry Linux GTK3 transitive stack; macOS MVP 仍需跨平台依赖图保留。
+    "RUSTSEC-2024-0411",
+    "RUSTSEC-2024-0412",
+    "RUSTSEC-2024-0413",
+    "RUSTSEC-2024-0414",
+    "RUSTSEC-2024-0415",
+    "RUSTSEC-2024-0416",
+    "RUSTSEC-2024-0417",
+    "RUSTSEC-2024-0418",
+    "RUSTSEC-2024-0419",
+    "RUSTSEC-2024-0420",
+    # specta 2.0.0-rc transitive macro helper.
+    "RUSTSEC-2024-0436",
+    # GTK macro transitive dependency.
+    "RUSTSEC-2024-0370",
+    # Tauri urlpattern transitive Unicode crates.
+    "RUSTSEC-2025-0075",
+    "RUSTSEC-2025-0080",
+    "RUSTSEC-2025-0081",
+    "RUSTSEC-2025-0098",
+    "RUSTSEC-2025-0100",
+]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "warn"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

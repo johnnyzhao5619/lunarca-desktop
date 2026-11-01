@@ -1,0 +1,184 @@
+{
+  "title": "欢迎使用 Lunarca",
+  "action": {
+    "next": "继续",
+    "back": "上一步",
+    "finish": "开始使用",
+    "done": "完成",
+    "enter_now": "先进入应用",
+    "close": "关闭",
+    "recheck": "重新检测"
+  },
+  "blocked": {
+    "needs_vault": "选好笔记库就能进入应用，这是唯一必填的一步。",
+    "go_vault": "去选择笔记库"
+  },
+  "shortcuts": {
+    "all": "查看全部快捷键"
+  },
+  "progress": "引导进度",
+  "progress_compact": "第 {{current}} 步 / 共 {{total}} 步",
+  "stepper_label": "{{title}} · {{state}}",
+  "state": {
+    "pending": "未开始",
+    "skipped": "已跳过",
+    "done": "已完成"
+  },
+  "download_pill": {
+    "progress": "正在下载 {{name}} · {{percent}}%（{{done}} / {{total}}）",
+    "indeterminate": "正在下载 {{name}}…",
+    "coreml": "正在为 {{name}} 准备 CoreML 加速…"
+  },
+  "banner": {
+    "title": "完成设置（{{done}}/{{total}}）",
+    "body": "还差：{{items}}",
+    "action": "继续设置",
+    "dismiss": "以后再说"
+  },
+  "step": {
+    "welcome": {
+      "title": "欢迎",
+      "body": "翻译、语音输入、录音转写和笔记，在同一个工作区完成。先挑好语言和外观。",
+      "promise": {
+        "local": {
+          "title": "数据留在本地",
+          "desc": "笔记保存为 Markdown，录音保存在本地文件夹。"
+        },
+        "compute": {
+          "title": "算力可选",
+          "desc": "AI 可以在这台设备上运行，也可以交给 Lunarca 云或组织服务端。不登录也能使用。"
+        },
+        "network": {
+          "title": "联网你做主",
+          "desc": "联网行为都有提示、可以关闭；随时可切换到严格本地。"
+        }
+      }
+    },
+    "vault": {
+      "title": "选择笔记库",
+      "body": "笔记将保存在这个文件夹。",
+      "browse": "换一个文件夹…",
+      "use": "使用这个位置",
+      "path_placeholder": "输入本地文件夹绝对路径…",
+      "path_label": "笔记库文件夹",
+      "suggested_hint": "推荐位置",
+      "bound": "当前笔记库：{{path}}",
+      "error": "打不开这个文件夹",
+      "onedrive_moved_hint": "「文档」文件夹由 OneDrive 同步，所以笔记库默认放在这里：放进「文档」的话，OneDrive 和 Lunarca 同步会同时改同一批文件，生出冲突副本。",
+      "onedrive_inside_hint": "这个位置在 OneDrive 同步的文件夹里：OneDrive 和 Lunarca 同步可能同时改同一批文件，生出冲突副本。仍然可以使用。"
+    },
+    "compute": {
+      "title": "登录（可跳过）",
+      "body": "登录了哪台服务器，AI 与同步就由它提供。不登录也能完整使用本机功能。",
+      "loading": "正在读取账户状态…",
+      "skip_hint": "先不登录，只用本机：直接点「继续」。之后随时可以在「设置 › 账户」登录。",
+      "signed_in_as": "已登录 {{server}}，账户：{{account}}"
+    },
+    "models": {
+      "title": "模型准备",
+      "body": "转写模型随应用附带，开箱即用。还需要什么，取决于你上一步的选择。",
+      "hardware_checking": "正在检测本机硬件…",
+      "hardware_error": "硬件检测失败，按标准档推荐。",
+      "hardware_line": "{{chip}} · {{memory}} 内存",
+      "tier": {
+        "low": "轻量档",
+        "standard": "标准档",
+        "high": "高性能档"
+      },
+      "low_hint": "这台设备也有别的选择：用更小的模型，或交给上一步选的服务端。",
+      "asr_title": "转写模型",
+      "asr_fallback_title": "本地备用转写模型",
+      "bundled_ready": "内置模型已就绪，不用下载就能转写。",
+      "fallback_not_ready": "本地备用还没备好：连不上服务端时，转写会暂时用不了。",
+      "fallback_hint": "只在连不上服务端时接手；现在跳过不影响开始使用。",
+      "recommended_badge": "推荐",
+      "fallback_badge": "本地备用",
+      "size_note": "下载体积 {{size}}",
+      "install": "下载",
+      "installing": "下载中…",
+      "installed": "已就绪",
+      "offline": "当前离线，等联网后再下",
+      "progress": "已下载 {{done}} / {{total}}",
+      "later_hint": "可以稍后在「设置 › 本地模型」下载。",
+      "later_hint_downloading": "下载在后台继续，可以先进行下一步。",
+      "llm_title": "本机文本模型",
+      "llm_detected": "这台设备已装 {{count}} 个文本模型，可直接使用。",
+      "llm_none": "还没有本机文本模型——下载推荐档即可在本机完成文本优化与翻译。",
+      "error": "模型清单读取失败",
+      "pause": "暂停",
+      "resume_from": "继续下载（已下 {{value}}）",
+      "size_bundled": "随应用附带 · 占用 {{size}}"
+    },
+    "permissions": {
+      "title": "系统权限",
+      "body": "权限可以在第一次用到时再授权。",
+      "kind": {
+        "microphone": {
+          "name": "麦克风",
+          "purpose": "语音输入与会议录音需要采集声音；不授予则相关功能不可用。",
+          "later": "不现在给也行：第一次点「语音输入」时系统会再问一次。"
+        },
+        "accessibility": {
+          "name": "辅助功能",
+          "purpose": "弹窗翻译的双击复制与「替换原文」需要观测快捷键、把文字写回光标处；不授予可改用备用热键 + 手动粘贴。",
+          "later": "需要在「系统设置 › 隐私与安全性 › 辅助功能」里勾选 Lunarca；勾完切回来会自动刷新。"
+        },
+        "notification": {
+          "name": "通知",
+          "purpose": "后台长任务（转写、模型下载）完成时提醒你；拒绝不影响功能，会改用应用内提示。",
+          "later": "macOS 查不到这项权限的状态。第一条通知发出后，去「系统设置 › 通知」里找到 Lunarca 即可开关；关掉会改用应用内提示。"
+        }
+      },
+      "status": {
+        "granted": "已授权",
+        "denied": "被拒绝",
+        "not_determined": "未询问",
+        "unsupported": "状态未知"
+      },
+      "grant": "去授权",
+      "skip_hint": "全部可跳过——相关功能首次使用时会再次引导。",
+      "none_required": "这个平台不需要额外授权——语音输入、弹窗翻译与通知开箱即用。"
+    },
+    "shortcuts": {
+      "title": "快捷键",
+      "body": "这些快捷键在任何应用中都能用。"
+    },
+    "first_task": {
+      "title": "第一个任务",
+      "body": "试一次，看看它真的能用。成功之后这一步会自动打勾。",
+      "voice_title": "语音输入",
+      "voice_desc": "按 {{shortcut}} 呼出语音面板，说话即成文。",
+      "voice_desc_unbound": "打开语音面板，说话即成文。",
+      "voice_try": "试试语音输入",
+      "voice_not_ready": "转写模型还没准备好，语音输入暂时跑不起来。",
+      "prepare": "去准备模型",
+      "mic_denied": "麦克风权限被拒绝，语音输入用不了。",
+      "translate_title": "弹窗翻译",
+      "translate_desc": "选中文字按 {{shortcut}} 就能翻译。这里已填好一句原文，点「翻译」试试。",
+      "translate_desc_unbound": "打开翻译弹窗，这里已经为你填好一句原文，点「翻译」即见译文。",
+      "translate_try": "试试弹窗翻译",
+      "translate_not_ready": "文本模型还没准备好，翻译暂时跑不起来。",
+      "clip_title": "转写一段示例语音",
+      "clip_desc": "不用麦克风、不用下载。几秒钟转完一段随应用附带的英文语音，结果就是你的第一篇笔记。",
+      "clip_not_ready": "转写模型还没准备好，示例转写暂时跑不起来。",
+      "clip_try": "转写示例",
+      "clip_queued": "已加入处理队列，转写完成后这一步会自动打勾。",
+      "clip_credit": "示例语音：LibriSpeech（CC BY 4.0）",
+      "none_ready_hint": "两项都还缺模型。回上一步备好任意一个，或者先进入应用。",
+      "sample_text": "Lunarca keeps your notes on this machine, and lets you choose where the AI runs.",
+      "panel_hint": "面板是悬浮窗，不会打断你正在用的应用。",
+      "error": "呼出失败",
+      "success_title": "第一个任务完成了",
+      "success_body": "笔记和录音都保存在你刚选的笔记库里；笔记是 Markdown，可以用其他编辑器打开。",
+      "summary_compute": "AI 算力",
+      "location": {
+        "on_device": "全部在本机",
+        "strict_local": "严格本地",
+        "organization": "组织服务端",
+        "official_cloud": "Lunarca 云"
+      },
+      "remaining_hint": "还差：{{items}}。进入应用后顶部会留一条提示，随时回来补。",
+      "all_done_hint": "都完成了。以后可在「设置 › 通用」重新运行本引导。"
+    }
+  }
+}

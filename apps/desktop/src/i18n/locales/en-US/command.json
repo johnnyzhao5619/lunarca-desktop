@@ -1,0 +1,58 @@
+{
+  "quick_switcher": {
+    "recent": "Recently opened",
+    "hint": "{{create}} create “{{name}}” · {{split}} open in split",
+    "title": "Quick Switcher",
+    "placeholder": "Search note titles, paths, or full text…",
+    "search_label": "Search notes",
+    "empty": "No matching notes"
+  },
+  "vault_search": {
+    "title": "Search the vault"
+  },
+  "palette": {
+    "title": "Command Palette",
+    "placeholder": "Type a command name…",
+    "search_label": "Search commands",
+    "empty": "No matching commands",
+    "scope_workspace": "Workspace",
+    "scope_editor": "Current note"
+  },
+  "toggle_sidebar": {
+    "title": "Toggle sidebar"
+  },
+  "new_note": {
+    "title": "New note"
+  },
+  "open_overview": {
+    "title": "Open overview"
+  },
+  "text_quick_note": {
+    "title": "New text quick note"
+  },
+  "go": {
+    "search": "Go to: Search",
+    "notes": "Go to: Notes",
+    "knowledge": "Go to: Knowledge",
+    "quick_notes": "Go to: Quick Notes",
+    "recordings": "Go to: Recordings",
+    "transcripts": "Go to: Transcripts",
+    "chat": "Go to: AI chat",
+    "creator": "Go to: Create",
+    "apps": "Go to: Apps",
+    "trash": "Go to: Trash",
+    "settings": "Go to: Settings"
+  },
+  "editor": {
+    "toggle_reading_view": "Toggle edit / reading view",
+    "ai_composer": "Open AI actions",
+    "tab_focus_mode": "Toggle Tab key moves focus"
+  },
+  "creator": {
+    "new_project": "Creator: New video project",
+    "new_swipe": "Creator: New inspiration",
+    "swipe_library": "Creator: Open inspiration library",
+    "teleprompter": "Creator: Open this project's teleprompter",
+    "publish": "Creator: Open this project's publishing checklist"
+  }
+}

@@ -1,0 +1,94 @@
+*.swp
+*.tmp
+*.log
+.env
+.env.*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Node
+node_modules/
+.npm-cache/
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+.yarn-integrity
+# package-lock.json 入库（可复现安装，TDD-13 §3 工具链固定）
+
+# Rust
+/target
+**/*.rs.bk
+# Cargo.lock 入库（workspace 含二进制应用，锁定可复现构建，TDD-13 §3）
+
+# Tauri 生成物（tauri_build 产出的 schemas 等，可重建）
+/src-tauri/gen
+
+# 随包模型权重：由 `scripts/fetch-bundled-asr.py` 按 model_store.rs 里声明的 sha256 取回
+# （约 31 MB）。**刻意不入库**——AGPL 仓库的历史一旦背上这个体积就再也卸不掉，而它
+# 每一位都可以从声明的地址复现。缺失时构建会明确报错并给出那一条命令。
+/src-tauri/resources/models/
+
+# 随包推理引擎（llama-server 与依赖的 dylib，ADR-143）：由 `scripts/fetch-llama-runtime.py` 按
+# `crates/luna-engine/src/llama/runtime.rs` 声明的 sha256 取回，约 29 MB，理由同上。
+/src-tauri/resources/llama/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.iml
+
+# Local config
+.claude/
+.omo/
+.superpowers/
+.worktrees/
+*.local.json
+
+# 🔴 TLS 证书与私钥（`*.lunarca.app` 通配符证书包，运维材料）。本仓是**公开 AGPL 仓库**，
+# 私钥一旦进过任何一个 commit 就只能吊销重签——历史改写也收不回已经被 clone 走的副本。
+# 证书怎么用、放在哪见商业仓 docs/operations/domain-and-tls.md。
+ssl/
+*.key.pem
+*.key
+*.p12
+*.pfx
+
+# 内部过程文档（本机保留，不入库）：调研与验收记录、实现计划（完成的在 docs/plans/archive/）。
+# 规格（PRD / TDD / ROADMAP）在商业仓 docs/spec/；本仓引用这些文档时写具名纯文本「…（内部记录）」。
+docs/audits/
+docs/plans/
+
+# Generated files
+dist/
+build/
+coverage/
+
+# 签名与密钥材料（绝不入库；Tauri 更新器私钥、证书、各类凭据）
+*.pem
+*.key
+*.p12
+*.mobileprovision
+*.jks
+*.keystore
+
+# OS generated files
+Thumbs.db
+/THIRD_PARTY_LICENSES.html
+*.cdx.json
+*.cdx.xml
+/THIRD_PARTY_LICENSES_FRONTEND.md
+
+# Python 字节码缓存。`scripts/` 下的门禁脚本平时以脚本方式运行不产生它，
+# 但一旦被 import（自测夹具、探测绕过路径时都会），__pycache__ 就出现在工作树里，
+# 而品牌残留门禁问 git 要文件清单时会把未跟踪的新文件一并纳入——漏了这条，
+# 它们会在下一次 `git add -A` 时静默进仓。
+__pycache__/
+*.pyc
+/actions-runner/
+# 评审评测集的跑批导出（`topic_review_set_export`）：含模型输出，只在本机交给评审，不入库。
+/evals/review/out/

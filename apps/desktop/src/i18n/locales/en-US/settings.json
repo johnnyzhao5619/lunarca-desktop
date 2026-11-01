@@ -1,0 +1,1669 @@
+{
+  "title": "Settings",
+  "sectionNavigation": "Sections on this settings page",
+  "preview": {
+    "appearance": {
+      "title": "Preview current appearance",
+      "hint": "The sample uses your current theme, text size and density.",
+      "sampleTitle": "Today's note",
+      "sampleBody": "Write down an idea to make the next step clearer.",
+      "sampleTag": "Planning",
+      "sampleStatus": "Sample text"
+    },
+    "layout": {
+      "title": "Preview activity bar order",
+      "hint": "Visible workspaces appear in their saved order."
+    },
+    "caption": {
+      "title": "Preview caption appearance",
+      "hint": "An offline sentence sample. Capture and translation stay idle; captions wrap to fit the actual window.",
+      "source": "Une idée claire commence par quelques mots.",
+      "translation": "A clear idea starts with a few words.",
+      "sourceWindow": "Source window",
+      "translationWindow": "Translation window"
+    }
+  },
+  "search": {
+    "placeholder": "Search settings…",
+    "empty": "No settings match “{{query}}”",
+    "results_title": "Search results",
+    "results_desc": "{{count}} settings match “{{query}}”",
+    "results_desc_one": "{{count}} setting matches “{{query}}”",
+    "clear": "Clear search",
+    "clear_filters": "Clear filters",
+    "show_advanced": "Show {{count}} results in full settings",
+    "show_advanced_one": "Show {{count}} result in full settings",
+    "open_panel": "Go to setting",
+    "open_page": "Go to this page",
+    "modified_only": "Modified only",
+    "modified_empty": "No modified settings in this scope.",
+    "modified_title": "Modified settings",
+    "modified_desc": "{{count}} settings in the current display scope.",
+    "modified_desc_one": "{{count}} setting in the current display scope."
+  },
+  "nav": "Settings sections",
+  "autosave_hint": "Changes save instantly",
+  "onboarding_rerun": {
+    "label": "Onboarding",
+    "desc": "Reopen the setup guide; completed steps are never forced again.",
+    "action": "Re-run onboarding"
+  },
+  "group": {
+    "account": "Account",
+    "general": "General",
+    "appearance": "Appearance",
+    "shortcuts": "Shortcuts",
+    "ai_services": "AI services",
+    "local_models": "Local models",
+    "voice_input": "Voice input",
+    "recording": "Recording & transcription",
+    "translate": "Translation & captions",
+    "notes": "Note vault",
+    "glossary": "Personal glossary",
+    "privacy": "Privacy"
+  },
+  "group_description": {
+    "account": "Local features do not require sign-in.",
+    "general": "Language, startup, notification, and workspace options.",
+    "appearance": "Theme, text display, and accessibility options.",
+    "shortcuts": "Actions you can call up at any time, and the keys that trigger them.",
+    "ai_services": "Where AI runs and how to connect a server.",
+    "local_models": "Models, storage, and runtime capability on this device.",
+    "voice_input": "How speech becomes text, where it lands, and how text is read aloud.",
+    "recording": "Capture, live transcription during recording, playback, and offline transcription for imported media.",
+    "translate": "Languages and presets for popup translation; audio sources and display for live captions.",
+    "notes": "Note editing, AI chat, and automatic knowledge-base upkeep.",
+    "glossary": "Keep names and technical terms consistent in recognition and translation.",
+    "privacy": "Manage local records and network access."
+  },
+  "section": {
+    "general": {
+      "interface": "Interface",
+      "a11y": "Accessibility",
+      "launch_notify": "Launch & notifications",
+      "workspace": "Workspace",
+      "playback": "Playback",
+      "export": "Export",
+      "labs": "Labs",
+      "diagnostics": "Diagnostics"
+    },
+    "appearance": {
+      "interface": "Interface",
+      "a11y": "Accessibility"
+    },
+    "voice_input": {
+      "input": "Voice input",
+      "speech": "Text-to-speech"
+    },
+    "recording": {
+      "capture": "Capture & recording",
+      "realtime": "Live transcription",
+      "playback": "Playback",
+      "after": "After recording",
+      "media": "Media transcription",
+      "export": "Export"
+    },
+    "translate": {
+      "popup": "Popup translation",
+      "caption_source": "Caption audio & translation",
+      "caption_appearance": "Caption appearance"
+    },
+    "notes": {
+      "editor": "Editor",
+      "chat": "AI chat",
+      "knowledge": "Knowledge base",
+      "vault": "Vault",
+      "dirs": "Vault folders",
+      "attachments": "Attachments"
+    },
+    "privacy": {
+      "privacy": "Privacy"
+    }
+  },
+  "scope": {
+    "device": "this device",
+    "vault": "per Vault",
+    "account": "account",
+    "vault_hint": "Stored with the Vault: open another Vault and its own value applies."
+  },
+  "privacy": {
+    "strict_local": "Strict local mode",
+    "web_clip": "Web clipping",
+    "strict_local_aliases": "offline airplane no network privacy",
+    "strict_local_desc": "Blocks all outbound connections. Online features will be unavailable.",
+    "web_clip_desc": "When you use Clip web page… in a project overview, fetch that page and its images over the network. When off, the entry stays visible but nothing goes online.",
+    "local_knowledge_metrics": "Local knowledge statistics",
+    "local_knowledge_metrics_desc": "Aggregated on this device. No content or paths are recorded or uploaded.",
+    "local_workspace_metrics_desc": "Aggregated on this device. No content, paths or identity are recorded or uploaded."
+  },
+  "knowledge_metrics": {
+    "title": "Knowledge improvements",
+    "description": "Shows how often suggestions are accepted and sources can be located.",
+    "suggestions": "Suggestions accepted",
+    "linked": "Linked into a topic within 24 hours",
+    "supplement": "Answers with model additions",
+    "topic_time": "Time to form a topic page",
+    "citations": "Sources still locatable",
+    "ratio_value": "{{rate}} ({{numerator}} / {{denominator}})",
+    "suggestion_detail": "{{dismissed}} dismissed · {{rolledBack}} exact rollbacks",
+    "topic_value": "{{minutes}} min median ({{completed}} completed)",
+    "sample_detail": "{{censored}} censored · {{open}} being observed",
+    "window_detail": "{{censored}} censored · {{open}} in the window",
+    "link_origin_detail": "{{automatic}} automatic · {{confirmed}} confirmed · {{manual}} manual",
+    "citation_value": "{{succeeded}} / {{attempts}} located",
+    "citation_detail": "{{stale}} stale anchors · {{missing}} missing sources",
+    "insufficient": "Not enough data yet",
+    "no_samples": "Not enough samples to show metrics yet.",
+    "show_metrics": "Show individual metrics",
+    "range": "Aggregate range: {{start}} to {{end}} (no activity timeline is retained)",
+    "trend": "Last 30 days",
+    "trend_day": "Date",
+    "trend_metric": "Metric",
+    "trend_value": "Aggregate",
+    "trend_count": "{{numerator}} completed · {{censored}} censored",
+    "metric": {
+      "suggestions": "Suggestions",
+      "topic_time": "Topic formation",
+      "linked_within24_hours": "Linked within 24 hours",
+      "citations": "Citation location",
+      "model_supplement": "Model supplement"
+    },
+    "loading": "Reading on-device aggregates…",
+    "retry": "Retry private storage",
+    "export_range": "Export range",
+    "start_day": "Start date",
+    "end_day": "End date",
+    "export_format": "File format",
+    "export_format_json": "JSON",
+    "export_format_csv": "CSV",
+    "export": "Export aggregate data…",
+    "exported": "Aggregate data exported.",
+    "export_failed": "The export could not be saved. Check the destination and try again.",
+    "clear_subject": "On-device statistics",
+    "clear": "Clear on-device statistics",
+    "clear_confirm_title": "Permanently clear on-device knowledge statistics?",
+    "clear_confirm": "This permanently removes knowledge-improvement statistics from this device; reopening the app cannot restore them. Your Vault, notes, version history, settings, and models are untouched.",
+    "clear_confirm_action": "Clear permanently",
+    "cancel": "Cancel",
+    "cleared": "Knowledge-improvement statistics were permanently removed from this device.",
+    "clear_failed": "On-device statistics could not be fully cleared. Your Vault and settings are untouched; please try again.",
+    "clear_hint": "Only removes on-device aggregates. Your Vault, notes, version history, settings, and models stay untouched.",
+    "status": {
+      "ready": "Private on-device storage is ready.",
+      "cleared": "Statistics are cleared; a fresh cycle starts the next time recording is allowed.",
+      "vault_unavailable": "Open a Vault to see its aggregate summary.",
+      "keychain_unavailable": "The system keychain is unavailable, so no new statistics are being recorded.",
+      "key_missing": "Old statistics remain but can no longer be read safely. Clear them before starting again.",
+      "invalid_key": "Protection for on-device statistics is invalid, so recording has stopped.",
+      "database_unavailable": "On-device statistics are unavailable, so no new data is being recorded."
+    }
+  },
+  "compute_card": {
+    "title": "Where AI runs",
+    "strict_local": "Everything runs on this device",
+    "strict_local_body": "Strict local is on, so nothing leaves this device.",
+    "on_device": "AI is running on this device",
+    "on_device_body": "AI requests are processed on this device. Cloud sync is configured separately.",
+    "official_cloud": "AI requests go to Lunarca Cloud",
+    "official_cloud_body": "AI request content is not retained or used for training. Cloud sync is configured separately.",
+    "organization": "AI requests go to your organization's server",
+    "organization_body": "Your organization processes AI requests and sets its own retention rules.",
+    "routes_title": "See each one",
+    "route": {
+      "chat": "Chat & translation",
+      "embedding": "Semantic index",
+      "transcription": "Recording transcription",
+      "local": "This device",
+      "server_cloud": "Lunarca Cloud",
+      "server_organization": "Organization server",
+      "inline": {
+        "chat": "chat, translation",
+        "embedding": "semantic index",
+        "transcription": "recording transcription"
+      }
+    },
+    "local_candidate": {
+      "title": "Local fallback",
+      "active_title": "In use",
+      "policy": {
+        "unreachable_before_visible_output": "Switches to this device when the server is unreachable; not when the server returns an error.",
+        "explicit_only": "When the server is unreachable, semantic indexing pauses instead of switching — vectors from the two sides cannot share one index."
+      },
+      "readiness": {
+        "ready": "Ready: {{model}}",
+        "model_missing": "No usable local model is installed.",
+        "runtime_unavailable": "The local inference engine keeps failing to start. See why and restart it on the Local models page.",
+        "not_applicable": "Does not take part in automatic fallback."
+      },
+      "no_model": "No model selected"
+    },
+    "minimal_model_hint": "The bundled transcription model has limited accuracy; enable server-side transcription or download a larger model under Local models.",
+    "strategy_strict_local": "Has no effect while strict local is on.",
+    "local_only": "Signed in to a server, but AI runs only on this device",
+    "local_only_body": "AI requests are not sent to the server. Cloud sync is configured separately.",
+    "setup_incomplete": "Signed in to a server, but it has no AI compute set up yet",
+    "setup_incomplete_body": "AI requests are handled on this device and are not sent to the server until it is set up. Cloud sync is configured separately.",
+    "transcription_local_only": "With “Run it where first” set to local only, recording transcription is not handed to the server.",
+    "action": {
+      "strict_local": "Open Privacy",
+      "sign_in": "Sign in on the Account page",
+      "local_models": "Open Local models"
+    },
+    "reason": {
+      "strict_local": "Strict local is on; the server is not used",
+      "explicit_device": "You chose a local model for this item",
+      "explicit_server": "You assigned this item to the server",
+      "server_default": "Signed in to a server; it runs this by default",
+      "device_policy": "No server connected; running under the local policy",
+      "needs_consent": "Goes to the server once turned on below",
+      "server_unavailable": "The server does not offer this; using this device",
+      "server_not_configured": "The server has not set this up yet; running on this device",
+      "server_not_allowed": "Your organization has not enabled this on the server; running on this device",
+      "strategy_local": "“Run it where first” is set to local first; this runs on this device first",
+      "strategy_local_only": "“Run it where first” is set to local only; nothing goes to the server",
+      "strategy_local_unavailable": "No local model is available. Currently running on the server."
+    },
+    "switch": "Change",
+    "handover": {
+      "title": "{{count}} items still run on this device",
+      "body": "These capabilities still use your selected local models. Switch them to the server?",
+      "accept": "Hand over to server",
+      "keep": "Leave unchanged"
+    },
+    "summary": {
+      "server": "{{where}}: {{names}}",
+      "local": "This device: {{names}}",
+      "local_only": "This device: {{names}} — never sent to a server",
+      "unready_model_missing": "Not usable yet: {{names}} — no local model on this device can run them.",
+      "unready_runtime_unavailable": "Unavailable right now: {{names}} — the local inference engine failed to start."
+    },
+    "minimal_model_hint_local": "The bundled transcription model has limited accuracy; download a larger model under Local models."
+  },
+  "provider": {
+    "asr_cost_per_min": "Transcription reference price",
+    "llm_cost_per_million_tokens": "LLM reference price",
+    "asr_cost_per_min_desc": "Estimates only. No billing or network requests.",
+    "llm_cost_per_million_tokens_desc": "Estimates only, separate from actual bills.",
+    "remote_asr_enabled": "Server-side transcription",
+    "remote_asr_enabled_aliases": "upload cloud transcription consent",
+    "remote_asr_enabled_desc": "Allows audio uploads for transcription; turning it off keeps audio processing on this device."
+  },
+  "ai": {
+    "route_strategy": "AI execution preference",
+    "route_strategy_aliases": "compute where ai runs cloud offline routing",
+    "route_strategy_desc": "Sets the preferred execution location when both the device and server are available.",
+    "assignment": {
+      "default_llm": "Default conversation model",
+      "realtime_llm": "Translation & real-time model",
+      "realtime_asr": "Real-time transcription model",
+      "batch_asr": "Batch transcription model",
+      "default_embedding": "Default embedding model",
+      "default_llm_desc": "Sets the model used for conversation, translation and text generation.",
+      "realtime_llm_desc": "Used for all translation (popup, notes, live captions); when unset, prefers an installed dedicated translation model, otherwise inherits the default chat model.",
+      "realtime_asr_desc": "Used for speech recognition while recording; it must be assigned a model with confirmed transcription capability.",
+      "batch_asr_desc": "Used for imported media and the full transcript after recording; inherits the real-time model when unset.",
+      "default_embedding_desc": "Sets the model used for knowledge indexing and semantic retrieval."
+    }
+  },
+  "storage": {
+    "vault_root": "Note vault location",
+    "vault_root_aliases": "vault library folder directory location notes folder",
+    "vault_root_desc": "Open the selected vault without moving files from the original location.",
+    "models_root": "Model storage folder",
+    "models_root_desc": "Root folder of Lunarca-managed models; changed only through “Move to…” on the AI engine / models page, which copies and verifies before switching."
+  },
+  "voice_input": {
+    "auto_refine": "Automatic refinement",
+    "translate_enabled": "Translate output",
+    "translate_target_lang": "Translation target language",
+    "landing_mode": "Output destination",
+    "input_mode": "Input mode",
+    "lang_hint": "Recognition language",
+    "auto_refine_desc": "Removes fillers and adds punctuation; turning it off preserves the original transcript.",
+    "translate_enabled_desc": "Output the translation while previewing the original.",
+    "translate_target_lang_desc": "Sets the target language used when translated output is enabled.",
+    "landing_mode_desc": "Type into the current app, copy to the clipboard, or save as a quick note.",
+    "input_mode_desc": "Hold the shortcut while speaking, or press once to start and again to stop.",
+    "lang_hint_desc": "Specifies the spoken language for better accuracy; use automatic detection for multilingual input.",
+    "quick_note_refine": "Quick-note AI refinement",
+    "quick_note_refine_desc": "Adds a title, tasks and dates to quick notes; preserves the original when the model is unavailable or the text has been edited.",
+    "keep_audio": "Keep quick-note audio",
+    "keep_audio_desc": "Save quick-note audio as an attachment for playback or retranscription."
+  },
+  "popup_translate": {
+    "native_lang": "Native language",
+    "default_foreign": "Default foreign language",
+    "default_preset": "Default preset",
+    "auto_copy": "Automatically copy translation",
+    "desktop_lens": "Translate Space frame geometry",
+    "native_lang_desc": "Translate your native language to the default foreign language, and other languages back to your native language.",
+    "default_foreign_desc": "Sets the foreign language paired with your native language for smart bidirectional translation.",
+    "default_preset_desc": "The tone template popup translation opens with.",
+    "auto_copy_desc": "Replace clipboard contents when translation finishes.",
+    "direction_preview": "{{native}} → {{foreign}}; other languages → {{native}}"
+  },
+  "onboarding": {
+    "completed": "Onboarding completed",
+    "completed_steps": "Visited onboarding steps",
+    "first_task_done": "First AI task completed",
+    "setup_reminder_dismissed": "Setup reminder dismissed"
+  },
+  "build_info": {
+    "title": "Build identity",
+    "description": "Use these exact values when reporting a desktop build or checking server compatibility.",
+    "version": "App version",
+    "git_sha": "Git SHA",
+    "protocol_version": "Service protocol",
+    "build_time": "Built at (UTC)",
+    "startup_previous": "Previous launch (from process start)",
+    "startup_ms": "{{value}} ms",
+    "startup_milestone": {
+      "shortcuts_registered": "Global shortcuts responsive",
+      "setup_end": "Backend assembled",
+      "first_frame": "Main window first frame",
+      "workspace_ready": "Workspace ready",
+      "engine_ready": "Local text engine ready"
+    }
+  },
+  "advanced_mode": "Show full settings",
+  "advanced_target": "“{{item}}” is an advanced setting under “{{page}}”. Turn on “Show full settings” to view and edit it.",
+  "advanced_mode_desc": "Shows technical and maintenance options; existing values stay unchanged.",
+  "notifications": {
+    "completed_enabled": "Task completion notifications",
+    "completed_enabled_desc": "Shows alerts when long tasks finish; notification history retains these records when disabled.",
+    "system_enabled": "System notifications",
+    "system_enabled_desc": "Send system notifications while in the background. System permission is required.",
+    "suppress_while_recording": "Recording do not disturb",
+    "suppress_while_recording_desc": "Defer regular notifications until recording ends. Critical alerts still appear."
+  },
+  "appearance": {
+    "theme": "Color mode",
+    "theme_aliases": "dark mode night light appearance",
+    "theme_family": "Color theme",
+    "language": "Interface language",
+    "language_aliases": "chinese english locale language",
+    "reduce_motion": "Reduce motion",
+    "high_contrast": "High contrast",
+    "font_scale": "Interface text size",
+    "font_scale_aliases": "font size bigger smaller zoom",
+    "theme_desc": "Sets a light or dark interface, or follows the system setting.",
+    "theme_family_desc": "Changes the color palette only.",
+    "language_desc": "Language of the interface; applies immediately.",
+    "reduce_motion_desc": "Softens interface animation; also honoured when the system setting is on.",
+    "high_contrast_desc": "Raises text-to-background contrast for bright environments.",
+    "font_scale_desc": "Scales all interface text.",
+    "density": "Information density",
+    "density_desc": "Adjusts spacing to show more content or provide more room for reading.",
+    "launch_overview": "Startup overview",
+    "launch_overview_desc": "Show tasks and unfinished setup at launch."
+  },
+  "theme_library": {
+    "title": "Color theme",
+    "hint": "Choose which color theme to use. Preview, install from a file or uninstall themes under Apps › Themes. Light and dark follow Appearance mode above.",
+    "builtin": {
+      "luna": {
+        "name": "Lunarca",
+        "desc": "Warm neutrals with moonlight-gold accents."
+      },
+      "nebula": {
+        "name": "Nebula",
+        "desc": "Low-chroma greys with violet accents."
+      }
+    },
+    "installed_meta": "{{author}} · {{license}}",
+    "update_meta": "{{author}} · {{license}} · Update to {{version}} available in Apps › Themes",
+    "selected": "Current",
+    "browse": "Browse and manage themes"
+  },
+  "shortcuts": {
+    "popup_translate": "Popup translation",
+    "double_tap_window_ms": "Double-tap interval",
+    "voice_input": "Voice input",
+    "text_quick_note": "Text quick note",
+    "quick_chat": "AI chat",
+    "quick_switcher": "Quick switcher",
+    "command_palette": "Command palette",
+    "vault_search": "Search vault",
+    "toggle_sidebar": "Toggle sidebar",
+    "open_settings": "Open settings",
+    "reopen_closed_tab": "Reopen closed tab",
+    "toggle_reading_view": "Toggle reading view",
+    "ai_composer": "AI actions",
+    "recording_toggle": "Recording control",
+    "recording_bookmark": "Recording bookmark",
+    "live_caption": "Live captions",
+    "trigger_mode": "Trigger",
+    "existing_conflict": "Conflicts with “{{other}}”.",
+    "mode_single": "Press once",
+    "mode_double": "Double-tap",
+    "mode_double_hint": "Fires only when the same combination is pressed twice quickly; a single press is left alone",
+    "recording_tip": "Press the new combination; Esc cancels, Delete clears",
+    "press_keys": "Press keys…",
+    "click_to_record": "Click to record a shortcut",
+    "unbound": "Not bound",
+    "double_tap_locked": "System editing keys such as ⌘C can only be double-tapped, otherwise they would take over copy and paste",
+    "screenshot_translate": "Screenshot translation",
+    "desktop_lens": "Translate Space toggle",
+    "desktop_lens_capture": "Translate Space capture",
+    "popup_translate_desc": "Translates selected text, or opens an input box when nothing is selected.",
+    "screenshot_translate_desc": "Select an area of the screen, then read and translate the text in it.",
+    "desktop_lens_desc": "Starts or stops a Translate Space session (Labs feature).",
+    "desktop_lens_capture_desc": "Captures the current frame during a session; inert when no session is running.",
+    "double_tap_window_ms_desc": "How close two presses must be to count as a double tap. Shared by every shortcut set to double-tap: longer is more forgiving, shorter is more responsive.",
+    "voice_input_desc": "Starts voice input; releasing the shortcut ends dictation in hold-to-talk mode.",
+    "text_quick_note_desc": "Open the capture panel from any app; press Enter to save straight into your vault.",
+    "quick_chat_desc": "Calls up the quick chat panel from anywhere.",
+    "quick_switcher_desc": "Open a note by name.",
+    "command_palette_desc": "Run a command by name.",
+    "vault_search_desc": "Search the entire vault.",
+    "toggle_sidebar_desc": "Collapse or expand the list sidebar (in-app shortcut).",
+    "open_settings_desc": "Open settings (in-app shortcut).",
+    "reopen_closed_tab_desc": "Reopen recently closed tabs, most recent first (in-app shortcut).",
+    "toggle_reading_view_desc": "Switch between editing and reading (in-app shortcut, for the current note).",
+    "ai_composer_desc": "Open or close the AI actions panel in a note (in-app shortcut).",
+    "recording_toggle_desc": "Starts or pauses recording using the shortcut.",
+    "recording_bookmark_desc": "Marks the current moment so playback can jump straight to it. While the teleprompter is following you, it marks the line you are reading as a retake instead. Unbound by default.",
+    "live_caption_desc": "Shows or hides the floating caption panel.",
+    "diagnostic_unavailable": "The system refused this combination (most likely another app owns it). Pick another one.",
+    "diagnostic_invalid": "This binding could not be registered — record it again.",
+    "diagnostic_reserved_system": "This is a common system combination; the system may answer it first.",
+    "diagnostic_accessibility_required": "Double-tap shortcuts require Accessibility permission.",
+    "diagnostic_tap_failed": "Keystroke observation failed to start, so double-tap can't trigger for now. If a restart doesn't help, please report it.",
+    "diagnostic_double_tap_unsupported": "Double-tap isn't supported on this system yet — use a single-press combination.",
+    "diagnostic_unknown": "This shortcut is not active.",
+    "grant_accessibility": "Open System Settings",
+    "unsupported_key": "That key can't be recorded — try another combination.",
+    "scope_global": "Global",
+    "scope_in_app": "In app",
+    "view_conflict": "View conflicting setting"
+  },
+  "vault": {
+    "templates_dir": "Templates folder",
+    "delete_mode": "Delete behaviour",
+    "delete_mode_aliases": "delete trash bin recycle",
+    "snapshot_max_versions": "Snapshot versions kept",
+    "show_hidden_files": "Show hidden files",
+    "ai_artifacts_dir": "AI artefacts folder",
+    "notes_dir": "Notes folder",
+    "quick_notes_dir": "Quick notes folder",
+    "recordings_dir": "Recordings folder",
+    "transcripts_dir": "Transcripts folder",
+    "documents_dir": "Documents folder",
+    "chats_dir": "Chats folder",
+    "creator_dir": "Create folder",
+    "translate_space_dir": "Translate Space folder",
+    "knowledge_dir": "Knowledge pages folder",
+    "attachment_location": "Default attachment location",
+    "attachment_folder": "Attachment folder",
+    "graph_ai_tags": "AI relationship tags",
+    "templates_dir_desc": "Where note templates live (path relative to the Vault).",
+    "delete_mode_desc": "Send deleted notes to the system trash, the in-Vault trash, or remove them permanently.",
+    "trash_retention_days": "Trash retention",
+    "trash_retention_days_desc": "Permanently delete after the retention period. Items can be restored before then.",
+    "snapshot_max_versions_desc": "How many past versions to keep per note; the oldest is pruned beyond this.",
+    "show_hidden_files_desc": "List files starting with “.” in the file tree; they stay out of search, the graph and links. Lunarca’s own data and .git are never listed.",
+    "ai_artifacts_dir_desc": "Where AI summaries, translations, and similar results are filed.",
+    "notes_dir_desc": "Default location for newly created notes.",
+    "quick_notes_dir_desc": "Where voice input lands when you choose “save as quick note”.",
+    "recordings_dir_desc": "Where recording notes and their audio files are stored.",
+    "transcripts_dir_desc": "Where transcripts of imported media are filed.",
+    "documents_dir_desc": "Where notes converted from imported documents (Word, text, spreadsheets…) and their original files are filed.",
+    "chats_dir_desc": "Where AI chats saved to history are stored.",
+    "creator_dir_desc": "Where video project folders and swipe entries are stored.",
+    "translate_space_dir_desc": "Source and translated text you confirm in Translate Space is written here.",
+    "knowledge_dir_desc": "Used for new topic pages and knowledge maps only. Existing pages are not moved.",
+    "attachment_location_desc": "Whether pasted images and files go to the Vault root, next to the note, a subfolder next to the note, or one specific folder.",
+    "attachment_folder_desc": "Sets the note-adjacent subfolder name or a specified vault-relative path.",
+    "graph_ai_tags_desc": "Extracts relationship tags after saving or transcription, preserving manual tags and respecting folder generation settings.",
+    "delete_mode_desc_trash": "Move deleted files to system Trash. Restore them using the system.",
+    "delete_mode_desc_vault_trash": "Move deleted files to vault trash. They are permanently deleted after the retention period.",
+    "delete_mode_desc_permanent": "Delete permanently without trash recovery."
+  },
+  "editor": {
+    "preview_tabs": "Preview tabs",
+    "preview_tabs_desc": "A single click opens a note as a preview tab (italic) that is kept once you double-click or edit. When off, opening a note always replaces the current tab.",
+    "autosave_enabled": "Automatic saving",
+    "autosave_debounce_ms": "Autosave delay",
+    "floating_summary_lang": "AI summary language",
+    "floating_context": "Selection rewrite context",
+    "floating_summary_style": "Default AI summary style",
+    "localize_remote_images": "Local copies of remote images",
+    "typewriter_mode": "Typewriter mode",
+    "focus_mode": "Focus mode",
+    "show_format_toolbar": "Formatting toolbar",
+    "autosave_enabled_desc": "Saves edited content after typing stops.",
+    "autosave_debounce_ms_desc": "How long to wait after the last keystroke; longer means fewer disk writes.",
+    "localize_remote_images_desc": "Downloads pasted remote images as vault attachments for offline access; strict local mode prevents downloads.",
+    "typewriter_mode_desc": "Keeps the current line centered while editing.",
+    "focus_mode_desc": "Dims everything outside the current paragraph.",
+    "spellcheck": "Spell check",
+    "spellcheck_desc": "Underline misspelled words in Latin-script languages in your notes; right-click for corrections. Code, links and Chinese, Japanese and Korean aren’t checked.",
+    "body_width": "Body width",
+    "body_width_desc": "Maximum line width of note text, shared by editing, reading, and the knowledge reader.",
+    "show_format_toolbar_desc": "Shows formatting controls below the editor title.",
+    "floating_summary_lang_desc": "Language used by the floating AI menu when it summarises a note.",
+    "floating_context_desc": "Include the surrounding paragraph on each side. This context is also uploaded when running on a server. Only the selection is edited.",
+    "floating_summary_style_desc": "Whether AI summaries in notes default to key points, a paragraph, or one sentence; the Summarize submenu can override per run."
+  },
+  "labs": {
+    "translate_space_enabled": "Experimental Translate Space",
+    "translate_space_enabled_desc": "Shows Translate Space and enables its shortcuts; turning it off ends the session and unregisters the shortcuts."
+  },
+  "action": {
+    "reset": "Reset",
+    "restart_required": "Restart required",
+    "reset_hint": "Restore this setting to its default",
+    "reset_group": "Reset page defaults",
+    "reset_group_confirm": "Reset {{count}} settings?",
+    "reset_group_standard": "Reset common page settings",
+    "reset_group_standard_confirm": "Reset {{count}} common settings?",
+    "reset_group_all": "Reset page settings",
+    "reset_group_all_confirm": "Reset {{count}} settings?",
+    "saved": "Saved",
+    "copy_key": "Copy setting key",
+    "copy_value": "Copy current value",
+    "about_setting": "About “{{name}}”",
+    "saving": "Saving…",
+    "details": "Details",
+    "close": "Close",
+    "value_enabled": "On",
+    "value_disabled": "Off",
+    "value_empty": "Not set",
+    "reset_preview_unavailable": "Reset preview",
+    "reset_preview_failed": "Unable to read the changes. Close and try again.",
+    "reset_scope": "{{page}} · {{scope}}",
+    "reset_scope_all": "All settings",
+    "reset_scope_standard": "Common settings",
+    "reset_effects": "Defaults may change network access, audio saving, or deletion behavior. Resetting settings does not delete existing files."
+  },
+  "option": {
+    "ai": {
+      "route_strategy": {
+        "cloud_first": "Server first",
+        "local_first": "Local first (stop if it can't run here)",
+        "local_first_fallback": "Local first, server when needed",
+        "local_only": "Local only (never sent to a server)"
+      }
+    },
+    "popup_translate": {
+      "default_preset": {
+        "general": "General",
+        "slack": "Slack",
+        "email": "Email",
+        "polish_en": "English polish"
+      }
+    },
+    "editor": {
+      "floating_summary_lang": {
+        "native": "Native language",
+        "default_foreign": "Default foreign language",
+        "zh": "Chinese",
+        "en": "English"
+      },
+      "body_width": {
+        "narrow": "Narrow",
+        "medium": "Medium",
+        "wide": "Wide"
+      },
+      "floating_summary_style": {
+        "bullets": "Key points",
+        "paragraph": "Paragraph",
+        "one_line": "One sentence"
+      }
+    },
+    "appearance": {
+      "theme": {
+        "system": "System",
+        "light": "Light",
+        "dark": "Dark"
+      },
+      "theme_family": {
+        "luna": "Lunarca",
+        "nebula": "Nebula",
+        "installed": "Installed theme"
+      },
+      "density": {
+        "compact": "Compact",
+        "comfortable": "Comfortable"
+      },
+      "language": {
+        "system": "System",
+        "zh-CN": "Chinese",
+        "en-US": "English"
+      }
+    },
+    "voice_input": {
+      "landing_mode": {
+        "inject": "Type directly into active app",
+        "clipboard": "Copy to clipboard only",
+        "quick_note": "Save as quick note"
+      },
+      "input_mode": {
+        "hold": "Hold to talk",
+        "toggle": "Tap to toggle"
+      }
+    },
+    "vault": {
+      "delete_mode": {
+        "trash": "System Trash",
+        "vault_trash": "Vault Trash",
+        "permanent": "Permanent"
+      },
+      "attachment_location": {
+        "vault_root": "Vault root folder",
+        "note_folder": "Same folder as note",
+        "note_subfolder": "Subfolder under note's folder",
+        "specified_folder": "Specified vault folder"
+      },
+      "trash_retention_days": {
+        "7": "7 days",
+        "30": "30 days",
+        "90": "90 days",
+        "never": "Keep forever"
+      }
+    },
+    "transcribe": {
+      "fetch_media": {
+        "audio": "Audio only (saves space)",
+        "video": "Video (proofread against the picture)",
+        "link_only": "Transcript and link only"
+      },
+      "distill_mode": {
+        "off": "Off",
+        "prompt": "Prompt on completion",
+        "auto": "Automatic"
+      }
+    },
+    "recording": {
+      "capture_source": {
+        "input_device": "Microphone",
+        "system_loopback": "System audio (remote/system sound)",
+        "both": "Both (microphone + system audio)"
+      },
+      "vad_sensitivity": {
+        "low": "Low",
+        "normal": "Normal",
+        "high": "High"
+      },
+      "vad_engine": {
+        "energy": "Energy",
+        "silero": "Silero"
+      },
+      "distill_mode": {
+        "off": "Off",
+        "prompt": "Prompt on completion",
+        "auto": "Automatic"
+      }
+    },
+    "caption": {
+      "capture_source": {
+        "input_device": "Microphone",
+        "system_loopback": "System audio",
+        "both": "Microphone + system audio"
+      },
+      "font_size": {
+        "small": "Small",
+        "medium": "Medium",
+        "large": "Large",
+        "xlarge": "Largest"
+      },
+      "text_color": {
+        "white": "White",
+        "yellow": "Yellow",
+        "cyan": "Cyan",
+        "green": "Green"
+      }
+    },
+    "playback": {
+      "video_layout": {
+        "split": "Split (transcript + video)",
+        "theater": "Theater (video fills view)",
+        "float": "Floating mini player",
+        "audio_only": "Audio only (hide video)"
+      },
+      "subtitle_size": {
+        "small": "Small",
+        "medium": "Medium",
+        "large": "Large",
+        "xlarge": "Largest"
+      },
+      "background_video": {
+        "audio_only": "Audio only",
+        "float": "Floating window"
+      }
+    },
+    "chat": {
+      "distill_mode": {
+        "off": "Off",
+        "prompt": "Prompt on completion",
+        "auto": "Automatic"
+      }
+    },
+    "knowledge": {
+      "ingest_mode": {
+        "off": "Off",
+        "suggest": "Suggest",
+        "auto": "Auto ingest"
+      }
+    },
+    "models": {
+      "download_source": {
+        "auto": "Automatic",
+        "huggingface": "Hugging Face",
+        "modelscope": "ModelScope"
+      }
+    },
+    "sync": {
+      "recordings_mode": {
+        "on_demand": "Download on demand (when opened)",
+        "full": "Download everything to this device",
+        "off": "Don't sync recordings"
+      }
+    },
+    "creator": {
+      "board_view": {
+        "board": "Board",
+        "list": "List",
+        "table": "Table",
+        "calendar": "Calendar"
+      }
+    },
+    "update": {
+      "policy": {
+        "check_and_confirm": "Check at launch, I confirm installs",
+        "automatic": "Download and install automatically",
+        "manual": "Only when I click Check for updates"
+      }
+    }
+  },
+  "models": {
+    "title": "Model library",
+    "storage_root": "Model storage location",
+    "relocate": {
+      "hint": "Files are verified before switching. The original location remains active until completion.",
+      "action": "Move models…",
+      "cancel": "Cancel",
+      "confirm_title": "Move model storage?",
+      "confirm": "From {{from}} to {{to}}: {{bytes}} in total, {{available}} free on the target volume. Models cannot be installed while moving; the old folder stays valid until the switch.",
+      "confirm_action": "Start moving",
+      "done": "Moved to {{path}}; the old folder was removed.",
+      "done_old_kept": "Moved to {{path}} and switched, but the old folder could not be removed. You can delete it by hand.",
+      "failed": "Move failed: {{reason}} The old folder is untouched.",
+      "cancelled": "Cancelled; the old folder is untouched.",
+      "phase": {
+        "copying": "Copying {{copied}} / {{total}}",
+        "verifying": "Verifying every file…",
+        "switching": "Switching storage location…",
+        "cleaning": "Removing the old folder…"
+      },
+      "reason": {
+        "same_dir": "The target is the current folder.",
+        "nested": "The target and the current folder contain each other.",
+        "not_dir": "The target is not a folder.",
+        "not_empty": "The target folder is not empty; pick an empty one.",
+        "not_writable": "The target folder is not writable.",
+        "not_absolute": "The target must be an absolute path.",
+        "insufficient_disk": "Not enough space on the target volume (needs the models' total size plus a 512 MiB reserve).",
+        "install_in_progress": "A model is downloading; wait for it to finish or pause it first.",
+        "already_running": "A move is already in progress.",
+        "source_unreadable": "The current model folder cannot be read."
+      }
+    },
+    "delete": "Delete",
+    "install": "Download",
+    "installing": "Downloading",
+    "empty": "No models to show",
+    "source": "Why this one",
+    "on_disk": "On disk",
+    "estimated_on_disk": "Estimated installed size",
+    "progress": "Progress",
+    "status": {
+      "bundled": "Bundled",
+      "installed": "Installed",
+      "unavailable": "Unavailable",
+      "downloadable": "Downloadable"
+    },
+    "view": {
+      "assignments": "Assignments",
+      "local": "Local models",
+      "services": "Where it runs",
+      "usage": "Execution record"
+    },
+    "assignment_intro": "Automatic selection follows server policy and device capabilities.",
+    "local_intro_primary": "Install and manage local models here.",
+    "local_intro_fallback": "Local fallback varies by capability. See AI Services.",
+    "effective": "Effective",
+    "selected_inactive": "Selected, not in effect",
+    "assigned": "Used by",
+    "unresolved": "Not ready",
+    "follow_policy": "Choose automatically (recommended)",
+    "location": {
+      "device": "This device",
+      "server": "Server"
+    },
+    "capability": {
+      "chat": "Chat",
+      "transcribe": "Transcription",
+      "embed": "Embedding",
+      "diarize": "Speaker diarization",
+      "vad": "Voice detection",
+      "translate": "Translation",
+      "summarize": "Summarization",
+      "refine": "Text refinement"
+    },
+    "readiness": {
+      "ready": "Ready",
+      "missing": "Needs download",
+      "incompatible": "Capability mismatch",
+      "profile_unverified": "Stable vector profile not verified yet",
+      "unresolved": "Unresolved"
+    },
+    "source_kind": {
+      "explicit": "You picked it here",
+      "inherited": "Follows the slot above",
+      "device_policy": "Chosen automatically for this device"
+    },
+    "slot": {
+      "default_llm": "Default chat model",
+      "realtime_llm": "Translation & real-time model",
+      "realtime_asr": "Real-time transcription model",
+      "batch_asr": "Batch transcription model",
+      "default_embedding": "Default embedding model"
+    },
+    "slot_desc": {
+      "default_llm": "Used for AI chat, translation, and other text generation work.",
+      "realtime_llm": "Used for all translation (popup, notes, low-latency live captions); when unset, prefers an installed dedicated translation model, otherwise inherits the default chat model.",
+      "realtime_asr": "Used for speech recognition while recording.",
+      "batch_asr": "Used for imported media and the full transcript after recording; inherits the real-time model when unset.",
+      "default_embedding": "Used for knowledge indexing, retrieval, and similar-content checks."
+    },
+    "device_fit_label": "Device fit",
+    "manager_label": "Managed by",
+    "manager": {
+      "LunaManaged": "Lunarca",
+      "LocalRuntime": "Local runtime",
+      "InProcess": "Lunarca in-process engine"
+    },
+    "origin_label": "Source",
+    "origin": {
+      "bundled": "Bundled with Lunarca",
+      "downloaded": "Downloaded by Lunarca",
+      "remote": "Lunarca model catalog",
+      "imported": "Imported manually"
+    },
+    "device_fit": {
+      "recommended": "Recommended",
+      "supported": "Supported",
+      "insufficient": "Insufficient memory",
+      "unknown": "To be verified"
+    },
+    "quantization": "Quantization",
+    "digest": "Runtime digest",
+    "memory_estimate": "Estimated runtime memory",
+    "service": {
+      "local_asr_body": "Transcription runs inside the Lunarca process. Ready weights remain on standby and load on first use.",
+      "status": {
+        "ready": "Available",
+        "standby": "Standby",
+        "unavailable": "Unavailable"
+      },
+      "endpoint": "Endpoint",
+      "in_process": "Runs in process with no network endpoint",
+      "model_count": "{{count}} models discovered",
+      "latency": "responded in {{value}} ms",
+      "refresh": "Probe again"
+    },
+    "plan": {
+      "install_title": "Confirm installation",
+      "delete_title": "Confirm permanent deletion",
+      "download": "Download: {{value}}",
+      "download_resumed": "Still to download: {{value}} ({{done}} already downloaded)",
+      "on_disk": "Estimated installed size: {{value}}",
+      "remaining": "Disk remaining afterward: {{value}}",
+      "license": "Weights license: {{value}}",
+      "release": "Estimated space released: {{value}}",
+      "permanent": "Model files will be permanently deleted without using the system trash.",
+      "blocking_slots": "Unassign first: {{value}}",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "reason": {
+        "MODEL_BUNDLED_NOT_DELETABLE": "Bundled models cannot be deleted.",
+        "MODEL_NOT_INSTALLED": "This model is not installed.",
+        "MODEL_DELETE_BLOCKED_ASSIGNMENT": "This model is still assigned. Clear the assignments above first.",
+        "MODEL_ALREADY_INSTALLED": "This model is already installed.",
+        "STRICT_LOCAL_BLOCKED": "Strict local mode blocks network downloads.",
+        "MODEL_DISK_SPACE_INSUFFICIENT": "The target volume does not have enough free space.",
+        "MODEL_INSTALL_UNAVAILABLE": "No installation source is currently available."
+      },
+      "update_title": "Confirm update",
+      "update_note": "The new version replaces the installed one only after it downloads and passes verification; if the update fails, the old version keeps working.",
+      "reindex_note": "This is an embedding model: new weights mean the library index has to be rebuilt once, and search may be incomplete meanwhile.",
+      "install_confirm": "Install model",
+      "update_confirm": "Update model",
+      "delete_confirm": "Permanently delete model"
+    },
+    "notice": {
+      "MODEL_INSTALLED": "Installed: {{detail}}",
+      "MODEL_DOWNLOAD_PAUSED": "Download paused: {{detail}}. The downloaded part is kept; click Resume to continue.",
+      "COREML_ENABLED": "CoreML acceleration enabled: {{detail}}",
+      "MODEL_IMPORTED": "Imported {{detail}} — recognized as a {{role}} and verified",
+      "MODEL_IMPORTED_AS_CATALOG": "This file is “{{detail}}” from the model catalog ({{role}}) and was installed as that entry",
+      "MODEL_IMPORT_NOT_GGUF": "Not a usable GGUF file ({{detail}})",
+      "MODEL_IMPORT_UNSUPPORTED_ROLE": "This model is neither a chat model nor an embedding model, so it cannot be used",
+      "MODEL_IMPORT_ENGINE_REJECTED": "The local inference engine cannot read this file ({{detail}})",
+      "MODEL_IMPORT_DUPLICATE": "This file has already been imported ({{detail}})",
+      "MODEL_IMPORT_FAILED": "Import failed: {{detail}}",
+      "MODEL_IMPORT_UNAVAILABLE": "This build does not include the local inference engine",
+      "MODEL_IMPORT_NOT_FOUND": "Model file not found ({{detail}})",
+      "MODEL_IMPORT_HF_INVALID": "Repository ids look like owner/name",
+      "MODEL_IMPORT_HF_NOT_FOUND": "Repository not found or not public",
+      "MODEL_IMPORT_HF_GATED": "This repository requires sign-in or access approval, which is not supported yet",
+      "MODEL_IMPORT_HF_NETWORK": "Could not reach Hugging Face ({{detail}})"
+    },
+    "import_role": {
+      "chat": "chat model",
+      "embedding": "embedding model"
+    },
+    "managed": {
+      "name": "Server-managed",
+      "note": {
+        "managed": "Selected by the server. See execution records for the model used.",
+        "profile": "Uses verified embedding profiles only.",
+        "channel": "Audio goes through the server transcription channel; local Whisper takes over whenever the server is unreachable."
+      },
+      "title": "Server-managed",
+      "mode": "Automatic selection",
+      "intro": "The server selects text models automatically; execution records show the model used. Semantic indexing uses verified embedding profiles.",
+      "local_available": "{{count}} installed on-device models are hidden from the default view. Turn on Show full settings to see them and pin individual items."
+    },
+    "diarize_auto": "Used automatically (picked by meeting language; no assignment needed)",
+    "pause": "Pause",
+    "resume_from": "Resume ({{value}} downloaded)",
+    "coreml": {
+      "label": "CoreML acceleration",
+      "not_installed": "Off · encoder download {{size}}",
+      "needs_weights": "Install this model's weights first",
+      "hint": "The first enable takes a few minutes to prepare on this device; transcription keeps working meanwhile and falls back automatically if it fails.",
+      "downloading": "Downloading encoder {{done}} / {{total}}",
+      "extracting": "Extracting…",
+      "compiling": "Compiling for the Neural Engine (first time, usually 1–3 min)… {{seconds}} s",
+      "installed": "On (encoder runs on the Neural Engine)",
+      "failed": "Couldn't enable on this device; fell back to Metal / CPU.",
+      "enable": "Enable",
+      "retry": "Retry",
+      "disable": "Disable"
+    },
+    "library": {
+      "summary": "{{count}} installed · {{size}} on disk",
+      "hint": "Download and remove on-device models; see the catalog and where they are stored.",
+      "usage_hint": "Execution location, usage, and estimates are stored only on this device."
+    },
+    "pricing_title": "Reference prices for estimates",
+    "pricing_hint": "For estimates only, not billing. Leave blank to disable estimates.",
+    "local_engine": {
+      "title": "Local inference engine",
+      "state_label": "Status",
+      "build_label": "Engine build",
+      "failure_label": "Last problem",
+      "state": {
+        "stopped": "Not running",
+        "starting": "Starting",
+        "ready": "Ready",
+        "restarting": "Stopped unexpectedly, restarting ({{count}} failures in a row)",
+        "tripped": "Failed to start repeatedly; automatic restarts stopped"
+      },
+      "failure": {
+        "spawn": "The engine could not be started",
+        "start_timeout": "Startup timed out",
+        "exited": "The engine process exited unexpectedly",
+        "unresponsive": "The engine stopped responding",
+        "compute_error": "Compute error (GPU)",
+        "corrupt_model": "Model file is damaged; delete it and download again",
+        "bad_arguments": "The engine rejected its startup settings"
+      },
+      "loaded_label": "Loaded",
+      "loaded": "{{name}} · context {{tokens}}",
+      "loaded_degraded": "{{name}} · context {{tokens}} (reduced to fit memory)",
+      "refused_label": "Not loaded: not enough memory",
+      "refused": "{{name}}: needs at least about {{need}}, only {{budget}} available",
+      "refused_unknown": "{{name}}: could not estimate the memory it needs, so it was not loaded to be safe",
+      "restart": "Restart",
+      "idle_hint": "Starts automatically after installing or importing a local text model.",
+      "import_file": "Import .gguf file…",
+      "importing": "Importing…",
+      "import_hint": "Choose a local GGUF model file; what it was recognized as is shown after import.",
+      "row_catalog_match": "{{size}} · same file as “{{name}}” in the catalog",
+      "import_installed": "Installed"
+    },
+    "update_available": "Update available",
+    "update": "Update ({{value}})",
+    "hf_import": {
+      "title": "Add from Hugging Face",
+      "hint": "Enter a model repository, such as owner/name.",
+      "placeholder": "owner/name",
+      "list": "List files",
+      "revision_label": "Version",
+      "revision": "{{revision}} · License: {{license}}",
+      "license_unknown": "not stated",
+      "empty": "This repository has no usable GGUF files.",
+      "download": "Download and import",
+      "downloading": "Downloading {{percent}}%"
+    },
+    "download_source": "Model download source",
+    "download_source_desc": "Which host to try first when downloading local models. If it can't be reached, the other one is tried automatically; in mainland China, ModelScope is usually faster.",
+    "technical_details": "Technical details",
+    "technical_details_for": "{{name}} · Technical details",
+    "execution_policy": "View execution policy",
+    "copy_digest": "Copy digest"
+  },
+  "recording": {
+    "input_device": "Audio input device",
+    "input_device_aliases": "microphone mic audio input device",
+    "input_device_default": "Follow system default",
+    "capture_source": "Audio source",
+    "separate_translation": "Separate translation window",
+    "vad_sensitivity": "Speech detection sensitivity",
+    "waveform_fps": "Waveform refresh rate",
+    "input_device_desc": "System Default follows the microphone selected in system settings.",
+    "capture_source_desc": "When capturing both, microphone and system audio are saved as separate tracks.",
+    "separate_translation_desc": "Shows recording translations in a separate movable window.",
+    "vad_sensitivity_desc": "Higher sensitivity misses less speech but may detect noise as speech. Applies to the next audio session.",
+    "vad_engine": "Speech detection engine",
+    "vad_engine_desc": "Uses energy detection if Silero is unavailable. Applies to the next audio session.",
+    "disk_warn_gib": "Disk warning threshold",
+    "disk_warn_gib_desc": "Warns when free space drops below the threshold and stops recording if space falls further to preserve recorded content.",
+    "rolling_split_gib": "Auto-split size",
+    "rolling_split_gib_desc": "Rolls over to a new file once the current one reaches this size, which keeps long recordings safe.",
+    "waveform_fps_desc": "How often the recording waveform redraws; lower uses less power.",
+    "distill_mode": "Recording knowledge note",
+    "distill_mode_desc": "After a recording is transcribed, turn it into a knowledge note in your vault."
+  },
+  "realtime": {
+    "transcribe_enabled": "Live transcription",
+    "translate_enabled": "Live translation",
+    "transcribe_lang": "Live recognition language",
+    "translate_target_lang": "Translation target language",
+    "transcribe_enabled_desc": "Show transcription while recording. Transcription still runs after recording if this is off.",
+    "translate_enabled_desc": "Translates the live transcript as it appears.",
+    "transcribe_lang_desc": "Sets the recognition language for recording and live captions; automatic detection supports multilingual sessions.",
+    "translate_target_lang_desc": "The foreign language paired with your native one: native speech goes to it, anything else comes back."
+  },
+  "transcribe": {
+    "lang": "Transcription language",
+    "diarize_auto": "Automatic speaker identification",
+    "fetch_media": "Media imported from links",
+    "fetch_tool_path": "yt-dlp path",
+    "fetch_proxy": "Download proxy",
+    "lang_desc": "Spoken language for imported media; independent of the live recording setting.",
+    "diarize_auto_desc": "Identifies speakers after transcription; skips this step when the required model is missing.",
+    "fetch_media_desc": "Sets whether link imports retain audio or video by default; each import can override this choice.",
+    "fetch_tool_path_desc": "Leave empty to search automatically (Homebrew / pipx / MacPorts / PATH). Point at the executable if it lives elsewhere.",
+    "fetch_proxy_desc": "Proxy used when downloading online videos, e.g. http://127.0.0.1:7890 or socks5://127.0.0.1:1080. Leave empty for no proxy.",
+    "distill_mode": "Transcript knowledge note",
+    "distill_mode_desc": "After a media transcript finishes, turn it into a knowledge note in your vault."
+  },
+  "caption": {
+    "capture_source": "Audio source",
+    "translation_enabled": "Live translation",
+    "font_size": "Caption size",
+    "text_color": "Caption text color",
+    "max_lines": "Visible lines",
+    "separate_translation": "Separate translation window",
+    "text_opacity": "Text backing opacity",
+    "frame_opacity": "Background",
+    "capture_source_desc": "Sets whether live captions use the microphone, system audio or both, taking effect in the next session.",
+    "translation_enabled_desc": "Shows the translation under each caption line.",
+    "font_size_desc": "Text size of the floating captions.",
+    "max_lines_desc": "Limits the lines shown in the caption window and scrolls automatically when the limit is exceeded.",
+    "text_opacity_desc": "Text background opacity. 0 removes the background.",
+    "frame_opacity_desc": "Caption panel background. At 0, transparent mode shows only the latest line.",
+    "text_color_desc": "Sets the caption text color in immersive or transparent mode.",
+    "separate_translation_desc": "Shows translations in a separate movable window while the original window shows source text only.",
+    "show_source": "Show original while translating",
+    "show_source_desc": "Turn off to see only the translation (film-subtitle style for foreign videos). The Original / Bilingual / Translation switch on the caption overlay is the same value.",
+    "translation_first": "Translation on top",
+    "translation_first_desc": "When bilingual, show the translation on top and the original smaller below, like bilingual film subtitles."
+  },
+  "glossary": {
+    "indexedColumn": "{{column}} {{index}}",
+    "title": "Personal Dictionary",
+    "loading": "Loading...",
+    "saving": "Saved",
+    "add": "Add Entry",
+    "addFirst": "Add your first term",
+    "remove": "Delete",
+    "empty": "Add preferred spellings for names and terms. Results depend on the model.",
+    "exampleLabel": "Example",
+    "example": "Preferred spelling: “loon arca” becomes “Lunarca”",
+    "scope_summary": "Where it applies",
+    "scope": "Used to correct recognition and translated terms in voice input, transcription, captions and translation. Results depend on the model.",
+    "search": "Search entries...",
+    "searchEmpty": "No entries matching \"{{query}}\"",
+    "import": "Bulk import",
+    "importHint": "TXT / CSV / TSV. One original,preferred pair or one term per line.",
+    "importResult": "Imported {{imported}} entries, skipped {{skipped}} (duplicate/invalid)",
+    "importFailed": "Import failed: {{error}}",
+    "col": {
+      "term": "Original form",
+      "canonical": "Preferred form",
+      "actions": "Actions"
+    },
+    "placeholder": {
+      "term": "e.g. luna, k8s, tbd",
+      "canonical": "e.g. Lunarca, Kubernetes, To Be Determined"
+    },
+    "quickAdd": {
+      "menu": "Add “{{term}}” to glossary",
+      "title": "Add to glossary",
+      "desc": "Used to guide recognition and transcription corrections. Results depend on the model.",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "replaced": "Updated — it previously mapped to “{{previous}}”."
+    }
+  },
+  "degradation": {
+    "green_max_rtf": "Smooth tier RTF limit",
+    "yellow_max_rtf": "Watch tier RTF limit",
+    "orange_max_rtf": "Degraded tier RTF limit",
+    "green_max_rtf_desc": "Live transcription staying under this share of real time counts as smooth. Rarely needs changing.",
+    "yellow_max_rtf_desc": "Above the smooth tier but under this, window density is reduced to protect responsiveness.",
+    "orange_max_rtf_desc": "Above this threshold, transcription runs after recording ends."
+  },
+  "diarize": {
+    "cluster_threshold": "Speaker clustering threshold",
+    "cluster_threshold_desc": "Sets the voice similarity threshold; lower values split one speaker more easily, while higher values merge different speakers more easily."
+  },
+  "chat": {
+    "capture_selection": "Foreground selection reference",
+    "save_history": "New conversation storage",
+    "grounding": "Knowledge retrieval for new conversations",
+    "capture_selection_desc": "Includes text selected in another app when opening a conversation; the reference can be removed before sending.",
+    "save_history_desc": "Saves new conversations to the vault by default; turning it off makes them temporary while allowing individual saves.",
+    "grounding_desc": "Searches notes and cites sources by default in new conversations; can be disabled for each conversation.",
+    "distill_mode": "Chat knowledge note",
+    "distill_mode_desc": "After a chat ends (when you start a new one), turn it into a knowledge note in your vault."
+  },
+  "speech": {
+    "rate": "Reading speed",
+    "highlight": "Reading highlight",
+    "rate_desc": "100% is normal speed.",
+    "highlight_desc": "Highlights the current sentence and scrolls along during reading."
+  },
+  "playback": {
+    "video_layout": "Video layout",
+    "video_subtitles": "Video subtitle overlay",
+    "subtitle_size": "Video subtitle size",
+    "video_layout_desc": "How the picture and the transcript are arranged during playback.",
+    "video_subtitles_desc": "Shows the current subtitle at the bottom of the video, following the source, translation or bilingual playback setting.",
+    "subtitle_size_desc": "Size of the subtitles drawn over the picture.",
+    "background_video": "Background video display",
+    "background_video_desc": "Keeps audio only or shows a floating video when leaving playback; audio continues in both modes."
+  },
+  "path": {
+    "unset": "Not set",
+    "browse": "Browse…",
+    "use_default": "Use default",
+    "auto_detect": "Auto-detect"
+  },
+  "unit": {
+    "percent": "%",
+    "millisecond": " ms",
+    "fps": " fps",
+    "gibibyte": " GiB",
+    "second": " s",
+    "version": " versions",
+    "version_one": " version",
+    "version_other": " versions",
+    "line": " lines",
+    "line_one": " line",
+    "line_other": " lines",
+    "usd_per_minute": " USD/min",
+    "usd_per_million_tokens": " USD/million tok"
+  },
+  "error": {
+    "type": "Wrong value type — not saved.",
+    "option": "Not one of the allowed values — not saved.",
+    "range": "Outside the allowed range ({{min}}–{{max}}) — not saved.",
+    "duplicate_option": "The same item cannot appear twice — not saved.",
+    "required_category": "Keep at least one writing entry and one material entry — not saved.",
+    "decimal": "Enter a number inside the allowed range.",
+    "path": "Only paths inside the Vault are accepted (no absolute paths or “..”).",
+    "filename_template": "Invalid naming template: only {name}, {date}, {time}, {format} and {content} are allowed, braces must be balanced, the characters / \\ : * ? \" < > | are not allowed, and it cannot be empty.",
+    "shortcut": "That combination cannot be a shortcut: use at least one modifier (⌘/⇧/⌥) plus a key.",
+    "shortcut_reserved": "Editing keys such as ⌘C only work as double taps, otherwise they hijack system copy and paste.",
+    "shortcut_editor": "This is one of the editor's own shortcuts (such as ⌘B for bold or ⌘F for find); binding it here would trigger both at once.",
+    "shortcut_key": "That key can't be recorded — try another combination.",
+    "shortcut_conflict": "{{attempted}} is already used by “{{detail}}” — pick another combination.",
+    "persist": "Couldn't save: writing the settings file failed. Check disk space and file permissions. ({{detail}})",
+    "unknown": "Could not save: {{detail}}",
+    "reset_stale": "Settings or the current vault changed. Review the reset plan again.",
+    "text_too_long": "That is too long. Shorten it a little and try again."
+  },
+  "tools": {
+    "title": "Import from link components",
+    "managed_scope": "Lunarca only manages the copies it installs itself and never modifies versions installed via Homebrew or other package managers.",
+    "yt_dlp_label": "yt-dlp",
+    "ffmpeg_label": "ffmpeg",
+    "yt_dlp_desc": "Downloads media from links.",
+    "ffmpeg_desc": "Merges audio and video.",
+    "ffmpeg_why_manual": "FFmpeg publishes no official binaries or checksums, so Lunarca doesn't download it for you. Install it yourself as shown below.",
+    "copy_command": "Copy command",
+    "uninstall": "Uninstall",
+    "managed": "Managed by Lunarca",
+    "version": "Version {{version}}",
+    "state": {
+      "ready": "Ready",
+      "missing": "Not installed",
+      "optional": "Not installed (optional)",
+      "timeout": "Check timed out",
+      "broken": "Cannot run",
+      "checking": "Checking",
+      "recommended": "Recommended",
+      "unavailable": "Unavailable"
+    },
+    "set_path": "Set path",
+    "auto_detect": "Restore automatic lookup",
+    "override_path": "Manually set: {{path}}",
+    "models_elsewhere": "Models are downloaded and removed under Local models.",
+    "js_runtime_label": "JavaScript runtime (Deno / Node / Bun)",
+    "js_runtime_desc": "Used for media downloads from YouTube and other sites.",
+    "js_runtime_why_manual": "Lunarca can install Deno for you, or you can install any one of Deno, Node or Bun yourself; Lunarca picks Deno → Node → Bun in that order.",
+    "js_runtime_in_plan": "Installed together with yt-dlp above.",
+    "install_how": "How to install",
+    "check_update": "Check for updates",
+    "checking_update": "Checking…",
+    "up_to_date": "Up to date ({{version}})",
+    "update_to": "Update to {{version}}",
+    "update_hint": "Does not update automatically. Check the tool version if downloads fail.",
+    "update_available": "A newer version is available ({{version}})",
+    "recheck_all": "Re-check",
+    "more_actions": "More actions for {{tool}}",
+    "install_with": "Install with {{manager}}",
+    "open_docs": "Open official install guide",
+    "after_install": "After installation, select Recheck. No restart needed.",
+    "copied": "Copied to clipboard",
+    "js_runtime_install_failed": "yt-dlp installed fine, but the JavaScript runtime could not be installed: {{reason}} Retry later, or install one yourself using the instructions below.",
+    "manual_install": "Install manually…",
+    "install_method": "Installation instructions",
+    "ffmpeg_missing": "Without ffmpeg, video quality is usually limited to about 720p.",
+    "js_runtime_missing": "Without a runtime, sites may reject downloads."
+  },
+  "excluded_paths": {
+    "label": "Excluded paths",
+    "hint": "Excluded items stay out of search and automatic suggestions. Right-click a folder or note in the file tree to exclude it.",
+    "scope_summary": "What exclusion covers",
+    "scope": "Excluded folders and notes stay out of search, the quick switcher, the graph, the semantic index and knowledge-base suggestions, and their attachments are never listed as unreferenced. Links are still maintained: renaming a note updates links inside them too.",
+    "none": "Nothing is excluded yet.",
+    "remove": "Include again",
+    "remove_label": "Include “{{path}}” again"
+  },
+  "orphan_assets": {
+    "label": "Unreferenced attachments",
+    "hint": "Find attachments not referenced by notes, then choose which to remove.",
+    "scope_summary": "What counts as referenced",
+    "scope": "Files referenced by notes in the trash or by earlier versions are not counted, so restoring them never breaks an image or link.",
+    "scan": "Find",
+    "rescan": "Find again",
+    "scanning": "Searching…",
+    "none": "No unreferenced attachments.",
+    "summary": "{{n}} files, {{size}} in total",
+    "select_all": "Select all",
+    "remove": "Remove selected ({{n}})",
+    "remove_confirm": "Remove",
+    "confirm_title": "Remove {{n}} unreferenced attachments?",
+    "confirm_desc": "{{size}} in total. {{consequence}}",
+    "removed": "Removed {{n}}.",
+    "kept": "{{n}} became referenced after the list was made and were kept.",
+    "failed": "{{n}} could not be removed."
+  },
+  "vault_index": {
+    "label": "Note index",
+    "hint": "Update the list and search index without changing notes.",
+    "rebuild": "Rebuild index",
+    "running": "Indexing… {{indexed}} / {{total}}",
+    "done": "Index up to date, {{count}} notes processed this time",
+    "cancel": "Cancel",
+    "cancelled": "Cancelled. What was already processed is kept; the next time the vault opens it picks up from there."
+  },
+  "semantic": {
+    "label": "Semantic index",
+    "indexed": "Indexed",
+    "pending": "Pending",
+    "memory": "Resident memory",
+    "notesChunks": "{{notes}} notes · {{chunks}} chunks",
+    "notLoaded": "Not loaded",
+    "build": "Build index ({{count}} notes)",
+    "eta": "About {{eta}} to go",
+    "etaSeconds": "{{count}}s",
+    "etaMinutes": "{{count}} min",
+    "etaHours": "{{count}} h",
+    "allFresh": "Every note's semantic index is up to date.",
+    "standardReady": "Semantic search is ready.",
+    "standardPending": "Search is available. {{count}} notes still need indexing.",
+    "emptyNotes": "{{count}} more notes have nothing to embed (empty or title-only) and are skipped.",
+    "progress": "Building: {{done}} / {{total}} notes · {{chunks}} chunks",
+    "progressFailed": " · {{count}} failed",
+    "cancel": "Cancel",
+    "disabledHint": "Semantic search is off. Keyword search is still available.",
+    "noModel": "No embedding model selected",
+    "missingModel": "\"{{model}}\" is not downloaded yet",
+    "missingWhy": "Semantic search needs a local embedding model. Download it in one click on the Local models page; it runs on this device with nothing else to install.",
+    "recheck": "Check again",
+    "blocked": {
+      "no_model": "No embedding model assigned",
+      "no_model_hint": "Pick a ready model for \"Default embedding model\" under AI services › Model assignment.",
+      "unsupported_model": "\"{{model}}\" is not an approved profile",
+      "unsupported_model_hint": "Semantic indexing only accepts reviewed embedding profiles; choose a supported model in model assignment.",
+      "profile_unverified": "\"{{model}}\" has not passed its benchmark yet",
+      "profile_unverified_hint": "Retrieval quality and chunking for this model are not verified on-device yet, so it cannot serve the production index; switch to a verified model for now.",
+      "server_unavailable": "Server embedding is unavailable right now",
+      "server_unavailable_hint": "Make sure you are signed in and the server is reachable, then choose Check again."
+    },
+    "currentModel": "Current embedding model: {{model}}",
+    "openAssignment": "Open model assignment",
+    "openModels": "Download"
+  },
+  "compute": {},
+  "trust": {
+    "title": "Server identity",
+    "key_lease": "Offline-licence signing key",
+    "key_catalog": "Model-catalog signing key",
+    "deployment_id": "Deployment ID: {{id}} (for reference only; not part of the identity check)",
+    "pinned_label": "Verified ({{when}}, via {{how}})",
+    "pinned_summary": "Verified {{when}} ({{how}}).",
+    "show_keys": "Show public keys",
+    "offered_label": "Public keys this server currently reports",
+    "provenance": {
+      "imported": "organization configuration file",
+      "tofu": "confirmed on first connection",
+      "password": "verified when you signed in with your password",
+      "rotated": "updated automatically after the server rotated its keys"
+    },
+    "unpinned": "This server identity has not been verified yet. It is checked and recorded when you sign in.",
+    "official": "This is Lunarca Cloud: its identity is vouched for by trust built into the app, so there is nothing for you to check.",
+    "bypassed": "LUNARCA_LEASE_PUBKEY / LUNARCA_CATALOG_PUBKEY are set in the environment, so signature checks use them and identity verification is skipped entirely. This is a development setting; do not set these variables in production.",
+    "changed_title": "This server’s signing keys have changed. The connection is paused.",
+    "changed_body": "The keys it reports differ from the ones verified earlier. Your administrator may have rotated the keys legitimately, or something may be impersonating the server. Until you confirm, Lunarca keeps using the previously verified keys.",
+    "repin_consequences": "Confirming treats this as a server with a new identity: its catalog cache and rollback protection are reset and its sign-in credentials are cleared, so you will sign in again. After a legitimate redeployment these need to start over anyway.",
+    "confirm_change": "I have checked the new keys — confirm the change",
+    "import": "Import organization configuration file",
+    "import_hint": "Use this when your administrator sent an organization config file (.json): it verifies and pins the server identity, and the sign-in form picks that server.",
+    "import_ok": "Imported and verified {{server}}.",
+    "import_needs_confirmation": "The keys in this file differ from the ones verified earlier. Nothing has been changed yet — review above and confirm.",
+    "tls_root_pinned": "The root certificate from the file is now trusted for this server only; nothing needs to be installed in the system trust store.",
+    "tls_root_absent": "This file contains no root certificate. If the server uses a self-signed certificate, use the connection link from your administrator instead.",
+    "tls_root_invalid": "The root certificate in the file could not be read and was not enabled. Ask your administrator to export the config file again.",
+    "import_error": {
+      "TRUST_FILE_UNREADABLE": "The file could not be read. Check the path and permissions.",
+      "TRUST_FILE_MALFORMED": "The file is incomplete or not valid JSON. Ask your administrator for a new one.",
+      "TRUST_FILE_NOT_ORG_CONFIG": "This is not a Lunarca organization configuration file. Check that you selected the right file.",
+      "TRUST_FILE_UNSUPPORTED_VERSION": "This configuration file uses a newer format than this version supports. Update Lunarca first.",
+      "TRUST_FILE_BAD_SERVER_URL": "The server address in the file is invalid (expected https://host:port). Check with your administrator.",
+      "TRUST_FILE_BAD_PUBKEY": "A signing key in the file is invalid. Ask your administrator for a new file.",
+      "TRUST_CREDENTIAL_CLEAR_FAILED": "Clearing the previous sign-in credentials failed. Unlock the system keychain and try again.",
+      "TRUST_CLOUD_UNAVAILABLE": "This build does not include the cloud client."
+    },
+    "probe_error": {
+      "network": "The server’s public keys could not be fetched last time: unreachable.",
+      "server_error": "The server’s public keys could not be fetched last time: it does not provide a key endpoint (older server version, or blocked by a reverse proxy).",
+      "invalid_endpoint": "The public keys could not be fetched last time: the server address is invalid.",
+      "malformed": "The keys fetched last time could not be parsed. Make sure the client and server versions match.",
+      "unsupported_format": "This server’s identity format is newer than this version supports. Update Lunarca first.",
+      "rate_limited": "Too many requests. Test the connection again a little later.",
+      "strict_local": "Strict local mode does not fetch public keys.",
+      "unknown": "The server’s public keys could not be fetched last time."
+    },
+    "cancel": "Cancel"
+  },
+  "knowledge": {
+    "ingest_mode": "Topic-page integration",
+    "ingest_mode_desc": "Prepare additions for related topics. Evidence pages require confirmation; legacy topics receive additions automatically.",
+    "semantic": "Semantic retrieval",
+    "semantic_desc": "Adds semantic matching to keyword search; uses keyword search when a local embedding model is missing.",
+    "checkup_reminder": "Deep checkup reminders",
+    "checkup_reminder_desc": "Remind you to review the knowledge base every two weeks. Does not run AI automatically."
+  },
+  "workspace.quick_start_actions": "Content entry layout",
+  "workspace.quick_start_actions_desc": "Sets the Add Content order and quick-start entries, retaining at least one writing and one import entry without changing capabilities or permissions.",
+  "workspace.rail_layout": "Activity bar layout",
+  "workspace.rail_layout_desc": "Sets space order and visibility; Notes and Knowledge remain visible, and hidden spaces remain accessible through shortcuts, commands and deep links.",
+  "creator.board_stages": "Create board columns",
+  "creator.board_stages_desc": "Which stages the board shows and in what order; keep at least one. Projects in a hidden column appear in the column before it.",
+  "creator.board_view": "Create board view",
+  "creator.board_view_desc": "Board shows a column per stage, List groups projects by stage, Table shows one project per row, Calendar lays projects out by planned publish date.",
+  "creator.channel_voice": "My channel voice",
+  "creator.channel_voice_desc": "A sentence or two about your channel and how you talk (for example, “for programmers, direct, lots of analogies”). It goes to the AI as guidance when generating chapters, packages, rewrites and script edits; leave it empty to skip. Stored in this library, so it follows you across devices.",
+  "orderedToggleList.moveUp": "Move “{{label}}” up",
+  "orderedToggleList.moveDown": "Move “{{label}}” down",
+  "orderedToggleList.toggle": "Show “{{label}}”",
+  "orderedToggleList.locked": "“{{label}}” is an anchor and is always shown",
+  "orderedToggleList.moved": "“{{label}}” is now at position {{position}} of {{total}}",
+  "orderedToggleList.shown": "“{{label}}” is shown",
+  "orderedToggleList.hidden": "“{{label}}” is hidden",
+  "orderedToggleList.atMinimum": "Keep at least {{count}}",
+  "orderedMultiSelect.moveUp": "Move “{{label}}” up",
+  "orderedMultiSelect.moveDown": "Move “{{label}}” down",
+  "orderedMultiSelect.toggle": "Include “{{label}}”",
+  "orderedMultiSelect.moved": "“{{label}}” is now {{position}} of {{total}}",
+  "orderedMultiSelect.added": "Added “{{label}}” as {{position}} of {{total}}",
+  "orderedMultiSelect.removed": "Removed “{{label}}”, {{total}} left",
+  "option.workspace.quick_start_actions.text_quick_note": "Text quick note",
+  "option.workspace.quick_start_actions.voice_quick_note": "Voice quick note",
+  "option.workspace.quick_start_actions.new_note": "New note",
+  "option.workspace.quick_start_actions.start_recording": "Start recording",
+  "option.workspace.quick_start_actions.import_material": "Import material",
+  "privacy.local_workspace_metrics": "Local workspace statistics",
+  "privacy.local_workspace_metrics_desc": "Aggregated on this device. No content, paths or identity are recorded or uploaded.",
+  "workspace_metrics": {
+    "title": "Local workspace usage",
+    "window": "{{start}} to {{end}} (kept for the last {{retention}} days on this device)",
+    "empty": "Nothing recorded yet.",
+    "disabled": "Workspace statistics are off on this device.",
+    "visits": "{{count}} visits",
+    "times": "{{count}} times",
+    "settled": "Turned into a note",
+    "materialImport": "Imported content is searchable",
+    "shortWithoutAction": "Short visits with no action",
+    "tooFewSamples": "fewer than {{count}} samples — no percentage yet",
+    "export": "Export…",
+    "exported": "Exported {{count}} rows.",
+    "clear": "Clear",
+    "cancel": "Cancel",
+    "clear_title": "Clear this device's workspace records?",
+    "clear_desc": "The visit and creation roll-ups kept on this device will be deleted. This cannot be undone. It is separate from “Local knowledge improvements” — that data is untouched.",
+    "cleared": "This device's workspace records were cleared.",
+    "surface": {
+      "search": "Search",
+      "notes": "Notes",
+      "knowledge_topics": "Knowledge › Topic pages",
+      "knowledge_tags": "Knowledge › Tags",
+      "knowledge_network": "Knowledge › Network",
+      "quick_notes": "Quick Notes",
+      "recordings": "Recordings",
+      "transcripts": "Transcripts",
+      "chat": "AI chat",
+      "creator": "Create",
+      "apps": "Apps",
+      "trash": "Trash",
+      "settings": "Settings"
+    },
+    "action": {
+      "text_quick_note": "Text quick note",
+      "voice_quick_note": "Voice quick note",
+      "new_note": "New note",
+      "start_recording": "Start recording",
+      "import_material": "Import material"
+    },
+    "entry": {
+      "add_content": "Add content",
+      "quick_start": "Quick start",
+      "sidebar": "Sidebar",
+      "status_bar": "Status bar",
+      "deep_link": "Deep link",
+      "shortcut": "Shortcut",
+      "tray": "Tray menu"
+    },
+    "status": {
+      "notifications": "Notification drawer",
+      "queue": "Processing queue",
+      "usage": "Usage & execution log"
+    },
+    "unavailable": {
+      "storageUnavailable": "This device cannot write or read these records right now. Nothing already recorded has been deleted — try again in a moment.",
+      "retry": "Retry",
+      "schemaInvalid": "These records were written by an older or newer version and we do not recognise their structure, so we neither read them, change them, nor migrate them for you. To keep recording you have to clear them and start over — what follows a clear is a new observation period, and numbers from before and after it cannot be compared side by side.",
+      "clearAndRebuild": "Clear and start over"
+    },
+    "format": "Export format",
+    "formatJson": "JSON",
+    "formatCsv": "CSV",
+    "show_setting": "View statistics setting"
+  },
+  "settings_io": {
+    "label": "Settings backup & restore",
+    "hint": "Backs up settings for the same version. Excludes credentials.",
+    "scope_summary": "What an export contains",
+    "scope": "Exports a TOML file for a same-version backup or to carry to another machine. Secrets are never exported; model assignments and internal state are left out too. Import accepts only a Lunarca export of the same version.",
+    "preview_title": "Changes to import",
+    "preview_summary": "{{count}} settings will change; {{unchanged}} are unchanged. Apply after confirmation.",
+    "preview_none": "Every setting in the file already matches; there's nothing to import.",
+    "confirm_import": "Import {{count}} change(s)",
+    "plan_changed": "The file or your current settings just changed, so nothing was written. Choose the file again to review the changes.",
+    "scope_device": "This device",
+    "scope_vault": "This notes folder",
+    "include_vault": "Include settings for the current vault",
+    "export": "Export…",
+    "import": "Import…",
+    "exported": "Exported to {{path}}",
+    "imported": "Imported {{device}} device settings and {{vault}} vault settings",
+    "rejected": "This file did not pass validation (different version, unknown keys or invalid values). Existing settings are unchanged."
+  },
+  "footprint": {
+    "label": "Data footprint",
+    "hint": "View local data locations and storage use. The vault is listed here but cannot be deleted here.",
+    "loading": "Measuring…",
+    "refresh": "Measure again",
+    "count": "{{count}} items",
+    "bytes_and_count": "{{bytes}} · {{count}} items",
+    "cancel": "Cancel",
+    "uninstall_hint": "Model files and keychain credentials remain after removing the app. Clear them here if you want to remove them.",
+    "entry": {
+      "vault": "Vault",
+      "vault_desc": "Notes, recordings and attachments are shown here for reference and cannot be deleted from this panel.",
+      "vault_cache": "Vault cache",
+      "vault_cache_desc": "Derived index and caches inside the vault's .luna folder, rebuildable at any time. Version snapshots, sidecars and vault settings are not included.",
+      "vault_trash": "Trash",
+      "vault_trash_desc": "Notes deleted from within the app. Emptying is permanent.",
+      "models": "Local models",
+      "models_desc": "whisper / VAD / diarization weights and CoreML artifacts. Clearing all first releases their assignments; bundled models stay.",
+      "app_config": "App configuration",
+      "app_config_desc": "Settings file, known-vault list and catalog cache. Reset backs it up before restoring defaults.",
+      "device_records": "Local records",
+      "device_records_desc": "Usage and notification history, knowledge and workspace improvement records, each cleared from its own panel."
+    },
+    "action": {
+      "vault_cache": "Clear cache…",
+      "vault_trash": "Empty trash…",
+      "models": "Clear downloaded models…",
+      "reset": "Reset app…"
+    },
+    "confirm": {
+      "vault_cache_title": "Clear the vault cache and rebuild the index?",
+      "vault_cache": "Only the derived index and caches are removed, then the vault is rescanned. Notes, snapshots and vault settings are untouched.",
+      "vault_cache_action": "Clear cache",
+      "vault_trash_title": "Empty the trash?",
+      "vault_trash": "Notes and attachments in the trash are deleted permanently.",
+      "vault_trash_action": "Empty",
+      "models_title": "Delete downloaded local models?",
+      "models": "Downloaded models and their CoreML assets will be permanently deleted. Bundled models are kept. Assigned slots return to device policy; these models must be downloaded again when needed.",
+      "models_action": "Delete all",
+      "reset_title": "Reset the app?",
+      "reset": "All device settings return to defaults (the old configuration is backed up next to it), and the app cache and startup diagnostics are cleared. Vault, models, credentials and local records are untouched. The app restarts afterwards.",
+      "reset_action": "Reset and restart"
+    },
+    "done": {
+      "vault_cache": "Cache cleared, rebuilding the index",
+      "vault_trash": "Trash emptied",
+      "models": "Deleted {{count}} models",
+      "reset": "Reset done, old configuration backed up at {{path}}; restarting…",
+      "reset_no_backup": "Reset done; restarting…"
+    },
+    "locations": "Data locations",
+    "uninstall_title": "Data retained after uninstalling",
+    "impact": {
+      "vault_cache": "Rebuilds the index after clearing. Notes are kept.",
+      "vault_trash": "Permanently deletes items. Cannot be undone.",
+      "models": "Deletes downloaded models. Bundled models are kept."
+    }
+  },
+  "export": {
+    "utf8_bom": "Subtitle UTF-8 BOM",
+    "utf8_bom_desc": "Adds a BOM to exported SRT and VTT files for older players that require it.",
+    "filename_template": "Export filename template",
+    "filename_template_desc": "Use {name}, {date}, {time}, {format} and {content}; duplicates get a number and existing files are never overwritten.",
+    "preview": "Example: {{name}}",
+    "preview_sample_name": "Meeting notes"
+  },
+  "group_aliases": {
+    "shortcuts": "hotkey keybinding key combo",
+    "glossary": "dictionary terms names abbreviations corrections glossary",
+    "privacy": "privacy storage disk space data footprint offline",
+    "ai_services": "compute execution cloud organization server connection",
+    "local_models": "models engine download install local model",
+    "voice_input": "voice dictation speech read aloud tts",
+    "recording": "recording meeting transcription captions",
+    "translate": "translate captions subtitles lookup",
+    "notes": "notes editor writing chat knowledge",
+    "general": "language notifications startup overview backup",
+    "appearance": "appearance theme color font accessibility interface",
+    "account": "sign in subscription devices login"
+  },
+  "self_check": {
+    "action": "Verify execution",
+    "running": "Verifying…",
+    "ok": "Verification passed: {{executor}}, {{ms}} ms; execution recorded.",
+    "failed": "Verification failed: {{reason}}",
+    "unknown_executor": "the current location",
+    "hint": "Runs a minimal task to verify the current AI service."
+  },
+  "sync": {
+    "recordings_mode": "Recording sync",
+    "recordings_mode_desc": "How recordings made on other devices reach this one. Notes and transcripts always sync.",
+    "recordings_mode_aliases": "recording audio on demand cloud only download storage",
+    "pause_large_on_metered": "Pause large files on metered networks",
+    "pause_large_on_metered_desc": "On a phone hotspot or other metered network, recordings and other large files wait; notes keep syncing.",
+    "pause_large_on_metered_aliases": "hotspot cellular data metered",
+    "pause_large_on_battery": "Pause large files on low battery",
+    "pause_large_on_battery_desc": "In Low Power Mode (Battery saver on Windows) or below 20% battery, recordings and other large files wait; notes keep syncing.",
+    "pause_large_on_battery_aliases": "battery power saving low power"
+  },
+  "update": {
+    "policy": "App updates",
+    "policy_desc": "“Check at launch” contacts lunarca.app once after each launch to see whether a new version exists; “Manual only” goes online only when you click “Check for updates”. Never checks while Strict local is on."
+  },
+  "app_release": {
+    "title": "About & updates",
+    "description": "Your current version, and new versions from the official site. Updates are verified against the publisher’s signature and are never installed if verification fails.",
+    "version": "Version {{version}}",
+    "ask_title": "Check for updates automatically at launch?",
+    "ask_body": "If you turn this on, Lunarca contacts lunarca.app once after each launch to see whether a new version exists and lets you know; installing is always your call. Only the version list is fetched — none of your data is sent. Otherwise Lunarca goes online only when you click “Check for updates”. You can change this any time under “App updates” below.",
+    "ask_enable": "Check at launch",
+    "ask_decline": "Not now, manual only",
+    "check": "Check for updates",
+    "checking": "Checking…",
+    "up_to_date": "You’re on the latest version.",
+    "available": "Version {{version}} is available",
+    "notes": "Release notes",
+    "install": "Download and install",
+    "installing": "Downloading and installing. Lunarca will restart when it’s done…",
+    "error": {
+      "strict_local_blocked": "Strict local is on, so Lunarca won’t go online to check for updates.",
+      "update_unavailable": "This build isn’t connected to the update channel.",
+      "update_check_failed": "Couldn’t reach the update server. Try again later.",
+      "no_pending_update": "Check for updates first.",
+      "update_install_failed": "The download or signature check failed, so nothing was installed. Your current version keeps working.",
+      "unknown": "Checking for updates didn’t finish. Try again later."
+    }
+  }
+}

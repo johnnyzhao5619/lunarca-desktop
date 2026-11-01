@@ -1,0 +1,97 @@
+/*
+ * 面板内查询框原语（`.luna-query-box`）——侧栏/全宽页面头部那个"在这一堆里找"的框。
+ *
+ * **同一件事此前有四种长相**：搜索面板的复合框（图标 + 输入 + 清空 + Aa）、图谱侧栏
+ * **借用搜索的类名**、标签与回收站用裸 `.luna-input`（既无图标也无清空钮）、动态中心的
+ * 两个面板**连类名都没有**（靠 `…__actions input` 元素选择器出样）、设置侧栏又是第四份
+ * （`.luna-settings-nav__search`，有图标没清空钮，且 `input` 连 `aria-label` 都缺）。
+ * 于是"清空查询"这件事在六个面板里有三种答案：有按钮 / 只能手动全选删除 / 没有。
+ *
+ * 收敛为一个原语 + 一个组件（`components/ui/QueryBox.tsx`）：外观在这里定义一次，
+ * 结构与可访问名在组件里定义一次。额外动作（搜索面板的大小写开关）由组件的 `children`
+ * 承接，用同一枚 `__action` 形态——它是查询框内部的紧凑切换键，不是通用图标钮
+ * （通用图标钮是 28px 方形，塞进 32px 高的框里会把框撑变形）。
+ */
+
+.luna-query-box {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  /* 行高与 `.luna-select` 同一档：两者是同构的"外框 + 内部裸控件"，同一行里等高由结构
+     保证。此前本框靠内部 input 的 `padding-block` 撑到 ≈33.5px，而排序下拉是原生
+     `<select>` 的 ≈26px——差值只能靠在 feature 里手调一句去凑（真机 2026-09-08）。 */
+  box-sizing: border-box;
+  min-block-size: var(--control-height-md);
+  padding-inline: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-control);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+}
+
+/* 焦点表现落在**外框**上：内部 input 自己不画圈（否则框里套一个圈，两层边界）。 */
+.luna-query-box:focus-within {
+  border-color: var(--color-border-focus);
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: calc(-1 * var(--outline-width-focus));
+}
+
+.luna-query-box__icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.luna-query-box__input {
+  flex: 1 1 0;
+  min-inline-size: var(--space-0);
+  /* 高度归外框；内部 input 不再自己撑高，否则"框有多高"有两个负责者（§3.3c）。 */
+  padding-block: var(--space-0);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+}
+
+.luna-query-box__input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.luna-query-box__input:focus {
+  outline: none;
+}
+
+/* 框内紧凑动作键（清空 / 大小写敏感）。 */
+.luna-query-box__action {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: var(--space-0-5) var(--space-1);
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.luna-query-box__action:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+.luna-query-box__action[aria-pressed="true"] {
+  color: var(--color-accent);
+  background: var(--color-accent-surface);
+}
+
+.luna-query-box__action:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: var(--space-0-5);
+}
+
+/* 文字形态的动作键（如「Aa」大小写开关）：与图标键同一外形，只是内容是字。 */
+.luna-query-box__action--text {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+}

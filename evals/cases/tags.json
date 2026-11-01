@@ -1,0 +1,16 @@
+{
+  "_comment": ["关系标签提取（tags 域）。输出契约是纯 JSON 数组。"],
+  "scope": "tags",
+  "template": "system",
+  "cases": [
+    {
+      "name": "词表与语言句整段带入，输出契约在场",
+      "vars": {
+        "vocabulary": " Prefer reusing these existing vault tags when they genuinely fit (never coin a near-synonym or variant of one of them): 工作, project/luna.",
+        "language": " Write all tags in English."
+      },
+      "must_contain": ["project/luna", "Write all tags in English", "JSON array"],
+      "why": "丢了输出契约，解析器拿到的是散文；丢了词表，同一概念每篇各起一个标签，簇永远凑不够"
+    }
+  ]
+}

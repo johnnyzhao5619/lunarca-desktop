@@ -1,0 +1,272 @@
+/*
+ * 桌面便签（`.luna-sticky`，ADR-119 / PRD-06-058 F）。
+ *
+ * 它不走 `HudSurface`：那套外壳承诺的是「悬浮在工作上下文之上的一场会话」——窗口栏五槽、
+ * Esc 逃生、内容驱动扩容。便签不是会话，它是一张贴在那儿的纸：没有状态胶囊、没有联网
+ * 指示，尺寸由用户拖出来而不是由内容撑开，Esc 也不该让它消失（那等于取消钉住）。
+ *
+ * 配色是键不是色值（ADR-119 ②）：`data-color` 选一组 Token，暗色下自动换一套。
+ */
+
+.luna-sticky {
+  /*
+   * 便签的纸面色 = 主题的浮层色 + 一层极淡的色相。
+   *
+   * 两件事必须一起说清：
+   * ① 底色取 `--color-bg-panel` 而不是状态色的 `*-surface`——后者是 `color-mix(…,
+   *    transparent)`，只有一成多的不透明度。贴在应用上面看着还行，贴在桌面壁纸上就是
+   *    一张几乎透明的纸（这一条是改配色时才发现的：便签窗没有别的底，透的是壁纸）。
+   * ② 色相只是「这张纸什么颜色」，不是状态提示。一成多的叠加留下的只有倾向，而底色的
+   *    明暗跟着主题走——暗色主题下自动是一张暗纸，不是刺眼的浅黄块。
+   */
+  --sticky-tint: var(--color-accent);
+  --sticky-surface: color-mix(in srgb, var(--sticky-tint) 14%, var(--color-bg-panel));
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  block-size: var(--size-full);
+  /* 透明窗里的一张圆角纸（ADR-137 V1，与悬浮窗同一材质）：细描边把它从壁纸里托起来，
+     阴影由系统按纸的轮廓投——CSS 阴影会被窗口边缘裁掉，故不写。 */
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--hud-radius);
+  overflow: hidden;
+  background: var(--sticky-surface);
+  color: var(--color-text-primary);
+}
+
+html:has(.luna-sticky),
+body:has(.luna-sticky),
+#root:has(.luna-sticky) {
+  background: transparent;
+}
+
+/*
+ * 四个色档。色相全部取自主题 token——换主题、换明暗，便签跟着变，而不是四个写死的
+ * 便利贴色（那在暗色主题下是四块刺眼的亮斑）。
+ *
+ * 取的是色相不是语义：一张偏绿的便签不意味着「成功」，一张偏红的不意味着「错误」。
+ * 这也是它们只叠 14% 的原因——再浓一点就开始像状态提示了。
+ */
+.luna-sticky[data-color="default"] {
+  --sticky-tint: var(--color-accent);
+}
+
+.luna-sticky[data-color="purple"] {
+  --sticky-tint: var(--color-status-ai);
+}
+
+.luna-sticky[data-color="green"] {
+  --sticky-tint: var(--color-status-success);
+}
+
+.luna-sticky[data-color="red"] {
+  --sticky-tint: var(--color-status-error);
+}
+
+
+/* 窗口栏：整条是拖动把手（便签没有系统标题栏）。动作区静息淡出，指针进来才显形——
+   一张贴在桌面上的纸不该常年顶着两颗按钮。 */
+.luna-sticky__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-2-5);
+  cursor: grab;
+}
+
+.luna-sticky__bar:active {
+  cursor: grabbing;
+}
+
+.luna-sticky__title {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/*
+ * 色点：与另外两颗按钮同排、同为悬停显形。选中的那个套一圈描边而不是打勾——一枚勾会把
+ * 10px 的点糊成一团，而"哪个是当前的"在四个点里靠一圈边就看得出来。
+ */
+.luna-sticky__swatch {
+  display: block;
+  inline-size: 10px;
+  block-size: 10px;
+  padding: var(--space-0);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-full);
+  background: var(--swatch-tint);
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 var(--border-width-thin) var(--color-border-subtle) inset;
+}
+
+.luna-sticky__swatch[data-swatch="default"] {
+  --swatch-tint: var(--color-accent);
+}
+
+.luna-sticky__swatch[data-swatch="purple"] {
+  --swatch-tint: var(--color-status-ai);
+}
+
+.luna-sticky__swatch[data-swatch="green"] {
+  --swatch-tint: var(--color-status-success);
+}
+
+.luna-sticky__swatch[data-swatch="red"] {
+  --swatch-tint: var(--color-status-error);
+}
+
+.luna-sticky__swatch[aria-pressed="true"] {
+  border-color: var(--color-text-primary);
+}
+
+.luna-sticky__actions {
+  display: flex;
+  /* 色点是 10px 的圆，图标钮是一整格热区——不居中对齐，两者的基线差在真机上一眼看得出
+     （2026-09-09：「图标在最中间，但是与颜色没有对齐」）。 */
+  align-items: center;
+  flex-shrink: 0;
+  gap: var(--space-0-5);
+  /* 静息低透明而不是完全隐藏（ADR-137 / 真机 2026-10-01 设计）：完全隐藏时用户不知道
+     这张纸能摘、能换色，只有碰巧把指针移上去才发现。 */
+  opacity: var(--opacity-idle);
+  transition: opacity var(--transition-fast);
+}
+
+.luna-sticky:hover .luna-sticky__actions,
+.luna-sticky:focus-within .luna-sticky__actions {
+  opacity: 1;
+}
+
+/* 正文：铺满剩下的全部空间。没有边框也没有底色——便签本身就是那张纸。 */
+.luna-sticky__body {
+  flex: 1;
+  min-block-size: var(--space-0);
+  padding: var(--space-0) var(--space-2-5) var(--space-2-5);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+  resize: none;
+}
+
+.luna-sticky__body:focus {
+  outline: none;
+}
+
+/* 看态：与 textarea 同一块地方、同一份内边距与字号，切换时字不跳位。 */
+.luna-sticky__rendered {
+  flex: 1;
+  min-block-size: var(--space-0);
+  overflow-y: auto;
+  padding: var(--space-0) var(--space-2-5) var(--space-2-5);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+  cursor: text;
+}
+
+.luna-sticky__rendered:focus {
+  outline: none;
+}
+
+/* 便签只有一掌宽：标题从首行起就不必比正文大出一截。 */
+.luna-sticky__rendered .luna-markdown h1,
+.luna-sticky__rendered .luna-markdown h2 {
+  margin-block-start: var(--space-1);
+  font-size: var(--font-size-md);
+}
+
+.luna-sticky__save-issue {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-0) var(--space-2-5) var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-status-error-surface);
+  color: var(--color-status-error);
+  font-size: var(--font-size-xs);
+}
+
+.luna-sticky__save-actions {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+/* 缩放把手：无边框窗在 macOS 上的系统缩放边只有一两个像素宽，真机上根本抓不住
+   （2026-09-09 复验第 3 条）。这里给一个看得见的角——静息淡出，指针进窗才显形，
+   与窗口栏那两颗动作同一档存在感。 */
+.luna-sticky__resize {
+  position: absolute;
+  inset-block-end: var(--space-0);
+  inset-inline-end: var(--space-0);
+  inline-size: var(--space-4);
+  block-size: var(--space-4);
+  padding: var(--space-0);
+  border: 0;
+  background: transparent;
+  cursor: nwse-resize;
+  opacity: var(--space-0);
+  transition: opacity var(--transition-fast);
+}
+
+/* 两道斜线画出「这里能拉」，用 currentColor 跟着主题走。 */
+.luna-sticky__resize::after {
+  content: "";
+  position: absolute;
+  inset-block-end: var(--space-1);
+  inset-inline-end: var(--space-1);
+  inline-size: var(--space-2-5);
+  block-size: var(--space-2-5);
+  border-block-end: var(--border-width-thick) solid var(--color-text-muted);
+  border-inline-end: var(--border-width-thick) solid var(--color-text-muted);
+  border-end-end-radius: var(--radius-xs);
+}
+
+.luna-sticky:hover .luna-sticky__resize,
+.luna-sticky:focus-within .luna-sticky__resize {
+  opacity: var(--opacity-idle);
+}
+
+.luna-sticky__resize:hover {
+  opacity: 1;
+}
+
+/* 载入态：读回来之前不给可编辑的框——空框与「这篇本来就是空的」在屏幕上长得一样，而在
+   那一刻敲的字会以一个假的基线为起点。 */
+.luna-sticky__loading {
+  margin: var(--space-0);
+  padding: var(--space-0) var(--space-2-5);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* 保存状态点：左下角一枚（右下角是缩放把手）。已存 = 静；待存 = 主色；正在存 = 主色呼吸。
+   不只靠颜色：三态的读屏名不同，悬停有文字提示。 */
+.luna-sticky__save-dot {
+  position: absolute;
+  inset-block-end: var(--space-1-5);
+  inset-inline-start: var(--space-1-5);
+  inline-size: var(--space-1-5);
+  block-size: var(--space-1-5);
+  border-radius: var(--radius-full);
+  background: var(--color-border-default);
+  transition: background var(--transition-fast);
+}
+
+.luna-sticky__save-dot[data-state="pending"],
+.luna-sticky__save-dot[data-state="saving"] {
+  background: var(--color-accent);
+}
+
+.luna-sticky__save-dot[data-state="saving"] {
+  animation: luna-breath 1.2s infinite ease-in-out;
+}

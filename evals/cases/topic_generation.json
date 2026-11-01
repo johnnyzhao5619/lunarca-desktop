@@ -1,0 +1,25 @@
+{
+  "_comment": ["主题生成提示词的结构门禁；不替代双项目来源的真实模型评测。"],
+  "scope": "ingest",
+  "template": "topic_generation",
+  "cases": [
+    {
+      "name": "范围与同源跨项目片段",
+      "vars": {},
+      "must_contain": ["scope.title", "scope.description", "scope.includes", "scope.excludes", "heading_path", "shared tag", "untrusted source data"],
+      "why": "初稿必须先按完整范围选证据；同一源的两个项目不能仅凭共享标签混合。"
+    },
+    {
+      "name": "封闭引用、无新增与覆盖",
+      "vars": {},
+      "must_contain": ["status set to no_op", "Do not include reason in a claims response", "evidence_ids", "exact IDs", "never use transcript_record for a formal_note", "Relative time such as this week", "input_complete", "complete_input", "Never emit triple backticks", "one complete JSON object"],
+      "why": "输出必须封闭、可定位并区分部分输入；结构检查仍不证明语义质量。"
+    },
+    {
+      "name": "保留原文的确定程度",
+      "vars": {},
+      "must_contain": ["level of certainty", "never as a plan, decision or settled fact"],
+      "why": "真机 2026-09-27 云端模型两次把「客户希望/期望」写成「项目计划/首版将支持」——愿望被升格为决定。证据校验只核出处存在，挡不住语义夸大；规则被删时这条必须变红"
+    }
+  ]
+}

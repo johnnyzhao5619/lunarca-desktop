@@ -1,0 +1,96 @@
+{
+  "_comment": "Synthetic E05 smoke probe only. It does not establish semantic support or replace two independent reviewers.",
+  "source_markdown": "# 周会\n\n## 项目 A\n\n本周发布。\n\n## 项目 B\n\n本周发布。\n",
+  "cases": [
+    {
+      "name": "shared-source-project-a",
+      "scope": {
+        "title": "项目 A",
+        "description": "只整理项目 A 的发布时间",
+        "includes": ["项目/A"],
+        "excludes": ["项目/B"]
+      },
+      "input_complete": true,
+      "evidence": [
+        {
+          "id": "e0000",
+          "source_title": "同一份周会",
+          "heading_path": ["周会", "项目 A"],
+          "excerpt": "本周发布。",
+          "kind": "formal_note",
+          "complete_input": true
+        },
+        {
+          "id": "e0001",
+          "source_title": "同一份周会",
+          "heading_path": ["周会", "项目 B"],
+          "excerpt": "本周发布。",
+          "kind": "formal_note",
+          "complete_input": true
+        }
+      ],
+      "expected_status": "claims",
+      "allowed_ids": ["e0000"]
+    },
+    {
+      "name": "shared-source-project-b",
+      "scope": {
+        "title": "项目 B",
+        "description": "只整理项目 B 的发布时间",
+        "includes": ["项目/B"],
+        "excludes": ["项目/A"]
+      },
+      "input_complete": true,
+      "evidence": [
+        {
+          "id": "e0000",
+          "source_title": "同一份周会",
+          "heading_path": ["周会", "项目 A"],
+          "excerpt": "本周发布。",
+          "kind": "formal_note",
+          "complete_input": true
+        },
+        {
+          "id": "e0001",
+          "source_title": "同一份周会",
+          "heading_path": ["周会", "项目 B"],
+          "excerpt": "本周发布。",
+          "kind": "formal_note",
+          "complete_input": true
+        }
+      ],
+      "expected_status": "claims",
+      "allowed_ids": ["e0001"]
+    },
+    {
+      "name": "unrelated-project-no-op",
+      "scope": {
+        "title": "项目 C",
+        "description": "只整理项目 C",
+        "includes": ["项目/C"],
+        "excludes": ["项目/A", "项目/B"]
+      },
+      "input_complete": true,
+      "evidence": [
+        {
+          "id": "e0000",
+          "source_title": "同一份周会",
+          "heading_path": ["周会", "项目 A"],
+          "excerpt": "本周发布。",
+          "kind": "formal_note",
+          "complete_input": true
+        },
+        {
+          "id": "e0001",
+          "source_title": "同一份周会",
+          "heading_path": ["周会", "项目 B"],
+          "excerpt": "本周发布。",
+          "kind": "formal_note",
+          "complete_input": true
+        }
+      ],
+      "expected_status": "no_op",
+      "allowed_ids": []
+    }
+  ]
+}

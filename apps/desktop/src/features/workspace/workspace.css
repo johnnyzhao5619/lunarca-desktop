@@ -1,0 +1,1704 @@
+
+
+/* 词条行里的两个输入框只需要"占满这一列"——皮肤此前在这里整套重写了一遍（含写死的
+   `1px`），与 `.luna-input` 讲的是同一件事。删除按钮同理，它是一颗破坏性图标钮
+   （`.luna-icon-btn--danger`），此前是本文件里的第三份图标钮实现。 */
+.luna-glossary__row .luna-input {
+  inline-size: var(--size-full);
+}
+
+/* ─── Wiki-link decorations (PRD-06-031 P1) ───────────────────────────────── */
+.luna-wiki-link {
+  color: var(--color-accent);
+  background: var(--color-accent-surface);
+  border-radius: var(--radius-xs);
+  padding: 0 0.15em;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.luna-wiki-link:hover {
+  text-decoration: underline;
+  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+}
+
+.luna-wiki-link--unresolved {
+  color: var(--color-text-muted);
+  background: var(--color-status-muted-surface);
+  border-block-end: var(--border-width-thin) dashed var(--color-text-muted);
+}
+
+.luna-wiki-link--unresolved:hover {
+  background: var(--color-status-error-surface);
+}
+
+/* 危险态按钮 `.luna-btn--danger` / `--danger-sm` 此前住在本文件（且写死了 `color: white`、
+   把"危险"与"小"捆成一个名字）——已按 TDD-15 §3.3a 归位到 `components/button.css`，
+   拆为形态 `--danger` / `--danger-subtle` × 尺寸 `--sm`。 */
+
+/* ─── Template picker (W2-T4 / PRD-06-015)：遮罩见 `components/dialog.css` ── */
+
+/* 就地加词弹窗（PRD-07-061）：一件小事，故窄、少、一屏内做完。 */
+.luna-glossary-add {
+  inline-size: min(28rem, calc(100vw - var(--space-7)));
+}
+
+.luna-glossary-add__header strong {
+  display: block;
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+}
+
+.luna-glossary-add__header p {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-base);
+}
+
+.luna-glossary-add__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.luna-glossary-add__field span {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-glossary-add__receipt {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-status-attention);
+}
+
+.luna-glossary-add__error {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-status-error);
+}
+
+/* 卡片外壳归 `.luna-dialog`（components/dialog.css），此处只写它自己的尺寸。 */
+.luna-template-picker {
+  inline-size: min(38rem, 90vw);
+  max-block-size: min(44rem, calc(100vh - var(--space-6)));
+  /* 内容区（`__content`）自己滚，卡片本体不再滚——否则窄窗里会出现两条滚动条。 */
+  overflow: hidden;
+}
+
+.luna-template-picker__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.luna-template-picker__eyebrow {
+  margin: var(--space-0) var(--space-0-5) var(--space-1);
+  color: var(--color-accent);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.luna-template-picker__header h2 {
+  margin: var(--space-0);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.luna-template-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.luna-template-picker__content {
+  display: grid;
+  gap: var(--space-4);
+  overflow: auto;
+  padding-inline-end: var(--space-1);
+}
+
+.luna-template-picker__group {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.luna-template-picker__group--user {
+  padding-block-start: var(--space-4);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-template-picker__group-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.luna-template-picker__group-heading h3,
+.luna-template-picker__group-heading p,
+.luna-template-picker__empty p {
+  margin: var(--space-0);
+}
+
+.luna-template-picker__group-heading h3 {
+  font-size: var(--font-size-sm);
+}
+
+.luna-template-picker__group-heading p,
+.luna-template-picker__empty {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-base);
+}
+
+.luna-template-picker__manage {
+  flex: none;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+}
+
+.luna-template-picker__empty {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-width-thin) dashed var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.luna-template-picker__empty code {
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-mono);
+  overflow-wrap: anywhere;
+}
+
+.luna-template-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-0-5);
+  padding: var(--space-2-5) var(--space-3);
+  background: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  text-align: start;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.luna-template-card:hover:not(:disabled) {
+  background: var(--color-bg-selected);
+  border-color: var(--color-accent);
+}
+
+.luna-template-card:hover:not(:disabled) .luna-template-card__name {
+  color: var(--color-accent);
+}
+
+.luna-template-card:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: calc(-1 * var(--outline-width-focus));
+}
+
+.luna-template-card:disabled {
+  color: var(--color-text-muted);
+  background: var(--color-bg-disabled);
+  cursor: default;
+}
+
+.luna-template-card__name {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  transition: color var(--transition-fast);
+}
+
+.luna-template-card__desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-template-card--user {
+  min-block-size: 4.75rem;
+}
+
+.luna-template-picker__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* ─── Tags view (W2-T5 / PRD-06-033) ─────────────────────────────────────── */
+.luna-tags-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.luna-tags-panel__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.luna-tags-list {
+  list-style: none;
+  padding: var(--space-0);
+  margin: var(--space-0);
+  overflow-y: auto;
+}
+
+.luna-tags-list__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: var(--size-full);
+  gap: var(--space-2);
+  padding: var(--space-1-5) var(--space-2);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: start;
+  color: inherit;
+  transition: background var(--transition-fast);
+  min-block-size: var(--space-7);
+}
+
+.luna-tags-list__item[aria-current] {
+  background: var(--color-bg-selected);
+  color: var(--color-accent);
+}
+
+.luna-tags-list__name-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  flex: 1 1 0;
+  min-width: var(--space-0);
+  overflow: hidden;
+}
+
+.luna-tags-list__item:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-tags-list__item-name {
+  font-size: var(--font-size-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── 嵌套标签树（TagsView，PRD-06-033 Obsidian 标签面板对标） ───────────── */
+.luna-tags-tree,
+.luna-tags-tree__children {
+  list-style: none;
+  padding: var(--space-0);
+  margin: var(--space-0);
+}
+
+.luna-tags-tree__children {
+  padding-inline-start: var(--space-4);
+}
+
+.luna-tags-tree__row {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+/* 树行的缩进槽（展开按钮或等宽占位）属于整行，不属于标签正文。选中/悬停表面因此必须
+   由行容器承载；否则背景会从 24px 槽位之后才开始，让所有根标签看起来平白缩进一级。 */
+.luna-tags-tree__row:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-tags-tree__row:has(> .luna-tags-list__item[aria-current]) {
+  background: var(--color-bg-selected);
+  color: var(--color-accent);
+}
+
+.luna-tags-tree__row .luna-tags-list__item {
+  flex: 1;
+  min-inline-size: 0;
+  padding-inline-start: var(--space-1);
+}
+
+.luna-tags-tree__row .luna-tags-list__item:hover,
+.luna-tags-tree__row .luna-tags-list__item[aria-current] {
+  background: transparent;
+}
+
+.luna-tags-tree__row:has(> .luna-tags-list__item[aria-current]) .luna-tags-tree__chevron {
+  color: var(--color-accent);
+}
+
+.luna-tags-tree__chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+}
+
+.luna-tags-tree__chevron:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-tags-tree__chevron-placeholder {
+  display: inline-block;
+  inline-size: var(--space-6);
+  flex-shrink: 0;
+}
+
+/* ─── Backlinks / Outgoing links panel (W3-T3) ───────────────────────────── */
+.luna-workspace__panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+}
+
+/* 上下文中心：一次只呈现一个阅读任务，链接/大纲/版本之间用段控页签快速切换。 */
+.luna-context-panel {
+  display: grid;
+  gap: var(--space-3);
+  min-block-size: var(--space-0);
+}
+
+.luna-context-panel__tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.luna-context-panel__tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-inline-size: var(--space-0);
+  padding: var(--space-1-5) var(--space-1);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.luna-context-panel__tabs button:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+.luna-context-panel__tabs button[aria-selected="true"] {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-focus);
+  background: var(--color-bg-selected);
+}
+
+.luna-context-panel__tabs span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-context-panel__note-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-inline-size: var(--space-0);
+  padding: var(--space-1-5) var(--space-2);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-context-panel__note-actions span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-context-panel__note-actions button {
+  display: inline-flex;
+  flex: none;
+  padding: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  background: transparent;
+  cursor: pointer;
+}
+
+.luna-context-panel__note-actions button:hover {
+  background: var(--color-accent-surface);
+}
+
+.luna-context-panel__content {
+  min-inline-size: var(--space-0);
+}
+
+.luna-workspace__panel-body h3 {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.luna-panel-link-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.luna-panel-link-list__item {
+  display: block;
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+}
+
+.luna-panel-link-list__item:hover {
+  background: var(--color-bg-hover);
+}
+
+/* 断链：不是按钮、没有 hover 反馈——它点不开，界面就不该做出"能点"的样子。 */
+.luna-panel-link-list__item--missing {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+.luna-panel-link-list__item--missing:hover {
+  background: none;
+}
+
+.luna-panel-link-list__item--missing em {
+  font-style: normal;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* ═══ 笔记文件树 · 头部与行（PRD-06-048 / PRD-06-006）═══════════════════════
+   这些规则此前散在 `features/editor/editor-core.css`（页头与动作）与
+   `features/graph/graph.css`（当时的段控与分区段头，已随 ADR-087 删除）里——两个与
+   文件树无关的 feature。样式住在哪个文件不影响运行时层叠（唯一入口 `styles/index.css`
+   定序），但它决定改动的人会不会找到、以及下一个人会不会再抄一份。归位到它自己的 feature。
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* 两种列表头共享「两端对齐、与列表拉开一档」；行内还是分行是各自的事，写进共享块的那一份
+   会被下面的筛选列表头静默覆盖（TDD-15 §3.3b）。标题与计数的**零件**样式归
+   `.luna-sidebar-header__*` 原语（layout/sidebar-header.css），容器怎么排是这里的事——
+   同一个原语还服务着三个 `flex-direction: column` 的页头（搜索 / 标签 / 图谱）。 */
+.luna-note-tree__header,
+.luna-filtered-list__header {
+  display: flex;
+  justify-content: space-between;
+  margin-block-end: var(--space-2);
+  flex-shrink: 0;
+}
+
+.luna-filtered-list__subtitle {
+  margin: calc(-1 * var(--space-1)) var(--space-0) var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  /* 说明句宁可整句换行，也不要断在词中间。中英混排 + 全角标点的句子被挤窄时，默认
+     断行会切在「完／全」这种位置上——那不是排版风格问题，是读起来会绊一下。 */
+  text-wrap: pretty;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 树头部窄宽防挤压（PRD-06-006 可拖拽窄树）：放不下时按钮组整体换到第二行
+   （Obsidian 窄侧栏心智）；标题的截断由原语负责。 */
+.luna-note-tree__header {
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  min-block-size: calc(var(--space-7) + var(--space-2));
+}
+
+.luna-note-tree__header .luna-note-tree__actions {
+  margin-inline-start: auto;
+}
+
+.luna-note-tree__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-0-5);
+}
+
+/* 筛选清单（速记 / 录音 / 转写 / 对话）：标题与工具行分两行。 */
+.luna-filtered-list__header {
+  align-items: stretch;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.luna-filtered-list__toolbar {
+  inline-size: var(--size-full);
+}
+
+.luna-filtered-list__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+/* ── 树行 · 清单行 · 内联编辑（从 `features/editor/editor-core.css` 归位）────────
+   这些是笔记文件树与功能清单**自己**的行样式，此前住在编辑器的样式表里。 */
+.luna-note-tree,
+.luna-filtered-list {
+  min-width: var(--space-0);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.luna-note-tree__items,
+.luna-filtered-list__items {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  padding: var(--space-0);
+  margin: var(--space-0);
+  list-style: none;
+}
+
+/* 分页列表的列尾控件（TDD-07 §4.1a）。
+   它是滚动区的**同级兄弟**而不是列表末项：滚动区已经 `flex: 1; overflow-y: auto`，
+   放进去的话「加载更多」会随内容滚出视野——而它恰恰是"内容还没到齐"时唯一的出口。 */
+.luna-list-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  padding: var(--space-1-5) var(--space-2);
+}
+
+.luna-list-more__notice {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* Tree Indentation & Lines */
+.luna-note-tree__items .luna-note-tree__items {
+  margin-inline-start: var(--space-3);
+  position: relative;
+}
+
+.luna-note-tree__items .luna-note-tree__items::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 2px;
+  inset-block: 0;
+  width: 1px;
+  border-inline-start: var(--border-width-thin) dashed var(--color-border-subtle);
+  opacity: 0.7;
+}
+
+.luna-note-tree__item {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* 树行与功能视图清单的文件夹行（PRD-07-062，速记 / 录音 / 转写 / AI 对话共用）共用同一
+   行外形。注释此前夹在这两个选择器**中间**，读起来像只在说下面那一个。 */
+.luna-note-tree__item-btn,
+/* 文件夹分节标题（PRD-07-062，2026-09-08 改为「分组」形态）：与时间桶标题
+   `.luna-filtered-list__group-title` 同一字号 / 颜色 / 字重——分组与时间桶在用户眼里是
+   同一种东西（"这一段是什么"），只多一枚 chevron 与一个条数。条目平铺在它下面，不缩进。 */
+.luna-folder-group__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  inline-size: 100%;
+  margin-block-start: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-folder-group__head:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+/* 拖拽落点（与文件树同一视觉：淡底 + 虚线描边）。 */
+.luna-filtered-list__group[data-drop-target="true"] .luna-folder-group__head,
+.luna-filtered-list__group[data-drop-target="true"] .luna-filtered-list__group-title {
+  background: var(--color-accent-surface);
+  color: var(--color-text-primary);
+  outline: var(--border-width-thin) dashed var(--color-accent);
+  outline-offset: calc(-1 * var(--border-width-thin));
+}
+
+.luna-folder-group__chevron {
+  flex-shrink: 0;
+}
+
+.luna-folder-group__name {
+  overflow: hidden;
+  flex: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.luna-folder-group__count {
+  flex-shrink: 0;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-folder-editor {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+}
+
+.luna-folder-editor__icon {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.luna-folder-editor .luna-input {
+  flex: 1;
+  min-inline-size: var(--space-0);
+}
+
+.luna-filtered-list__item-btn {
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  width: var(--size-full);
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  padding-inline-start: var(--space-3);
+  min-block-size: var(--space-7);
+  text-align: start;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.luna-note-tree__item-btn:hover,
+.luna-filtered-list__item-btn:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-note-tree__item-btn[aria-current],
+.luna-filtered-list__item-btn[aria-current] {
+  background: var(--color-bg-selected);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+/* 多选的成员（PRD-06-059）：**比"当前打开的那一条"淡一档**，两者能同时出现在一行上
+   （当前那条恒在选择集里）。用底色而不是描边——描边会让整份列表在多选时抖一格。
+
+   判据是 `use-note-selection.ts` 自己往行上贴的 `data-row-path`，不是各清单的类名：
+   按类名写就得每接一条清单补一份，而漏补不报错——屏幕上只是那一格不再高亮。速记就是
+   这么坏的（真机 2026-09-09：选择集对了，一点反应都没有）。这两条因此是全应用**唯一**
+   一处选中态外观，笔记树 / 录音 / 转写 / 标签结果 / 速记 / AI 对话共用。 */
+[data-row-path][aria-selected="true"] {
+  background: var(--color-bg-hover);
+}
+
+[data-row-path][aria-selected="true"][aria-current] {
+  background: var(--color-bg-selected);
+}
+
+.luna-note-tree__chevron {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.luna-note-tree__chevron[data-expanded="true"] {
+  transform: rotate(90deg);
+}
+
+/* 叶子行的占位：没有折叠箭头的行也要让出同一格，否则同层的文件与文件夹起点错开。 */
+.luna-note-tree__chevron-placeholder {
+  width: 12px;
+  flex-shrink: 0;
+}
+
+.luna-note-tree__icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.luna-note-tree__item-btn[aria-current] .luna-note-tree__chevron,
+.luna-note-tree__item-btn[aria-current] .luna-note-tree__icon {
+  color: var(--color-accent);
+}
+
+.luna-note-tree__item-name,
+.luna-filtered-list__item-title {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  flex: 1;
+}
+
+/* 时间分节标题（PRD-07-007）：与速记流的桶标题同一副样子——同一件事不该长两种样。 */
+.luna-filtered-list__group {
+  list-style: none;
+}
+
+.luna-filtered-list__group + .luna-filtered-list__group {
+  margin-block-start: var(--space-2);
+}
+
+.luna-filtered-list__group-title {
+  margin: var(--space-1) var(--space-0) var(--space-0);
+  padding-inline: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* 「未分组」之下的时间桶标题：降一级（常规字重、缩进一档），让人读出"这些桶都属于未分组"。 */
+.luna-filtered-list__group-title--sub {
+  margin-block-start: var(--space-0-5);
+  padding-inline-start: var(--space-5);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.luna-filtered-list__item-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+}
+
+.luna-filtered-list__item-meta > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-filtered-list__item-meta time {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* 录音 / 转写行的处理状态胶囊（PRD-07-007）：状态来自处理队列快照，前端只翻词。 */
+.luna-archive-status {
+  flex: none;
+  padding-inline: var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--color-status-muted-surface);
+  color: var(--color-status-muted);
+  white-space: nowrap;
+}
+
+.luna-archive-status[data-state="running"] {
+  background: var(--color-bg-selected);
+  color: var(--color-status-active);
+}
+
+.luna-archive-status[data-state="untranscribed"] {
+  background: var(--color-status-attention-surface);
+  color: var(--color-status-attention);
+}
+
+.luna-archive-status[data-state="failed"] {
+  background: var(--color-status-error-surface);
+  color: var(--color-status-error);
+}
+
+/* 拖拽移动落点高亮（文件夹/根区域，PRD-06-006）；从系统拖文件进来同一个样子（W5a）。 */
+.luna-note-tree__item-btn[data-drop-target="true"],
+.luna-note-tree__item-btn[data-file-drop="true"] {
+  background: var(--color-accent-surface);
+  outline: var(--border-width-thin) dashed var(--color-accent);
+  outline-offset: calc(-1 * var(--border-width-thin));
+}
+
+.luna-note-tree[data-drop-target="true"],
+.luna-note-tree[data-file-drop="true"] {
+  background: var(--color-accent-surface);
+}
+
+/* 树内联编辑（重命名/新建输入行）。 */
+.luna-note-tree__edit-row {
+  display: flex;
+  align-items: center;
+  width: var(--size-full);
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  min-block-size: var(--space-7);
+}
+
+/* 树内联编辑框此前自造了一整套输入框皮肤（与 `.luna-input` 讲同一件事、只是小一号，
+   且圆角/焦点圈两处都已经不一致）。皮肤改由 `.luna-input` + `--sm` 提供，这里只留
+   它真正私有的那两条：占满行内剩余宽度、允许被压缩。 */
+.luna-note-tree__edit-input {
+  flex: 1;
+  min-inline-size: var(--space-0);
+}
+
+.luna-filtered-list__item-icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.luna-filtered-list__item-btn[aria-current] .luna-filtered-list__item-icon {
+  color: var(--color-accent);
+  opacity: 1;
+}
+
+.luna-filtered-list__item-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.luna-filtered-list__item-snippet {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* ── 记录态（PRD-06-052 / ADR-086）────────────────────────────────────────────
+   淡显 + 「记录」徽标。判定由 Rust 下发（`data-draft` / `NoteMetaDto.draft`），
+   这里只负责"长什么样"。 */
+
+/* 淡显：只淡**名字那一段**，不动整行。
+   刻意不给整行加 `opacity`：整行连同图标、选中背景、徽标描边一起变淡，选中态会被冲淡到
+   看不出选中（而记录笔记正是最常被点开的那一类）。也不能「降一档文字色」——树行的常态
+   本就是最低一档的 `--color-text-muted`（与分组标题同一条规则），再降无档可降：此前这里
+   写的正是降色，记录态与未下载的淡显因此在树里**根本看不出来**（V4a 真机发现）。 */
+.luna-note-tree__item-btn[data-draft] .luna-note-tree__item-name,
+.luna-note-tree__item-btn[data-cloud] .luna-note-tree__item-name,
+.luna-note-tree__item-btn[data-excluded] .luna-note-tree__item-name,
+.luna-note-tree__item-btn[data-hidden] .luna-note-tree__item-name {
+  opacity: var(--opacity-disabled);
+}
+
+/* 选中时不再淡显：此刻它是用户正在看的那一篇，弱化一个焦点对象是自相矛盾的。 */
+.luna-note-tree__item-btn[data-draft][aria-current] .luna-note-tree__item-name,
+.luna-note-tree__item-btn[data-cloud][aria-current] .luna-note-tree__item-name,
+.luna-note-tree__item-btn[data-excluded][aria-current] .luna-note-tree__item-name,
+.luna-note-tree__item-btn[data-hidden][aria-current] .luna-note-tree__item-name {
+  opacity: 1;
+}
+
+/* 文件树的类型徽标（PRD-06-048①，不可点）：录音 / 转写 / 对话各写自己的名字。
+   与同行的按钮同高同圆角，只靠淡底 + 无 hover 与它们区分。 */
+.luna-source-badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  background: var(--color-bg-muted);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  cursor: help;
+}
+
+/* 冲突副本徽标（TDD-06 §4.1 ①）：唯一一枚警示色的行标记——它不是分类，是「这里有一件
+   需要你处理的事」。形状与类型徽标一致，只换颜色。 */
+.luna-conflict-badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-status-warning);
+  background: var(--color-status-warning-surface);
+  border: var(--border-width-thin) solid var(--color-status-warning);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+/* 「记录」徽标：与类型徽标（`.luna-source-badge`）**刻意不同形**——同为中性弱标记，
+   但描边是**虚线**。虚线在各家界面语言里都读作"未定稿 / 临时"，而类型的实线读作"已归档
+   的另一类"；两枚同形只差一个字，在 13px 的侧栏行尾等于没区分。
+   `border-style: dashed` 是 CSS2 能力，全引擎（含 WKWebView）通用。 */
+.luna-draft-badge {
+  flex-shrink: 0;
+  padding-block: var(--space-0);
+  padding-inline: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: var(--border-width-thin) dashed var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  cursor: help;
+}
+
+/* 页头上的那一枚是**可点的**（沉淀入口，PRD-06-053）：一步动作不值得开浮层或确认卡，
+   但必须看得出可点——故给它指针与 hover 反馈，其余形态与树行里那枚逐条一致。 */
+.luna-draft-badge--action {
+  padding-block: var(--space-0-5);
+  padding-inline: var(--space-1-5);
+  cursor: pointer;
+}
+
+.luna-draft-badge--action:hover:not(:disabled),
+.luna-draft-badge--action:focus-visible {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.luna-draft-badge--action:disabled {
+  cursor: progress;
+}
+
+/* 回收站视图（系统组，PRD-06-009）：页头标题+副标题+工具栏（搜索 + 描边小按钮
+   「清空回收站」，不再整宽红条），列表复用 command-list 基座。 */
+.luna-trash {
+  display: grid;
+  align-content: start;
+  /* 页头 → 说明 → 清单三段之间是同一档呼吸；说明与页头贴得更近由说明自己的行高承担。 */
+  gap: var(--space-3);
+  max-inline-size: 64rem;
+  min-inline-size: var(--space-0);
+  margin-inline: auto;
+  color: var(--color-text-primary);
+}
+
+/* 页头几何归 `.luna-main-header` 原语；这一页只留视图条（关键词 + 排序）。 */
+.luna-trash__viewbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/*
+ * 搜索框在页头动作区里的宽度。
+ *
+ * 用 `min-inline-size: min(280px, 100%)` 会**把页头挤成两行**：百分比要拿动作区的宽度
+ * 去解，而动作区的宽度又是由内容撑出来的——这个循环在真实布局里解成"动作区只有搜索框
+ * 那么宽"，排序键与清空键被挤到下一行（1400px 窗口下依然如此）。给一个确定的 flex 基准
+ * 就没有这个循环：放得下按原尺寸，放不下再缩。
+ */
+/* 搜索框吃掉视图条的剩余宽度，排序键定宽跟在后面。 */
+.luna-trash__query {
+  flex: 1;
+  min-inline-size: var(--space-0);
+}
+
+.luna-trash__purge-all,
+.luna-trash__action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  white-space: nowrap;
+}
+
+/* 「共占用 X」——页头标题旁的一格弱化元信息（用户决定要不要清空时唯一相关的数字）。 */
+.luna-trash__occupied {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* 策略已切走但库内仍有遗留条目时的说明条（PRD-06-009 `listLegacy` 态）。
+   它是一句解释而不是一次告警，故用中性描边而非错误色。 */
+.luna-trash__notice {
+  margin: var(--space-0);
+  padding: var(--space-2-5) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+}
+
+/* 说明卡（系统废纸篓 / 永久删除两态）底部的并排动作。 */
+.luna-trash__state-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.luna-trash__state-actions .luna-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  white-space: nowrap;
+}
+
+/* 行可点击打开预览（永久删除前判断内容）：指针光标 + 悬停高亮（复用 command-list 激活态）。 */
+.luna-trash__list li > button {
+  cursor: pointer;
+}
+
+.luna-trash__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2-5);
+  min-inline-size: var(--space-0);
+}
+
+.luna-trash__row-icon {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.luna-trash__row-main {
+  display: grid;
+  gap: var(--space-0-5);
+  min-inline-size: var(--space-0);
+}
+
+.luna-trash__row-main strong {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-trash__row-main small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 批量条：勾选之后出现在清单正上方，说清动作作用在谁身上。 */
+.luna-trash__batch {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-muted);
+}
+
+.luna-trash__batch-count {
+  margin-inline-end: auto;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+/* 行首勾选框：与速记流那一枚同形态（原生控件 + 强调色），不另造一个假勾选框。 */
+.luna-trash__pick {
+  flex: 0 0 auto;
+  margin-inline-start: var(--space-1);
+  accent-color: var(--color-accent);
+}
+
+/* 勾中的行整行着色：只让那个小方块变一下，扫一眼数不出"我选了哪几条"。判据直接读
+   勾选框的状态，不必把选择集再往清单基座里传一份。 */
+.luna-trash__list li:has(> .luna-command-list__leading > .luna-trash__pick:checked) {
+  background: var(--color-bg-selected);
+}
+
+/* 剩余保留天数：常态与其它元信息等重，临期（≤3 天）转警示色——它是这一行里唯一会让人
+   现在就动手的信息。 */
+.luna-trash__expiry::before {
+  content: " · ";
+}
+
+.luna-trash__expiry[data-soon="true"] {
+  color: var(--color-status-warning);
+  font-weight: 500;
+}
+
+.luna-trash__row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/*
+ * 永久删除只在 hover / 键盘焦点进入本行时显形（与速记流行内动作同一形态）。
+ * `:focus-within` 是键盘可达性的必需项——只挂 hover 的话，Tab 过去的那一刻它仍是隐藏的，
+ * 于是这个动作在键盘上根本不存在。
+ */
+.luna-trash__purge-one {
+  visibility: hidden;
+}
+
+.luna-trash__list li:hover .luna-trash__purge-one,
+.luna-trash__list li:focus-within .luna-trash__purge-one {
+  visibility: visible;
+}
+
+/* 回收站预览模态（PRD-06-009）：点击行 → 只读内容 + 元数据 + 底部还原/永久删除。 */
+/* 外壳归 `.luna-dialog` + `--panel` 原语；此处只写它自己的尺寸。 */
+.luna-trash-preview {
+  inline-size: min(72rem, 92vw);
+  max-block-size: 82vh;
+}
+
+.luna-trash-preview__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-trash-preview__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2-5);
+  min-inline-size: var(--space-0);
+}
+
+.luna-trash-preview__title-icon {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.luna-trash-preview__title-text {
+  display: grid;
+  gap: var(--space-0-5);
+  min-inline-size: var(--space-0);
+}
+
+.luna-trash-preview__title-text strong {
+  font-size: var(--font-size-md);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-trash-preview__title-text small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-trash-preview__body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-5);
+  min-block-size: var(--space-6);
+}
+
+.luna-trash-preview__status {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.luna-trash-preview__hint {
+  margin-block-end: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* 只读正文：复用阅读模式渲染基线，模态内约束宽度。 */
+.luna-trash-preview__note {
+  max-inline-size: 100%;
+}
+
+.luna-trash-preview__folder-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  margin-block-end: var(--space-3);
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.luna-trash-preview__folder-list {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-0);
+  margin: var(--space-0);
+  list-style: none;
+}
+
+.luna-trash-preview__folder-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1-5) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.luna-trash-preview__folder-icon {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.luna-trash-preview__binary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+}
+
+.luna-trash-preview__binary strong {
+  display: block;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.luna-trash-preview__binary small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-trash-preview__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* 个人词典面板 的样式已按 TDD-15 §2.3 归位到 features/settings/settings.css。 */
+
+/* 编辑器与大纲面板 的样式已按 TDD-15 §2.3 归位到 features/editor/editor-core.css。 */
+
+/* AI 标注标记（PRD-06-046）：小而弱的提示，不与计数抢注意力。 */
+.luna-tags-list__item-ai {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-status-ai);
+  gap: var(--space-0-5);
+  background: var(--color-status-ai-surface);
+  padding: var(--border-width-thin) var(--space-1);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* 标签主区：把超宽画布收成可扫描的信息列；页头、动作与列表仍复用过滤清单基座。 */
+.luna-tag-notes {
+  max-inline-size: 64rem;
+  margin-inline: auto;
+}
+
+/* **标题块与动作区分两行，不再并排**（2026-08-30 第二次收口）。
+   此前是 `minmax(0,1fr) auto` 两列，右列不设上限——三颗按钮（其中两颗还各带一行产物
+   去向说明）把右列撑到多宽，左列就被压到多窄。表现是标题被截成 `#cutove…`、那句
+   「共 N 篇…」挤成四行。更要命的是它对**文案长度**敏感：给活页说明补半句话，布局就塌
+   一次——一个会被文案改动推倒的布局，本身就是不成立的。
+   容器查询也量错了对象：它量 `workspace-main`，而真正约束这一块的是本元素自己的 64rem
+   上限，两者在宽窗口下差得很远，于是断点永远够不着。既然动作区在任何常见宽度下都需要
+   整行，就不必再用一个测不准的断点去猜——直接分两行。 */
+.luna-tag-notes .luna-filtered-list__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-block-end: var(--space-3);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-tag-notes .luna-sidebar-header__title h1 {
+  font-size: var(--font-size-xl);
+  letter-spacing: -0.01em;
+}
+
+.luna-tag-notes .luna-filtered-list__toolbar {
+  inline-size: var(--size-full);
+}
+
+/* 动作卡**等宽伸展、整行等高**（真机第八轮）：几张卡在一行内均分空间，说明文字换行
+   而不是把某张卡撑成横幅、也不再因内容长短参差出高低不齐或提早换行；上限仍在——
+   宽窗下不摊成一条带。 */
+.luna-tag-notes .luna-tag-action {
+  flex: 1 1 14rem;
+  max-inline-size: 22rem;
+}
+
+/* ── 标签动作分流（PRD-06-033）───────────────────────────────────────────────
+   首选与次选**同屏并排**，两枚动作名下各带一行产物去向（活页 / 快照）。行内两行的
+   排版归按钮自己，故这里只给"名字 + 说明"这一组的纵向堆叠，不动按钮族的其余取值。 */
+.luna-tag-action {
+  align-items: flex-start;
+  text-align: start;
+}
+
+/* 首选（此刻资格判定的建议位）：AI 建议的**浅色语义面**（`--color-status-ai-surface`，
+   与 ✨AI 徽标、仪表盘建议带同一支色）而非实色主按钮——整块实色底在动作卡尺寸上
+   读起来像横幅，且与其余页面的建议形态脱节。文字仍用常规前景（浅色底上对比度足够）。 */
+.luna-tag-action--suggested {
+  border-color: var(--color-status-ai);
+  background: var(--color-status-ai-surface);
+}
+
+/* hover 不换回灰色（`.luna-btn--secondary:hover` 会盖掉色面）：建议位的色面即身份。 */
+.luna-tag-action--suggested:hover {
+  border-color: var(--color-status-ai);
+  background: var(--color-status-ai-surface);
+}
+
+.luna-tag-action__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.luna-tag-action__name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* 说明这一行不跟着按钮的 500 走：它是解释，不是动作名。基础阶梯里没有"常规"这一档
+   （只有 medium/semibold），故用 `inherit` 之外的唯一 Token 化写法——继承 body 的字重。 */
+.luna-tag-action__hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: initial;
+  line-height: var(--line-height-base);
+}
+
+/* 已有主题页时的产物行（真机第九轮）：活页是目的地不是动作——行形态与动作卡拉开
+   量级：无边框描边、悬停浮起，读起来是「一条内容」而不是又一张卡。 */
+.luna-tag-topic-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1 1 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-status-ai);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-tag-topic-row:hover {
+  background: var(--color-bg-hover);
+}
+
+/* 文本簇可伸缩（`flex: 1` + `min-inline-size: 0`）：摘要先截断省略，行尾的维护状态
+   恒在视野内——否则长摘要会把它挤出行外（真机第九轮）。 */
+.luna-tag-topic-row__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-inline-size: 0;
+}
+
+.luna-tag-topic-row__title {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.luna-tag-topic-row__summary {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.luna-tag-topic-row__owner {
+  margin-inline-start: auto;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+/* 紫专供 AI 语义（TDD-11 §2.1）：与主题页目录行同一条口径。 */
+.luna-tag-topic-row__owner[data-owner="ai_owned"] {
+  color: var(--color-status-ai);
+}
+
+/* ── 标签树的两个来源分组（PRD-16-043）────────────────────────────────────── */
+.luna-tags-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.luna-tags-group__title {
+  margin: var(--space-0);
+  padding-inline: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.luna-tags-group__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  inline-size: var(--size-full);
+  padding: var(--space-0);
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.luna-tags-group__empty {
+  margin: var(--space-0);
+  padding: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-base);
+}
+
+/* 标签改名 / 合并对话框的输入区（ADR-135）：说明、输入框与错误纵向排列。 */
+.luna-tag-rename__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* 已全库忽略的 AI 标签（PRD-16-051）：AI 组底部的一小块，默认收起。 */
+.luna-tags-ignored {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-inline: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-tags-ignored__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-tags-ignored__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-tags-ignored__tag {
+  color: var(--color-text-secondary);
+}
+
+.luna-tags-ignored__count {
+  flex: 1 1 auto;
+}
+
+.luna-tag-notes__notice {
+  margin: var(--space-0) var(--space-0) var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* 标题行右端的轻量工具位（查询细化类导航，与产出动作不同量级——PRD-06-033 轻重裁决）。 */
+.luna-filtered-list__tools {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-inline-start: auto;
+}
+
+/* 动作靠起始端排：页头已是上下两行，动作区自己占整行，右对齐会让它离标题很远。
+   `stretch` 让同一行的动作卡整卡等高（卡自身内容顶对齐由 `.luna-tag-action` 负责）；
+   「在搜索中查找」是刻意的紧凑次级（不与产物动作卡争重），故单独回到垂直居中。 */
+.luna-tag-notes .luna-filtered-list__actions {
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.luna-tag-notes .luna-filtered-list__actions > .luna-btn--sm {
+  align-self: center;
+}
+
+/* 列表行尾徽标（转写时长）。 */
+.luna-filtered-list__item-badge {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 垃圾箱与过滤列表横向排列样式 */
+
+/* ── 知识产物阅读视图（ADR-096 ③ / TDD-07 §4.1d）─────────────────────────────
+   只读呈现：正文由共享 ReadingView 渲染（与编辑器阅读模式同一实现），这里只管
+   页框与工具条，不长出第二套排版语言。 */
+/* 页头固定、正文单独滚动——与编辑器「页头条 + 阅读滚动区」同一结构（TDD-07 §4.1d）。 */
+.luna-knowledge-reading {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  block-size: 100%;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6) var(--space-0);
+  overflow: hidden;
+}
+
+.luna-knowledge-reading__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.luna-knowledge-reading__title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+}
+
+.luna-knowledge-reading__tools {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-inline-start: auto;
+}
+
+/* 版心交给 `.luna-reading` 自己（`--editor-content-max-inline` 居中）——与编辑器
+   阅读模式**同一个容器、同一组 Token**；此前这里另写一个 46rem 左贴的外壳，宽窗下
+   正文歪在左边、版心也与编辑器差一档（真机第八轮）。 */
+/* 长页的大纲：展开时占页头下方一段、内部滚动，选中即收起，不与正文抢高度。 */
+.luna-knowledge-reading__outline {
+  flex: none;
+  max-block-size: 12rem;
+  overflow-y: auto;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-1);
+}
+
+.luna-knowledge-reading__body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+}
+
+/* ── 改名 / 移动回执条（PRD-06-030 ③）：挂在活跃分屏底部，与速记转正撤销条同一副外形 ── */
+
+.luna-relocation-receipt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  margin-block-start: var(--space-2);
+  padding: var(--space-1-5) var(--space-2-5);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* 书签区（PRD-06-006，V5b）：树上方一节，标题沿用文件夹分组、条目沿用树行，与树之间一条细线。 */
+.luna-bookmarks {
+  padding-block-end: var(--space-1);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+  margin-block-end: var(--space-1);
+}
+
+.luna-bookmarks__items {
+  list-style: none;
+  margin: var(--space-0);
+  padding: var(--space-0);
+}
+
+/* 「沿用 Obsidian 的设置？」（PRD-06-064）：几句说明连成一段，句间留一点空。 */
+.luna-obsidian-suggestion__text > span + span {
+  margin-inline-start: var(--space-1);
+}
+
+/* 库外改名提示条（PRD-06-030 ⑤）：「修复」「忽略」两颗挨着放在右端。 */
+.luna-relocation-receipt__actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-1-5);
+}

@@ -1,0 +1,13 @@
+{
+  "_comment": ["知识体检判定（checkup 域）：解析器只认四个大写关键词之一。"],
+  "scope": "checkup",
+  "template": "verdict",
+  "cases": [
+    {
+      "name": "四个判定关键词都在指令里",
+      "vars": {},
+      "must_contain": ["CONSISTENT", "CONTRADICTED", "OUTDATED", "UNCLEAR", "Output nothing else"],
+      "why": "解析器要求唯一命中一个关键词；指令少一个，模型就没有那一档可选"
+    }
+  ]
+}

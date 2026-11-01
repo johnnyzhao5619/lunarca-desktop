@@ -1,0 +1,583 @@
+/* ── 「转写」导入引导（主区空态，PRD-05-030 / PRD-07-020）────────────────── */
+.luna-transcribe-landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  block-size: 100%;
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.luna-transcribe-landing__icon {
+  color: var(--color-text-muted);
+}
+
+.luna-transcribe-landing h1 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
+}
+
+.luna-transcribe-landing__body {
+  max-inline-size: 46ch;
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-base);
+}
+
+.luna-transcribe-landing__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+.luna-transcribe-landing__hint {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* ── 从链接导入对话框（PRD-05-006）──────────────────────────────────────────
+   三段式骨架（页头常驻 / 主体滚动 / 动作常驻底），与回收站预览同构。
+   `max-block-size` + 主体独立滚动：播放列表可能有 50 条，整个对话框不能长到出屏。 */
+/* 外壳归 `.luna-dialog` + `--panel` 原语；此处只写它自己的尺寸。 */
+.luna-url-import {
+  inline-size: min(34rem, 92vw);
+  max-block-size: 82vh;
+}
+
+.luna-url-import__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-url-import__title {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2-5);
+  min-inline-size: var(--space-0);
+  color: var(--color-text-muted);
+}
+
+.luna-url-import__title-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-inline-size: var(--space-0);
+}
+
+.luna-url-import__title-text strong {
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+}
+
+.luna-url-import__title-text small {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-url-import__close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.luna-url-import__close:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-url-import__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  overflow-y: auto;
+}
+
+.luna-url-import__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.luna-url-import__field-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.luna-url-import__field input {
+  inline-size: 100%;
+  min-inline-size: var(--space-0);
+  padding: var(--space-2) var(--space-2-5);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-mono);
+  background: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+}
+
+.luna-url-import__field input:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+}
+
+.luna-url-import__status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* 探测中的「取消」：轻量文字按钮，不与主动作争视觉重量（它只是回到可编辑态）。 */
+.luna-url-import__status-cancel {
+  margin-inline-start: auto;
+  padding: var(--space-0-5) var(--space-1-5);
+  font-size: var(--font-size-xs);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.luna-url-import__status-cancel:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-url-import__error {
+  margin: 0;
+  padding: var(--space-2) var(--space-2-5);
+  font-size: var(--font-size-sm);
+  background: var(--color-status-error-surface);
+  border-radius: var(--radius-sm);
+  color: var(--color-status-error);
+}
+
+.luna-url-import__hint {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* 如实告知类提示（列表被截断 / 缺 ffmpeg 只能给低画质）——是知情而非报错，故用 attention。
+   带出路的提示（如"去安装 ffmpeg"）把动作排在文字之后，不与主动作争视觉重量。 */
+.luna-url-import__notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2) var(--space-2-5);
+  font-size: var(--font-size-xs);
+  background: var(--color-status-attention-surface);
+  border-radius: var(--radius-sm);
+  color: var(--color-status-attention);
+  line-height: var(--line-height-base);
+}
+
+.luna-url-import__notice-action {
+  margin-inline-start: auto;
+  padding: var(--space-0-5) var(--space-1-5);
+  font-size: var(--font-size-xs);
+  background: transparent;
+  border: var(--border-width-thin) solid currentcolor;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.luna-url-import__notice-action:hover {
+  background: var(--color-bg-hover);
+}
+
+/* 工具缺失 / 严格本地：不是错误弹窗而是引导（图标 + 标题 + 说明 + 下一步动作）。 */
+.luna-url-import__gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2-5);
+  padding-block: var(--space-4);
+  text-align: center;
+}
+
+.luna-url-import__gate-icon {
+  color: var(--color-text-muted);
+}
+
+.luna-url-import__gate h3 {
+  margin: 0;
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+}
+
+.luna-url-import__gate p {
+  max-inline-size: 42ch;
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-base);
+}
+
+.luna-url-import__gate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+/* 「我想自己安装」折叠区：自装是次要路径（主路径是让 Lunarca 装），故默认收起不占视觉重量。 */
+.luna-url-import__manual {
+  inline-size: 100%;
+  max-inline-size: 42ch;
+  text-align: start;
+}
+
+.luna-url-import__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.luna-url-import__source {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-url-import__source-count {
+  padding: var(--space-0-5) var(--space-1-5);
+  background: var(--color-bg-muted);
+  border-radius: var(--radius-full);
+}
+
+.luna-url-import__select-all {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-1) var(--space-1-5);
+  font-size: var(--font-size-xs);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.luna-url-import__select-all:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-url-import__entries {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-block-size: 18rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+/* 单条媒体（非播放列表）不需要勾选框的视觉重量——它就是用户刚粘的那一条。 */
+.luna-url-import__entries[data-single="true"] input[type="checkbox"] {
+  display: none;
+}
+
+.luna-url-import__entry {
+  background: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.luna-url-import__entry[data-live="true"] {
+  opacity: 0.6;
+}
+
+.luna-url-import__entry-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2-5);
+  cursor: pointer;
+}
+
+.luna-url-import__entry[data-live="true"] .luna-url-import__entry-label {
+  cursor: not-allowed;
+}
+
+.luna-url-import__entry-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-inline-size: var(--space-0);
+}
+
+.luna-url-import__entry-text strong {
+  overflow: hidden;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-url-import__entry-text small {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* fieldset 必须自己是**带 gap 的列容器**：`.luna-url-import__confirm` 的 gap 只作用于
+   它的直接子元素，而"下载内容"的选项网格与其下的提示（缺 ffmpeg / 不保留媒体的代价）
+   都在这个 fieldset 里——不给 gap 就会紧贴成一坨（真机反馈）。 */
+.luna-url-import__media {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.luna-url-import__media legend {
+  padding: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.luna-url-import__media-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+/* 第三档「不保留媒体」跨满两列：与前两档并列会在第二行留一个空格子，视觉上像没排完；
+   跨列后它自成一档，也呼应"这一档的取舍与前两档不同"。 */
+.luna-url-import__media-options > label:last-child {
+  grid-column: 1 / -1;
+}
+
+.luna-url-import__media-options label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2-5);
+  background: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.luna-url-import__media-options label[data-active="true"] {
+  background: var(--color-accent-surface);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.luna-url-import__media-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-inline-size: var(--space-0);
+}
+
+.luna-url-import__media-text strong {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.luna-url-import__media-text small {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* 版权与 ToS 提醒：抓取的是他人内容，这一句必须在"开始"之前就在场（不是事后免责）。 */
+.luna-url-import__consent {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-base);
+}
+
+.luna-url-import__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-url-import__count {
+  margin-inline-end: auto;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* 回放无媒体占位 的样式已按 TDD-15 §2.3 归位到 features/playback/playback.css。 */
+
+/* 「转写」头部主动作行：导入文件（主）+ 从链接 + 导出（次）并排，省一行垂直空间——
+   侧栏的纵向空间要留给列表本身，不是留给工具栏。
+   `flex-wrap` + 主按钮 `flex-basis: auto`：三个动作在最窄侧栏（180px）下要**换行**，
+   而不是各自被压成一个字。basis 为 0 时主按钮永远"还能再窄一点"，于是永不触发换行，
+   最后三个按钮全成了省略号（同 §3.5b 容器宽度纪律）。 */
+.luna-transcribe-actions {
+  display: flex;
+  /* 主键 + 尾键恒在一行：拆分按钮折成两行就不再是拆分按钮。 */
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+  align-items: stretch;
+  min-inline-size: 0;
+}
+
+/* 转写列表筛选控件（搜索 + 排序，PRD-07-007）。
+   `flex-basis` 必须是 0 而非 auto：`<input>` 有来自默认 `size=20` 的**固有宽度**
+   （约 170px），`flex: 1 1 auto` 会以它作基准，于是搜索框 + 排序框的基准和超过侧栏
+   内容宽，排序下拉被挤出容器右缘裁切（真机 2026-07-25 反馈）。基准归零后两者按剩余
+   空间分配，窄侧栏下搜索框先收缩，排序框始终完整可见。 */
+/* 放得下时一行（查询框吃掉余量），放不下时排序折到下一行占满——而不是两个都被硬裁
+   （真机 2026-10-06，960 宽 150% 字号：「Search r」「Recordec」）。查询框的基准宽用 `em`，
+   随字号档一起长；两者的 `flex-grow` 悬殊，同一行时余量几乎全归查询框，排序独占一行时
+   才由它自己的 grow 撑满。 */
+.luna-transcribe-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* 查询框本体归 `QueryBox` 原语；这里只管它在这一行里怎么占位。 */
+.luna-transcribe-filters__search {
+  flex: 999 1 10em;
+  min-inline-size: 0;
+}
+
+/* 排序下拉：外形归 `.luna-select` 原语，这里**只管它在这一行里怎么占位**——取自然宽、
+   不收缩（收缩就是把选中项的字裁掉）；等高由两个原语共用 `--control-height-md` 保证。 */
+.luna-transcribe-filters__sort {
+  flex: 1 0 auto;
+  max-inline-size: var(--size-full);
+}
+
+/* —— 导出选项对话框（PRD-11-004/007，应用级唯一一张） —— */
+.luna-export-options {
+  display: grid;
+  gap: var(--space-4);
+  inline-size: min(36rem, 92vw);
+  padding: var(--space-5);
+}
+
+.luna-export-options__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.luna-export-options__title {
+  margin: var(--space-0);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.luna-export-options__hint {
+  margin: var(--space-0);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-export-options__body {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.luna-export-options__field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.luna-export-options__label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.luna-export-options__control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.luna-export-options__control input[type="number"] {
+  inline-size: 8ch;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-sm);
+  background: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+}
+
+.luna-export-options__unit,
+.luna-export-options__desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-export-options__toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.luna-export-options__toggle span {
+  display: grid;
+  gap: var(--space-0-5);
+}
+
+.luna-export-options__toggle strong {
+  font-weight: 500;
+}
+
+.luna-export-options__toggle small {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-export-options__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* 门槛卡是居中排版：折叠入口跟着居中，展开后的正文仍左对齐（可读性优先）。 */
+.luna-url-import__manual .luna-help-details > summary {
+  margin-inline: auto;
+}

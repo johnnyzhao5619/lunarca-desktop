@@ -1,0 +1,51 @@
+{
+  "_comment": [
+    "发布包「渠道包装」publish.package（ADR-166 ④，取代 publish.copy 与 publish.bilibili）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "summarize",
+  "template": "creator.publish.package",
+  "cases": [
+    {
+      "name": "按渠道写：渠道名、上限、风格都进得来",
+      "vars": {
+        "channel": "Bilibili",
+        "limits": "Each title at most 80 characters.",
+        "style": "Write everything in Simplified Chinese."
+      },
+      "must_contain": [
+        "Channel: Bilibili",
+        "Each title at most 80 characters.",
+        "Write everything in Simplified Chinese."
+      ],
+      "why": "变量没进模板时，每个渠道得到的都是同一份没有上限的包装"
+    },
+    {
+      "name": "三个标题、不编造、不自带章节",
+      "vars": {
+        "channel": "YouTube",
+        "limits": "",
+        "style": ""
+      },
+      "must_contain": [
+        "exactly three different title options",
+        "never invent numbers",
+        "Do not put chapters, timestamps or links in the description"
+      ],
+      "why": "少一个标题凑不满标题测试；模型自带章节会与 Rust 拼进去的重复"
+    },
+    {
+      "name": "同语言、只回 JSON",
+      "vars": {
+        "channel": "YouTube",
+        "limits": "",
+        "style": ""
+      },
+      "must_contain": [
+        "same language as the transcript unless the channel notes say otherwise",
+        "Output only JSON"
+      ],
+      "why": "语言错位，或回成 Markdown 时 Rust 解析不了"
+    }
+  ]
+}

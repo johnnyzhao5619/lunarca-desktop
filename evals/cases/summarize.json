@@ -1,0 +1,18 @@
+{
+  "scope": "summarize",
+  "template": "system",
+  "cases": [
+    {
+      "name": "带半句指令时靠前缀撑起语义",
+      "vars": { "instruction": "Write the summary in zh." },
+      "must_contain": ["Write the summary in zh.", "Output only the summary"],
+      "why": "悬浮菜单传的是半句片段（`Write the summary in zh.`），前缀丢了它就没有主语"
+    },
+    {
+      "name": "无指令时仍是一条完整可执行的摘要指令",
+      "vars": { "instruction": "" },
+      "must_contain": ["Summarize", "Output only the summary"],
+      "why": "空 instruction 是常态（快捷摘要不带任何选项）"
+    }
+  ]
+}

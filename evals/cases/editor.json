@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "笔记 AI 悬浮菜单「优化」（ADR-050 修订 2026-09-05 迁入 editor 域）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "editor",
+  "template": "optimize",
+  "cases": [
+    {
+      "name": "语言锁定子句整段带入，且明令禁止翻译",
+      "vars": {
+        "lang_clause": "must stay in Chinese",
+        "context": ""
+      },
+      "must_contain": [
+        "must stay in Chinese",
+        "never translate",
+        "Output only"
+      ],
+      "why": "小模型对全英文 system prompt + 中文输入极易把「优化」退化成「翻译」；丢了「never translate」真机就复现"
+    }
+  ]
+}

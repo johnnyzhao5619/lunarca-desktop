@@ -1,0 +1,129 @@
+/* 用量与执行记录（PRD-10-051 / TDD-07 §4.1b）：说明行 + 工具行 + 统计磁贴 + 记录列表。
+   宿主是「设置 → AI 算力与模型」的 usage 子视图，故这里不管全页容器与页面标题——
+   前者归设置面板，后者归页签（PRD-07-065：同一事实在同一屏只呈现一次）。 */
+
+.luna-usage {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  min-inline-size: var(--space-0);
+  color: var(--color-text-primary);
+}
+
+/* 工具行：搜索 + 刷新 + 清空，紧挨它作用的那份明细。 */
+.luna-usage__toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* 查询框此前是**没有类名的裸 input**，靠 `…__actions input` 元素选择器出样（第四份
+   查询框实现，既无图标也无清空钮）。改用 `.luna-query-box` 原语后，这里只剩"它在工具行
+   里占多宽"这一条布局约束。 */
+.luna-usage__toolbar .luna-query-box {
+  min-inline-size: min(var(--floating-menu-inline-size), var(--size-full));
+}
+
+/* 整表维护推到另一端：与「刷新」并排时，这一页最醒目的东西会是一颗破坏性按钮。 */
+.luna-usage__toolbar-end {
+  margin-inline-start: auto;
+}
+
+/* 这里此前是 `…__actions button` 元素兜底 + hover + disabled 三块，逐条与
+   `.luna-btn--secondary` 讲同一件事（同样的描边、同样的底、同样的 hover）——于是
+   全应用第三套按钮实现就长在了这一页上，而这页的按钮**一个类名都没有**。
+   §3.3c 不允许兜底块声明状态属性；三块整体删除，按钮改挂按钮原语。
+   「清空」是破坏性文本按钮，走 `--danger-subtle`（有字的按钮常态就该显出危险色；
+   无字的图标钮才留到 hover 再显，见 `.luna-icon-btn--danger`）。 */
+
+/* 统计磁贴：三组各自成排（做了多少 / 值多少钱 / 结果如何）。 */
+.luna-usage__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  /* 各磁贴按自己的内容取高：拉伸对齐会让带明细行的那一格把同排其余几格一起撑高。 */
+  align-items: start;
+  gap: var(--space-3);
+}
+
+/* 三组之间比组内宽一档：它们是三种口径（做了多少 / 值多少钱 / 结果如何），
+   靠间隔区分而不是再加三个小标题（ADR-121 第 2 条同一条）。 */
+.luna-usage__stats + .luna-usage__stats {
+  margin-block-start: var(--space-4);
+}
+
+.luna-usage__stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.luna-usage__stat-label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-usage__stat-value {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* 磁贴的第二行：明细（「采用 9 · 丢弃 2」）。它不进值位——一排磁贴里只有它的值是一句话，
+   塞进去会断成三行并把整排撑高。 */
+.luna-usage__stat-hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* 记录行：能力标题 + 状态徽标 + 来源，次行为用量/Provider，尾随时间。 */
+.luna-usage__row {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: var(--space-0);
+}
+
+.luna-usage__row-main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.luna-usage__row-main strong {
+  font-size: var(--font-size-sm);
+}
+
+.luna-usage__row-origin {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-usage__row-metrics,
+.luna-usage__row-time {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+/* 失败原因与度量行同字号，但用危险色：一屏记录里「哪几条失败了、为什么」要一眼看见，
+   而弱化成 muted 就与「输入 12 · 输出 340」混成同一层信息。 */
+.luna-usage__row-failure {
+  color: var(--color-status-error);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+/* 记录行为纯信息展示（无深链），不显激活态背景，避免误导为可点击动作。 */
+.luna-usage__list button {
+  cursor: default;
+}
+
+.luna-usage__list button[data-active="true"] {
+  background: var(--color-bg-surface);
+  border-color: var(--color-border-subtle);
+}

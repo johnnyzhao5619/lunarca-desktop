@@ -1,0 +1,59 @@
+/*
+ * 分段控件（`.luna-segmented-control`）——「在少数几个并排常显的短选项里挑一个」。
+ *
+ * **它此前住在 `features/settings/settings.css`**，而使用者是设置里的
+ * `SelectStyle::Segmented`、首启引导的语言选择、转写导出选项、通知历史的「全部 / 未读」
+ * ——四个 feature。一个不带 feature 前缀的类名住在某个 feature 的样式表里，正是 §3.3a
+ * 说的那种"名字与位置互相说谎"：下一个人按目录找不到它，只能全局搜类名，而那正是
+ * 再抄一份的开始。
+ *
+ * 与胶囊开关（`.luna-pill-toggle`）分工：胶囊是**一个**条件的开/关（`aria-pressed`），
+ * 分段是**一组互斥项**里选一个（容器 `role="radiogroup"`，项 `data-active`）。
+ *
+ * **允许换行、绝不截断**——标签长度随语言变，而控件列是定宽；放不下就折行，不吞字。
+ */
+
+.luna-segmented-control {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-0-5);
+  padding: var(--space-0-5);
+  background: var(--color-bg-muted);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  max-inline-size: var(--size-full);
+}
+
+.luna-segmented-control__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1) var(--space-2-5);
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.luna-segmented-control__item:hover {
+  color: var(--color-text-primary);
+}
+
+.luna-segmented-control__item[data-active="true"] {
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-sm);
+}
+
+.luna-segmented-control__item:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-border-focus);
+  outline-offset: var(--border-width-thin);
+}

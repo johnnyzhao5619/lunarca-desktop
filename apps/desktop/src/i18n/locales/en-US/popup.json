@@ -1,0 +1,102 @@
+{
+  "action": {
+    "add_compare": "Add comparison",
+    "remove_compare": "Remove comparison",
+    "close": "$t(common:hud.action.close)",
+    "copy": "$t(common:hud.action.copy) translation",
+    "copied": "Copied",
+    "generate": "Generate",
+    "more": "More actions",
+    "regenerate": "$t(common:hud.action.regenerate)",
+    "stop": "$t(common:hud.action.stop)",
+    "replace": "Replace source",
+    "save_note": "$t(common:hud.action.save_note)",
+    "open_saved_note": "Open saved note",
+    "voice_start": "Voice input",
+    "voice_stop": "Finish voice",
+    "screenshot": "Screenshot translate",
+    "speak_source": "Read source aloud",
+    "speak_translation": "Read translation aloud",
+    "speak_stop": "Stop reading",
+    "pin": "Pin (stay open)",
+    "unpin": "Unpin"
+  },
+  "title": "Translate",
+  "input": {
+    "placeholder": "Enter text to translate...",
+    "hint": "Enter to generate · Shift+Enter for newline"
+  },
+  "preset": {
+    "email": "Email",
+    "general": "General",
+    "polish_en": "English polish",
+    "slack": "Slack tone",
+    "to_en": "English",
+    "to_ja": "Japanese",
+    "to_ko": "Korean",
+    "to_zh": "Chinese"
+  },
+  "presetSelector": {
+    "label": "Choose target language or tone",
+    "styleGroup": "Tone"
+  },
+  "target": {
+    "label": "Target language"
+  },
+  "meta": {
+    "refine": "Refine",
+    "translate": "Translate",
+    "uncertain": "Uncertain",
+    "summary": "{{mode}} → {{target}} · {{preset}}",
+    "summaryUncertain": "{{mode}} → {{target}} · {{preset}} · {{uncertain}}"
+  },
+  "slot": {
+    "title": "Result",
+    "editOutput": "Review result before using it",
+    "compareLabel": "Compare results"
+  },
+  "status": {
+    "cache_hit": "Cache hit",
+    "cancelled": "Cancelled",
+    "copied": "Copied. Paste with Cmd+V.",
+    "done": "Done",
+    "error": "Error",
+    "error_detail": "Action failed: {{detail}}",
+    "failed": "Failed",
+    "idle": "Waiting",
+    "clipboard_not_restored": "Reading the selection borrowed the clipboard, and its previous contents could not be put back.",
+    "replace_copied_fallback": "The target app does not support automatic replacement. The text was copied for manual paste.",
+    "replace_target_changed": "The original window is no longer in front. The text was copied for manual paste.",
+    "replaced": "Source text replaced",
+    "replaced_clipboard_not_restored": "Source text replaced, but the clipboard's previous contents could not be put back.",
+    "saved_note": "Saved to note: {{path}}",
+    "voice_error": "Voice input unavailable",
+    "voice_ready": "Voice can fill the source transcript",
+    "voice_recording": "Recording voice...",
+    "running": "Generating translation..."
+  },
+  "source": {
+    "label": "Source",
+    "edit": "Edit source",
+    "expand": "Show source",
+    "collapse": "Hide source"
+  },
+  "overlay": {
+    "hint": "Drag to select text · adjust after release · right-click or Esc to cancel",
+    "failed": "Screenshot failed",
+    "retry": "Select the area again, or right-click to cancel.",
+    "translate": "Translate",
+    "cancel": "Cancel"
+  },
+  "desktopLens": {
+    "frameAria": "Translate Space capture range",
+    "controlsAria": "Translate Space quick controls",
+    "adjust": "Adjust capture range",
+    "editTitle": "Adjust Translate Space · drag to move, bottom-right to resize",
+    "capture": "Capture and translate",
+    "capturing": "Capturing…",
+    "done": "Done",
+    "close": "Close Translate Space",
+    "resize": "Resize Translate Space"
+  }
+}

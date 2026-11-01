@@ -1,0 +1,37 @@
+{
+  "_comment": [
+    "项目研究 creator.research.guide（PRD-19-046，ADR-167 ⑥）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "summarize",
+  "template": "creator.research.guide",
+  "cases": [
+    {
+      "name": "只依据原文、同语言",
+      "vars": {},
+      "must_contain": [
+        "Use only what the text says",
+        "same language as the text"
+      ],
+      "why": "模型会替创作者补充观点或建议，或把中文素材的指南写成英文"
+    },
+    {
+      "name": "要点具体、数量有界",
+      "vars": {},
+      "must_contain": [
+        "three to six key points",
+        "specific (names, numbers, claims)"
+      ],
+      "why": "空泛的要点（「讲了很多有用的内容」）对写脚本没有用"
+    },
+    {
+      "name": "只回 JSON",
+      "vars": {},
+      "must_contain": [
+        "Output only JSON",
+        "\"points\""
+      ],
+      "why": "回成 Markdown 时 Rust 解析不了，用户只看到「生成失败」"
+    }
+  ]
+}

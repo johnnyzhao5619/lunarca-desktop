@@ -1,0 +1,34 @@
+/* Named, persistent details; distinct from short contextual help (PRD-09-085). */
+.luna-inline-details {
+  min-inline-size: var(--space-0);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+.luna-inline-details > summary {
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  padding-block: var(--space-1);
+}
+.luna-inline-details > summary:hover { color: var(--color-text-primary); }
+.luna-inline-details__body {
+  display: grid;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+  overflow-wrap: anywhere;
+}
+.luna-inline-details__body > p { margin: var(--space-0); }
+.luna-inline-details__location { min-inline-size: var(--space-0); }
+.luna-inline-details__preview {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-inline-size: var(--help-popover-width);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+.luna-inline-details__path {
+  font-family: var(--font-family-mono);
+  overflow-wrap: anywhere;
+}
+.luna-inline-details__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }

@@ -1,0 +1,33 @@
+/* 问号帮助：仅瞬时说明浮层，常态不占正文高度（PRD-09-085）。 */
+.luna-help-details { display: inline-flex; vertical-align: middle; }
+
+/* 轻量图标与点击区域分开，按钮几何和交互复用全应用图标按钮原语。 */
+.luna-help-details__trigger {
+  font-size: var(--font-size-base);
+}
+.luna-help-details__popover {
+  position: fixed;
+  z-index: var(--z-context-menu);
+  inset-inline-start: var(--help-x);
+  inset-block-start: var(--help-y);
+  inline-size: min(var(--help-popover-width), calc(100vw - var(--space-6)));
+  max-block-size: var(--help-popover-max-block);
+  overflow: auto;
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+  overflow-wrap: anywhere;
+}
+.luna-help-details__popover[data-placed="false"] { visibility: hidden; }
+.luna-help-details__title {
+  display: block;
+  margin-block-end: var(--space-2);
+  color: var(--color-text-primary);
+}
+.luna-help-details__body { display: grid; gap: var(--space-2); }
+.luna-help-details__body > p { margin: var(--space-0); }

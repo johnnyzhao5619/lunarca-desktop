@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-account-sign-in-resolve-device-limit"
+description = "Enables the account_sign_in_resolve_device_limit command without any pre-configured scope."
+commands.allow = ["account_sign_in_resolve_device_limit"]
+
+[[permission]]
+identifier = "deny-account-sign-in-resolve-device-limit"
+description = "Denies the account_sign_in_resolve_device_limit command without any pre-configured scope."
+commands.deny = ["account_sign_in_resolve_device_limit"]

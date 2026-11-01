@@ -1,0 +1,14 @@
+Lunarca（月光宝盒）— 本地优先、隐私导向的桌面 AI 工作站（曾用名 Luna）
+Copyright (C) 2026 Weijia Zhao <johnnyzhao5619@gmail.com>
+
+本仓库代码以 GNU Affero General Public License v3.0（AGPL-3.0-only）发行，
+许可证全文见 LICENSE（保持 FSF 原文逐字，不作修改；本文件承载项目版权声明）。
+
+作为版权人，Lunarca 项目保留对自有代码另行授予商业许可（双许可）的权利；
+这不减损任何人依 AGPL v3 使用、修改与分发本仓库代码的自由。
+双许可策略、边界承诺与贡献者协议（CLA）见：
+  - LICENSE_FAQ.md（开源版与商业版的边界承诺）
+  - docs/legal/CLA.md（贡献者许可协议草案）
+
+第三方依赖各依其自身许可证发行（许可白名单见 deny.toml；随发行物附带的
+第三方许可归示清单 THIRD_PARTY_LICENSES 在发布管线落地时生成）。

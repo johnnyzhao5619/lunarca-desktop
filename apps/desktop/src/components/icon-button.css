@@ -1,0 +1,89 @@
+/*
+ * 图标按钮原语（`.luna-icon-btn`）——方形、幽灵底、只承载一枚图标的那种按钮。
+ *
+ * **同一种控件此前有三份实现**：侧栏面板头的 `.luna-sidebar-header__action`
+ * （`styles/layout/sidebar-header.css`）、顶栏那一排（**根本没有类名**，靠
+ * `.luna-workspace__topbar button` 元素兜底出样，`styles/layout/workspace-shell.css`）、
+ * 以及 HUD 的 `.luna-hud-icon-btn`（`features/voice-input/voice-input.css`）。三份各自
+ * 合法、各自只有一个定义点，于是 §3.3b/§3.3c 全绿——而界面上"一颗图标按钮"同时有三种
+ * 尺寸、三种按下反馈、三种禁用表现。这正是 §3.3a 管的那一层。
+ *
+ * 三份**已全部收编**：前两份在控件原语批次（主窗口内），HUD 那份随录音 HUD 样式整体
+ * 归位时并入——它与本原语的差异只有一档尺寸，故做成 `--hud` 修饰符而不是第二个类。
+ *
+ * **破坏性图标按钮常态不显红**（`--danger`）：图标钮没有文字，常态就涂红等于在用户
+ * 还不知道它是什么之前先喊一嗓子；有文字的破坏性按钮反过来——那用 `.luna-btn--danger-subtle`，
+ * 颜色与它自己说出口的词是一致的。两条规则合起来才是一句完整的话，不是不一致。
+ */
+
+.luna-icon-btn {
+  /* 尺寸走这一个变量：调用方要更大的键（如 HUD）只需覆盖它，不必另抄一份规则。 */
+  --icon-btn-size: var(--space-7);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  inline-size: var(--icon-btn-size);
+  block-size: var(--icon-btn-size);
+  padding: var(--space-0);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.luna-icon-btn:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-icon-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+/* 按下/展开态：与列表行、段控的选中语言一致（选中淡底 + 强调色）。 */
+.luna-icon-btn[aria-pressed="true"],
+.luna-icon-btn[aria-expanded="true"] {
+  background: var(--color-bg-selected);
+  color: var(--color-accent);
+}
+
+.luna-icon-btn:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.luna-icon-btn:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: var(--space-0-5);
+}
+
+/* HUD 尺寸：三扇悬浮窗的控件比主窗口大一档（`--hud-control-size`），这是 HUD 的密度
+   契约（`hud-density-guard`），不是这颗按钮自己的事——故只覆盖那一个变量。 */
+.luna-icon-btn--hud {
+  --icon-btn-size: var(--hud-control-size);
+}
+
+/* 正文内容行内的一档：消息悬停动作、历史条目动作——那里按钮夹在文字之间，框架档会把
+   行撑开。密度只有这三档（框架 / 行内 / HUD），各自有说得出口的理由；此前对话页与标签页栏
+   各自写死的 24px、32px 不在其中，那是漂移不是设计。 */
+.luna-icon-btn--sm {
+  --icon-btn-size: var(--space-6);
+}
+
+/* 破坏性动作与中断：常态与其余动作等重，只在 hover 时显出状态色。 */
+.luna-icon-btn--danger:hover:not(:disabled) {
+  background: var(--color-status-error-surface);
+  color: var(--color-status-error);
+}
+
+/* 该区域唯一的主动作（对话输入区的发送）：hover 时实心化，与 `.luna-btn--primary` 同一
+   对令牌，故"主操作"在有字与无字两种按钮上是同一个颜色承诺。 */
+.luna-icon-btn--primary:hover:not(:disabled) {
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+}

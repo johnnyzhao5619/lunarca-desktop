@@ -1,0 +1,42 @@
+[package]
+name = "luna-cli"
+description = "Lunarca CLI——与 GUI 平级的前端，复用同一执行主干（TDD-09、ADR-003）"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "luna"
+path = "src/main.rs"
+
+[dependencies]
+luna-core = { path = "../luna-core" }
+luna-jobqueue = { path = "../luna-jobqueue" }
+luna-provider = { path = "../luna-provider" }
+# `luna export`（PRD-11-006 / TDD-09 §2）：与 GUI 同一份段收集（luna-vault）与导出器（luna-export）。
+luna-vault = { path = "../luna-vault" }
+luna-export = { path = "../luna-export" }
+# 复用 GUI 的设备配置（`storage.vault_root`），`--vault` 可覆盖（PRD-08-005）。
+luna-config = { path = "../luna-config" }
+# 设备配置目录（与 Tauri `app_config_dir` 同口径：macOS Application Support / Windows AppData）。
+# 已在依赖树内（版本随锁文件），MIT/Apache-2.0。
+dirs = "6"
+# `luna bench-asr`（ADR-115 已知代价 ③ 的量化手段）：与 GUI 同一个进程内 whisper Provider
+# 与同一个解码器，跑的就是应用里那条批量转写路径。
+luna-engine = { path = "../luna-engine" }
+# `luna bench-embed` 按目录条目取嵌入模型的角色与上下文（与应用同一份目录）。
+luna-model-catalog = { path = "../luna-model-catalog" }
+luna-audio = { path = "../luna-audio" }
+# `luna bench-embed` 的评测文件（queries / 近重复对）是 JSON。
+serde.workspace = true
+serde_json.workspace = true
+# `luna model-eval`（ADR-145 ⑤ B1）：报告带被测权重的 sha256 与产出时间。
+sha2.workspace = true
+chrono.workspace = true
+clap.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

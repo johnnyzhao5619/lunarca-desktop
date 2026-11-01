@@ -1,0 +1,58 @@
+{
+  "quick_switcher": {
+    "recent": "最近打开",
+    "hint": "{{create}} 新建「{{name}}」 · {{split}} 在分屏打开",
+    "title": "快速切换器",
+    "placeholder": "搜索笔记标题、路径或全文内容…",
+    "search_label": "搜索笔记",
+    "empty": "暂无匹配笔记"
+  },
+  "vault_search": {
+    "title": "全库搜索"
+  },
+  "palette": {
+    "title": "命令面板",
+    "placeholder": "输入命令名称…",
+    "search_label": "搜索命令",
+    "empty": "没有匹配的命令",
+    "scope_workspace": "工作区",
+    "scope_editor": "当前笔记"
+  },
+  "toggle_sidebar": {
+    "title": "收起 / 展开侧栏"
+  },
+  "new_note": {
+    "title": "新建笔记"
+  },
+  "open_overview": {
+    "title": "打开概览"
+  },
+  "text_quick_note": {
+    "title": "新建文字速记"
+  },
+  "go": {
+    "search": "前往：搜索",
+    "notes": "前往：笔记",
+    "knowledge": "前往：知识库",
+    "quick_notes": "前往：速记",
+    "recordings": "前往：录音",
+    "transcripts": "前往：转写",
+    "chat": "前往：AI 对话",
+    "creator": "前往：创作",
+    "apps": "前往：应用",
+    "trash": "前往：回收站",
+    "settings": "前往：设置"
+  },
+  "editor": {
+    "toggle_reading_view": "切换编辑 / 阅读",
+    "ai_composer": "打开 AI 操作",
+    "tab_focus_mode": "切换「Tab 键移动焦点」"
+  },
+  "creator": {
+    "new_project": "创作：新建视频项目",
+    "new_swipe": "创作：新建灵感",
+    "swipe_library": "创作：打开灵感库",
+    "teleprompter": "创作：打开这个项目的提词器",
+    "publish": "创作：打开这个项目的发布清单"
+  }
+}

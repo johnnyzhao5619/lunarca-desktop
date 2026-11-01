@@ -1,0 +1,24 @@
+[env]
+# 部署目标 = 随包推理引擎包的 minos（ADR-143 ①，`luna-engine` 的 `runtime::MIN_MACOS`）：低于它的系统上
+# 引擎在 dyld 阶段就退出。whisper.cpp 的 std::filesystem 只要求 10.15，已被它覆盖。
+# 放在 Cargo 配置而非个人 shell 中，确保 Rust 依赖及其 C/C++ build script 共用同一部署目标。
+MACOSX_DEPLOYMENT_TARGET = "13.3"
+# 见下方 Windows 静态 CRT：whisper.cpp 的 CMake（Release 配置）用默认 `/MD`，覆盖了 cmake-rs 传入
+# flags 里的 `-MT`；须开 CMP0091 并显式指定运行时库（whisper.cpp 声明 `cmake_minimum_required(3.5)`，
+# 该策略默认 OLD）。whisper-rs-sys 把 `CMAKE_*` 环境变量原样转给 CMake。仅 MSVC 读取，其它平台无作用。
+# 它不声明 rerun-if-env-changed：已有 target/ 的机器改动后须 `cargo clean -p whisper-rs-sys`。
+CMAKE_POLICY_DEFAULT_CMP0091 = "NEW"
+CMAKE_MSVC_RUNTIME_LIBRARY = "MultiThreaded"
+# Windows 上 cmake-rs 构建的 C/C++ 依赖（whisper.cpp、libopus）改用 Ninja 生成器（TDD-03 §4 Windows 条）：
+# 不指定生成器时 cmake-rs 走 Visual Studio 生成器，并把 `CMAKE_<LANG>_FLAGS_RELEASE` 覆盖成剥掉 `/O*`
+# 的 cc 标志——ggml 整个按 `/Od` 编译，tiny 转写慢 5~6 倍。指定生成器后 cmake-rs 不再覆盖，CMake 用默认
+# `/O2 /Ob2 /DNDEBUG`。变量名带目标三元组，只有 cmake-rs 为 x86_64-pc-windows-msvc 构建时读取，macOS 不受影响。
+# 需要 `ninja` 在 PATH 上（`winget install Ninja-build.Ninja`），缺了 CMake 配置期直接报错而不是悄悄变慢。
+# 同上不触发重编：已有 target/ 的机器改动后须 `cargo clean -p whisper-rs-sys -p opusic-sys`。
+CMAKE_GENERATOR_x86_64_pc_windows_msvc = "Ninja"
+
+# Windows 统一静态 CRT（/MT）：sherpa-onnx 的 Windows 预编译库只有 static-MT 一种，与默认 /MD 的
+# Rust std、whisper.cpp、libopus 链接时 LNK2038 RuntimeLibrary 冲突。cmake / cc 构建的 C/C++ 依赖
+# 随 `crt-static` 一起改用 /MT；顺带使发布物不依赖 VC++ 运行库。
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]

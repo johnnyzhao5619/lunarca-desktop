@@ -1,0 +1,65 @@
+{
+  "_comment": [
+    "二次分发 distribute.shorts（PRD-19-024 / 025，ADR-165 ⑧；v11 起按目标渠道写，ADR-166 ④）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "summarize",
+  "template": "creator.distribute.shorts",
+  "cases": [
+    {
+      "name": "入点出点取自转写行首",
+      "vars": {
+        "channel": "X",
+        "limits": "Each post at most 280 characters.",
+        "style": "None."
+      },
+      "must_contain": [
+        "exactly as they appear at the start of transcript lines",
+        "\"start\"",
+        "\"end\""
+      ],
+      "why": "模型编出不存在的时间点，Rust 对不齐句子开头"
+    },
+    {
+      "name": "片段能独立成立、时长合适",
+      "vars": {
+        "channel": "X",
+        "limits": "Each post at most 280 characters.",
+        "style": "None."
+      },
+      "must_contain": [
+        "self-contained",
+        "15 to 90 seconds",
+        "between 2 and 5"
+      ],
+      "why": "片段离开上下文看不懂，或长得不像短视频"
+    },
+    {
+      "name": "不加事实、只回 JSON",
+      "vars": {
+        "channel": "X",
+        "limits": "Each post at most 280 characters.",
+        "style": "None."
+      },
+      "must_contain": [
+        "without adding facts",
+        "Output only JSON"
+      ],
+      "why": "短视频脚本里出现原片没有的说法；回成 Markdown 解析不了"
+    },
+    {
+      "name": "目标渠道的名字、上限、风格都进得来",
+      "vars": {
+        "channel": "YouTube Shorts",
+        "limits": "Each moment at most 180 seconds long.",
+        "style": "YouTube Shorts are at most three minutes."
+      },
+      "must_contain": [
+        "Target: YouTube Shorts.",
+        "Each moment at most 180 seconds long.",
+        "YouTube Shorts are at most three minutes."
+      ],
+      "why": "变量没进模板时，每个渠道拿到的都是同一份通用改写，X 的推文超长、领英拿到推文串"
+    }
+  ]
+}

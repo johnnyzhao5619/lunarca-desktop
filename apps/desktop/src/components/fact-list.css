@@ -1,0 +1,26 @@
+/* ── 事实清单：一组 `FactRow` 的外壳（2026-10-08 文案与交互改版）─────────────────────
+   用于"点之前把代价摆出来"的那些卡片：安装计划、关系标签补齐的范围与执行位置……
+   行本身是 `FactRow`（列模板在设置样式里，同一枚原语）；这里只给外框与脚注。 */
+
+.luna-fact-list {
+  display: grid;
+  inline-size: 100%;
+  text-align: start;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  overflow: hidden;
+}
+
+/* 路径会很长：值列允许在任意处折行，而不是把整行撑出卡片。 */
+.luna-fact-list .luna-settings-panel__row-value {
+  overflow-wrap: anywhere;
+}
+
+.luna-fact-list__note {
+  margin: var(--space-0);
+  padding: var(--space-2) var(--space-4);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}

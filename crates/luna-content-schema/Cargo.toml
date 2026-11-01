@@ -1,0 +1,19 @@
+[package]
+name = "luna-content-schema"
+description = "内容基座的公共契约（ADR-169 ①）：主题包与模板包的条目类型、校验、解包与能力推导；零 IO 叶子，客户端与服务端共用"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+# 模板包 zip 的解包与核对（纯函数，内存里解，ADR-159 ⑥）：本地导入、市场安装与服务端审核同一份。
+zip = { version = "9", default-features = false, features = ["deflate"] }
+
+[dev-dependencies]
+serde_json.workspace = true

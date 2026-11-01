@@ -1,0 +1,20 @@
+/*
+ * 主区表面（`.luna-paper`）——「这一格里有一份东西在被读写」的那张纸（PRD-07-071）。
+ *
+ * **收编前七个空间各长各的**：三个走编辑器的有整张纸（描边 + 圆角 + 表面底色）、录音
+ * 与转写是「有底色没描边」的半张纸、对话与知识库完全透明——而没有任何文档说过哪种是对的。
+ * 用户读到的是"有的页有边框有的没有"，而按 TDD-15 §3.3a，这正是"同一种块被造了 N 遍"。
+ *
+ * 判据不在样式里：空间在注册表（`workspace-ia.ts`）声明自己是 `document` 还是 `canvas`，
+ * 主区据此带 `data-surface`。**画布不是遗漏**——对话是一条流、知识库是一片图，给它们套一张
+ * 纸只会多一层没有含义的边界（Notion / Linear 的对话面与文档面同样刻意不同）。
+ *
+ * 本原语只管"纸长什么样"。纸**里面**怎么排（编辑器的三段式、回放的定高骨架）仍归各自。
+ */
+
+.luna-paper {
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  overflow: hidden;
+}

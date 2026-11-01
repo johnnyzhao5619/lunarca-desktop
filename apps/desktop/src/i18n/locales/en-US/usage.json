@@ -1,0 +1,77 @@
+{
+ "empty": "No usage records",
+ "search_label": "Search execution records",
+ "search_placeholder": "Search capability, entry point or model",
+ "action": {
+  "refresh": "Refresh",
+  "clear": "Clear",
+  "clear_title": "Clear all usage records?",
+  "clear_desc": "Local processing records and token stats will be deleted. This cannot be undone."
+ },
+ "stat": {
+  "records": "Total tasks",
+  "tokensIn": "Input tokens",
+  "tokensOut": "Output tokens",
+  "audio": "Audio duration",
+  "truncated": "Hit output cap",
+  "aiAccept": "Note AI acceptance",
+  "aiAcceptValue": "{{pct}}%",
+  "aiAcceptDetail": "{{landed}} kept · {{discarded}} discarded",
+  "savings": "Saved locally",
+  "savingsHint": "Estimated at your reference prices, for what ran on this device",
+  "serverCost": "Server spend",
+  "serverCostHint": "Estimated at your reference prices; not a bill"
+ },
+ "capability": {
+  "transcribe": "Transcribe",
+  "translate": "Translate",
+  "summarize": "Summarize",
+  "refine": "Refine",
+  "chat": "Chat",
+  "embed": "Embed",
+  "diarize": "Speaker diarization",
+  "ocr": "Text recognition",
+  "custom": "Custom"
+ },
+ "origin": {
+  "popup_translate": "Popup translate",
+  "voice_input": "Voice input",
+  "recording": "Recording",
+  "batch": "Batch transcription",
+  "floating_menu": "Note AI",
+  "cli": "CLI",
+  "second_pass": "Second pass",
+  "chat": "Quick chat",
+  "screenshot": "Screenshot translate",
+  "graph_tags": "Graph tags",
+  "distill": "Distill",
+  "settle": "Turn into a note",
+  "ingest": "File into topic",
+  "embed": "Semantic index",
+  "checkup": "Knowledge checkup",
+  "self_check": "Self-check"
+ },
+ "termstatus": {
+  "finished": "Completed",
+  "completed": "Completed",
+  "failed": "Failed",
+  "cancelled": "Cancelled",
+  "degraded": "Degraded"
+ },
+ "row": {
+  "tokens": "In {{in}} · Out {{out}}",
+  "audio": "Audio {{duration}}",
+  "notApplicable": "—",
+  "lane": {
+   "realtime": "Realtime",
+   "batch": "Batch"
+  },
+  "ran_on": "{{location}} · {{model}}"
+ },
+ "location": {
+  "device": "This device",
+  "local_service": "This device",
+  "cloud": "Server"
+ },
+ "list_label": "Execution records"
+}

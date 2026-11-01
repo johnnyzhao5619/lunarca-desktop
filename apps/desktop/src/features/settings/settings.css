@@ -1,0 +1,1848 @@
+/* ═══ 设置中心（PRD-09 / PRD-09-070）═══════════════════════════════════════
+   分组导航在主侧栏（SettingsNav），主区一次只呈现一个分组：单列可读宽度、
+   行内自带说明与状态徽标，避免"所有分组堆成一根长滚动条"。 */
+.luna-settings {
+  /* 按自身可用宽度响应（容器查询） */
+  container-type: inline-size;
+  container-name: settings;
+  /* 这里曾是"控件行高"的**第二个定义点**（值同为 32px），而治理规范里那层
+     `--control-height` 一直没有被任何组件消费——一个尺度定义两次正是缺位的证据。
+     现指向全局档，设置字段与工作区控件自此同源（TDD-15 §3.5）。 */
+  --settings-control-block: var(--control-height-md);
+  --settings-action-col: var(--space-7);
+  display: grid;
+  align-content: start;
+  gap: var(--space-5);
+  max-inline-size: var(--settings-content-max-inline);
+  min-inline-size: var(--space-0);
+  margin-inline: auto;
+  inline-size: var(--size-full);
+  color: var(--color-text-primary);
+  padding-block: var(--space-1);
+}
+
+.luna-settings__section-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin-block-end: var(--space-4);
+  font-size: var(--font-size-sm);
+}
+
+.luna-settings__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.luna-settings__heading {
+  display: grid;
+  flex: 1 1 var(--control-column-inline);
+  gap: var(--space-1);
+  min-inline-size: var(--space-0);
+}
+
+.luna-settings__heading h1 {
+  margin: var(--space-0);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.luna-settings__heading p {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  max-inline-size: 56ch;
+}
+
+.luna-settings__header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 0 1 auto;
+  min-inline-size: var(--space-0);
+  max-inline-size: var(--size-full);
+}
+
+/* 自动保存说明：整页讲一次的契约，不是每行的标记。 */
+.luna-settings__autosave {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+/* 「恢复本组默认」两步确认：确认态用状态色标出破坏性（与回收站清空同一心智）。 */
+.luna-settings__header-actions .luna-btn[data-confirming="true"] {
+  color: var(--color-status-error);
+  border-color: var(--color-status-error);
+}
+
+/* ── 设置分组导航（主侧栏）────────────────────────────────────────────── */
+.luna-settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  block-size: var(--size-full);
+  min-block-size: var(--space-0);
+  padding: 0;
+}
+
+.luna-settings__advanced {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-2-5);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.luna-settings__advanced:hover {
+  border-color: var(--color-border-focus);
+  background: var(--color-bg-hover);
+}
+
+.luna-settings__advanced:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: var(--space-0-5);
+}
+
+.luna-settings__advanced[aria-checked="true"] .luna-switch__track {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.luna-settings__advanced[aria-checked="true"] .luna-switch__thumb {
+  transform: translateX(var(--space-3));
+}
+
+.luna-settings__advanced-title {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+/* 设置侧栏的搜索框此前是第五份查询框实现（有图标、没清空钮，`input` 连 `aria-label`
+   都没有）。改用 `.luna-query-box` 原语后这里不需要任何样式——它与其它面板的查询框
+   本来就该长得一样。 */
+
+.luna-settings-nav__list {
+  display: grid;
+  /* 列宽钉在容器宽度上：不声明时隐式列按最长那项的内容宽撑开，标签的省略号永远不生效，
+     窄侧栏里「Recording & transcription」被硬裁成「…transcriptio」（真机 2026-10-06）。 */
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-0-5);
+  overflow-y: auto;
+  min-block-size: var(--space-0);
+}
+
+.luna-settings-nav__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: var(--size-full);
+  padding: var(--space-1-5) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  text-align: start;
+  color: var(--color-text-secondary);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.luna-settings-nav__item > svg {
+  flex: 0 0 auto;
+  color: var(--color-text-muted);
+}
+
+.luna-settings-nav__item:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+.luna-settings-nav__item[data-active="true"] {
+  color: var(--color-text-primary);
+  background: var(--color-bg-selected);
+}
+
+.luna-settings-nav__item[data-active="true"] > svg {
+  color: var(--color-accent);
+}
+
+.luna-settings-nav__label {
+  flex: 1 1 auto;
+  min-inline-size: var(--space-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-settings-nav__empty {
+  margin: var(--space-0);
+  padding: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* ── 设置行 ──────────────────────────────────────────────────────────── */
+/* 行卡片：设置行清单与分组面板的信息行**共用同一个定义**——两处各写一份，就是
+   「同一张卡片有两种边框半径」这类漂移的来源（面板此前正是这么长出四套外壳的）。 */
+.luna-settings-group__items,
+.luna-settings-panel__rows,
+.luna-settings-panel__block {
+  display: grid;
+  gap: var(--space-0);
+  padding: var(--space-0);
+  margin: var(--space-0);
+  list-style: none;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  overflow: hidden;
+}
+
+/* 行的内距、分隔与 hover 同样一处定义；列模板才是两者的区别所在。 */
+.luna-settings-field,
+.luna-settings-panel__row {
+  display: grid;
+  align-items: center;
+  column-gap: var(--space-4);
+  row-gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* 一行 = 说明列 | 控件列（定宽） | 行尾动作槽（定宽常驻） */
+.luna-settings-field {
+  min-block-size: var(--settings-row-min-block);
+  /* 控件列可在主区变窄时让出一点宽度（10rem 下限），到更窄才由容器查询整行堆叠——
+     否则说明列会被压成一列单字。
+     用 `clamp(…, 40%, …)` 而不是 `minmax(10rem, 16rem)`：后者要等网格分配余量才定宽，WebKit
+     首次排版按另一个列宽算了行高，说明列多折出的几行溢出行外（真机 2026-10-06，960 宽 150%
+     字号：快捷键页的提示叠到下一行、外部工具页的说明被卡片裁掉；窗口动 1px 就自愈）。百分比
+     直接按行宽解析，列宽在算行高之前就是定值。 */
+  grid-template-columns:
+    minmax(0, 1fr)
+    clamp(var(--control-column-min-inline), 40%, var(--control-column-inline))
+    var(--settings-action-col);
+}
+
+/* 行根元素是 `fieldset` 的那一档（面板里「整组不可用」的设置，如转写同意）：
+   fieldset 自带边框、内距与 `min-inline-size: min-content`，不复位会把整行撑歪。 */
+.luna-settings-field--group {
+  border: 0;
+  margin: var(--space-0);
+  min-inline-size: var(--space-0);
+}
+
+/* 勾不动时压暗整行——文案照常可读，原因就写在说明里。 */
+.luna-settings-field--group[data-disabled="true"] {
+  opacity: var(--opacity-disabled);
+}
+
+/* 列表型控件（有序多选 / 有序开关列表）铺满整行：它们是一张表，不是一个开关——挤进 16rem 的
+   控件列会把名字压成一列单字（真机所见）。说明在上、列表在下，行尾动作槽留在首行。 */
+.luna-settings-field[data-wide] {
+  grid-template-columns: minmax(0, 1fr) var(--settings-action-col);
+}
+
+.luna-settings-field[data-wide] .luna-settings-field__control {
+  grid-column: 1 / -1;
+  justify-content: stretch;
+}
+
+.luna-settings-field[data-wide] .luna-settings-field__action {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+/* 面板信息行 = 说明列 | 数值列（右对齐、随内容）。它**不是**设置行：右边那一格是
+   Rust 算出来的事实，不是一个可改的控件，故没有控件列也没有行尾动作槽。 */
+.luna-settings-panel__row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+/* 事实清单里的行（安装计划、标签补齐确认卡、导入预览）值可能是一条很长的路径：值列可以收缩
+   折行，标签列保底宽度——否则窄窗下标签被挤成一个字一行（2026-10-08 真机，900 宽）。
+   写在这里而不是 `fact-list.css`：列模板定义在本层，同层才能覆盖。 */
+.luna-fact-list .luna-settings-panel__row {
+  grid-template-columns: minmax(6em, 1fr) minmax(0, max-content);
+}
+
+.luna-settings-field:first-child,
+.luna-settings-panel__row:first-child {
+  border-block-start: 0;
+}
+
+.luna-settings-field:hover,
+.luna-settings-panel__row:hover {
+  background: var(--color-bg-hover);
+}
+
+/* 「与默认值不同」只由行尾那颗可点的「恢复默认」表达一次——行首再加一条色轨是同一件事的
+   第二种说法，且同样需要解释（用户会问"这条杠什么意思"）。 */
+.luna-settings-field__label {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: var(--space-0);
+}
+
+.luna-settings-field__title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.luna-settings-field__desc {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+  max-inline-size: 60ch;
+}
+
+.luna-settings-field__chip {
+  padding: var(--space-0) var(--space-1-5);
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  background: var(--color-bg-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.luna-settings-field__restart {
+  padding: var(--space-0) var(--space-1-5);
+  border-radius: var(--radius-full);
+  color: var(--color-status-attention);
+  background: var(--color-status-attention-surface);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.luna-settings-field__warning {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-0);
+  color: var(--color-status-attention);
+  font-size: var(--font-size-xs);
+}
+
+/* 诊断里能由用户就地修复的那一种（授权），动作直接跟在那句话后面。 */
+.luna-settings-field__warning-action {
+  font-size: var(--font-size-xs);
+}
+
+/* 行内错误行的形态归 `.luna-field-error` 原语（`components/error-text.css`）——图谱侧栏
+   此前直接借用本类，而"设置行的错误"这个名字在图谱里不成立。 */
+
+/* 控件列：宽控件铺满该列（左缘对齐），开关等自然宽度的控件靠右（右缘对齐）。 */
+.luna-settings-field__control {
+  border: 0;
+  padding: var(--space-0);
+  margin: var(--space-0);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-inline-size: var(--space-0);
+}
+
+.luna-settings-field__control > .luna-segmented-control {
+  inline-size: var(--size-full);
+}
+
+.luna-settings-field__control > .luna-segmented-control > .luna-segmented-control__item {
+  flex: 1 1 auto;
+}
+
+.luna-settings-field__action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-inline-size: var(--settings-action-col);
+}
+
+.luna-settings-nav__filter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.luna-settings-reset__preview {
+  max-block-size: var(--settings-reset-preview-max-block-size);
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+
+.luna-settings-field__saved {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--settings-action-col);
+  block-size: var(--settings-action-col);
+  color: var(--color-status-success);
+}
+
+.luna-settings-field__saved[data-state="pending"] {
+  color: var(--color-text-secondary);
+}
+
+/* 一段话（`multiline` 的文本项）：占满这一行的宽度，可以往下拖高。 */
+.luna-settings-field__textarea {
+  flex: 1 1 100%;
+  min-inline-size: var(--space-0);
+  inline-size: 100%;
+  padding: var(--space-2) var(--space-2-5);
+  border: var(--border-width-thin) solid var(--color-border-control);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+  resize: vertical;
+  outline: none;
+}
+
+.luna-settings-field__textarea:focus-visible {
+  border-color: var(--color-accent);
+}
+
+.luna-settings-field__input {
+  flex: 1 1 auto;
+  min-inline-size: var(--space-0);
+  block-size: var(--settings-control-block);
+  padding-inline: var(--space-2-5);
+  border: var(--border-width-thin) solid var(--color-border-control);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+/* 控件列里的按钮（浏览…/用默认位置）与输入框同高、同描边语言，不再一个实心一个幽灵。 */
+.luna-settings-field__control .luna-btn {
+  block-size: var(--settings-control-block);
+  flex: 0 0 auto;
+  padding-inline: var(--space-2-5);
+  font-size: var(--font-size-sm);
+}
+
+.luna-settings-field__input:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 var(--outline-width-focus) var(--color-focus-ring);
+}
+
+.luna-settings-field__input[aria-invalid="true"],
+.luna-settings-field__select:has(.luna-select__control[aria-invalid="true"]),
+.luna-shortcut-recorder[data-invalid="true"] {
+  border-color: var(--color-status-error);
+}
+
+/* 设置字段的下拉：外观与高度归 `.luna-select` 原语（2026-09-08 收编，此前与输入框共用一条
+   规则、自己画描边），这里只管它在字段行里怎么占位。 */
+.luna-settings-field__select {
+  flex: 1 1 auto;
+  min-inline-size: var(--space-0);
+}
+
+/* 「恢复默认」只在该项被改动过时出现（常驻重置按钮 = 逐行噪声），且落在定宽动作槽里，
+   与「已保存」共用同一格：出现/消失都不推动控件列。 */
+.luna-settings-field__reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--settings-action-col);
+  block-size: var(--settings-action-col);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.luna-settings-field__reset:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-subtle);
+  background: var(--color-bg-surface);
+}
+
+.luna-settings-field__reset:active {
+  background: var(--color-bg-selected);
+}
+
+/* ── 开关 ────────────────────────────────────────────────────────────── */
+.luna-switch {
+  border: 0;
+  padding: var(--space-0);
+  background: transparent;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.luna-switch__track {
+  display: inline-flex;
+  align-items: center;
+  inline-size: 40px;
+  block-size: 24px;
+  padding: calc(var(--border-width-thin) * 3);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-muted);
+  border: var(--border-width-thin) solid var(--color-border-control);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.luna-switch__thumb {
+  inline-size: 16px;
+  block-size: 16px;
+  border-radius: var(--radius-full);
+  background: var(--color-text-muted);
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.luna-switch[aria-checked="true"] .luna-switch__track {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.luna-switch[aria-checked="true"] .luna-switch__thumb {
+  background: var(--color-bg-panel);
+  transform: translateX(16px);
+}
+
+.luna-switch:focus-visible .luna-switch__track {
+  box-shadow: 0 0 0 var(--outline-width-focus) var(--color-focus-ring);
+}
+
+/* ── 数值（滑块 / 步进器）──────────────────────────────────────────────── */
+.luna-settings-number {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: var(--size-full);
+  min-inline-size: var(--space-0);
+}
+
+/* 数值滑块：轨道 / 拇指 / 聚焦圈归 `.luna-range` 原语，这里只管它在字段行里占多高多宽。 */
+.luna-settings-number__slider {
+  flex: 1 1 auto;
+  min-inline-size: var(--space-0);
+  block-size: var(--settings-control-block);
+}
+
+/* 滑块的读数定宽右对齐：拖动时数字变宽也不会把滑块挤得一跳一跳。单位在它**里面**
+   （`<output>{值}{单位}</output>`），故这里不列 `__unit`——那个类只存在于步进器，而
+   步进器把尺寸与对齐整条覆盖掉了，挂在这里只是看着还在服役。 */
+.luna-settings-number__value {
+  flex: 0 0 auto;
+  min-inline-size: 4.5rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+/* 步进器里的单位后缀：只共用排版，尺寸与对齐归下面那条。 */
+.luna-settings-number__unit {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* 步进器 = **一枚带单位后缀的输入框**，不是"输入框 + 旁边一个定宽单位槽"。
+
+   此前单位是紧挨输入框的定宽 4.5rem 左对齐槽：`GiB` 左贴数字、右边空掉近 3rem，于是
+   **带单位的行，控件本身比同页的下拉 / 分段窄一整个单位槽**——`PRD-09-070` ⑤b 要的
+   "整页控件左右缘对齐"在这些行上从来没成立过（真机 2026-09-10）。单位往右推也不对：
+   数字与它的单位之间会裂开一道 3rem 的缝。
+   把描边挪到外壳上、单位收进壳内右侧之后：外壳右缘与下拉 / 分段同一条线，单位仍紧跟
+   数字，而数字照旧右对齐——三件事同时成立，且不再有"单位多长控件就窄多少"这回事。 */
+.luna-settings-number[data-style="stepper"] {
+  gap: var(--space-1);
+  block-size: var(--settings-control-block);
+  padding-inline: var(--space-2-5);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.luna-settings-number[data-style="stepper"]:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 var(--outline-width-focus) var(--color-focus-ring);
+}
+
+.luna-settings-number[data-style="stepper"]:has(
+    .luna-settings-field__input[aria-invalid="true"]
+  ) {
+  border-color: var(--color-status-error);
+}
+
+/* 壳内的输入框只剩"能敲数字"这一件事：描边、底色、高度与聚焦圈都归外壳，
+   否则一个框里会套出第二圈边。 */
+.luna-settings-number[data-style="stepper"] .luna-settings-field__input {
+  text-align: end;
+  block-size: auto;
+  padding-inline: var(--space-0);
+  border: 0;
+  border-radius: var(--radius-none);
+  background: transparent;
+  box-shadow: none;
+}
+
+/* 单位紧跟数字、不换行、不参与伸缩：它是数字的后缀，不是第二个控件。 */
+.luna-settings-number[data-style="stepper"] .luna-settings-number__unit {
+  flex: 0 0 auto;
+  min-inline-size: var(--space-0);
+  text-align: start;
+  white-space: nowrap;
+}
+
+/* ── 路径（目录选择器）──────────────────────────────────────────────── */
+.luna-settings-path {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: var(--size-full);
+  min-inline-size: var(--space-0);
+}
+
+.luna-settings-path__value {
+  flex: 1 1 auto;
+  min-inline-size: var(--space-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.luna-settings-path__browse {
+  flex: 0 0 auto;
+}
+
+/* 窄主区（按面板自身宽度判定）：说明占满一行，控件与动作槽落到下一行，绝不横向溢出。 */
+@container settings (max-width: 34rem) {
+  .luna-settings-field {
+    grid-template-columns: minmax(0, 1fr) var(--settings-action-col);
+  }
+
+  .luna-settings-field__label {
+    grid-column: 1 / -1;
+  }
+
+  .luna-settings__header {
+    flex-wrap: wrap;
+  }
+}
+
+/* 快捷键智能录制器 */
+.luna-shortcut-recorder {
+  display: flex;
+  align-items: center;
+  inline-size: var(--size-full);
+  min-inline-size: var(--space-0);
+  min-block-size: var(--settings-control-block, 32px);
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-control);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.luna-shortcut-recorder:hover {
+  border-color: var(--color-border-focus);
+}
+
+.luna-shortcut-recorder:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 var(--outline-width-focus) var(--color-focus-ring);
+}
+
+.luna-shortcut-recorder__keys {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* 未绑定的空槽：仍是一枚键帽（`kbd` 原语给形状与行高），只是**看得出它是空的**——
+   虚线描边、常规字重、无立体底边与投影。此前它是一句斜体灰字，于是同一列里
+   「录音打点」与其余各行长成两种东西（真机症状 ⑤）。 */
+.luna-shortcut-recorder__empty {
+  color: var(--color-text-muted);
+  font-weight: 400;
+  border-style: dashed;
+  border-block-end: var(--border-width-thin) dashed var(--color-border-subtle);
+  box-shadow: none;
+}
+
+/* 触发方式（按一次 / 双击）：与录制器上下排在同一控件列里，靠右与录制器右缘对齐。 */
+.luna-shortcut-control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+  inline-size: var(--size-full);
+  min-inline-size: var(--space-0);
+}
+
+.luna-shortcut-control__mode .luna-segmented-control__item {
+  padding-block: var(--space-0-5);
+  font-size: var(--font-size-xs);
+}
+
+.luna-shortcut-recorder[data-recording] {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 var(--outline-width-focus) var(--color-focus-ring);
+  background: var(--color-bg-muted);
+}
+
+/* 双击型绑定的「×2」：紧跟键帽，弱化色——它说的是"按两次"，不是又一个键。 */
+.luna-shortcut-recorder__times {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.luna-shortcut-recorder__placeholder {
+  color: var(--color-accent);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  animation: luna-recording-pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes luna-recording-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* 通用按钮 `.luna-btn` 与输入框 `.luna-input` 此前住在本文件——它们是跨 feature 原语，
+   已按 TDD-15 §3.3a 归位到 `components/button.css` 与 `components/input.css`。 */
+
+/* ═══ 分组专属面板（`.luna-settings-panel`）═════════════════════════════════
+   设置页里"不是一行设置"的那些内容（模型管理 / 语义索引 / 个人词典 / 外部工具 /
+   本机知识度量）的唯一外壳。
+
+   它是收口，不是新增：这五个面板此前各造一套外壳，分散在四个 CSS 文件里——
+   两个是"上方一条分隔线"（间距 4 vs 5 不一样）、两个是"带描边的卡片"（一个有底色
+   一个没有、字号一个 sm 一个 base）。于是同一个设置页里同时存在四种"这是一块内容"
+   的说法，而每加一个面板就再多一种。原语在此，各面板只写自己内容的样式。
+
+   什么时候给面板一个自己的标题（`__header`）：只有当它与设置行同处一组时
+   （语义索引在「知识」、知识度量在「数据 / 隐私」）——它是那一组里的一节，得有名字。
+   面板独占一整组时（个人词典 / AI 引擎 · 模型）绝不写标题：分组页头已经渲染了
+   `group.<id>` 与 `group_description.<id>`，面板再写一遍就是同屏逐字重复。
+   ─────────────────────────────────────────────────────────────────────── */
+.luna-settings-panel {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.luna-settings-preview > summary {
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.luna-settings__section-links a {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.luna-settings__section-links a:hover {
+  background: var(--color-bg-hover);
+  text-decoration: underline;
+}
+
+.luna-settings__section-links a:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-border-focus);
+  outline-offset: var(--space-1);
+}
+
+.luna-settings-preview > summary:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-border-focus);
+  outline-offset: var(--space-1);
+}
+
+.luna-settings-preview[open] > summary {
+  margin-block-end: var(--space-3);
+}
+
+.luna-settings-preview__note {
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.luna-settings-preview__title {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+}
+
+.luna-settings-preview__note p {
+  margin-block: var(--space-3);
+  line-height: var(--line-height-base);
+}
+
+.luna-settings-preview__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-settings-preview__rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-settings-preview__rail li {
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+}
+
+/* 与上方设置行的分隔：只有真的有设置行要分隔时才画。面板型分组（零设置行）里
+   一条画在页头正下方的分隔线，分隔的是空气。设置行卡片包在分节容器里（PRD-09-070 ⑦），
+   故兄弟判据认 `.luna-settings-section`。
+   卡片形态（`.luna-settings-card`）自带边界，再画一条就是两重分隔。 */
+.luna-settings-section ~ .luna-settings-panel:not(.luna-settings-card),
+.luna-settings-panel + .luna-settings-panel:not(.luna-settings-card) {
+  margin-block-start: var(--space-4);
+  padding-block-start: var(--space-4);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* ── 内容卡外壳（一页四块共用的那一个）─────────────────────────────────────
+   「AI 算力与模型」一页上并列四块：算力、连接、模型库、执行记录。前两块此前是带描边的
+   卡片、后两块是裸分节，于是同一页上有两种「这是一块内容」的说法——而它们是并列的四件事
+   （真机 2026-09-12 用户圈点）。外壳只写这一份：算力卡与连接卡此前各自抄了一遍同样的
+   边框/圆角/底色/内边距，注释里还写着「复用同一套外壳变量」，而那正是复制不是复用。
+   布局仍归各自（算力卡是 flex、面板是 grid），这里只管边界与间距。 */
+.luna-settings-card {
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.luna-settings-card + .luna-settings-card {
+  margin-block-start: var(--space-4);
+}
+
+/* 卡片里的说明与卡片正文同档字号：四块并列之后它们是同一个角色，而 `__hint` 基线
+   （xs）是给夹在设置行之间的面板用的。 */
+.luna-settings-card > .luna-settings-panel__hint {
+  font-size: var(--font-size-sm);
+}
+
+.luna-settings-panel__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.luna-settings-panel__header h2 {
+  margin: var(--space-0);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* 页头右侧的一句事实（模型占盘、汇总区间…）：与标题同一行，不另占一行。 */
+.luna-settings-panel__meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+/* 面板说明：与设置行说明同一档字号与行宽（同一页里两种说明文字是没道理的）。 */
+.luna-settings-panel__desc,
+.luna-settings-panel__hint {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+  max-inline-size: 60ch;
+}
+
+/* 面板里的背景说明：按需展开。并排铺三段说明时，真正该当场读到的那一句会被淹掉
+   （真机：模型目录那一块的三段说明把第一个模型顶到了半屏之外）。 */
+.luna-settings-panel__note {
+  font-size: var(--font-size-xs);
+}
+
+.luna-settings-panel__note > summary {
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.luna-settings-panel__note[open] {
+  display: grid;
+  gap: var(--space-1);
+}
+
+/* 需要被读到的就地提示（不是说明文字）。
+   这个类名此前是悬垂的：模型页有三处在用它（含一条 `role="alert"` 的
+   「服务端清单里没有这个模型」警告），而整个样式表里没有任何一条规则匹配它——于是
+   那三处渲染成与正文毫无区别的裸段落。最要命的是那条 alert：它要告诉用户"你现在的
+   配置会让每次请求都被端点拒绝"，却长得像一句闲话。
+   与 `__hint` 的分工：`__hint` 是"顺带说一句"（弱化、可略过），本类是"你得看见这句"。 */
+/* 搜索里「在完整设置中显示 N 个结果」那一行：只是一颗次要按钮的容器。 */
+.luna-settings__more-advanced {
+  margin: var(--space-0);
+}
+
+.luna-settings__notice {
+  margin: var(--space-0);
+  padding: var(--space-2) var(--space-3);
+  border-inline-start: var(--border-width-thick) solid var(--color-accent-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+/* 分节容器：设置行区（PRD-09-070 ⑦）与分组面板内部共用同一形态——标题 + 内容作一段。
+   两处各写一份，就是「同一页两种段落间距」的来源（行卡片共用定义的同一条论证）。 */
+.luna-settings-section,
+.luna-settings-panel__section {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* 分节是深链的落点（`#settings-section-<节>`），程序聚焦时不画焦点环——它不是控件。 */
+.luna-settings-section:focus {
+  outline: none;
+}
+
+/* 节标题：小号全大写眉标——它是页内的分节，不能和面板标题同一档字重，
+   否则读者分不清层级。设置行区与面板内部共用同一枚（同一页两种小节标题没有道理）。 */
+.luna-settings-section__title,
+.luna-settings-panel__section-title {
+  margin: var(--space-0);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  /* 比字段标签（`--color-text-muted`）亮一档：真机上两者同色同字号，"导出范围"
+     读起来像是又一个字段名而不是这一节的名字——层级塌了就等于没有层级。 */
+  color: var(--color-text-secondary);
+}
+
+/* 账本（套餐额度 / 预付余额）各占一段。并列时必须有间隔，否则两组维度行连成一片、
+   读作同一本账——而它们的重置周期不同，混读给出的就是错误答案。 */
+.luna-settings-panel__ledger + .luna-settings-panel__ledger {
+  margin-top: var(--space-4);
+}
+
+/* 账本名：比节标题低一档——它是「用量与额度」这一节**内部**的分栏，不是又一节，
+   故不套眉标那身全大写字距。 */
+.luna-settings-panel__ledger-title {
+  margin: var(--space-0) var(--space-0) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+/* 面板里「一组控件」的块（例如导出的日期与格式）：它既不是信息行也不是纯文字，
+   但它同样需要一个边界，否则夹在两张卡片之间会读作"掉出来的一块"（真机可见）。
+   卡片视觉仍只在上面那一处定义，此处只补内距。 */
+.luna-settings-panel__block {
+  padding: var(--space-3) var(--space-4);
+}
+
+.luna-settings-panel__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* 配色主题是一组可安装资产，不再伪装成一个静态下拉。选择、安装与来源在同一块完成。 */
+.luna-theme-library {
+  gap: var(--space-3);
+}
+
+.luna-theme-library__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-2);
+}
+
+.luna-theme-library__item {
+  display: grid;
+  /* 单选点 · 色块 · 名字与说明 · 「当前」 */
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2-5);
+  min-block-size: var(--control-height-md);
+  padding: var(--space-2-5) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-theme-library__item:hover {
+  border-color: var(--color-border-focus);
+}
+
+.luna-theme-library__item:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: var(--space-0-5);
+}
+
+.luna-theme-library__item[aria-checked="true"] {
+  border-color: var(--color-accent);
+  background: var(--color-accent-surface);
+}
+
+.luna-theme-library__mark {
+  inline-size: var(--space-3);
+  block-size: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  box-shadow: inset 0 0 0 var(--space-0-5) var(--color-bg-surface);
+  background: transparent;
+}
+
+.luna-theme-library__item[aria-checked="true"] .luna-theme-library__mark {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.luna-theme-library__copy {
+  display: grid;
+  gap: var(--space-0-5);
+  min-inline-size: var(--space-0);
+}
+
+.luna-theme-library__copy strong {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.luna-theme-library__copy small,
+.luna-theme-library__selected {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-theme-library__selected {
+  color: var(--color-accent-strong);
+  font-weight: 600;
+}
+
+/* 信息行的两列（列模板见「设置行」一节，此处只写列内排版）。 */
+.luna-settings-panel__row-label {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: var(--space-0);
+}
+
+.luna-settings-panel__row-title {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.luna-settings-panel__row-desc {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.luna-settings-panel__row-value {
+  margin: var(--space-0);
+  text-align: end;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 模型管理：外壳归原语，此处只留它自己的内容。 */
+/* 模型库的页签：分段控件形态。
+   三颗 `.luna-btn--secondary` 并排与 sheet 右上角那颗「完成」同形，选中态只靠边框色，
+   读不出「这是三选一」；分段槽把它们框成一组，选中项用实底与页面拉开层次。 */
+.luna-settings-models__tabs {
+  display: inline-flex;
+  /* 只占内容宽度：`inline-flex` 在 grid / flex 父容器里仍会被拉满，于是分段槽的底色
+     一路铺到右边缘，读起来是一条横幅而不是一组页签（真机可见）。 */
+  align-self: start;
+  justify-self: start;
+  inline-size: fit-content;
+  flex-wrap: wrap;
+  gap: var(--space-0);
+  padding: var(--space-0-5);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-muted);
+}
+
+.luna-settings-models__tab {
+  border: none;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.luna-settings-models__tab:hover {
+  color: var(--color-text-primary);
+}
+
+.luna-settings-models__tab[aria-selected="true"] {
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.luna-settings-model__description {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.luna-settings-models__list {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-0);
+  margin: var(--space-0);
+  list-style: none;
+}
+
+.luna-settings-model {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.luna-settings-model:hover {
+  border-color: var(--color-border-focus);
+  box-shadow: var(--shadow-md);
+}
+
+.luna-settings-model__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.luna-settings-model__header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.luna-settings-model__title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.luna-settings-model__badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.luna-settings-model__badge {
+  padding: var(--space-0-5) var(--space-2);
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-bg-muted);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.luna-settings-model__meta-info {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-4);
+  row-gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.luna-settings-model__meta-item {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.luna-settings-model__meta-label {
+  color: var(--color-text-muted);
+}
+
+.luna-settings-model__meta-value {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.luna-settings-model__progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+  margin-block-start: var(--space-1);
+}
+
+.luna-settings-model__progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.luna-settings-model__progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--color-bg-muted);
+  border-radius: calc(var(--border-width-thin) * 3);
+  overflow: hidden;
+}
+
+.luna-settings-model__progress-fill {
+  inline-size: var(--progress-inline-size);
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: calc(var(--border-width-thin) * 3);
+  transition: width 0.3s ease;
+}
+
+.luna-settings-model__plan {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-focus);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.luna-settings-model__plan strong {
+  color: var(--color-text-primary);
+}
+
+.luna-settings-model__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-settings-model__actions--assignment {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* 模型卡按**设置面板自身**的宽度堆叠：设置住在主区，而主区宽度随主侧栏拖拽独立于视口
+   变化（`.luna-settings` 已声明 `container-name: settings`）。视口断点在这里量的是错的
+   东西——同一个视口下主区可以只剩三百来像素。 */
+@container settings (max-width: 720px) {
+  .luna-settings-model {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* —— 硬件检测 —— */
+/* 引导里的「AI 在哪跑」：与设置首屏卡片同一套原语（.luna-compute-card__*），
+   这里只补引导壳内的排布——重复一份配色/字号就等于两处各说各的。 */
+/* 搜索结果里由面板承载的那一行：它的动作是"去别处改"，不是"在这里改"。
+   用虚线左缘与普通设置行区分开——两者混排时，用户点下去的后果完全不同。 */
+.luna-settings-field--panel {
+  border-inline-start: var(--border-width-thick) dashed var(--color-border-default);
+}
+
+/* —— CoreML 加速行（设置 › 模型页与引导共用，ADR-115） —— */
+.luna-coreml-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  inline-size: var(--size-full);
+  margin-block-start: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.luna-coreml-row[data-compact] {
+  margin-block-start: var(--space-0);
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  background: transparent;
+}
+
+.luna-coreml-row__text {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: var(--space-0);
+  flex: 1 1 auto;
+}
+
+.luna-coreml-row__label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.luna-coreml-row__status {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.luna-coreml-row[data-busy] .luna-coreml-row__status {
+  color: var(--color-accent);
+}
+
+.luna-coreml-row__hint {
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.luna-coreml-row__bar {
+  display: block;
+  block-size: var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--color-border-subtle);
+  overflow: hidden;
+}
+
+.luna-coreml-row__bar-fill {
+  display: block;
+  block-size: var(--size-full);
+  inline-size: var(--progress-inline-size, 0%);
+  background: var(--color-accent);
+  transition: inline-size var(--transition-base);
+}
+
+.luna-coreml-row__bar-fill[data-indeterminate="true"] {
+  inline-size: 40%;
+  animation: luna-bar-indeterminate 1.2s ease-in-out infinite;
+}
+
+.luna-coreml-row__actions {
+  flex: 0 0 auto;
+}
+
+/* —— 「完成设置」横幅（工作区顶栏之下，PRD-14-064） —— */
+.luna-setup-banner {
+  grid-area: banner;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-accent-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+/* 启动概览里的那一份：不是页面家具而是一行内容，故独立成卡、不占 grid-area。 */
+.luna-setup-banner[data-variant="row"] {
+  grid-area: auto;
+  border: var(--border-width-thin) solid var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-block-end: var(--space-3);
+}
+
+.luna-setup-banner__text {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-inline-size: var(--space-0);
+  flex-wrap: wrap;
+}
+
+.luna-setup-banner__text span {
+  color: var(--color-text-secondary);
+}
+
+.luna-setup-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* 保存状态指示点：已保存 = 就绪绿、未保存 = 注意金（一色一义，与状态色体系对齐）。 */
+.luna-dirty-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-status-success);
+  display: inline-block;
+  flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+
+.luna-dirty-dot[data-dirty="true"] {
+  background: var(--color-status-attention);
+}
+
+/* 通用 flex 填充 */
+.luna-spacer {
+  flex: 1 1 auto;
+}
+
+/* ==========================================================================
+   Lunarca Dashboard CSS (Premium UI / OLED Dark Mode & Light Mode compatible)
+   ========================================================================== */
+
+/* ── 语义索引面板（PRD-16-028，「知识」分组专属）────────────────────────────── */
+
+/* 语义索引面板：外壳（间距 / 分隔 / 标题排版）归 `.luna-settings-panel` 原语，
+   此处只留它自己的内容。原先那圈"描边卡片"是设置页里第三种"这是一块内容"的说法。 */
+.luna-semantic-index {
+  font-size: var(--font-size-sm);
+}
+
+.luna-semantic-index__guide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.luna-semantic-index__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-weight: 500;
+}
+
+.luna-semantic-index__error {
+  margin: 0;
+  color: var(--color-status-error);
+  font-size: var(--font-size-xs);
+}
+
+/* 三格统计：定宽自适应，窄主区自然换行（不做媒体查询——它只是三个数字）。 */
+.luna-semantic-index__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  margin: 0;
+}
+
+.luna-semantic-index__stats dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-semantic-index__stats dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-semantic-index__progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* 外观归 `.luna-progress` 原语；这里只约束它在行里的伸缩。 */
+.luna-semantic-index__progress .luna-progress {
+  flex: 1;
+  min-inline-size: 8rem;
+}
+
+/* 本机知识度量面板（Phase 11）：外壳、信息行、节标题、确认卡全部走共享原语
+   （`.luna-settings-panel` / `.luna-dialog`），此处只剩两块它**自己**的内容：
+   趋势折叠区里的那张表，与导出那一节的控件排布。 */
+.luna-settings-metrics__trend {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* 折叠头的语言：一枚会转的 chevron + 文字。原生 `<summary>` 的
+   ▶ marker 是这一页上唯一的浏览器默认控件外观（真机可见），故显式关掉两种写法。 */
+.luna-settings-metrics__trend summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  cursor: pointer;
+  color: var(--color-text-primary);
+  list-style: none;
+}
+
+.luna-settings-metrics__trend summary::-webkit-details-marker {
+  display: none;
+}
+
+.luna-settings-metrics__trend summary svg {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: transform var(--transition-fast);
+}
+
+.luna-settings-metrics__trend[open] summary svg {
+  transform: rotate(90deg);
+}
+
+.luna-settings-metrics__trend table {
+  inline-size: var(--size-full);
+  margin-block-start: var(--space-2);
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.luna-settings-metrics__trend th,
+.luna-settings-metrics__trend td {
+  padding: var(--space-1) var(--space-2);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+  text-align: start;
+}
+
+/* 导出：`fieldset` 只借它的 disabled 语义，外观由 `.luna-settings-panel__block` 给，
+   故先抹平浏览器默认的边框与内距（`fieldset` 自带 2px 凹槽边框与非对称内距）。 */
+.luna-settings-metrics__export {
+  margin: var(--space-0);
+  min-inline-size: var(--space-0);
+}
+
+.luna-settings-metrics__export-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-2);
+}
+
+.luna-settings-metrics__export-controls label {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* 顶栏工具键与状态栏 的样式已按 TDD-15 §2.3 归位到 styles/layout/workspace-shell.css。 */
+
+/* ─── 个人词典面板（GlossaryPanel）：外壳归 `.luna-settings-panel` 原语 ──── */
+
+/* 只剩动作区（标题与说明归分组页头）：靠右排，与页头齐平。 */
+.luna-glossary__header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.luna-glossary__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.luna-glossary__saving {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.luna-glossary__error {
+  font-size: var(--font-size-sm);
+  color: var(--color-status-error);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-status-error-surface);
+  border-radius: var(--radius-sm);
+  margin: 0;
+}
+
+.luna-glossary__import-result {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-panel);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  margin: 0;
+}
+
+.luna-glossary__search-empty {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-4);
+  text-align: center;
+  margin: 0;
+}
+
+.luna-glossary__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.luna-glossary__empty p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* 空态里的示例行：一枚「示例」标签 + 一条术语对照，只作展示（C36）。 */
+.luna-glossary__example {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-glossary__empty .luna-glossary__example {
+  color: var(--color-text-primary);
+}
+
+.luna-glossary__example-tag {
+  padding: var(--space-0-5) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.luna-glossary__empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.luna-glossary__table {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.luna-glossary__thead {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2rem;
+  gap: var(--space-2);
+  padding-inline: var(--space-3);
+}
+
+.luna-glossary__thead [role="columnheader"] {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.luna-glossary__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2rem;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-sm);
+  border: var(--border-width-thin) solid transparent;
+  transition: border-color var(--transition-fast);
+}
+
+.luna-glossary__row:focus-within {
+  border-color: var(--color-border-focus);
+}
+
+/* 清单行 的样式已按 TDD-15 §2.3 归位到 features/workspace/workspace.css。 */
+
+/* 分段控件（`.luna-segmented-control`）已归位为 `components/segmented-control.css` 的
+   原语（§3.3a）：它此前住在这里，而使用者是设置控件、首启引导、导出选项与通知历史四处
+   ——名字不带 feature 前缀却住在某个 feature 里，正是"下一个人要么继续借、要么另抄一份"
+   的起点。 */
+
+/* ── 有序多选（`OrderedMultiSelect`，TDD-05 §7.5a）──────────────────────────
+   已选项是一个有序列表：序号 + 名字 + 换成别的 + 上移/下移。重排走按钮而不是（只走）
+   拖拽——纯拖拽的重排对键盘用户等于没有这个功能（PRD-00 §7）。 */
+.luna-ordered-select {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  inline-size: var(--size-full);
+}
+
+.luna-ordered-select__chosen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-ordered-select__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+/* 序号是**位置**的视觉表达，读屏那一份由重排后的 `role="status"` 播报，故它 aria-hidden。 */
+.luna-ordered-select__position {
+  flex: 0 0 auto;
+  inline-size: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-ordered-select__label {
+  flex: 1;
+  min-inline-size: var(--space-0);
+  font-size: var(--font-size-sm);
+}
+
+/* 未选行（有序多选）：名字淡一档、没有序号——它在全集里，只是此刻没被选上。 */
+.luna-ordered-select__row[data-unselected] .luna-ordered-select__label {
+  color: var(--color-text-muted);
+}
+
+/* 到上下限时被禁用的开关：不可点要看得出来，但不消失——消失会让人以为这一项没有开关。 */
+.luna-ordered-select .luna-switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* 锁定行（锚点，PRD-07-003）：锁形占开关的位置，与开关同宽居中，行内控件列不因它错位。 */
+.luna-ordered-select__lock {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--space-1-5);
+  color: var(--color-text-muted);
+}
+
+/* 位置播报：只给读屏，不占版面——它每次重排都会变，画在屏幕上只是抖动。 */
+.luna-ordered-select__status {
+  position: absolute;
+  inline-size: var(--border-width-thin);
+  block-size: var(--border-width-thin);
+  padding: var(--space-0);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.luna-ordered-select[data-invalid="true"] .luna-ordered-select__label {
+  color: var(--color-status-error);
+}
+
+/* ---------- 数据足迹 / 设置备份（PRD-09-026 / PRD-09-050） ---------- */
+
+.luna-settings-panel__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.luna-settings-footprint__value {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ---------- 模型存储搬移（PRD-10-014） ---------- */
+
+.luna-settings-relocate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.luna-settings-relocate__progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.luna-settings-relocate__progress .luna-progress {
+  flex: 1;
+}
+
+.luna-settings-footprint__feedback {
+  color: var(--color-text-primary);
+}
+
+/* 带实时预览的文本设置（C47）：输入框在上、示例结果在下，同列对齐。 */
+.luna-settings-text {
+  display: grid;
+  gap: var(--space-1);
+  inline-size: 100%;
+}
+
+.luna-settings-field__preview {
+  margin: var(--space-0);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}

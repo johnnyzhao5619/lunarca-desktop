@@ -1,0 +1,30 @@
+/*
+ * 全局文字速记面板（`.luna-quick-capture`，PRD-06-058 B″）。
+ *
+ * 外壳、拖动、Esc、自动扩容全归 `HudSurface`（ADR-111 ②）——本文件只写这扇窗自己的
+ * 那点差异：内容区的内边距、脚注一行、以及不可用时那块说明。捕获框本体的样式在
+ * `capture.css` 的 `.luna-capture-field*`（与侧栏胶囊共用同一份）。
+ *
+ * 不出现窗口根类之下的裸元素选择器（TDD-15 §3.3e / ADR-111 ③）：features 层无条件
+ * 压过 primitives，`.luna-quick-capture button` 这样一条就能让这扇窗里所有 `IconButton`
+ * 的原语声明整层失效——`.luna-popup button` 那次事故的形状。
+ */
+
+.luna-quick-capture {
+  gap: var(--hud-gap);
+}
+
+/* 窗口栏是这扇窗唯一的拖动把手（`dragRoot={false}`：正文要保持可选中）。 */
+.luna-quick-capture__header {
+  cursor: grab;
+}
+
+.luna-quick-capture__header:active {
+  cursor: grabbing;
+}
+
+/* 输入框吃掉状态行的余宽（启动器式一行）。 */
+.luna-quick-capture .luna-capture-field {
+  flex: 1;
+  min-inline-size: 0;
+}

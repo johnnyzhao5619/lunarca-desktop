@@ -1,0 +1,407 @@
+/*
+ * 搜索视图（PRD-06-031）+ 跨库查找替换（PRD-06-014）的样式。
+ *
+ * **它此前整块住在 `features/knowledge/knowledge.css`**——三十余个选择器，与知识复利
+ * 没有任何关系。组件在 `features/search/`、样式在别人家：改搜索的人按目录找不到它，只能
+ * 靠全局搜类名（TDD-15 §2.3 就近放置）。
+ */
+
+/* ── 搜索视图（PRD-06-031）+ 跨库查找替换（PRD-06-014） ─────────────────────
+   住在可拖拽宽度的主侧栏里，故一切按容器宽度自适应、绝不假设列宽（TDD-15 §3.5b）：
+   命中行整行可点、行号定宽、正文单行截断，长路径靠 ellipsis 而不是换行把列撑爆。 */
+.luna-search {
+  min-width: var(--space-0);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  /* **按自身可用宽度响应**（容器查询，TDD-15 §3.5b）：主侧栏可从 180px 拖到 600px，
+     视口断点在这里毫无意义——语法速查那两列在 180px 下会被压成"一个字一行"。 */
+  container-type: inline-size;
+  container-name: search;
+}
+
+.luna-search__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block-end: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* 查询框（图标 + 输入 + 清空 + Aa）此前在这里定义，被图谱侧栏整套借用、又被标签/回收站/
+   动态/设置各自另造一份。已按 §3.3a 收编为 `components/query-box.css` 的
+   `.luna-query-box`（结构与可访问名见 `components/ui/QueryBox.tsx`）。 */
+
+.luna-search__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.luna-search__action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: var(--border-width-thin) solid transparent;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.luna-search__action:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-search__action[aria-pressed="true"] {
+  color: var(--color-accent);
+  background: var(--color-accent-surface);
+  border-color: var(--color-accent-surface);
+}
+
+/* 首次进入搜索先把输入框与说明连成一条行动路径，不把整张语法表撑在侧栏中央。 */
+.luna-search__start {
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: start;
+  padding-block-start: var(--space-3);
+}
+
+.luna-search__syntax-disclosure {
+  inline-size: var(--size-full);
+  margin-block-start: var(--space-2);
+}
+
+.luna-search__syntax-disclosure summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  inline-size: fit-content;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  list-style: none;
+}
+
+.luna-search__syntax-disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.luna-search__syntax-disclosure summary:hover {
+  color: var(--color-text-primary);
+}
+
+/* 语法速查：运算符稳定，可见示例与说明都走 i18n。 */
+.luna-search__syntax {
+  margin: var(--space-0);
+  margin-block-start: var(--space-2);
+  padding: var(--space-2-5);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-muted);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.luna-search__syntax-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  margin: var(--space-0);
+}
+
+.luna-search__syntax-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: var(--space-0);
+}
+
+.luna-search__syntax-row dt {
+  flex-shrink: 0;
+}
+
+.luna-search__syntax-row dt code {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+.luna-search__syntax-row dd {
+  margin: var(--space-0);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  min-width: var(--space-0);
+}
+
+.luna-search__syntax-note {
+  margin: var(--space-1) var(--space-0) var(--space-0);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.luna-search__replace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-bg-surface);
+}
+
+.luna-search__replace-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.luna-search__hint,
+.luna-search__summary {
+  margin: var(--space-0);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.luna-search__summary {
+  padding-inline: var(--space-2);
+  padding-block-end: var(--space-1);
+  flex-shrink: 0;
+}
+
+/* 「资料」命中分组（ADR-024）：折叠头常驻、内容按需展开——降权呈现而非排除，
+   资料命中仍找得到，只是不把知识笔记刷下屏幕。 */
+.luna-search__group-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-search__group-head:hover {
+  color: var(--color-text-secondary);
+  background: var(--color-bg-hover);
+}
+
+.luna-search__group-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-search__done {
+  margin: var(--space-0);
+  font-size: var(--font-size-xs);
+  color: var(--color-status-success);
+}
+
+.luna-search__status {
+  margin: var(--space-0);
+  padding: var(--space-4) var(--space-3);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.luna-search__notes {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-0);
+  margin: var(--space-0);
+  list-style: none;
+}
+
+.luna-search__note-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: var(--space-0);
+}
+
+.luna-search__note-toggle {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: var(--space-0-5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-xs);
+}
+
+.luna-search__note-toggle:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+.luna-search__note-open {
+  flex: 1 1 0;
+  min-width: var(--space-0);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-align: start;
+  padding: var(--space-1) var(--space-1);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.luna-search__note-open:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-search__note-open svg {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.luna-search__note-title {
+  /* 文件名是这一行的主语：目录先被压缩，标题最后才截断。 */
+  flex: 1 1 auto;
+  min-inline-size: 4ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 目录只是定位辅助，弱化并优先被压缩——文件名永远比它更该被看见。 */
+.luna-search__note-dir {
+  flex: 0 4 auto;
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: var(--space-0);
+}
+
+/* 「只替换本篇」只在替换预览态出现，且这一行已经排了折叠钮/文件名/目录/计数——
+   给它文字标签会把文件名挤没，故用图标 + tooltip（无障碍名由 aria-label 提供）。 */
+.luna-search__note-apply {
+  display: flex;
+  align-items: center;
+  border: var(--border-width-thin) solid var(--color-border-default);
+  background: transparent;
+  color: var(--color-text-secondary);
+  padding: var(--space-0-5);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.luna-search__note-apply:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.luna-search__lines {
+  list-style: none;
+  margin: var(--space-0);
+  padding-inline-start: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+}
+
+.luna-search__line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  inline-size: var(--size-full);
+  min-width: var(--space-0);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  text-align: start;
+  padding: var(--space-0-5) var(--space-1);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+
+.luna-search__line:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-search__line-no {
+  flex: 0 0 auto;
+  inline-size: 3ch;
+  text-align: end;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-search__line-text {
+  flex: 1 1 0;
+  min-width: var(--space-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 替换预览：新行紧跟旧行、用成功色标出"改完是这样"。 */
+.luna-search__line-after {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-0-5) var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-status-success);
+}
+
+.luna-search__hit {
+  background: var(--color-accent-surface);
+  color: var(--color-accent-strong);
+  border-radius: var(--radius-xs);
+  padding: var(--border-width-thin) var(--space-1);
+  font-weight: 500;
+}
+
+.luna-search__more {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  padding-inline: var(--space-1);
+}
+
+/* 窄侧栏：速查从「样例 | 说明」改为上下堆叠，避免说明列被压成逐字竖排。 */
+@container search (max-width: 17rem) {
+  .luna-search__syntax-row {
+    flex-direction: column;
+    gap: var(--space-0-5);
+  }
+
+  .luna-search__syntax-row dd {
+    padding-inline-start: var(--space-1);
+  }
+}

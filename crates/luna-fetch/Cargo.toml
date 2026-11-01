@@ -1,0 +1,22 @@
+[package]
+name = "luna-fetch"
+description = "网络媒体抓取：yt-dlp 进程外编排（发现 / 探测 / 下载 / 进度 / 错误分类），ADR-023"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+# 进程外工具编排只需子进程 + JSON 解析：**零新增依赖**（均已在 workspace 清单，ADR-005 纪律）。
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+# `io-util` 追加在 workspace 基线之上：逐行读子进程 stdout 才有确定性进度（`--newline` 一行一
+# 进度），而基线 features 只给了 process 本身。
+tokio = { workspace = true, features = ["io-util"] }
+
+[dev-dependencies]
+tempfile = "3"
+# 子进程编排的端到端测试（tests/subprocess.rs）需要 async 测试宏与 join。
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }

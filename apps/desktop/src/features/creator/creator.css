@@ -1,0 +1,2392 @@
+/*
+ * 创作空间（ADR-162 / PRD-19）：主区看板 + 侧栏的项目与灵感两份清单。
+ *
+ * 主区是画布（`surface: canvas`）：看板列横向铺开、可横向滚动，不画自己的纸张底。
+ * 页头用共享原语 `.luna-main-header`，侧栏页头用 `.luna-sidebar-header`，空态用
+ * `.luna-empty-state`，拖影用 `.luna-drag-ghost`——本文件只管看板与清单自己的排布。
+ */
+
+.luna-creator {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-block-size: var(--space-0);
+  block-size: 100%;
+}
+
+/* ── 页面原语（ADR-165 ⑨）────────────────────────────────────────────────────
+   创作空间各页共用的中性原语：页面主体、分节、提示、行、标签、面包屑、编辑器槽位、清单行。
+   各页自己的样式用自己的前缀（`luna-project__` / `luna-publish__` / `luna-overview__` …），
+   不借别的页面的类名——由 `creator-conventions.test.ts` 守住。 */
+/* 页头标题旁的一句状态（如「共 12 条」）。 */
+.luna-creator-page__status {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* 一列纵向的分节表单，宽度跟正文阅读宽度走、不铺满画布；页头之下剩多少高就占多少，
+   内容多了自己滚（不把页头往上挤）。 */
+.luna-creator-page__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-block-size: var(--space-0);
+  max-inline-size: 64rem;
+  overflow-y: auto;
+}
+
+.luna-creator-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.luna-creator-page__section h2 {
+  margin: var(--space-0);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.luna-creator-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-creator-page__item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  inline-size: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  color: var(--color-text-primary);
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-creator-page__item:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-creator-page__item-title {
+  flex: 1;
+  min-inline-size: var(--space-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-creator-page__item-meta {
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-creator-page__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-creator-page__label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.luna-creator-page__hint {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* 一块可改的文字：「名称 + 动作」一行，下面一个文字框。 */
+.luna-creator-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* 加载中：一行安静的提示（空态才用 EmptyState——那是「没有」，不是「还没到」）。 */
+.luna-creator-page__loading {
+  margin: var(--space-0);
+  padding: var(--space-4) var(--space-0);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* 即时操作的结果就近说（ADR-165 ⑨）：页头下面一条，失败用警示色；下一次操作时换掉。 */
+.luna-creator-page__notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: var(--space-0);
+  padding: var(--space-1-5) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.luna-creator-page__notice[data-tone="error"] {
+  color: var(--color-status-warning);
+}
+
+/* 面包屑「创作 ›」：返回只在这里，不占动作区的按钮位（ADR-165 ⑨）。 */
+.luna-creator-page__crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-secondary);
+}
+
+.luna-creator-page__crumb-link {
+  padding: var(--space-0);
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+}
+
+.luna-creator-page__crumb-link:hover,
+.luna-creator-page__crumb-link:focus-visible {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+}
+
+/* 编辑器占满内容区，与「笔记」空间是同一个组件。 */
+.luna-creator-page__editor {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-block-size: var(--space-0);
+  min-inline-size: var(--space-0);
+}
+
+.luna-creator-page__editor > .luna-editor {
+  flex: 1 1 auto;
+  min-block-size: var(--space-0);
+}
+
+/* 看板：列横向排开，放不下就横向滚动（七列在窄窗口里不挤成一团）。 */
+.luna-creator__board {
+  display: flex;
+  gap: var(--space-3);
+  flex: 1;
+  min-block-size: var(--space-0);
+  overflow-x: auto;
+  padding-block-end: var(--space-2);
+}
+
+.luna-creator__column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 0 0 220px;
+  min-block-size: var(--space-0);
+  padding: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+/* 拖拽经过的那一列：落点要看得见，否则用户不知道松手会落到哪儿。 */
+.luna-creator__column[data-drop-target="true"] {
+  border-color: var(--color-accent);
+  background: var(--color-bg-selected);
+}
+
+.luna-creator__column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.luna-creator__column-header h2 {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.luna-creator__cards {
+  list-style: none;
+  margin: var(--space-0);
+  padding: var(--space-0);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  overflow-y: auto;
+}
+
+.luna-creator__card-row {
+  display: flex;
+}
+
+.luna-creator__card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-inline-size: var(--space-0);
+  padding: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  text-align: start;
+  cursor: grab;
+  touch-action: none;
+  transition: background var(--transition-base), border-color var(--transition-base);
+}
+
+.luna-creator__card:hover,
+.luna-creator__card:focus-visible {
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-strong);
+  outline: none;
+}
+
+.luna-creator__card[data-dragging="true"] {
+  opacity: var(--opacity-idle);
+}
+
+.luna-creator__card:disabled {
+  cursor: progress;
+}
+
+.luna-creator__card-title {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+/* 借住在别的列里的卡片（它的阶段那一列被收起了）：标出它真实停在哪个阶段。 */
+.luna-creator__card-stage {
+  align-self: flex-start;
+  padding: var(--space-0) var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-hover);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* 卡片信号（PRD-19-040）：一行小字，各项之间一个间隔点；下一步单独一行。 */
+.luna-creator__card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-0) var(--space-1-5);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-creator__card-meta > span + span::before {
+  content: "·";
+  margin-inline-end: var(--space-1-5);
+}
+
+.luna-creator__card-next {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.luna-creator__card-time,
+.luna-creator-list__time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* 侧栏：主动作在上，下面两节清单。 */
+.luna-creator-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.luna-creator-sidebar__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* 阶段筛选后没有项目时的一句；「已归档」一节默认收起，展开箭头随 aria-expanded 转向。 */
+.luna-creator-sidebar__hint {
+  margin: var(--space-0);
+  padding: var(--space-1) var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.luna-creator-sidebar__archived {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.luna-creator-sidebar__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.luna-creator-sidebar__toggle:hover,
+.luna-creator-sidebar__toggle:focus-visible {
+  background: var(--color-bg-hover);
+  outline: none;
+}
+
+.luna-creator-sidebar__toggle[aria-expanded="true"] > svg {
+  transform: rotate(90deg);
+}
+
+.luna-creator-list {
+  list-style: none;
+  margin: var(--space-0);
+  padding: var(--space-0);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+}
+
+.luna-creator-list__row {
+  display: flex;
+  align-items: center;
+}
+
+/* 行尾的「···」：悬停、键盘聚焦或菜单开着时才露出来（ADR-167 ①）；右键是同一份菜单。 */
+.luna-creator-list__more {
+  flex: none;
+  opacity: 0;
+}
+
+.luna-creator-list__row:hover .luna-creator-list__more,
+.luna-creator-list__row:focus-within .luna-creator-list__more,
+.luna-creator-list__more[aria-expanded="true"] {
+  opacity: 1;
+}
+
+.luna-creator-list__item {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-inline-size: var(--space-0);
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+  transition: background var(--transition-base);
+}
+
+.luna-creator-list__item:hover,
+.luna-creator-list__item:focus-visible {
+  background: var(--color-bg-hover);
+  outline: none;
+}
+
+.luna-creator-list__item[aria-selected="true"] {
+  background: var(--color-bg-selected);
+}
+
+.luna-creator-list__title {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 列表视图：按阶段分组的紧凑清单，组头可折叠、可当落点。 */
+.luna-creator__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  overflow-y: auto;
+  min-block-size: var(--space-0);
+}
+
+.luna-creator__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.luna-creator__group[data-drop-target="true"] {
+  border-color: var(--color-accent);
+  background: var(--color-bg-selected);
+}
+
+.luna-creator__group-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-creator__group-header:hover,
+.luna-creator__group-header:focus-visible {
+  background: var(--color-bg-hover);
+  outline: none;
+}
+
+.luna-creator__group-title {
+  flex: 1;
+  min-inline-size: var(--space-0);
+}
+
+.luna-creator__rows {
+  list-style: none;
+  margin: var(--space-0);
+  padding: var(--space-0);
+  padding-inline-start: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+}
+
+.luna-creator__row {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-inline-size: var(--space-0);
+  padding: var(--space-1-5) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: start;
+  cursor: grab;
+  touch-action: none;
+  transition: background var(--transition-base);
+}
+
+.luna-creator__row .luna-creator__card-title {
+  flex: 1;
+  min-inline-size: var(--space-0);
+}
+
+.luna-creator__row:hover,
+.luna-creator__row:focus-visible {
+  background: var(--color-bg-hover);
+  outline: none;
+}
+
+.luna-creator__row[data-dragging="true"] {
+  opacity: var(--opacity-idle);
+}
+
+/* 表格视图：一行一个项目；窄窗口里表格自己横向滚动，不撑宽主区。 */
+.luna-creator__table-wrap {
+  overflow: auto;
+  min-block-size: var(--space-0);
+}
+
+.luna-creator__table {
+  inline-size: var(--size-full);
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.luna-creator__table th {
+  padding: var(--space-1-5) var(--space-2);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-align: start;
+  white-space: nowrap;
+}
+
+.luna-creator__table td {
+  padding: var(--space-1) var(--space-2);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+  vertical-align: middle;
+}
+
+.luna-creator__table tbody tr:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-creator__table-title {
+  padding: var(--space-0);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-creator__table-title:hover,
+.luna-creator__table-title:focus-visible {
+  color: var(--color-accent);
+  text-decoration: underline;
+  outline: none;
+}
+
+.luna-creator__table-muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.luna-publish__sources {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* 项目概览（C5a）：一类一节，每项一行——标题、关系、修改时间。 */
+/* 「项目里的东西」一行：「···」叠在卡片右上角，悬停或聚焦时才露出来（ADR-167 ①）；卡片右侧
+   让出它的位置，标题不会被盖住。 */
+.luna-overview__item {
+  position: relative;
+}
+
+.luna-overview__item > .luna-creator-page__item {
+  padding-inline-end: var(--space-6);
+}
+
+.luna-overview__more {
+  position: absolute;
+  inset-block-start: var(--space-1);
+  inset-inline-end: var(--space-1);
+  opacity: 0;
+}
+
+.luna-overview__item:hover .luna-overview__more,
+.luna-overview__item:focus-within .luna-overview__more {
+  opacity: 1;
+}
+
+/* 从系统拖文件进项目（ADR-167 ③）：与文件树同一种落点高亮。 */
+.luna-overview__materials[data-file-drop="true"] {
+  outline: var(--border-width-thin) dashed var(--color-accent);
+  outline-offset: calc(-1 * var(--border-width-thin));
+  background: var(--color-accent-surface);
+}
+
+/* 来源的类型与处理状态：与关系标同一种小标；状态配色与录音 / 转写清单一致。 */
+.luna-overview__kind,
+.luna-overview__status {
+  flex-shrink: 0;
+  padding: var(--space-0) var(--space-1);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.luna-overview__kind {
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+}
+
+.luna-overview__status {
+  background: var(--color-status-muted-surface);
+  color: var(--color-status-muted);
+}
+
+.luna-overview__status[data-state="running"] {
+  background: var(--color-bg-selected);
+  color: var(--color-status-active);
+}
+
+.luna-overview__status[data-state="failed"] {
+  background: var(--color-status-error-surface);
+  color: var(--color-status-error);
+}
+
+/* 跟项目的关系：每种一枚小标签（各自一句译文，不拼接）。 */
+.luna-overview__relation {
+  flex-shrink: 0;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-selected);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.luna-publish__source {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  color: var(--color-text-primary);
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-publish__source[data-active] {
+  border-color: var(--color-accent);
+  background: var(--color-bg-selected);
+}
+
+.luna-publish__source-title {
+  flex: 1;
+  min-inline-size: var(--space-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-publish__source-meta {
+  display: flex;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-publish__result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  font-size: var(--font-size-sm);
+}
+
+.luna-publish__result p,
+.luna-publish__result ul {
+  margin: var(--space-0);
+}
+
+/* 章节（C3b）：就是 YouTube 简介里那几行文字，等宽排版让时间对齐。 */
+.luna-publish__chapters {
+  inline-size: var(--size-full);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  resize: vertical;
+}
+
+.luna-publish__issues {
+  margin: var(--space-0);
+  padding-inline-start: var(--space-5);
+  font-size: var(--font-size-sm);
+  color: var(--color-status-warning);
+}
+
+/* 发布清单（ADR-165 ⑧）：页头一行写进度与平台；下面左列步骤、右边当前那一步。 */
+.luna-publish__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+.luna-publish__progress {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.luna-publish__layout {
+  display: flex;
+  flex: 1 1 auto;
+  gap: var(--space-5);
+  min-block-size: var(--space-0);
+}
+
+.luna-publish__steps {
+  flex: 0 0 12rem;
+  overflow-y: auto;
+}
+
+.luna-publish__steps ol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-publish__step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-2);
+  align-items: center;
+  inline-size: 100%;
+  padding: var(--space-2);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-text-secondary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-publish__step:hover,
+.luna-publish__step:focus-visible {
+  background: var(--color-bg-hover);
+  outline: none;
+}
+
+.luna-publish__step[aria-current="step"] {
+  border-color: var(--color-accent);
+  background: var(--color-bg-selected);
+  color: var(--color-text-primary);
+}
+
+.luna-publish__step-mark {
+  display: inline-flex;
+  grid-row: span 2;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--space-5);
+  block-size: var(--space-5);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-publish__step[data-done] .luna-publish__step-mark {
+  border-color: var(--color-status-success);
+  color: var(--color-status-success);
+}
+
+.luna-publish__step-name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.luna-publish__step-state {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-publish__pane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.luna-publish__pane[hidden] {
+  display: none;
+}
+
+.luna-publish__blocked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  font-size: var(--font-size-sm);
+  color: var(--color-status-warning);
+}
+
+.luna-publish__checks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-publish__checks li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+/* 窄时步骤列横到上面去（一行可横滚），内容在下。 */
+@container (max-width: 40rem) {
+  .luna-publish__layout {
+    flex-direction: column;
+  }
+
+  .luna-publish__steps {
+    flex: none;
+    overflow-x: auto;
+  }
+
+  .luna-publish__steps ol {
+    flex-direction: row;
+  }
+
+  .luna-publish__step {
+    inline-size: auto;
+    white-space: nowrap;
+  }
+}
+
+/* 录制页签（ADR-165 ⑧）：开录前检查两行，下面是重来标记。 */
+.luna-recording {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-inline-size: 48rem;
+  overflow-y: auto;
+}
+
+.luna-recording__checks,
+.luna-recording__retakes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-recording__check {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.luna-recording__check-name {
+  color: var(--color-text-primary);
+}
+
+.luna-recording__check-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-status-success);
+}
+
+.luna-recording__check-gap {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-status-warning);
+}
+
+.luna-recording__retake {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  inline-size: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-recording__retake:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-recording__retake-text {
+  flex: 1;
+  min-inline-size: var(--space-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-recording__retake-note {
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* ── 提词器（ADR-162 ⑤ C4a）──────────────────────────────────────────────────
+   常驻浮动面板：上面一条控制条（整条可拖窗），下面是大字阅读面。字号与行宽来自内部设置，
+   经 `--prompter-*` 变量传进来；镜像只翻文字，不翻控制条。 */
+.luna-teleprompter {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  block-size: 100vh;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  overflow: hidden;
+}
+
+.luna-teleprompter__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-teleprompter__title {
+  flex: 1;
+  min-inline-size: var(--space-0);
+  overflow: hidden;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-teleprompter__stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.luna-teleprompter__value {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-teleprompter__scroll {
+  flex: 1;
+  min-block-size: var(--space-0);
+  overflow-y: auto;
+}
+
+/* 文字从阅读面上方三分之一处开始、可以滚到最后一行也停在那里：读的那一行总在眼睛附近。 */
+.luna-teleprompter__text {
+  inline-size: var(--prompter-line-width);
+  margin-inline: auto;
+  padding-block: 33vh 66vh;
+  font-size: var(--prompter-font-size);
+  line-height: 1.5;
+}
+
+.luna-teleprompter[data-mirror] .luna-teleprompter__text {
+  transform: scaleX(-1);
+}
+
+.luna-teleprompter__block {
+  margin-block-end: 1em;
+}
+
+.luna-teleprompter__heading {
+  margin: var(--space-0) var(--space-0) 0.4em;
+  font-size: 0.5em;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.luna-teleprompter__line {
+  margin: var(--space-0) var(--space-0) 0.5em;
+}
+
+.luna-teleprompter__marker {
+  display: inline-block;
+  margin-inline-end: 0.5em;
+  padding: 0 0.4em;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-selected);
+  font-size: 0.45em;
+  vertical-align: middle;
+  color: var(--color-text-secondary);
+}
+
+.luna-teleprompter__empty {
+  margin: var(--space-6) var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.luna-teleprompter__resize {
+  position: absolute;
+  inset-block-end: var(--space-0);
+  inset-inline-end: var(--space-0);
+  inline-size: var(--space-4);
+  block-size: var(--space-4);
+  padding: var(--space-0);
+  border: 0;
+  background: transparent;
+  cursor: nwse-resize;
+}
+
+.luna-teleprompter__resize::after {
+  content: "";
+  position: absolute;
+  inset-block-end: var(--space-1);
+  inset-inline-end: var(--space-1);
+  inline-size: var(--space-2-5);
+  block-size: var(--space-2-5);
+  border-block-end: var(--border-width-thick) solid var(--color-text-muted);
+  border-inline-end: var(--border-width-thick) solid var(--color-text-muted);
+  border-end-end-radius: var(--radius-xs);
+}
+
+/* 跟读（C4b）：念到的那一行用强调色标出；出错的提示压在阅读面顶上。 */
+.luna-teleprompter__line[data-current] {
+  color: var(--color-accent);
+}
+
+.luna-teleprompter__notice {
+  position: sticky;
+  /* 压在滚过去的正文上面（真机：大字号正文滚到顶时会盖住提示）。 */
+  z-index: 1;
+  inset-block-start: var(--space-0);
+  margin: var(--space-0);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-status-warning-surface);
+  font-size: var(--font-size-sm);
+  color: var(--color-status-warning);
+}
+
+
+/* ── 项目工作区（ADR-165 ⑥）────────────────────────────────────────────────────
+   页头（面包屑 + 下一步）→ 阶段步进条 → 页签 → 内容。内容区自己滚动，页头与页签不动。 */
+
+.luna-project {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  block-size: var(--size-full);
+  min-block-size: var(--space-0);
+  container: project / inline-size;
+}
+
+/* 页头下面一行：左边阶段步进条，右边计划发布日期（PRD-19-040）；窄时日期换到下一行。 */
+.luna-project__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+/* 阶段推进提示（S6c）：步进条下一行，一句事实 + 「进入下一阶段」+ 收起。 */
+.luna-project__hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.luna-project__date {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.luna-project__date-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* 阶段步进条：做过的、当前、还没到的三态；点哪一格就把项目移到哪一格。 */
+.luna-project__stepper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-project__step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.luna-project__step + .luna-project__step::before {
+  content: "";
+  inline-size: var(--space-4);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-project__step-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-full);
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.luna-project__step-button:hover:not(:disabled),
+.luna-project__step-button:focus-visible {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+  outline: none;
+}
+
+.luna-project__step[data-state="done"] .luna-project__step-button {
+  color: var(--color-text-secondary);
+}
+
+.luna-project__step[data-state="current"] .luna-project__step-button {
+  border-color: var(--color-accent);
+  background: var(--color-bg-selected);
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.luna-project__step-dot {
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border: var(--border-width-thin) solid currentColor;
+  border-radius: var(--radius-full);
+}
+
+.luna-project__step[data-state="done"] .luna-project__step-dot {
+  border-color: var(--color-status-success);
+  background: var(--color-status-success);
+}
+
+.luna-project__step[data-state="current"] .luna-project__step-dot {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+/* 页签行：固定页签 + 从项目里点开的那一篇（可关）。 */
+.luna-project__tabbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-project__tabs {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.luna-project__tab {
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-block-end: var(--border-width-thick) solid transparent;
+  background: none;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.luna-project__tab:hover,
+.luna-project__tab:focus-visible {
+  color: var(--color-text-primary);
+  outline: none;
+}
+
+.luna-project__tab[aria-selected="true"] {
+  border-block-end-color: var(--color-accent);
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.luna-project__doc {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-inline-size: var(--size-full);
+  padding-inline: var(--space-2) var(--space-1);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-selected);
+  font-size: var(--font-size-sm);
+}
+
+.luna-project__doc-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-project__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-block-size: var(--space-0);
+}
+
+/* 发布页签是一页表单：在这里自己滚动。 */
+.luna-project__body[data-tab="publish"] {
+  overflow-y: auto;
+  /* 发布清单窄时把步骤列横到上面（见 `.luna-publish__layout`）。 */
+  container-type: inline-size;
+}
+
+/* 录制页签：两节表单，在这里自己滚动。 */
+.luna-project__body[data-tab="recording"] {
+  overflow-y: auto;
+}
+
+/* 概览 = 项目首页：主页笔记就地编辑（左）+ 项目里的东西（右）。窄窗口上下叠。 */
+.luna-project__overview {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(var(--space-0), 1fr) minmax(var(--space-0), 20rem);
+  gap: var(--space-3);
+  min-block-size: var(--space-0);
+}
+
+@container project (max-width: 768px) {
+  .luna-project__overview {
+    grid-template-columns: minmax(var(--space-0), 1fr);
+  }
+}
+
+.luna-overview__materials {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-block-size: var(--space-0);
+  padding: var(--space-3);
+  overflow-y: auto;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+}
+
+.luna-overview__materials-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.luna-overview__materials-header h2 {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.luna-overview__materials-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.luna-overview__materials-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.luna-overview__materials-group h3 {
+  margin: var(--space-0);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* 一组的标题行：「素材与来源」右边是「写研究简报…」（ADR-167 ⑥）。 */
+.luna-overview__group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.luna-overview__group-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+/* 面板里一行放不下标题 + 关系 + 时间：标题独占一行，关系与时间折到下一行（真机 2026-10-19：
+   标题被挤成零宽，只剩标签与时间）。 */
+.luna-overview__materials .luna-creator-page__item {
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+}
+
+.luna-overview__materials .luna-creator-page__item-title {
+  flex-basis: 100%;
+}
+
+/* ── 脚本工作区（ADR-165 ⑦）：动作在上方工具栏，事实在右侧检查器 ─────────────── */
+
+.luna-script {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-block-size: var(--space-0);
+}
+
+.luna-script__toolbar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.luna-script__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-script__spacer {
+  flex: 1;
+}
+
+.luna-script__dictation {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* 全篇时长：点开是语速（来源、校准、恢复默认）。 */
+.luna-script__duration {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-selected);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.luna-script__duration:hover,
+.luna-script__duration:focus-visible {
+  border-color: var(--color-border-strong);
+  outline: none;
+}
+
+.luna-script__rate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.luna-script__rate-actions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.luna-script__hint {
+  margin: var(--space-0);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* 编辑器（左）+ 检查器（右）；窄窗口上下叠。 */
+.luna-script__main {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(var(--space-0), 1fr) minmax(var(--space-0), 18rem);
+  gap: var(--space-3);
+  min-block-size: var(--space-0);
+}
+
+@container project (max-width: 768px) {
+  .luna-script__main {
+    grid-template-columns: minmax(var(--space-0), 1fr);
+  }
+}
+
+.luna-script__inspector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-block-size: var(--space-0);
+  padding: var(--space-3);
+  overflow-y: auto;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+}
+
+.luna-script__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.luna-script__group h3 {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+/* 镜头清单（PRD-19-026）：一行一个 broll 块——勾选框、镜头文字、所在段；完成的划掉。 */
+.luna-script__shots {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-script__shot {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1-5);
+}
+
+.luna-script__shot > input {
+  margin-block-start: var(--space-0-5);
+}
+
+.luna-script__shot-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-inline-size: var(--space-0);
+  padding: var(--space-0);
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-align: start;
+  white-space: pre-line;
+  cursor: pointer;
+}
+
+.luna-script__shot[data-done] .luna-script__shot-text > span:first-child {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+.luna-script__shot-section {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-script__swipe-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.luna-script__swipe-group h4 {
+  margin: var(--space-0);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* 段落：段名 + 时长，下面一条按最长那段等比的条——一眼看出哪段太长。 */
+.luna-script__sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-script__sections > li {
+  position: relative;
+}
+
+.luna-script__sections > li[data-dragging] {
+  opacity: var(--opacity-idle);
+}
+
+/* 落点 = 「插到这一段之前」：目标行上缘一条强调线（与活动栏、标签条重排同一种语言）。 */
+.luna-script__sections > li[data-drop-before]::before {
+  content: "";
+  position: absolute;
+  inset-inline: var(--space-1);
+  inset-block-start: calc(-1 * var(--space-0-5));
+  block-size: var(--space-0-5);
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  pointer-events: none;
+}
+
+.luna-script__drop-end {
+  min-block-size: var(--space-6);
+}
+
+.luna-script__section {
+  display: grid;
+  grid-template-columns: minmax(var(--space-0), 1fr) auto;
+  gap: var(--space-1) var(--space-2);
+  inline-size: var(--size-full);
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-align: start;
+  cursor: grab;
+}
+
+.luna-script__section:hover,
+.luna-script__section:focus-visible {
+  background: var(--color-bg-hover);
+  outline: none;
+}
+
+.luna-script__section-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-script__section-time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-script__section-bar {
+  grid-column: 1 / -1;
+  block-size: var(--space-1);
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    to right,
+    var(--color-accent) var(--script-share),
+    var(--color-bg-muted) var(--script-share)
+  );
+}
+
+.luna-script__cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-script__card {
+  inline-size: var(--size-full);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-script__card:hover,
+.luna-script__card:focus-visible {
+  background: var(--color-bg-hover);
+  outline: none;
+}
+
+/* 「笔记」空间里打开项目里的脚本：编辑器上方一条，带去创作空间（ADR-165 ⑦）。 */
+.luna-script-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-bg-selected);
+  font-size: var(--font-size-sm);
+}
+
+.luna-script-banner__text {
+  flex: 1;
+  min-inline-size: var(--space-0);
+}
+
+/* ── 日历视图（PRD-19-040）──────────────────────────────────────────────────
+   左边月历（七列、按周成行），右边「未排期」一栏；拖到某一格即改计划发布日期。 */
+.luna-creator-calendar {
+  display: flex;
+  flex: 1 1 auto;
+  gap: var(--space-4);
+  min-block-size: var(--space-0);
+  overflow: auto;
+}
+
+.luna-creator-calendar__month {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: var(--space-0);
+}
+
+.luna-creator-calendar__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-creator-calendar__title {
+  margin: var(--space-0);
+  min-inline-size: 8rem;
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  text-align: center;
+}
+
+.luna-creator-calendar__grid {
+  display: flex;
+  flex-direction: column;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.luna-creator-calendar__week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(var(--space-0), 1fr));
+}
+
+.luna-creator-calendar__weekday {
+  padding: var(--space-1) var(--space-2);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-creator-calendar__day {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-block-size: 5.5rem;
+  padding: var(--space-1);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+  border-inline-end: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-bg-panel);
+  min-inline-size: var(--space-0);
+}
+
+.luna-creator-calendar__week > .luna-creator-calendar__day:last-child {
+  border-inline-end: none;
+}
+
+/* 首尾补齐的邻月日子退后一层：底色与正文区同色、日期变淡。 */
+.luna-creator-calendar__day[data-outside] {
+  background: var(--color-bg-surface);
+}
+
+.luna-creator-calendar__day[data-outside] .luna-creator-calendar__date {
+  color: var(--color-text-muted);
+}
+
+.luna-creator-calendar__day[data-drop-target],
+.luna-creator-calendar__unscheduled[data-drop-target] {
+  background: var(--color-bg-selected);
+}
+
+.luna-creator-calendar__date {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-creator-calendar__day[data-today] .luna-creator-calendar__date {
+  align-self: flex-start;
+  padding: var(--space-0) var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  font-weight: 600;
+}
+
+.luna-creator-calendar__chip {
+  overflow: hidden;
+  padding: var(--space-0-5) var(--space-1);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: grab;
+}
+
+.luna-creator-calendar__chip:hover,
+.luna-creator-calendar__chip:focus-visible {
+  background: var(--color-bg-hover);
+  outline: none;
+}
+
+.luna-creator-calendar__chip[data-dragging] {
+  opacity: var(--opacity-idle);
+}
+
+.luna-creator-calendar__more {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-creator-calendar__unscheduled {
+  display: flex;
+  flex: 0 0 14rem;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+}
+
+.luna-creator-calendar__unscheduled h2 {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.luna-creator-calendar__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* ── 启用后的入门（ADR-165 ⑥）────────────────────────────────────────────────
+   「应用」详情页顶上的一张卡：三步一行一步，名称在左、选择在右。 */
+.luna-creator-setup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+}
+
+.luna-creator-setup__header h2 {
+  margin: var(--space-0);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+}
+
+.luna-creator-setup__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-0);
+  padding-inline-start: var(--space-5);
+}
+
+.luna-creator-setup__step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-creator-setup__name {
+  min-inline-size: 9rem;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+/* ── 分发页签（ADR-165 ⑧，PRD-19-024 / 025）──────────────────────────────────
+   一个目标一行（ADR-166 ④ S3：项目里的一个渠道，或某种形态的通用一份）：名称与说明在左
+   （下面列着已有的几份），「生成」在右。 */
+.luna-distribute__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-distribute__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.luna-distribute__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-inline-size: var(--space-0);
+}
+
+.luna-distribute__name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.luna-distribute__outputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-distribute__output {
+  padding: var(--space-0-5) var(--space-1-5);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-panel);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.luna-distribute__output:hover,
+.luna-distribute__output:focus-visible {
+  background: var(--color-bg-hover);
+  outline: none;
+}
+
+/* 已有的一份超出了目标渠道的上限（ADR-166 ④ S3）：写在那一份下面。 */
+.luna-distribute__outputs > li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-0-5);
+}
+
+.luna-distribute__issues {
+  margin: var(--space-0);
+  padding-inline-start: var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-status-warning);
+}
+
+/* ── 发布渠道（ADR-166）────────────────────────────────────────────────────────
+   发布页签页头：已选渠道一枚一个胶囊（带 ×），旁边「添加渠道」；入门卡里是一排可按的渠道。 */
+.luna-channel-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.luna-channel-picker__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-channel-picker__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-0-5);
+  padding-inline-start: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-panel);
+  font-size: var(--font-size-sm);
+}
+
+.luna-channel-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  inline-size: min(32rem, 90vw);
+}
+
+.luna-channel-editor__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.luna-channel-editor__limits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(var(--space-0), 1fr));
+  gap: var(--space-2) var(--space-3);
+}
+
+.luna-channel-editor__error {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  color: var(--color-status-warning);
+}
+
+/* ── 管理渠道（ADR-166 ⑦）：按形态分组，一行一个渠道——「常用」勾选、名字、上限摘要与发布须知、
+   「新项目默认」勾选，自定义渠道再带修改 / 删除。列表过长时在框内滚动。 */
+.luna-channel-manager {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  inline-size: min(44rem, 92vw);
+  max-block-size: 86vh;
+}
+
+.luna-channel-manager__groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  overflow-y: auto;
+  min-block-size: var(--space-0);
+}
+
+.luna-channel-manager__group > h4 {
+  margin: var(--space-0) var(--space-0) var(--space-1);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.luna-channel-manager__rows {
+  display: flex;
+  flex-direction: column;
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-channel-manager__row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 12rem) minmax(var(--space-0), 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.luna-channel-manager__row:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-channel-manager__check,
+.luna-channel-manager__default {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  cursor: pointer;
+}
+
+.luna-channel-manager__name {
+  color: var(--color-text-primary);
+}
+
+.luna-channel-manager__limits {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-channel-manager__notice {
+  padding: var(--space-0) var(--space-1-5);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--color-status-warning);
+  cursor: help;
+}
+
+.luna-channel-manager__default {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.luna-channel-manager__default:has(input:disabled) {
+  opacity: var(--opacity-idle);
+  cursor: default;
+}
+
+.luna-channel-manager__actions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.luna-channel-manager__error {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  color: var(--color-status-warning);
+}
+
+/* 一排可按的选项（渠道多选：入门卡、新建项目对话框）：按下 = aria-pressed。 */
+.luna-creator-page__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.luna-creator-page__choice {
+  padding: var(--space-0-5) var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.luna-creator-page__choice[aria-pressed="true"] {
+  border-color: var(--color-accent);
+  background: var(--color-bg-selected);
+  color: var(--color-text-primary);
+}
+
+/* ── 新建项目对话框（ADR-165 评审遗留 S6c）：名字、发到哪些渠道、计划发布日期。 */
+.luna-new-project {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  inline-size: min(34rem, 90vw);
+}
+
+.luna-new-project__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.luna-new-project__error {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  color: var(--color-status-warning);
+}
+
+/* ── 这次的额外要求（ADR-166 ⑤）────────────────────────────────────────────────
+   生成按钮上面一行：标签 + 输入框，下面一句说明它和频道风格一起带给 AI。 */
+.luna-extra-request {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+}
+
+.luna-extra-request__field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-extra-request__field > input {
+  flex: 1;
+  min-inline-size: var(--space-0);
+}
+
+.luna-extra-request__label {
+  flex: none;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.luna-extra-request__hint {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+/* ── 添加来源（ADR-167 ③）：四个页签——文件（拖放区）、网页、粘贴文字、库里的笔记。 */
+.luna-add-sources {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  inline-size: min(38rem, 92vw);
+  max-block-size: 86vh;
+}
+
+.luna-add-sources__tabs {
+  display: flex;
+  gap: var(--space-1);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-add-sources__tab {
+  padding: var(--space-1-5) var(--space-2);
+  border: 0;
+  border-block-end: var(--border-width-thick) solid transparent;
+  background: none;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.luna-add-sources__tab[aria-selected="true"] {
+  border-block-end-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+.luna-add-sources__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-block-size: var(--space-0);
+  overflow-y: auto;
+}
+
+.luna-add-sources__drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-3);
+  border: var(--border-width-thin) dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.luna-add-sources__drop[data-file-drop="true"] {
+  border-color: var(--color-accent);
+  background: var(--color-accent-surface);
+}
+
+.luna-add-sources__drop > p {
+  margin: var(--space-0);
+}
+
+.luna-add-sources__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.luna-add-sources__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.luna-add-sources__text {
+  padding: var(--space-1-5) var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  resize: vertical;
+}
+
+.luna-add-sources__hits {
+  display: flex;
+  flex-direction: column;
+  max-block-size: 18rem;
+  margin: var(--space-0);
+  padding: var(--space-0);
+  overflow-y: auto;
+  list-style: none;
+}
+
+.luna-add-sources__hit {
+  display: grid;
+  grid-template-columns: auto minmax(var(--space-0), 1fr);
+  align-items: center;
+  column-gap: var(--space-2);
+  padding: var(--space-1) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.luna-add-sources__hit:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-add-sources__hit-title {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.luna-add-sources__hit-path {
+  grid-column: 2;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.luna-add-sources__media {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  border: 0;
+  font-size: var(--font-size-sm);
+}
+
+.luna-add-sources__media > legend {
+  margin-block-end: var(--space-1);
+  padding: var(--space-0);
+  color: var(--color-text-secondary);
+}
+
+.luna-add-sources__choice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  cursor: pointer;
+}
+
+.luna-add-sources__notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* ── 项目研究（ADR-167 ⑥）：来源指南与写研究简报两个对话框。 */
+.luna-research {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  inline-size: min(36rem, 92vw);
+  max-block-size: 86vh;
+}
+
+.luna-research__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-block-size: var(--space-0);
+  overflow-y: auto;
+}
+
+.luna-research__summary {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.luna-research__points {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding-inline-start: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.luna-research__sources {
+  display: flex;
+  flex-direction: column;
+  max-block-size: 20rem;
+  margin: var(--space-0);
+  padding: var(--space-0);
+  overflow-y: auto;
+  list-style: none;
+}
+
+.luna-research__source {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.luna-research__source:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-research__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.luna-research__topic {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+}
+
+.luna-research__angle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.luna-research__error {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  color: var(--color-status-warning);
+}

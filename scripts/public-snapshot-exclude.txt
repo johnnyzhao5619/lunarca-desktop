@@ -1,0 +1,16 @@
+# 不进公开源码仓 johnnyzhao5619/lunarca-desktop 的路径（scripts/publish-source-snapshot.sh 读这一份）。
+# 一行一个，目录写到目录名即整个排除；# 起注释。写了却不存在的路径会让脚本停下：改名后同步改这里。
+#
+# 原则：公开仓要能完整构建、测试与修改（AGPL 对应源码，含构建与测试脚本、测试数据、发布用文件）；
+# 只服务于开发仓内部流程、在公开仓里无意义或会失效的文件不进去。
+
+# AI agent 指引：写的是开发仓的内部分工、环境与流程；构建与提交前自检的命令在 README。
+AGENTS.md
+CLAUDE.md
+
+# CI 跑在维护者的自托管 runner 上，公开仓不开 Actions。
+.github
+
+# 只守上面那几个文件的门禁：公开仓里没有被守的对象。
+scripts/check-docs-context-budget.py
+scripts/check-ci-gate-coverage.py

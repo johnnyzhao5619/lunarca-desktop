@@ -1,0 +1,259 @@
+/*
+ * 账户面板样式。
+ *
+ * **本文件只写「账户特有」的那几处**：外壳（页头、分节、卡片、信息行、动作行、说明文字）
+ * 一律用 `.luna-settings-panel__*` 原语。此前本面板自造了 `cloud-account__card / __facts /
+ * __actions / __muted` 一整套，结果账户页在设置中心里读起来是另一个产品。
+ *
+ * 零硬编码颜色 / 尺寸，只引用设计 Token；按钮复用 `.luna-btn`（TDD-15 强制矩阵）。
+ */
+
+/* 分节内的纵向堆叠：`__block` 只负责卡片外形与内距，内部间距在这里给。 */
+.cloud-account__stack {
+  display: grid;
+  gap: var(--space-3);
+}
+
+/* 应用内登录表单的一格：标签在上、输入框在下（ADR-154）。 */
+.cloud-account__field {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* 可关闭的整页错误横幅：文案占满、按钮贴右缘。
+   只在账户页加这一层，`.luna-error-banner` 全局原语保持不变（别处的横幅不可关闭）。 */
+.cloud-account__banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* 整页错误横幅的关闭按钮。
+   横幅本体（`.luna-error-banner`）是全局原语，这里只补账户页需要的"可关闭"这一点：
+   把文案与按钮排成两端对齐，按钮不参与文本流（否则长文案会把 × 顶到下一行去）。 */
+.cloud-account__banner-dismiss {
+  flex: none;
+  margin-inline-start: var(--space-2);
+  border: 0;
+  padding: var(--space-0) var(--space-1);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font-size: var(--font-size-base);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cloud-account__banner-dismiss:hover {
+  background: var(--color-bg-hover);
+}
+
+/* 删除账户完成后的回执：说明 + 一颗关闭，与错误横幅同构。 */
+.cloud-account__notice {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: var(--space-0);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-status-success-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+/* 付款处境横幅（纵切 3 C3）：「升级与购买」一节顶部，催缴偏警示、冻结偏错误；催缴时按钮贴右缘。 */
+.cloud-account__standing {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: var(--space-0);
+  padding: var(--space-2) var(--space-3);
+  border-inline-start: var(--border-width-thick) solid var(--color-status-warning);
+  border-radius: var(--radius-sm);
+  background: var(--color-status-warning-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+}
+
+.cloud-account__standing[data-tone="error"] {
+  border-inline-start-color: var(--color-status-error);
+  background: var(--color-status-error-surface);
+}
+
+.cloud-account__standing-text {
+  margin: var(--space-0);
+}
+
+/* 大号配对码：等宽 + 放大 + 字距，允许整段选中便于手动录入（剪贴板被拒时的退路）。 */
+.cloud-account__code {
+  margin: var(--space-0);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--space-1);
+  text-align: center;
+  user-select: all;
+}
+
+/* 浏览器登录的排障信息按需展开；正常路径只保留一个主动作。 */
+.cloud-account__fallback {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.cloud-account__fallback summary {
+  cursor: pointer;
+}
+
+.cloud-account__fallback[open] {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* 设备名 / 套餐名与它的徽标同处一行：徽标是名字的限定语，不该换行读作独立一项。 */
+.cloud-account__device-name,
+.cloud-account__plan-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.cloud-account__badge {
+  padding: var(--space-0) var(--space-1-5);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-surface);
+  color: var(--color-accent-strong);
+  font-size: var(--font-size-xs);
+  /* 徽标包在 `__row-title`（500）里，需退回常规字重才读作限定语而非第二个名字。
+     字重在本仓按字面量写（tokens 里只定义了 semibold 一枚），与 settings.css 同口径。 */
+  font-weight: 400;
+}
+
+.cloud-account__badge--muted {
+  background: var(--color-status-muted-surface);
+  color: var(--color-status-muted);
+}
+
+/* 档位徽标（ADR-121 ⑥）：`data-alert` 直接是服务端判定的档位（协议 v12，`none` 不出徽标）；账本里只有
+   最紧的那一维带它。「已用尽」与「即将耗尽」同一配色、文案各说各的。月度预付上限与同步存储同一套。 */
+.cloud-account__badge[data-alert="p80"] {
+  background: var(--color-status-warning-surface);
+  color: var(--color-status-warning);
+}
+
+.cloud-account__badge[data-alert="p95"],
+.cloud-account__badge[data-alert="exhausted"] {
+  background: var(--color-status-error-surface);
+  color: var(--color-status-error);
+}
+
+/* 用量的值列：条 + 数字 + 徽标一行排开。条吃掉剩余宽度，数字与徽标不被挤压——
+   否则「1.2 GB / 5 GB」会在窄栏里断成两行，而那串数字正是这一行的答案。 */
+.luna-settings-panel__ledger .luna-settings-panel__row-value {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* 条的最小宽度按目标值写：Token 表里没有宽度阶梯（`--space-*` 止于 7），
+   与 `.luna-semantic-index__progress .luna-progress` 同一口径。 */
+.luna-settings-panel__ledger .luna-progress {
+  flex: 1;
+  min-inline-size: 6rem;
+}
+
+.cloud-account__amount {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 危险区（ADR-121 ④）：与前三段之间一条分隔线，标题退到次要字号与次要色。
+   它不是第四节——量级差异靠视觉降权表达，不靠那句警告文案去争取注意力。 */
+.cloud-account__danger-zone {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-6);
+  padding-block-start: var(--space-4);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.cloud-account__danger-title {
+  margin: var(--space-0);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+}
+
+/* 权益行与账本行之间的分隔（ADR-121 ② 不许在段内贴第二个段标题，故只用一条线）。 */
+.cloud-account__entitlements {
+  margin-block-start: var(--space-3);
+  padding-block-start: var(--space-3);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* 设备超限：数字本身说不出「该怎么办」，标题与那句说明一起转成警示色。
+   类名归本文件所有——`.luna-settings-panel__*` 的主体规则住在 settings.css，
+   在这里改它就是寄居（TDD-15 §2.3，由 style-ownership-guard 强制）。 */
+.cloud-account__devices-title[data-over-limit],
+.cloud-account__warning {
+  color: var(--color-status-warning);
+}
+
+/* 登录第二站的头一行：「登录到 <服务器>」与「换一个服务器」同一行，按钮贴右缘。 */
+.cloud-account__server-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* 账户页「高级」折叠：服务器身份与组织配置文件只在用户主动要看时出现（ADR-116 ②）。 */
+.cloud-account__advanced {
+  color: var(--color-text-secondary);
+}
+
+.cloud-account__advanced > summary {
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+.cloud-account__advanced[open] {
+  display: grid;
+  gap: var(--space-3);
+}
+
+/* 账单口径：几条短句的列表（PRD-13-037/038）。字号与色同说明文字，列表符号缩进走逻辑属性。
+   删除确认里「删除之后会怎样」（纵切 3 C6）同一种短句列表，共用这一条。 */
+.cloud-account__rules,
+.cloud-account__consequences {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding-inline-start: var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* 「导出我的账户数据」（纵切 3 C6）：身份段里在退出 / 刷新那一行之下，说明 + 按钮 + 状态纵向排开；
+   删除确认里同一块，只是不带说明。 */
+.cloud-account__export {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+}
+
+/* 保存位置是一整条路径：长路径在窄栏里任意处断行，不把面板撑出横向滚动。 */
+.cloud-account__saved {
+  overflow-wrap: anywhere;
+}

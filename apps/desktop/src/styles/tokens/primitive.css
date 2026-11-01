@@ -1,0 +1,195 @@
+:root {
+  --size-full: 100%;
+  --size-screen: 100vw;
+  /* 实时字幕沉浸模式专用（刻意不随主题：视频上永远白字暗底衬，PRD-04-040）。
+   * 逐行衬底 alpha 由面板行内 `--caption-bg-alpha`（0–1，设置驱动）控制，不在此固化。 */
+  --caption-immersive-text: #ffffff;
+  /* 字幕文字颜色档（对标播放器：白/黄/青/绿，均为暗底上高可读的定值，不随主题）。 */
+  --caption-color-white: #ffffff;
+  --caption-color-yellow: #ffe066;
+  --caption-color-cyan: #66e0ff;
+  --caption-color-green: #7fe38a;
+  --caption-immersive-scrim-strong: rgb(0 0 0 / 0.82);
+  /* 字幕文字投影：只给逐行暗底调到 0（纯描边模式）时兜底一点轮廓。此前是两层近乎不透明的
+     投影，有暗底时它叠在底上发糊，浅色背景上又晕成脏边（真机 2026-10-02）。 */
+  --caption-text-shadow: 0 1px 2px rgb(0 0 0 / 0.55);
+  --caption-immersive-hairline: rgb(255 255 255 / 0.18);
+  --caption-immersive-btn-shadow: 0 2px 10px rgb(0 0 0 / 0.35);
+  --caption-line-measure: 42ch;
+  /* 透明字幕窗的边界虚线：中灰，深浅背景上都看得见（不随主题——它画在别人的画面上）。 */
+  --caption-bounds-outline: rgb(128 128 128 / 0.65);
+  /* 字幕外观面板宽。 */
+  --caption-appearance-inline: 22rem;
+  --caption-safe-inline: 8%;
+  --caption-safe-block: 10%;
+  /* 截屏翻译框选层专用（刻意不随主题：覆盖在任意应用之上，Snipaste 式暗化蒙层 +
+   * 高对比选框/十字线/徽标，PRD-01-007 / TDD-05 §1.5）。 */
+  --shot-mask: rgb(0 0 0 / 0.38);
+  --shot-crosshair: rgb(255 255 255 / 0.55);
+  --shot-border: #34a4ff;
+  --shot-handle-fill: #ffffff;
+  --shot-badge-bg: rgb(0 0 0 / 0.78);
+  --shot-badge-text: #ffffff;
+  --shot-hint-bg: rgb(0 0 0 / 0.72);
+  --shot-hint-text: rgb(255 255 255 / 0.92);
+  --shot-hint-shadow: 0 4px 16px rgb(0 0 0 / 0.35);
+  /* 框选失败的说明比一句提示长（原因 + 下一步），封顶宽度后折行，不横穿整块屏幕。 */
+  --shot-hint-max-inline: 32rem;
+  /* 视频同步回放（PRD-04-058）：画面 letterbox 底与叠加层**刻意不随主题**——字幕/播放键
+   * 叠在任意画面之上，必须恒为暗衬亮字才保证可读（同实时字幕沉浸态取舍）。
+   * 尺寸档：分屏画面列宽 / 悬浮小窗宽度。 */
+  --video-stage-bg: #14110d;
+  --video-subtitle-bg: rgb(0 0 0 / 0.66);
+  --video-subtitle-text: #f8f5ee;
+  --video-subtitle-translation: #f2d489;
+  --video-overlay-bg: rgb(0 0 0 / 0.45);
+  --video-overlay-bg-strong: rgb(0 0 0 / 0.65);
+  --video-overlay-border: rgb(255 255 255 / 0.5);
+  --video-subtitle-font: calc(15px * var(--font-scale));
+  --video-stage-inline: 42%;
+  --video-stage-min-inline: 280px;
+  --video-stage-float-inline: 360px;
+  /* 零档**必须带单位**：它常作为 `calc()` 的一个加数（`.cm-line` 的块间距与块容器
+     内缘留白就是相加得出的），而 CSS 的 `+` 要求两侧同类型——`calc(16px + 0)` 里的
+     `0` 是 <number> 不是 <length>，整条声明会被**静默丢弃**。`0px` 在现有全部消费点
+     （margin / padding / inset / min-*-size / gap / border-radius / box-shadow）与 `0` 等价。 */
+  --space-0: 0px;
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-2-5: 10px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  /*
+   * 表单控件的统一行高档（TDD-15 §3.5 / §3.3a）。
+   *
+   * **它此前是"定义了但从未被消费"的一层**：治理规范里写着 `--control-height`，而实际
+   * 控件高度一直由 `--space-*` 内边距 + 行高各自撑出来——于是同一行里的查询框（≈33.5px）
+   * 与排序下拉（≈26px，原生 `<select>` 在 WebKit 下忽略 `line-height`）差了 7px，靠在
+   * `.luna-transcribe-filters__sort` 上手调一句 `padding-block` 去凑（真机 2026-09-08 上报）。
+   * 手调值在 comfortable 密度档下会再次错位，因为那一档重映射的是 `--space-*` 而不是它。
+   *
+   * 设置模块早已私下有过同一个 Token（`--settings-control-block`，值同为 32px）——
+   * 一个尺度被两处各定义一次，正是这一层缺位的证据；那份现已并入本 Token。
+   *
+   * 用法是**下限**（`min-block-size`）而不是死高：字号档（`--font-scale`）调大时控件应当
+   * 跟着长高而不是把文字裁掉。同一行里的控件因此恒等高——它们的内容与字号相同，下限也相同。
+   */
+  /* 工作区状态栏行高：栅格与贴在它之上的常驻条（「正在播放」）同源引用，
+     不让"贴在状态栏上方"变成两处各写一个 24px。 */
+  --workspace-statusbar-block: 24px;
+  --workspace-rail-inline: 52px;
+  --workspace-sidebar-inline: 280px;
+  --control-height-md: 32px;
+  --control-height-sm: 28px;
+  /* 「标签在左、控件在右」这种两列行的控件列宽。设置页与首启引导的快捷键步共用同一个
+     数——引导那一步的行此前写的是设置页私有的那个控件列变量，而它只定义在
+     `.luna-settings` 上：引导卡片不在它里面，于是整条 `grid-template-columns` 在算值时
+     失效、退回单列，三行的标签与键位框全部堆叠成上下两截（真机 2026-09-10「与其他
+     UI 不统一」）。一个尺度只能有一个定义点。 */
+  --control-column-inline: 16rem;
+  --control-column-min-inline: 10rem;
+  --settings-content-max-inline: 52rem;
+  --settings-row-min-block: 4.5rem;
+  /* HUD 密度阶梯（ADR-137 V6）：控件 28、主按钮 32，一扇窗里只有这两种控件高。
+     此前是 32 / 34 / 40 三档——比主窗口还大一号，HUD 反而成了全应用最松的表面。 */
+  --hud-control-size: var(--space-7);
+  --hud-action-min-block-size: var(--space-7);
+  --hud-primary-min-block-size: calc(var(--space-7) + var(--space-1));
+  /* HUD 浮层材质（ADR-137 V1）：透明窗里的那块圆角面。圆角、内距、组间距各一个定义点。 */
+  --hud-radius: var(--radius-lg);
+  --hud-pad-block: var(--space-2-5);
+  --hud-pad-inline: var(--space-3);
+  --hud-gap: var(--space-2);
+  /* 回执线的成功回执停留多久（ADR-137 V5）：够读完一句短话，不等用户去关。 */
+  --hud-receipt-linger: 2400ms;
+  --hud-menu-min-inline-size: 168px;
+  --hud-menu-max-inline-size: 280px;
+  --hud-content-min-block-size: 136px;
+  /* 弹窗译文框（ADR-137 V7）：下限两行（一个词不占五行），上限之后在框内滚动。 */
+  --hud-output-min-block-size: calc(var(--font-size-base) * var(--line-height-base) * 2 + var(--space-3) * 2);
+  --hud-output-max-block-size: 22rem;
+  /* 对话输入框封顶（之后在框内滚动）：此前是写在 JS 里的 180。 */
+  --chat-composer-max-block-size: 11.25rem;
+  --editor-preview-max-block-size: 18rem;
+  --hud-translate-preset-max-inline-size: 190px;
+  --opacity-disabled: 0.55;
+  /* 常驻于他人内容之上的浮层控件静息态：可被察觉但不抢注意力，悬停/聚焦即回满不透明。 */
+  --opacity-idle: 0.42;
+  --border-width-thin: 1px;
+  --border-width-thick: 2px;
+  --outline-width-focus: 2px;
+  --radius-none: 0;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+  --font-scale: 1;
+  --font-size-xs: calc(12px * var(--font-scale));
+  --font-size-sm: calc(13px * var(--font-scale));
+  --font-size-md: calc(14px * var(--font-scale));
+  --font-size-base: calc(15px * var(--font-scale));
+  --font-size-lg: calc(18px * var(--font-scale));
+  --font-size-xl: calc(22px * var(--font-scale));
+  --font-size-2xl: calc(26px * var(--font-scale));
+  /* 无衬线字体栈：**全应用唯一定义点**（界面外壳与笔记正文共用；TDD-15 §3.4a 的
+     「共用一处定义」同样适用于字体）。此前它被写了三遍——`html,body,#root` 一份长栈、
+     `.luna-workspace` 一份**短栈**（少了 `"Helvetica Neue", Arial`）、`kbd` 又一份短栈；
+     `.luna-workspace` 特异性更高，于是整个工作区实际生效的是那份短的，而没有人知道。
+     **排列顺序 = 拉丁字体在前、CJK 在后**：CSS 的字体回退是**逐字符**的，拉丁字体
+     没有汉字字形，中文字符会自动落到后面第一个有字形的 CJK 字体——顺序反过来则西文也
+     被 CJK 字体的半角拉丁字形接管（字重与字距明显不同）。多平台字体名**并列**在同一个
+     栈里即可，不写平台分支：本机没装的名字直接跳过，这正是回退链的语义。
+     PingFang SC = macOS（Hiragino Sans GB 兜住 10.10 以前）、Microsoft YaHei = Windows、
+     Noto Sans CJK SC / Source Han Sans SC = Linux 与其余落点。 */
+  --font-family-base:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", sans-serif;
+  /* 等宽栈**刻意不加 CJK 分支**（裁决，2026-08-24）：代码块里的中文只出现在注释与字符串，
+     全角 CJK 等宽字形与半角拉丁混排反而更难对齐；而浏览器的**最后手段回退**（last-resort）
+     本就保证任何字符都不会渲染成豆腐块，不加也不会缺字形。多一处 CJK 名单 = 多一处
+     要跟着 `--font-family-base` 同步的定义（§3.4a 的分叉配方）。 */
+  --font-family-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --line-height-base: 1.5;
+  --editor-min-block: 420px;
+  --version-history-min-block: 240px;
+  --version-history-list-min-inline: 180px;
+  --floating-menu-inline-size: 420px;
+  /* ⌘ 悬停链接预览（对标方案 C1）：Obsidian 页面预览同量级，一屏能看完一段。 */
+  --link-preview-inline-size: 440px;
+  --link-preview-max-block: 360px;
+  /* 表格单元格最窄宽度（编辑面与阅读面共用）：中文可在任意两字之间断行，自动表格布局会把每列
+     压到一个字宽、宽表永远不出横向滚动（真机 2026-10-04，九列表每格折成四行）。约六个字。 */
+  --table-cell-min-inline: 6em;
+  --notification-host-width: 360px;
+  /* 仪表盘（PRD-07-050）：整幅可读宽度 / 侧列最窄 / 快速开始卡最窄（决定自适应列数） */
+  --dashboard-measure: 1280px;
+  --dashboard-side-min: 280px;
+  --dashboard-action-min: 148px;
+  --onboarding-card-max-inline: 960px;
+  --onboarding-step-min-inline: 104px;
+  /* 活动步圆点的强调环宽度（不是焦点环——焦点走 `--color-focus-ring`）。 */
+  --onboarding-step-ring: 3px;
+  /* 常驻画面层（ADR-118）：压在正文之上、**菜单与浮层之下**——它是内容不是浮层，
+     此前用 overlay 档，于是页头的选项浮层、说话人菜单都被画面盖住（真机 2026-09-08）。 */
+  --z-stage: 5;
+  --z-floating-menu: 10;
+  --z-notification: 20;
+  --z-overlay: 50;
+  /* 上下文菜单（ADR-118 同精神）：它可以从**对话框/抽屉内部**唤起，故必须压在覆盖层
+     之上。此前它用 `--z-floating-menu`(10)，于是通知抽屉（overlay，50）里点漏斗与
+     「⋯」时菜单确实开了，只是整个被抽屉盖住——表现为"点了没反应"（真机 2026-09-09）。 */
+  --z-context-menu: 60;
+
+  /* Transitions & Shadows */
+  --transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}

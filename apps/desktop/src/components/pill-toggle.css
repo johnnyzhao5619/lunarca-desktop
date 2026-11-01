@@ -1,0 +1,51 @@
+/*
+ * 胶囊开关（`.luna-pill-toggle`）——面板里那种"开/关一个视图条件"的小圆角切换键。
+ *
+ * **它此前叫 `.luna-graph__toggle`、住在 `features/graph/graph.css`**，而使用者是
+ * 图谱过滤器、标签面板的「只看用户标签」、副库窗口的笔记/图谱视图切换——三个 feature。
+ * 副库窗口的注释甚至自陈「复用侧栏原生胶囊」：借用一个属于别人的名字，正是 §3.3a
+ * 说的"名字一旦说谎，下一个人要么继续借、要么另抄一份"。
+ *
+ * **它同时还被当成过按钮用**（图谱维护区的「取消重扫」、折叠区开合）。开关与动作是
+ * 两件事：开关有 `aria-pressed`/`aria-expanded` 这样的**状态**，动作按一下就完了。
+ * 借开关的皮做动作按钮，用户读到的是"这个东西现在是关着的"。动作已改回 `.luna-btn`
+ * 系；本原语只服务真正带状态的切换键。
+ */
+
+.luna-pill-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.luna-pill-toggle:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-pill-toggle[aria-pressed="true"],
+.luna-pill-toggle[aria-expanded="true"] {
+  background: var(--color-accent-surface);
+  border-color: var(--color-border-focus);
+  color: var(--color-accent-strong);
+}
+
+.luna-pill-toggle:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.luna-pill-toggle:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: var(--space-0-5);
+}

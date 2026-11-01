@@ -1,0 +1,62 @@
+{
+  "_comment": [
+    "二次分发 distribute.newsletter（PRD-19-024 / 025，ADR-165 ⑧；v11 起按目标渠道写，ADR-166 ④）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "summarize",
+  "template": "creator.distribute.newsletter",
+  "cases": [
+    {
+      "name": "能当邮件发",
+      "vars": {
+        "channel": "X",
+        "limits": "Each post at most 280 characters.",
+        "style": "None."
+      },
+      "must_contain": [
+        "works as the subject line",
+        "under 400 words"
+      ],
+      "why": "没有主题行就没法直接发；太长没人读完"
+    },
+    {
+      "name": "不编造",
+      "vars": {
+        "channel": "X",
+        "limits": "Each post at most 280 characters.",
+        "style": "None."
+      },
+      "must_contain": [
+        "never invent numbers"
+      ],
+      "why": "简报里多出视频里没有的承诺"
+    },
+    {
+      "name": "同语言、只回正文",
+      "vars": {
+        "channel": "X",
+        "limits": "Each post at most 280 characters.",
+        "style": "None."
+      },
+      "must_contain": [
+        "same language as the text",
+        "Output only the newsletter in Markdown"
+      ],
+      "why": "语言错位或回带解释"
+    },
+    {
+      "name": "目标渠道的名字、上限、风格都进得来",
+      "vars": {
+        "channel": "Email newsletter",
+        "limits": "No fixed length limits.",
+        "style": "None."
+      },
+      "must_contain": [
+        "Target: Email newsletter.",
+        "No fixed length limits.",
+        "None."
+      ],
+      "why": "变量没进模板时，每个渠道拿到的都是同一份通用改写，X 的推文超长、领英拿到推文串"
+    }
+  ]
+}

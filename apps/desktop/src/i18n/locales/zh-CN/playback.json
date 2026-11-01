@@ -1,0 +1,215 @@
+{
+  "title": "同步回放",
+  "openFromEditorHint": "在同步回放里打开这一篇：边听边看，点任意一行即跳到那个时间点。",
+  "queued": "排队中",
+  "queuedHint": "已加入处理队列，排队中…",
+  "processFailed": "处理失败",
+  "action": {
+    "play": "播放",
+    "pause": "暂停",
+    "returnToCurrent": "回到当前行",
+    "retry": "重试",
+    "back10": "后退 10 秒",
+    "forward10": "前进 10 秒",
+    "back10Short": "−10s",
+    "forward10Short": "+10s"
+  },
+  "speed": {
+    "label": "倍速",
+    "option": "{{rate}}×",
+    "cycle": "倍速 {{rate}}×，点击切换下一档"
+  },
+  "bookmarks": {
+    "label": "书签",
+    "jump": "跳转到 {{time}} 的书签",
+    "jumpNoted": "跳转到 {{time}} 的书签：{{note}}"
+  },
+  "bilingual": {
+    "label": "显示模式",
+    "source": "原文",
+    "translation": "译文",
+    "both": "双语",
+    "needTranslation": "先运行「二次翻译」生成译文"
+  },
+  "translate": {
+    "label": "二次翻译",
+    "targetLabel": "目标语言",
+    "smart": "智能双向",
+    "run": "翻译",
+    "rerun": "重新翻译",
+    "running": "翻译中…",
+    "targetPrefix": "译成"
+  },
+  "fullEdit": {
+    "title": "整篇校对编辑",
+    "dirty": "{{count}} 处未保存",
+    "clean": "无未保存改动",
+    "saving": "保存中…",
+    "done": "完成",
+    "discard": "放弃更改",
+    "saved": "转写已保存",
+    "failed": "保存失败：{{error}}",
+    "empty": "字幕文本不能为空（整条不要请用行内的「删除」）",
+    "hint": "逐行校对全文；退出后双击单条可再编辑"
+  },
+  "aria": {
+    "position": "当前位置",
+    "controls": "回放控制",
+    "cueList": "转写字幕列表",
+    "scrubber": "播放进度",
+    "seekTo": "跳转到 {{time}}"
+  },
+  "secondPass": {
+    "run": "重新转写",
+    "running": "重新转写中…"
+  },
+  "edit": {
+    "label": "编辑 {{time}} 的字幕",
+    "hint": "⌘/Ctrl + Enter 保存，Esc 取消",
+    "save": "保存",
+    "saving": "保存中…",
+    "cancel": "取消",
+    "empty": "字幕文本不能为空（整条不要请用「删除」）",
+    "failed": "保存失败",
+    "saved": "字幕已保存",
+    "modeToggle": "校对",
+    "doubleClickHint": "单击跳转，双击编辑",
+    "delete": "删除",
+    "deleteHint": "删除整条字幕（片头广告、口水句、静音段的误识别）",
+    "deleteTitle": "删除这条字幕？",
+    "deleteDesc": "这一条的文本会从文稿中移除；音频不受影响。",
+    "deleteConfirm": "确认删除",
+    "deleteConfirmHint": "再点一次即删除本条；按 Esc 取消",
+    "deleted": "已删除该条字幕"
+  },
+  "diarize": {
+    "run": "区分说话人",
+    "running": "区分中…"
+  },
+  "speaker": {
+    "renameHint": "点击为该说话人改名",
+    "editLabel": "为 {{label}} 改名",
+    "placeholder": "显示名（留空恢复默认）",
+    "saved": "说话人已改名",
+    "failed": "改名失败：{{error}}",
+    "renameSave": "保存名字",
+    "renameAction": "重命名「{{name}}」…",
+    "rosterLabel": "说话人",
+    "segmentCount": "{{count}} 条",
+    "menuTitle": "指派说话人",
+    "assignHint": "点击指派说话人（可改判这一条 / 这一轮 / 全部）",
+    "unassigned": "未指派",
+    "newSpeaker": "新建说话人（{{name}}）",
+    "scopeTitle": "作用范围",
+    "scope": {
+      "single": "仅此条",
+      "following": "及后续",
+      "all": "全部"
+    },
+    "scopeHint": {
+      "single": "只改判当前这一条字幕",
+      "following": "改判这一条及其后连续同一说话人的字幕（一轮发言）",
+      "all": "把全篇属于该说话人的字幕整体改判（= 合并两位说话人）"
+    },
+    "assigned": {
+      "single": "已改判这一条",
+      "following": "已改判这一轮发言",
+      "all": "已改判该说话人的全部字幕"
+    },
+    "split": "已拆分，请为第二条指派说话人",
+    "splitTip": "一条里有两个人说话？切到「文本编辑」模式，把光标放在分界处点「在光标处拆分」。",
+    "splitHint": "把光标处切成两条，右半句指派给新说话人（拆分后该段译文需重新翻译）",
+    "merge": "与上一条合并",
+    "mergeHint": "把这一条并回上一条（拆分的逆操作）",
+    "merged": "已与上一条合并",
+    "editFailed": "说话人校正失败：{{error}}",
+    "splitAction": "在光标处拆分"
+  },
+  "export": {
+    "label": "导出",
+    "running": "导出中…",
+    "done": "已导出到 {{path}}",
+    "failed": "导出失败：{{error}}"
+  },
+  "status": {
+    "loading": "加载字幕中…",
+    "error": "错误",
+    "noCues": "暂无转写内容",
+    "cueCount": "共 {{count}} 条字幕",
+    "downloading": "正在从云端下载录音 {{pct}}%…"
+  },
+  "video": {
+    "title": "视频回放",
+    "toolbar": "视频画面控制",
+    "layoutLabel": "画面呈现方式",
+    "layout": {
+      "split": "分屏：转写与画面并排",
+      "theater": "剧场：画面占满内容区",
+      "float": "悬浮小窗：画面浮起可拖动",
+      "audio_only": "仅音频：隐藏画面"
+    },
+    "layoutShort": {
+      "split": "分屏",
+      "theater": "剧场",
+      "float": "小窗",
+      "audio_only": "仅音频"
+    },
+    "hiddenHint": "画面已隐藏，只放声音。要看画面请选「分屏」或「剧场」。",
+    "dragHint": "按住拖动小窗",
+    "subtitlesOn": "在画面上显示字幕",
+    "subtitlesOff": "隐藏画面上的字幕",
+    "subtitleSize": "字幕字号",
+    "size": {
+      "small": "小",
+      "medium": "中",
+      "large": "大",
+      "xlarge": "特大"
+    }
+  },
+  "quality": {
+    "badge": "超标",
+    "cpsBadge": "{{cps}} 字/秒",
+    "cps": "阅读速度过快——精简这句文本，或与相邻条合并让它显示更久",
+    "too-long": "单条显示过久——在句子分界处拆成两条",
+    "summary": "{{total}} 条中有 {{flagged}} 条读不完或挂太久（行长与断行由导出自动处理）",
+    "show": "显示字幕质检（{{count}} 条）",
+    "hide": "隐藏字幕质检"
+  },
+  "meta": {
+    "speakers": "{{count}} 位说话人"
+  },
+  "find": {
+    "label": "在转写中查找",
+    "placeholder": "在转写中查找…",
+    "count": "{{index}} / {{total}}",
+    "none": "无匹配",
+    "prev": "上一处",
+    "next": "下一处"
+  },
+  "nowPlaying": {
+    "label": "正在播放：{{title}}",
+    "reopen": "回到回放",
+    "close": "停止播放",
+    "follow": "跟随",
+    "followHint": "播放时把编辑器滚到当前这一句",
+    "pictureShow": "显示画面",
+    "pictureHide": "只留声音",
+    "pictureHint": "切走后画面收成悬浮小窗跟着走，还是只留声音"
+  },
+  "playHere": "在此播放",
+  "playHereHint": "在笔记里直接听；时间戳行可点即跳",
+  "openView": "打开回放",
+  "knowledge": {
+    "previewOnly": "这条录音只有录音时的实时稿，暂不能作为主题页的依据。重新转写一次即可。",
+    "askTitle": "以后的录音与转写可以用来整理主题吗？",
+    "askBody": "允许后，完成转写的录音与转写会按主题范围交给{{where}}处理，为主题页准备带出处的建议；写入前仍由你确认。只对这台设备、这个库有效，可在主题页上撤回。",
+    "allow": "允许",
+    "notNow": "暂不",
+    "where": {
+      "strict_local": "本机 AI",
+      "on_device": "本机 AI",
+      "official_cloud": "Lunarca 云",
+      "organization": "你所在组织的服务端"
+    }
+  }
+}

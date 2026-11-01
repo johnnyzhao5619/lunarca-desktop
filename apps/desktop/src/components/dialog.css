@@ -1,0 +1,163 @@
+/*
+ * 覆盖层与对话框卡片——**跨 feature 的呈现原语**。
+ *
+ * `.luna-overlay` 是遮罩兼居中容器（已有十处在用，此前住在 `features/workspace/`——
+ * 一个与模板选择器、蒸馏预览、图谱重扫、知识归入都无关的 feature）。`.luna-dialog`
+ * 是它里面那张卡片：底色 / 描边 / 圆角 / 阴影 / 内距**只在这里定义一次**。
+ *
+ * 它此前**事实上已经存在**，只是叫 `.luna-graph-rescan`——蒸馏批量、蒸馏预览、知识归入、
+ * 知识体检四个对话框都挂着"图谱重扫"的类名当卡片用，另有三处各自抄了一份同样的六条声明。
+ * 与 `.luna-sidebar-header` 同一件事（§3.3a）：一个被第三处需要的外壳就不再属于任何 feature。
+ *
+ * 卡片必须**只靠 `.luna-overlay` 居中**：知识度量的清除确认此前在遮罩里又给自己
+ * 加了一套 `position: fixed` + `translate(-50%, -50%)`，两套居中同时生效——窄窗口下
+ * 它会被自己的定位顶出可视区，而遮罩本身其实已经把它放正了。
+ */
+
+.luna-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-scrim);
+}
+
+/* 抽屉变体：卡片贴向行内末端并撑满高度（通知抽屉，PRD-15-064）。遮罩本身不变——
+   抽屉与居中对话框的差别只有"停在哪儿"，没必要为它另造一层遮罩。 */
+.luna-overlay--drawer {
+  justify-content: flex-end;
+  align-items: stretch;
+}
+
+.luna-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  /* 默认尺寸：各对话框按内容覆盖 `inline-size` / `max-block-size`，其余一律继承。 */
+  inline-size: min(30rem, calc(100vw - var(--space-7)));
+  max-block-size: min(40rem, calc(100vh - var(--space-7)));
+  overflow-y: auto;
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-panel);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.luna-dialog h2,
+.luna-dialog h3 {
+  margin: var(--space-0);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.luna-dialog p {
+  margin: var(--space-0);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+/* 满幅面板变体：自带 header / body、卡片本身零内距、内容各自滚（回收站预览、URL 导入、
+   启动概览）。
+
+   §3.3a 当初把这三处列为"刻意不迁"的另一个物种，理由是「自带 header/body、零卡片
+   内距、`overflow: hidden`」——那三条**是真的**，但它们只需要一个修饰符，而不是三份
+   各自重写底色/描边/圆角/阴影的副本。逐条比对后，那三份副本之间的差异其实全是**意外**：
+   一份用了 `--color-bg-surface`（另两份是 panel）、一份用 `--radius-md`（另两份 lg）、
+   一份把 `--shadow-lg` 手写成了 space Token 拼的阴影。
+   同时更正当初那条豁免记录的第四个成员：通知详情**不是**满幅面板——它带 `padding` 与
+   `overflow-y: auto`，那正是 `.luna-dialog` 基类本身，只是宽一点。 */
+.luna-dialog--panel {
+  gap: var(--space-0);
+  padding: var(--space-0);
+  overflow: hidden;
+}
+
+/* 确认卡（`components/ConfirmHost.tsx`）：比常规对话框窄一档——它只有一句话和两颗按钮，
+   撑到默认宽度会让那句话横跨整张卡，读起来像一段正文而不是一个问题。 */
+.luna-confirm {
+  inline-size: min(24rem, calc(100vw - var(--space-7)));
+}
+
+/* 「起个名字」输入卡（`PromptHost`）：与确认卡同宽——两者是同一层决定（一句话 + 一个
+   动作），宽度不同会让它们看起来像两种不同量级的东西。 */
+.luna-prompt {
+  inline-size: min(24rem, calc(100vw - var(--space-7)));
+}
+
+/* ── 卡内零件 ────────────────────────────────────────────────────────────
+   这一组此前叫 `.luna-graph-rescan__*` 并住在 `features/vault/vault.css`——被图谱重扫 /
+   蒸馏批量 / 蒸馏预览 / 管理库 / 切库**五个 feature** 共用。`dialog-primitive.test.ts`
+   当初只锁了"整块类不得再借用"，还明写着「`__子元素` 类照旧属于图谱重扫自己」——于是
+   零件层原样重演了 `.luna-note-tree__*` 那场事故：名字说谎，下一个写对话框的人要么继续
+   借、要么另抄一份。判据与整块类同一条（§3.3a），故一并收编。 */
+
+/* 卡片标题一律 `<h3>`——五张卡此前用 `<strong>` 伪装成标题（靠这里的一条规则把它
+   撑成标题大小），而同族的体检 / 归入 / 模板管理用的是真标题元素。读屏据标题层级建
+   大纲，`<strong>` 在那张大纲里根本不存在。排版由上面的 `.luna-dialog h2, h3` 统一给。 */
+.luna-dialog__header p {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-base);
+}
+
+/* 范围陈述行（PRD-06-035c）：定向重扫时明示对象，强调色胶囊与聚焦芯片同语义。
+   header 内的 p 是块级元素，胶囊按内容取宽须显式 fit-content。 */
+.luna-dialog__scope {
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: var(--space-0-5) var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-focus);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-surface);
+  font-size: var(--font-size-xs);
+  color: var(--color-accent-strong);
+}
+
+.luna-dialog__counts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.luna-dialog__counts li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.luna-dialog__counts strong {
+  min-inline-size: var(--space-6);
+  text-align: end;
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-dialog__note {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-base);
+}
+
+.luna-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

@@ -1,0 +1,101 @@
+# cargo-deny —— Official 风味（闭源官方构建）许可证门禁。
+# 状态：草案，尚未接入 CI；官方构建首个纵切交付时启用（ADR-029、TDD-12 §7、TDD-13 §2/§4）。
+# 与根 deny.toml（OSS 风味）的差异：
+#   1) allow 列表移除 AGPL-3.0-only——闭源发行物不得包含任何第三方强 copyleft；
+#   2) 自研 luna-* crate 的 AGPL 声明经逐 crate exception 放行（版权自有，双许可自我授权，
+#      TDD-12 §7）。将来私有仓的 luna-cloud 等 crate 以其自身专有 license 字段登记，不入此例外；
+#   3) 移除当前无匹配对象的 Unicode-DFS-2016（OSS 文件里它已是 unmatched allowance）。
+# MPL-2.0（symphonia 等）为文件级弱 copyleft：闭源发行可用，义务仅为「若修改其源文件须公开
+# 那些文件」——不改则无义务；保留在 allow 列表并在 TDD-04 §5 台账登记。
+#
+# 同步纪律：除上述三点差异外，[advisories]/[bans]/[sources] 各段必须与根 deny.toml
+# 保持逐字一致——改任何一边必须双改（尤其 advisories.ignore 清单）。接入 CI 时应加一条
+# 机器比对（脚本 diff 两文件的这三段）替代人工自觉，防止静默漂移。
+
+[graph]
+all-features = true
+
+[licenses]
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unicode-3.0",
+    "CC0-1.0",
+    "MPL-2.0",
+    "Unlicense",
+    # webpki-roots（构建期工具链传递依赖，不进发行二进制；同 deny.toml 的登记理由）。
+    "CDLA-Permissive-2.0",
+]
+confidence-threshold = 0.9
+
+# 自研 workspace crate：AGPL 声明放行（版权人对自有代码双许可，第三方 AGPL/GPL 一律无例外）。
+exceptions = [
+    { allow = ["AGPL-3.0-only"], name = "luna-core" },
+    { allow = ["AGPL-3.0-only"], name = "luna-provider" },
+    { allow = ["AGPL-3.0-only"], name = "luna-jobqueue" },
+    { allow = ["AGPL-3.0-only"], name = "luna-config" },
+    { allow = ["AGPL-3.0-only"], name = "luna-engine" },
+    { allow = ["AGPL-3.0-only"], name = "luna-fetch" },
+    { allow = ["AGPL-3.0-only"], name = "luna-audio" },
+    { allow = ["AGPL-3.0-only"], name = "luna-vault" },
+    { allow = ["AGPL-3.0-only"], name = "luna-export" },
+    { allow = ["AGPL-3.0-only"], name = "luna-metrics" },
+    { allow = ["AGPL-3.0-only"], name = "luna-cli" },
+    { allow = ["AGPL-3.0-only"], name = "luna-app" },
+]
+
+[advisories]
+# 使用 advisory DB v2 默认源；yanked 依赖与已知漏洞阻断。
+yanked = "deny"
+# 这些 advisory 当前来自上游 GUI/绑定链路，暂无安全升级路径；保留显式登记，
+# 让 cargo-deny 继续阻断新增漏洞/撤包，同时避免 CI 因已知上游 unmaintained 状态漂移。
+ignore = [
+    # zvariant / zbus_names / zvariant_derive 2026-10 被标 unmaintained（不是漏洞，无已知安全问题）。
+    # 只经 tauri-plugin-notification → notify-rust → zbus 与 tauri-plugin-single-instance → zbus
+    # 进来，只在 Linux D-Bus 目标编译，macOS / Windows 发行物不含。去掉条件：上游（notify-rust /
+    # tauri-plugin-single-instance）换掉 zbus，或 zbus 出了维护中的替代版本。
+    "RUSTSEC-2026-0370",
+    "RUSTSEC-2026-0371",
+    "RUSTSEC-2026-0372",
+    # unsafe-libyaml（luna-vault 解析 frontmatter：serde_yaml_ng 的后端）2026-10 被标 unmaintained，
+    # 无已知漏洞。换维护中的 YAML 库是单独一批（解析行为要逐条对齐），在那之前显式登记。
+    "RUSTSEC-2024-0449",
+    # ttf-parser（RUSTSEC-2026-0192）2026 被标 unmaintained，无已知漏洞。只经 pdf-extract → lopdf 进来
+    # （文档导入的 PDF 取字，ADR-164 ⑧）；lopdf 只在「写 PDF 时嵌入字体」（font.rs 的 FontData）里调用它，
+    # 我们只读不写，那条路径不会执行。去掉条件：lopdf 换掉 ttf-parser（如 skrifa），或 PDF 取字改走 PDFium。
+    "RUSTSEC-2026-0192",
+    # Tauri/wry Linux GTK3 transitive stack; macOS MVP 仍需跨平台依赖图保留。
+    "RUSTSEC-2024-0411",
+    "RUSTSEC-2024-0412",
+    "RUSTSEC-2024-0413",
+    "RUSTSEC-2024-0414",
+    "RUSTSEC-2024-0415",
+    "RUSTSEC-2024-0416",
+    "RUSTSEC-2024-0417",
+    "RUSTSEC-2024-0418",
+    "RUSTSEC-2024-0419",
+    "RUSTSEC-2024-0420",
+    # specta 2.0.0-rc transitive macro helper.
+    "RUSTSEC-2024-0436",
+    # GTK macro transitive dependency.
+    "RUSTSEC-2024-0370",
+    # Tauri urlpattern transitive Unicode crates.
+    "RUSTSEC-2025-0075",
+    "RUSTSEC-2025-0080",
+    "RUSTSEC-2025-0081",
+    "RUSTSEC-2025-0098",
+    "RUSTSEC-2025-0100",
+]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "warn"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

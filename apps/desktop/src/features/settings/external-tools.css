@@ -1,0 +1,123 @@
+/* ── 设置 · 外部工具面板（PRD-05-007）──────────────────────────────────────── */
+/* 外壳（间距 / 与设置行的分隔）归 `.luna-settings-panel` 原语。 */
+
+.luna-settings-tools__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.luna-settings-tools__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.luna-settings-tools__item-main {
+  display: flex;
+  flex: 1 1 18rem;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: var(--space-0);
+}
+
+.luna-settings-tools__item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-settings-tools__item-head strong {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.luna-settings-tools__badge {
+  padding: var(--space-0-5) var(--space-1-5);
+  font-size: var(--font-size-xs);
+  background: var(--color-bg-muted);
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+}
+
+/* 「可用」与「运行中」是同一件事的两种说法（工具 vs 服务），故同一枚语义色。
+   「未安装 / 未运行 / 检测中」刻意留中性——它们是事实陈述而非故障，涂红只会制造焦虑。 */
+.luna-settings-tools__badge[data-state="ready"],
+.luna-settings-tools__badge[data-state="running"] {
+  background: var(--color-status-success-surface);
+  color: var(--color-status-success);
+}
+
+.luna-settings-tools__badge[data-state="broken"] {
+  background: var(--color-status-error-surface);
+  color: var(--color-status-error);
+}
+
+.luna-settings-tools__badge[data-state="timeout"] {
+  background: var(--color-status-attention-surface);
+  color: var(--color-status-attention);
+}
+
+/* 「建议安装」比「可选」重一档、比「无法运行」轻一档：缺 JS 运行时不是故障（多数站点
+   照常抓得下来），但它会让 YouTube 一类站点的取流退到随时可能被 403 拒掉的备用客户端
+   ——中性灰会让人以为无关紧要，红色又是谎报。 */
+.luna-settings-tools__badge[data-state="recommended"] {
+  background: var(--color-status-attention-surface);
+  color: var(--color-status-attention);
+}
+
+.luna-settings-tools__item-desc {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-base);
+}
+
+.luna-settings-tools__item-meta {
+  overflow: hidden;
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+}
+
+/* 面板级动作栏：整块状态的唯一刷新入口（此前四行各挂一颗，其中三颗做的是同一件事）。
+   刻意不是页头——它没有标题也没有说明，那两样归分组页头（面板不写第二遍）。 */
+.luna-settings-tools__bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-block-end: var(--space-2);
+}
+
+.luna-settings-tools__item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.luna-settings-tools__footnote {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-base);
+}
+
+.luna-settings-tools__error {
+  margin: 0;
+  padding: var(--space-2) var(--space-2-5);
+  font-size: var(--font-size-sm);
+  background: var(--color-status-error-surface);
+  border-radius: var(--radius-sm);
+  color: var(--color-status-error);
+}

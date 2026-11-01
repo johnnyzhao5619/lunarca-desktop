@@ -1,0 +1,95 @@
+# 内置主题「Lunarca」（ADR-169 ③）：随 Lunarca 发布的主题包，与导入、市场主题同一个类型、同一个生成器。
+# 暖调中性色与月光金强调；深色是暖炭夜，浅色是暖米纸。
+# 设计理由见 TDD-11 §2.1「主题族」（看着反常的取值都写了为什么，别当成 bug 改回去）。
+# 改了这里要重新生成样式：cargo run -p luna-app --bin export-bindings（漂移由 cargo test 判红）。
+
+schema_version = 3
+id = "luna"
+version = "1.0.0"
+name = "Lunarca"
+author = "Lunarca"
+license = "AGPL-3.0-only"
+
+[light]
+canvas = "#efeae0"
+surface = "#f7f3eb"
+panel = "#fcfaf4"
+text_primary = "#2a2622"
+text_secondary = "#57514a"
+text_muted = "#666159"
+border_subtle = "#ded6c7"
+border_default = "#cec5b3"
+border_strong = "#b3a88f"
+accent = "#7e5c15"
+accent_strong = "#815a0f"
+accent_text = "#2a2622"
+ai = "#6c50b0"
+attention = "#7e5c15"
+success = "#2a6d4b"
+warning = "#935113"
+error = "#ac393f"
+
+# 细调：不填时由上面的颜色推导，这几项与推导值不同
+hover = "#e7e1d5"
+disabled = "#ece7dd"
+muted = "#ebe5da"
+border_control = "#7f7256"
+focus = "#956d19"
+action = "#ddb04a"
+status_muted = "#8a8378"
+
+[light.code]
+surface = "#ece5d6"
+header = "#e3dbc9"
+text = "#3a3530"
+hover = "#dbd3c2"
+
+[light.syntax]
+keyword = "#a3512e"
+string = "#3f7d4f"
+number = "#8a6010"
+func = "#4a6b8a"
+type = "#9a4a72"
+prop = "#57514a"
+op = "#8a8378"
+
+[dark]
+canvas = "#161418"
+surface = "#201e23"
+panel = "#2a272e"
+text_primary = "#f3efe6"
+text_secondary = "#bdb6ab"
+text_muted = "#9c978d"
+border_subtle = "#302d36"
+border_default = "#403c46"
+border_strong = "#565161"
+accent = "#f0d59a"
+accent_strong = "#f0d59a"
+accent_text = "#2a231a"
+ai = "#b8a7ed"
+attention = "#f0d59a"
+success = "#7fbf98"
+warning = "#e5a25c"
+error = "#e28389"
+
+# 细调：不填时由上面的颜色推导，这几项与推导值不同
+hover = "#2f2c33"
+disabled = "#232127"
+muted = "#27252b"
+border_control = "#878095"
+status_muted = "#8c8792"
+
+[dark.code]
+surface = "#1b1a1f"
+header = "#161418"
+text = "#e4dfd4"
+hover = "#2f2c33"
+
+[dark.syntax]
+keyword = "#e39a77"
+string = "#96c7a2"
+number = "#e5c37c"
+func = "#8fb3d1"
+type = "#d79ab8"
+prop = "#bdb6ab"
+op = "#8b8479"

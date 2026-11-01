@@ -1,0 +1,41 @@
+# luna-sync —— 官方同步的客户端核心（ADR-148，TDD-14 §5、TDD-12 §10.2）：加密、分块、三态状态机、
+# 本机同步状态与执行器。纯逻辑优先：网络与钥匙串经 trait 注入（实现在应用装配层，用 luna-cloud
+# 接上），本 crate 不认识 HTTP 也不碰系统钥匙串——`luna-cloud` 与中层互不依赖（TDD-00 §3）。
+[package]
+name = "luna-sync"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+# 远端接口是异步的（实现走 HTTP）；本 crate 不依赖任何运行时。
+async-trait = { workspace = true }
+# 路径 NFC、三路合并、基线钉住、「不见了 ≠ 删了」判定（ADR-148 的本地前置）。
+luna-vault = { path = "../luna-vault" }
+# AES-256-GCM 内容加密与信封封装（RustCrypto，MIT OR Apache-2.0，ADR-005 已核）。
+aes-gcm = { workspace = true }
+# 密码 → KEK（Argon2id，参数随信封存）。
+# CMK → 子密钥。
+hkdf = { workspace = true }
+# 块 id = HMAC-SHA256(K_chunkid, 明文块)。
+hmac = { workspace = true }
+sha2 = { workspace = true }
+# 密钥材料离开作用域即清零。
+zeroize = { workspace = true }
+# 大文件分块。
+fastcdc = { workspace = true }
+base64 = { workspace = true }
+# 本机同步状态 state.sqlite（可丢、可重建）。
+rusqlite = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+# 引擎场景用例与模拟器跑在 tokio 上（引擎本身不依赖运行时）。
+tokio = { workspace = true }
+tempfile = "3"

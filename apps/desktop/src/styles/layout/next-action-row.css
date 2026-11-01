@@ -1,0 +1,67 @@
+/*
+ * 「下一步」行的共享原语（`.luna-next-row__*`）——跨 feature 的布局零件。
+ *
+ * 启动概览与知识库工作台上，同一种东西反复出现：一句陈述 + 一到两个动作，整行一张卡。
+ * 装机就绪、知识库脉搏、库体检此前各写了一份**几乎逐字相同**的容器规则（三处
+ * flex + space-between + wrap + 同样的内距圆角），差别只有底色和边框色——也就是说，
+ * 差别只有"这一条要不要抢眼"。那正好是一个参数，不是三份代码。
+ *
+ * 语气由 `data-tone` 定，且同屏只有一条可以是 accent：
+ *   accent —— 此刻的下一步，配实色主按钮；
+ *   muted  —— 并列的次要项，只给次级动作。
+ * 谁拿 accent 由调用方按优先级栈裁决（见 `features/dashboard/next-actions.ts`），
+ * 不由各行自己主张——三行各自觉得自己重要，就是概览此前同屏四个主号召的来路。
+ */
+
+.luna-next-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-block-end: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-muted);
+  padding: var(--space-3);
+}
+
+.luna-next-row[data-tone="accent"] {
+  border-color: var(--color-accent);
+  background: var(--color-accent-surface);
+}
+
+.luna-next-row__main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: var(--space-0);
+  color: var(--color-text-secondary);
+}
+
+.luna-next-row[data-tone="accent"] .luna-next-row__main {
+  color: var(--color-accent);
+}
+
+/* 正文恒为主文本色：带色的是图标与边框，整句话染成品牌金会读不动。 */
+.luna-next-row__main p {
+  margin: var(--space-0);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.luna-next-row[data-tone="muted"] .luna-next-row__main p {
+  color: var(--color-text-secondary);
+}
+
+/* 补充事实（「另有 N 篇你编辑过」这类）：跟在正文后面，明确次一级。 */
+.luna-next-row__aside {
+  margin-inline-start: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-next-row__actions {
+  display: flex;
+  gap: var(--space-2);
+}

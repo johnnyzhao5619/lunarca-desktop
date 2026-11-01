@@ -1,0 +1,75 @@
+{
+  "_comment": [
+    "二次分发 distribute.thread（PRD-19-024 / 025，ADR-165 ⑧；v11 起按目标渠道写，ADR-166 ④）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "summarize",
+  "template": "creator.distribute.thread",
+  "cases": [
+    {
+      "name": "每条放得下",
+      "vars": {
+        "channel": "X",
+        "limits": "Each post at most 280 characters.",
+        "style": "None."
+      },
+      "must_contain": [
+        "Every post, including its number, must fit the limits",
+        "between 4 and 8 posts"
+      ],
+      "why": "超长的一条发不出去；条数失控"
+    },
+    {
+      "name": "首条能独立成立、不带话题标签",
+      "vars": {
+        "channel": "X",
+        "limits": "Each post at most 280 characters.",
+        "style": "None."
+      },
+      "must_contain": [
+        "stand on its own as the hook",
+        "Do not use hashtags"
+      ],
+      "why": "首条依赖上下文没人点开；乱加话题标签"
+    },
+    {
+      "name": "同语言、只回正文",
+      "vars": {
+        "channel": "X",
+        "limits": "Each post at most 280 characters.",
+        "style": "None."
+      },
+      "must_contain": [
+        "same language as the text",
+        "Output only the posts"
+      ],
+      "why": "语言错位或回带解释"
+    },
+    {
+      "name": "目标渠道的名字、上限、风格都进得来",
+      "vars": {
+        "channel": "LinkedIn",
+        "limits": "Each post at most 3000 characters.",
+        "style": "LinkedIn readers expect one post rather than a thread."
+      },
+      "must_contain": [
+        "Target: LinkedIn.",
+        "Each post at most 3000 characters.",
+        "LinkedIn readers expect one post rather than a thread."
+      ],
+      "why": "变量没进模板时，每个渠道拿到的都是同一份通用改写，X 的推文超长、领英拿到推文串"
+    },
+    {
+      "name": "渠道要单条时不硬拆",
+      "vars": {
+        "channel": "X",
+        "limits": "Each post at most 280 characters.",
+        "style": "None."
+      },
+      "must_contain": [
+        "unless the channel notes ask for a single post"
+      ],
+      "why": "领英、小红书图文被拆成编号推文串"
+    }
+  ]
+}

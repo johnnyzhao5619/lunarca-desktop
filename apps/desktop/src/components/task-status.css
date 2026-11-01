@@ -1,0 +1,47 @@
+/*
+ * 任务状态徽标（`.luna-task-status`）——跨 feature 的呈现原语。
+ *
+ * 组件在 `components/TaskStatus.tsx`，被处理队列、转写清单、翻译弹窗、活动页共用；
+ * 样式此前住在 `styles/base.css`（全局基线层）——那一层该放的是元素级基线与滚动条，
+ * 不是某个组件的皮肤。
+ */
+
+.luna-task-status {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--space-6);
+  padding-inline: var(--space-2);
+  border: var(--border-width-thin) solid currentColor;
+  border-radius: var(--radius-full);
+  background: var(--color-status-muted-surface);
+  color: var(--color-status-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.luna-task-status[data-tone="ai"] {
+  background: var(--color-status-ai-surface);
+  color: var(--color-status-ai);
+}
+
+.luna-task-status[data-tone="attention"] {
+  background: var(--color-status-attention-surface);
+  color: var(--color-status-attention);
+}
+
+.luna-task-status[data-tone="success"] {
+  background: var(--color-status-success-surface);
+  color: var(--color-status-success);
+}
+
+.luna-task-status[data-tone="error"] {
+  background: var(--color-status-error-surface);
+  color: var(--color-status-error);
+}
+
+.luna-task-status[data-tone="warning"] {
+  background: var(--color-status-warning-surface);
+  color: var(--color-status-warning);
+}

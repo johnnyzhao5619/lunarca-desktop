@@ -1,0 +1,1220 @@
+/* ─── 同步回放视图（TDD-07 §3.1 / PRD-04 §3.4）──────────────────────────────── */
+
+/* 三段式定高骨架（PRD-04-058 真机反馈）：**控制区常驻 / 只有转写滚 / 底栏常驻**。
+   早先整块随内容长高、由主区统一滚动，代价有二：读到第 300 句就够不着播放控制；分屏态下
+   画面容器被拉到与整篇转写等高，`object-fit: contain` 把画面居中到几千像素之下 = 有声无画面。 */
+.luna-playback {
+  /* **按自身可用宽度响应**（容器查询，TDD-15 §3.5b）：回放视图住在主区，而主区宽度
+     随主侧栏拖拽独立于视口变化——同一个视口下它可以从 1000px 被压到 300px。此前这里用
+     的是视口断点（`@media (max-width: 900px)`），于是"窄了就上下堆叠"在真正窄的时候
+     根本不触发。 */
+  container-type: inline-size;
+  container-name: playback;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  block-size: var(--size-full);
+  min-block-size: 0;
+  padding: var(--space-4);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+}
+
+/* 控制区：标题/进度条/播放·倍速·显示模式/书签/说话人名册/状态，恒在顶部不滚动 */
+.luna-playback__transport {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-block-size: 0;
+}
+
+/* 几何与分隔线归 `.luna-main-header` 原语；回放页头私有的只有一条——标题区里还带着
+   一行元数据（时长 · 说话人 · 来源），故整块顶对齐而不是居中。 */
+.luna-playback__header {
+  align-items: flex-start;
+}
+
+/* 页头身份区：标题 + 一行元数据（时长 · 说话人数 · 来源），PRD-07-065。
+   横向几何（flex 基准 12rem，窄了整块换行而不是被挤成一列竖字）归 `.luna-main-header__title`；
+   这里只留它私有的纵向排布——它是两行而不是一行。 */
+.luna-playback__identity {
+  flex-direction: column;
+  /* 纵向排布后必须显式左对齐：原语的 `align-items: center` 是给横排的标题 + 徽标用的，
+     落到纵排上就把标题与元数据行一起居中了（真机 2026-09-08：转写页标题居中，与其余
+     所有页头的左对齐不一致）。 */
+  align-items: flex-start;
+  gap: var(--space-0-5);
+  min-inline-size: var(--space-0);
+}
+
+.luna-playback__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 元数据项之间用细分隔线而不是字符点：字形随字体变，线不变 */
+.luna-playback__meta > * + * {
+  padding-inline-start: var(--space-2);
+  border-inline-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* 回放页头的「来源」徽标（PRD-05-006 溯源）：弱化到与时间读数同级，不与标题争位。
+   （此前住在 settings/external-tools.css 里——归属错位，2026-09-08 归位。） */
+.luna-playback__source {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-0-5) var(--space-1-5);
+  font-size: var(--font-size-xs);
+  background: var(--color-bg-muted);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.luna-playback__source:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* 主区页面的标题一律 h1（D6）：回放就是「录音 / 转写」那一屏的内容，其上没有别的标题。
+   此前写 h2，于是同为主区页面的笔记库/搜索/标签是 h1、回放是 h2，读屏读出的层级对不上。 */
+.luna-playback__position {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-sm);
+}
+
+.luna-playback__duration {
+  color: var(--color-text-muted);
+}
+
+.luna-playback__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* 回放视图里的文本按钮一律走 `.luna-btn` 原语（TDD-15 §3.3a）。此前这里有一条裸
+   `.luna-playback button` 规则给整个视图另造了一套按钮皮（内距 4/12、`bg-muted` 底），
+   走带、显示模式、页脚、行内编辑各自再叠一层——同一屏里于是有三种高度（真机 2026-09-08
+   「转写页部件高度不统一」）。删掉那条规则之后，各类只保留真正私有的差异。 */
+
+/* 走带组：−10s · 播放 · +10s · 倍速胶囊 */
+.luna-playback__transport-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.luna-playback__btn--skip,
+.luna-playback__rate-cycle {
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-playback__rate-cycle {
+  min-inline-size: 4.5ch;
+  border-radius: var(--radius-full);
+}
+
+.luna-playback__bilingual {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+/* 书签条：常驻区里数量不可预测（一场会可以标几十个），故横向成轨自滚，
+   绝不用换行把控制区顶到没有转写可看 */
+.luna-playback__bookmarks {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-block-end: var(--space-1);
+}
+
+.luna-playback__bookmark-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 「回到当前行」：手动滚动后在控制行里出现的一枚胶囊，不再独占一行居中 */
+.luna-playback__return-btn {
+  border-radius: var(--radius-full);
+  background: var(--color-bg-selected);
+  font-size: var(--font-size-sm);
+}
+
+.luna-playback__status {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+}
+
+.luna-playback__status--error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-status-error);
+}
+
+.luna-playback__empty {
+  margin: var(--space-0);
+  padding: var(--space-4);
+  color: var(--color-text-muted);
+  background: var(--color-bg-panel);
+  border-radius: var(--radius-sm);
+}
+
+.luna-playback__cuelist {
+  min-block-size: 0;
+  margin: var(--space-0);
+  padding: var(--space-2);
+  overflow-y: auto;
+  list-style: none;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-panel);
+}
+
+.luna-playback__cuelist:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-border-focus);
+  outline-offset: var(--space-1);
+}
+
+.luna-playback__cue {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.luna-playback__cue:hover {
+  background: var(--color-bg-muted);
+}
+
+.luna-playback__cue[data-editing="true"] {
+  align-items: flex-start;
+  background: var(--color-bg-selected);
+  border-color: var(--color-border-focus);
+  cursor: default;
+}
+
+/* 活动行非颜色-only：背景 + 边框 + ▸ 指示符三者并用（PRD-04-028） */
+.luna-playback__cue[data-active="true"] {
+  background: var(--color-bg-selected);
+  border-color: var(--color-border-focus);
+}
+
+/* 视图内查找：命中片段用 mark 高亮；当前命中行（`data-hit`）再加一圈描边（与活动行的选中底色区分） */
+.luna-playback__cue mark {
+  background: var(--color-status-attention-surface);
+  color: inherit;
+  border-radius: var(--radius-sm);
+}
+
+.luna-playback__cue[data-hit="true"] {
+  border-color: var(--color-status-attention);
+}
+
+/* 视图内查找：查询框走 `QueryBox` 原语，计数放在框内清空钮之后，上下一对图标钮跳命中 */
+/* 同一行放得下就接在控制项后面吃掉余量；放不下就整组换行、靠左——不用 margin:auto
+   把它推到右边，否则换行后左边空一大片（真机 2026-09-03）。 */
+.luna-playback__find {
+  display: inline-flex;
+  flex: 1 1 14rem;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: 12rem;
+  max-inline-size: 28rem;
+}
+
+.luna-playback__find-box {
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+
+.luna-playback__find-count {
+  flex: none;
+  padding-inline-end: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.luna-playback__cue-time {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-playback__cue-indicator {
+  flex-shrink: 0;
+  color: var(--color-accent);
+}
+
+.luna-playback__cue-text {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* 双语回放（PRD-04-025）：cue 内源/译文分行；译文 accent 侧线 + 弱化色 */
+.luna-playback__cue-source {
+  display: block;
+}
+
+.luna-playback__cue-translation {
+  display: block;
+  padding-inline-start: var(--space-2);
+  border-inline-start: var(--border-width-thick) solid var(--color-accent);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.luna-playback__cue-editor {
+  display: grid;
+  flex: 1;
+  min-inline-size: 0;
+  gap: var(--space-2);
+}
+
+.luna-playback__cue-textarea {
+  inline-size: var(--size-full);
+  min-block-size: 72px;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  font: inherit;
+  line-height: var(--line-height-base);
+  resize: vertical;
+}
+
+.luna-playback__cue-textarea:focus {
+  border-color: var(--color-border-focus);
+  outline: var(--outline-width-focus) solid var(--color-border-focus);
+  outline-offset: var(--space-0);
+}
+
+.luna-playback__cue-edit-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.luna-playback__cue-edit-hint {
+  margin-inline-end: auto;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-playback__cue-edit-error {
+  color: var(--color-status-error);
+  font-size: var(--font-size-xs);
+}
+
+/* 删除本条（PRD-04-031）：静息只是描边的告警色文字（不喧宾夺主），进入确认态才实心
+   ——两步之间的差异必须一眼看得出，否则"再点一次就删了"形同虚设 */
+.luna-playback__inline-btn--danger[data-confirming="true"] {
+  color: var(--color-bg-surface);
+  background: var(--color-status-error);
+}
+
+.luna-playback__cue-edit-actions .luna-playback__inline-btn--danger {
+  margin-inline-end: var(--space-2);
+}
+
+.luna-playback__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.luna-playback__cue-count {
+  margin-inline-start: auto;
+  white-space: nowrap;
+}
+
+/* 文本编辑模式开关（选中态非颜色-only：背景 + 边框，与 aria-pressed 配套） */
+.luna-playback__second-pass-error {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  color: var(--color-status-error);
+}
+
+.luna-playback__second-pass-error small {
+  max-inline-size: 420px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+.luna-playback__second-pass-progress {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* 底栏处理动作组（转写/翻译/细分/导出）+ 进度状态区，窄视口自动换行；控件等高对齐 */
+.luna-playback__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-playback__action-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* 二次翻译（PRD-04-034）：目标语言下拉 + 翻译按钮 = 一体化段控（描边外壳内分隔） */
+.luna-playback__translate {
+  display: inline-flex;
+  align-items: stretch;
+  min-block-size: var(--space-7);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+  overflow: hidden;
+}
+
+/* 目标语言是段控的一段：外形归 `.luna-select--flush`（关掉原生外观、箭头是应用自己的
+   chevron），这里只有与右侧「翻译」之间的那条分隔线。 */
+.luna-playback__translate-target {
+  border-inline-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* 段控内的「翻译」按钮：去自带描边、命中态浮出底色，与下拉拼成整体 */
+.luna-playback .luna-playback__translate-run {
+  min-block-size: auto;
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-none);
+  background: transparent;
+}
+
+.luna-playback__translate-run:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+}
+
+/* 主操作按钮（整篇编辑「完成」）：accent 填充，与 inline-btn--primary 同族 */
+/* ── 整篇校对编辑器（PRD-04-031）：连续文档观感 ─────────────────────────── */
+.luna-playback__cuelist[data-full-edit="true"] {
+  gap: var(--space-0);
+}
+
+.luna-playback__cue[data-full-edit="true"] {
+  align-items: flex-start;
+  padding-block: var(--space-1);
+  border-color: transparent;
+  border-radius: var(--radius-none);
+  cursor: default;
+}
+
+.luna-playback__cue[data-full-edit="true"]:hover {
+  background: transparent;
+}
+
+/* 编辑态活动行只保留柔和底色，不加边框跳动干扰逐行编辑 */
+.luna-playback__cue[data-full-edit="true"][data-active="true"] {
+  border-color: transparent;
+  background: var(--color-bg-selected);
+}
+
+/* 时间戳（编辑态可点跳转）：静息弱化、命中态 accent */
+button.luna-playback__cue-time--seek {
+  flex-shrink: 0;
+  padding: var(--space-0) var(--space-1);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+button.luna-playback__cue-time--seek:hover,
+button.luna-playback__cue-time--seek:focus-visible {
+  color: var(--color-accent);
+  border-color: var(--color-border-focus);
+}
+
+.luna-playback__cue-full {
+  display: grid;
+  flex: 1;
+  min-inline-size: 0;
+  gap: var(--space-1);
+}
+
+/* 逐行编辑框：静息无框（文档流），hover/聚焦才浮出边框衬底 */
+.luna-playback__cue-textarea--flow {
+  min-block-size: auto;
+  padding: var(--space-1) var(--space-2);
+  border-color: transparent;
+  background: transparent;
+  resize: none;
+}
+
+.luna-playback__cue-textarea--flow:hover {
+  border-color: var(--color-border-subtle);
+  background: var(--color-bg-surface);
+}
+
+.luna-playback__cue-textarea--flow:focus {
+  border-color: var(--color-border-focus);
+  background: var(--color-bg-surface);
+}
+
+/* 整篇校对保存条（底栏编辑态） */
+.luna-playback__footer--edit {
+  justify-content: stretch;
+}
+
+.luna-playback__edit-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: var(--size-full);
+}
+
+.luna-playback__edit-bar-title {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.luna-playback__edit-bar-dirty {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-playback__edit-bar-dirty[data-dirty="true"] {
+  color: var(--color-accent);
+}
+
+.luna-playback__edit-bar-hint {
+  margin-inline-end: auto;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* ── 视频同步回放（PRD-04-058 / PRD-05-023）────────────────────────────────────
+ * 主体区 = 转写列表 + 视频舞台。四种布局全部由 `data-layout` 驱动纯 CSS 切换，
+ * `<video>` 元素恒挂载（换布局绝不重建元素 → 不中断播放）。 */
+.luna-playback__body {
+  display: grid;
+  gap: var(--space-3);
+  min-block-size: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+/* 分屏（默认）：转写在左、画面在右，两侧各自滚动互不遮挡。
+   画面**按 16:9 靠上摆放**而非撑满整列——撑满时容器高远大于画面高，`object-fit: contain`
+   会把画面居中到列的正中间（列有多高就落多深），正是真机上「有声无画面」的成因。 */
+.luna-playback__body[data-layout="split"] {
+  grid-template-columns: minmax(0, 1fr) minmax(var(--video-stage-min-inline), var(--video-stage-inline));
+}
+
+.luna-playback__body[data-layout="split"] .luna-video-stage {
+  align-self: start;
+  max-block-size: var(--size-full);
+}
+
+.luna-playback__body[data-layout="split"] .luna-video-stage__frame {
+  flex: 0 1 auto;
+  aspect-ratio: 16 / 9;
+  inline-size: var(--size-full);
+}
+
+/* 剧场：画面独占内容区（字幕在画面上，信息不丢）；转写让位 */
+.luna-playback__body[data-layout="theater"] .luna-playback__cuelist {
+  display: none;
+}
+
+/* 悬浮小窗：画面浮起（脱离网格），转写占满宽度 */
+.luna-playback__body[data-layout="float"] .luna-video-stage {
+  position: fixed;
+  inset-block-start: var(--video-float-y);
+  inset-inline-start: var(--video-float-x);
+  inline-size: var(--video-stage-float-inline);
+  z-index: var(--z-stage);
+  padding: var(--space-1);
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  box-shadow: var(--shadow-lg);
+}
+
+/* 尚未量出真实尺寸、位置未定的那一帧：先按右下角锚定（绝不闪现在文档流原位）。
+   位置定好后由 x/y 起点接管——**刻意不同时给起止两边**，否则盒子会被拉伸变形。 */
+.luna-playback__body[data-layout="float"] .luna-video-stage[data-float-pending="true"] {
+  inset-block-start: auto;
+  inset-inline-start: auto;
+  inset-block-end: var(--space-4);
+  inset-inline-end: var(--space-4);
+}
+
+/* 悬浮小窗的把手：小窗唯一的自带控件（呈现切换在走带区之下的固定一行）。 */
+.luna-video-stage__handle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-inline: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  cursor: grab;
+  user-select: none;
+}
+
+.luna-video-stage__handle:active {
+  cursor: grabbing;
+}
+
+.luna-video-stage__handle-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.luna-playback__body[data-layout="float"] .luna-video-stage__frame {
+  flex: 0 0 auto;
+  aspect-ratio: 16 / 9;
+}
+
+/* 仅音频：画面收起为底部一条（切换条 + 一句说明，用户永远找得回画面），转写占满上方 */
+.luna-playback__body[data-layout="audio_only"] {
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.luna-playback__body[data-layout="audio_only"] .luna-video-stage__frame {
+  display: none;
+}
+
+.luna-playback__body[data-layout="audio_only"] .luna-video-stage {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.luna-video-stage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-block-size: 0;
+  min-inline-size: 0;
+}
+
+/* 纯音频笔记：整个舞台隐藏；`<video>` 仍在 DOM 内负责出声（display:none 不影响播放） */
+.luna-video-stage[data-kind="audio"] {
+  display: none;
+}
+
+/* 呈现控制行：住在走带区之下（`SyncPlaybackView`），四种呈现下位置不变。 */
+.luna-video-stage__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.luna-video-stage__layouts {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* 拖动把手：只在悬浮小窗出现，明示"按住这里可以拖走" */
+.luna-video-stage__grip {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-muted);
+}
+
+.luna-video-stage__spacer {
+  flex: 1;
+}
+
+/* 仅音频态的说明句：与切换条同行，讲清"现在是什么状态、怎么找回画面" */
+.luna-video-stage__hidden-hint {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* 呈现四选 + 字幕开关：与「原文 / 译文 / 双语」同一种按下态（选中不靠颜色单独表达：底色 +
+   描边同时变）。外形归 `.luna-btn--secondary`，这里只有按下态。 */
+/* 呈现方式四选**带文字**：纯图标没人认得出「仅音频 = 关掉画面」（真机反馈）。
+   悬浮小窗横向空间有限 → 只留图标，语义交给 tooltip/aria-label。 */
+.luna-video-stage__btn-label {
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+/* 字幕字号档：外形归 `.luna-select--sm` 原语，这里只管它在工具条里怎么占位。
+   禁用态（字幕关时）同样归原语，不再自己写一份。 */
+.luna-video-stage__size {
+  flex: 0 0 auto;
+}
+
+/* 画面容器：letterbox 底色刻意不随主题（画面之外恒为暗场，与影院/播放器惯例一致） */
+/* 画面槽位：**空元素**，只负责"画面该多大、在哪"（ADR-118）。底色与内容归常驻画面层，
+   它贴在本元素的矩形上。 */
+.luna-video-stage__frame {
+  flex: 1;
+  min-block-size: 0;
+}
+
+.luna-video-stage__video {
+  inline-size: var(--size-full);
+  block-size: var(--size-full);
+  max-block-size: var(--size-full);
+  object-fit: contain;
+  cursor: pointer;
+}
+
+/* 暂停时的居中播放键：画面本身即最大的播放热区，此键给出明确可点提示。
+   选择器宿主从 `.luna-playback` 换成常驻画面层（ADR-118）：它随 `<video>` 一起搬出了
+   回放视图——留在视图里会被 `position: fixed` 的画面层压在下面，那是栈上下文的事，不是
+   层级值调一调能解决的。 */
+.luna-playback-stage-layer .luna-video-stage__play {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--hud-control-size);
+  block-size: var(--hud-control-size);
+  border: var(--border-width-thin) solid var(--video-overlay-border);
+  border-radius: var(--radius-full);
+  color: var(--video-subtitle-text);
+  background: var(--video-overlay-bg);
+  font-size: var(--font-size-lg);
+}
+
+.luna-playback-stage-layer .luna-video-stage__play:hover {
+  background: var(--video-overlay-bg-strong);
+}
+
+/* 字幕叠加层：底部居中、限宽易读、暗衬白字（叠在任意画面上都须可读，同实时字幕沉浸态） */
+.luna-video-stage__subtitles {
+  position: absolute;
+  inset-block-end: var(--space-4);
+  inset-inline: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  pointer-events: none;
+  text-align: center;
+}
+
+.luna-video-stage__subtitle-line {
+  max-inline-size: var(--caption-line-measure);
+  margin: var(--space-0);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--video-subtitle-text);
+  background: var(--video-subtitle-bg);
+  font-size: var(--video-subtitle-font);
+  line-height: var(--line-height-base);
+  text-wrap: balance;
+}
+
+/* 译文行：accent 着色 + 略小字号，与 cue 列表的双语分层同一视觉语言 */
+.luna-video-stage__subtitle-line--translation {
+  color: var(--video-subtitle-translation);
+  font-size: calc(var(--video-subtitle-font) * 0.92);
+}
+
+.luna-playback-stage-layer[data-subtitle-size="small"] {
+  --video-subtitle-font: var(--font-size-sm);
+}
+
+.luna-playback-stage-layer[data-subtitle-size="medium"] {
+  --video-subtitle-font: var(--font-size-base);
+}
+
+.luna-playback-stage-layer[data-subtitle-size="large"] {
+  --video-subtitle-font: var(--font-size-lg);
+}
+
+.luna-playback-stage-layer[data-subtitle-size="xlarge"] {
+  --video-subtitle-font: var(--font-size-xl);
+}
+
+/* ── 常驻画面层（ADR-118 / PRD-04-064） ────────────────────────────────────────
+ *
+ * `<video>` 与压在画面上的两件覆盖物住在这里，**随工作区常驻、永不卸载**——播放能跨空间
+ * 继续正是靠这一点。它贴在回放视图注册的画面槽位（`.luna-video-stage__frame`）矩形上：
+ * 分屏 / 剧场 / 悬浮小窗三种布局都不需要本层知道任何布局细节，槽位在哪它就在哪。
+ *
+ * **不可见时不能 `display: none`**：那会让 WebKit 停掉解码/输出，"切走仍在放"当场失效。
+ * 收起用的是零尺寸 + `visibility: hidden`——元素仍在渲染树里出声。
+ */
+.luna-playback-stage-layer {
+  position: fixed;
+  inset-block-start: var(--playback-stage-y, 0);
+  inset-inline-start: var(--playback-stage-x, 0);
+  inline-size: var(--playback-stage-w, 0);
+  block-size: var(--playback-stage-h, 0);
+  /* 内容层级：菜单 / 浮层 / 对话框都要压得住它。 */
+  z-index: var(--z-stage);
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--video-stage-bg);
+}
+
+.luna-playback-stage-layer[data-visible="false"] {
+  inline-size: var(--space-0);
+  block-size: var(--space-0);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* 后台悬浮小窗（PRD-04-067「悬浮小窗跟着走」）：已离开回放视图，画面收成一块可拖动的
+   小窗跟着用户走。它比视图内小窗多一圈描边与阴影——那边有工具条给出边界，这边没有。 */
+.luna-playback-stage-layer[data-mode="background-float"] {
+  /* 小窗里的字幕比舞台上小一档：那点尺寸放不下正常档，且它是"瞄一眼"而不是"读"。 */
+  --video-subtitle-font: var(--font-size-xs);
+  inset-block-start: var(--video-float-y);
+  inset-inline-start: var(--video-float-x);
+  inline-size: var(--video-stage-float-inline);
+  block-size: auto;
+  aspect-ratio: 16 / 9;
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  cursor: grab;
+}
+
+.luna-playback-stage-layer[data-mode="background-float"]:active {
+  cursor: grabbing;
+}
+
+/* 小窗自带的紧凑控制条：常态隐形，指针进入或键盘聚焦到里面才显形——常驻会一直压在画面上。
+   小窗在场时底部播放条已让位，故播放/暂停、只留声音、回到回放、关闭这四件必须在这儿。 */
+.luna-playback-stage-layer__controls {
+  position: absolute;
+  inset-block-start: var(--space-1);
+  inset-inline-end: var(--space-1);
+  z-index: 1;
+  display: flex;
+  gap: var(--space-0-5);
+  padding: var(--space-0-5);
+  border-radius: var(--radius-sm);
+  background: var(--video-overlay-bg-strong);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.luna-playback-stage-layer:hover .luna-playback-stage-layer__controls,
+.luna-playback-stage-layer__controls:focus-within {
+  opacity: 1;
+}
+
+/* 小窗控制条里的键：叠在画面上，恒为暗衬亮字（与字幕层同一取舍），不走视图内的描边按钮皮。 */
+.luna-playback-stage-layer__controls .luna-video-stage__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  padding: var(--space-0);
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--video-subtitle-text);
+  cursor: pointer;
+}
+
+.luna-playback-stage-layer__controls .luna-video-stage__btn:hover {
+  background: var(--video-subtitle-bg);
+}
+
+
+
+/* 尚未量出位置的那一帧：先按右下角锚定（绝不闪现在左上角）。**刻意不同时给起止两边**，
+   否则盒子会被拉伸变形——与视图内小窗同一条取舍。 */
+.luna-playback-stage-layer[data-float-pending="true"] {
+  inset-block-start: auto;
+  inset-inline-start: auto;
+  /* 让开「正在播放」条：它就贴在状态栏上方，小窗压上去会把控件盖住。 */
+  inset-block-end: calc(var(--workspace-statusbar-block) + var(--space-6) + var(--control-height-md));
+  inset-inline-end: var(--space-4);
+}
+
+/* ── 「正在播放」条（PRD-04-064） ──────────────────────────────────────────────
+ *
+ * 用户离开回放视图后，声音由常驻宿主继续放——这条是它唯一的可见证据与操作面。形态对标
+ * Spotify / Apple Podcasts 的底部常驻条：贴在状态栏之上、限宽居中，只收最高频的几件事。
+ *
+ * **控件本身一律走原语**（`.luna-btn` / `.luna-icon-btn`）：这里只写"它们在这一条里
+ * 怎么排"。回放视图那份 `.luna-playback__btn--*` 是同一种控件的另一份实现，不再增殖第三份。
+ */
+.luna-now-playing {
+  position: fixed;
+  inset-block-end: calc(var(--workspace-statusbar-block) + var(--space-2));
+  inset-inline: var(--space-4);
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  /* **定宽**（真机 2026-09-08）：此前是 `fit-content`，于是整条的宽度跟着当前那句
+     字幕长短一句一变——每换一句，条就左右伸缩一次，控件位置跟着跑。定宽之后字幕在自己
+     那一格里溢出滚动，别的格纹丝不动。 */
+  inline-size: min(46rem, calc(var(--size-full) - var(--space-6)));
+  margin-inline: auto;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-panel);
+  box-shadow: var(--shadow-lg);
+}
+
+.luna-now-playing__transport {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+/* 走带三键等宽：−10s / 播放 / +10s 换态时不得让整条抖动。 */
+.luna-now-playing__btn {
+  min-inline-size: var(--control-height-sm);
+  padding-inline: var(--space-2);
+}
+
+/* 标题与当前句：整条里唯一可压缩的一格。 */
+.luna-now-playing__meta {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-inline-size: var(--space-0);
+  gap: var(--space-0-5);
+  overflow: hidden;
+}
+
+.luna-now-playing__title {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 当前句：定高一行——空隙/起播前为空串，若随内容伸缩整条会一句一跳。 */
+.luna-now-playing__cue {
+  overflow: hidden;
+  block-size: calc(var(--font-size-xs) * var(--line-height-base));
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-base);
+  white-space: nowrap;
+}
+
+/* 一句放不下时在自己这一格里来回滚，而不是把整条撑宽。滚动距离由 JS 实测溢出量写进
+   `--cue-overflow`（纯 CSS 量不出文本溢出多少）；`data-overflow` 只在真的放不下时出现。 */
+.luna-now-playing__cue[data-overflow="true"] {
+  animation: luna-cue-marquee 12s ease-in-out infinite alternate;
+}
+
+@keyframes luna-cue-marquee {
+  /* 两端各停一会儿再走：一到就掉头会看不清句首句尾。 */
+  0%,
+  15% {
+    transform: translateX(0);
+  }
+
+  85%,
+  100% {
+    transform: translateX(calc(-1 * var(--cue-overflow, 0px)));
+  }
+}
+
+/* 动效敏感的用户不该被一行来回跑的字幕晃：退化为静止 + 省略号。 */
+@media (prefers-reduced-motion: reduce) {
+  .luna-now-playing__cue[data-overflow="true"] {
+    animation: none;
+    text-overflow: ellipsis;
+  }
+}
+
+.luna-now-playing__clock {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-now-playing__rate,
+.luna-now-playing__reopen,
+.luna-now-playing__follow,
+.luna-now-playing__picture {
+  flex-shrink: 0;
+}
+
+.luna-now-playing__close {
+  flex-shrink: 0;
+}
+
+/* 窄容器：分屏改上下堆叠（画面在上），避免两列都挤到不可读。 */
+@container playback (max-width: 900px) {
+  .luna-playback__body[data-layout="split"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .luna-playback__body[data-layout="split"] .luna-video-stage {
+    order: -1;
+    max-block-size: 42vh;
+  }
+}
+
+/* 名册条：配色图例 + 全局改名入口（改名就地输入固定在同一行，位置可预期）。 */
+.luna-playback__speakers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-1);
+}
+
+.luna-playback__speakers-label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-speaker-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-0-5) var(--space-2);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-full);
+  color: var(--speaker-color);
+  background: var(--speaker-surface);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.luna-speaker-chip:hover,
+.luna-speaker-chip:focus-visible {
+  border-color: var(--speaker-color);
+}
+
+.luna-speaker-chip small {
+  color: var(--color-text-muted);
+}
+
+.luna-speaker-chip__dot,
+.luna-speaker-menu__dot {
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--speaker-color);
+  flex-shrink: 0;
+}
+
+.luna-playback__speaker-input {
+  inline-size: 16ch;
+  padding-block: var(--space-0-5);
+  padding-inline: var(--space-1-5);
+  font-size: var(--font-size-xs);
+}
+
+/* 指派菜单（复用 .luna-context-menu 基座）：目标列表 + 范围段控。 */
+.luna-speaker-menu {
+  --speaker-menu-x: 0px;
+  --speaker-menu-y: 0px;
+  min-inline-size: 220px;
+  max-inline-size: 260px;
+  inset-inline-start: var(--speaker-menu-x);
+  inset-block-start: var(--speaker-menu-y);
+}
+
+.luna-speaker-menu__title {
+  margin: 0;
+  padding: var(--space-1) var(--space-2-5);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-speaker-menu__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-speaker-menu__count {
+  margin-inline-start: auto;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-speaker-menu__tip {
+  margin: var(--space-1) 0 0;
+  padding: var(--space-1) var(--space-2-5);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-base);
+}
+
+.luna-speaker-menu__scopes {
+  display: flex;
+  margin: var(--space-1) var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.luna-speaker-menu__scope {
+  flex: 1 1 0;
+  padding: var(--space-1) var(--space-0-5);
+  border: 0;
+  color: var(--color-text-secondary);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.luna-speaker-menu__scope + .luna-speaker-menu__scope {
+  border-inline-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-speaker-menu__scope:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-speaker-menu__scope[aria-pressed="true"] {
+  color: var(--color-accent);
+  background: var(--color-accent-surface);
+}
+
+/* 校对模式行内结构动作（拆分 / 与上一条合并）：静默随行，hover 才显形以免喧宾夺主。 */
+/* 行内结构动作只在悬停/键盘聚焦这一行时浮现：校对时每行都亮着三颗按钮，读的是按钮不是文字 */
+.luna-playback__cue-tools {
+  display: flex;
+  gap: var(--space-1);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.luna-playback__cue:hover .luna-playback__cue-tools,
+.luna-playback__cue-tools:focus-within {
+  opacity: 1;
+}
+
+/* 批量导出菜单 的样式已按 TDD-15 §2.3 归位到 features/transcribe/transcribe.css。 */
+
+/* 仅存链接的转写：无本地媒体时替代播放控件的说明区（PRD-05-006）。
+   不给一排点了没反应的控件，而是给两个真正可用的动作。
+   「能不能作主题依据」的说明（PRD-16-058/065）与它同一形态：都是这一篇的现状 + 下一步。 */
+.luna-playback__no-media,
+.luna-playback__knowledge-notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-bg-muted);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.luna-playback__no-media p,
+.luna-playback__knowledge-notice p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-base);
+}
+
+.luna-playback__no-media-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.luna-playback__no-media-error {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-status-error);
+}
+
+/* 字幕质量提示（PRD-05-033）：安静的行尾角标 + 底栏汇总。
+   刻意用「注意」而非「错误」色——超标是待复核，不是坏掉。 */
+.luna-playback__cue-quality {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  padding: var(--space-0-5) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+  color: var(--color-status-warning);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.luna-playback__quality-toggle {
+  color: var(--color-status-warning);
+}
+
+.luna-playback__quality-toggle[aria-pressed="true"] {
+  background: var(--color-status-warning-surface);
+  border-color: var(--color-status-warning);
+}
+
+.luna-playback__translate-label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* 编辑面页头上的「同步回放」入口（PRD-04-020，`PlaybackEntryBadge`）。
+   形态与其余页头动作同源（`.luna-btn--secondary.luna-btn--sm`），这里只压一句不折行：
+   它与「资料」徽标、「打开知识笔记」同处一行，标题长时那一行本来就挤。 */
+.luna-playback-entry {
+  white-space: nowrap;
+}
+
+/* 书签芯片上的备注（PRD-04-005）：时间之后一小段文字，过长截断 */
+.luna-playback__bookmark-note {
+  max-inline-size: 16ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}

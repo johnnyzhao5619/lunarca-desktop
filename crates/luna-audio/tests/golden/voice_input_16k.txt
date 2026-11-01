@@ -1,0 +1,5 @@
+speech_started
+utterance reason=hangover len=18240 rms=-36.0dBFS peak=-31.8dBFS
+speech_started
+utterance reason=hangover len=11840 rms=-31.4dBFS peak=-26.8dBFS
+levels=44

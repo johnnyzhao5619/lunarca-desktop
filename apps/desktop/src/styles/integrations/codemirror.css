@@ -1,0 +1,245 @@
+/*
+ * CodeMirror（第三方 DOM）的覆盖层。
+ *
+ * **为什么这里必须用 `!important`**：CM6 的 baseTheme 由 StyleModule 在**运行时注入**
+ * 到 `document.head`，它**不在任何 cascade layer 里**——而按 CSS 层叠规则，无层的常规
+ * 声明**胜过任何层里的常规声明，与特异性无关**。本仓库所有样式都经 `styles/index.css`
+ * 进入 `@layer`（TDD-15 §3.3），于是 `.luna-editor__surface .cm-scroller`（0,2,0）也压不过
+ * CM6 的 `.cm-scroller`（0,1,0）。important 声明的层优先级是反的，故层内 `!important`
+ * 能压住无层——这正是 §3.3「第三方 DOM 且有明确被压选择器」允许保留 important 的场景。
+ */
+
+/* **正文是散文，不是代码**：CM6 baseTheme 给 `.cm-scroller` 写死 `font-family: monospace`，
+   它压过了我们的 `font: inherit`，于是**每一篇笔记的英文与数字都以等宽字形呈现**——中文
+   因为等宽字体没有中文字形而回退到系统字体，所以一眼看去只是"英文和数字怪怪的"，真机
+   截图里 `Rainow` / `2026` / `CTA` / `145` 全是等宽（Obsidian / Typora 的正文均为比例字体，
+   等宽只属于代码）。被压的选择器就是 `.cm-scroller`，故只覆盖字族这一条属性；代码块与
+   行内代码另有各自的 `--font-family-mono` 规则，不受影响。 */
+.luna-editor__surface .cm-scroller,
+.luna-vault-window .cm-scroller {
+  font-family: inherit !important;
+}
+
+/* **正文画布的内距与居中也必须在无层边界收编**：CM6 baseTheme 对 `.cm-content`
+   注入 `padding: 4px 0` 与 `margin: 0` 两个简写。它们不在 cascade layer 里，会压过
+   features 层的 `padding` / `margin-inline`，结果就是正文恒贴左边，而声明的可读行宽只在
+   右侧留下空白。这里与 `.cm-line` 同一治理模型：物理属性只写一次，feature 通过变量表达
+   设计意图。内距走全局 editor Token，主窗与副库窗口共用同一基线。 */
+.luna-editor__surface .cm-content,
+.luna-vault-window .cm-content {
+  padding-block: var(--editor-content-pad-block) !important;
+  padding-inline: var(--editor-content-pad-inline) !important;
+  margin-inline: auto !important;
+}
+
+/* **`.cm-line` 的内距竞争一处收编**：CM6 baseTheme 给 `.cm-line` 写死
+   `padding: 0 2px 0 6px`（运行时注入、不在任何 cascade layer 里），本仓库所有分层的
+   `.cm-line` 内距 longhand（引用 / 标注 / 代码块 / 列表悬挂）**从分层引入起就全部被它
+   静默压制**——列表悬挂缩进的负 `text-indent` 无人竞争、独自生效，首行被拉出左缘裁字，
+   才把这层旧账暴露出来。被压选择器就是 `.cm-line` 的 padding 简写。
+   修法不是给每条 feature 规则各撒一个 important（那会把白名单撒成一片），而是**这里用
+   一条 important 声明四向内距、值走自定义变量钩子**：变量没有竞争者，feature 侧在自己
+   文件里用层内常规声明设 `--cm-line-pad-*` 即可生效；本条是 `.cm-line` 内距唯一的
+   物理属性负责者（§3.3c）。默认值即 CM 基线（6px/2px，恰为 `--space-1-5`/`--space-0-5`）。 */
+.luna-editor__surface .cm-line,
+.luna-vault-window .cm-line {
+  /* 默认值 = CM 基线；features 层（晚于 integrations 层）覆盖这些变量即生效。
+     块起始行的纵向内距由**两个正交来源相加**：`--md-block-gap`（块与块之间的
+     章节留白，由 block-spacing.ts 的行装饰给）与 `--md-block-inset-*`（块容器自己的
+     内缘留白，代码块/标注块的首末行）。二者可以同时命中同一行（一个代码块既是新的
+     块起点、又是有边框的容器），故必须相加而不是互相覆盖——让两个类各设一遍
+     `--cm-line-pad-block-start` 就是造出两个负责者（§3.3c），谁赢取决于选择器顺序。 */
+  --md-block-gap: var(--space-0);
+  --md-block-inset-start: var(--space-0);
+  --md-block-inset-end: var(--space-0);
+  --cm-line-pad-block-start: calc(var(--md-block-gap) + var(--md-block-inset-start));
+  --cm-line-pad-block-end: var(--md-block-inset-end);
+  --cm-line-pad-inline-start: var(--space-1-5);
+  --cm-line-pad-inline-end: var(--space-0-5);
+
+  padding-block: var(--cm-line-pad-block-start) var(--cm-line-pad-block-end) !important;
+  padding-inline: var(--cm-line-pad-inline-start) var(--cm-line-pad-inline-end) !important;
+}
+
+/* **光标与选区的颜色也被无层基类压着**：编辑器用 `drawSelection` 自绘光标与选区
+   （原生光标贴着块级部件时 WebKit 会画一根与部件同高的粗条，真机 2026-09-02），而 CM6
+   baseTheme 按自己的 `&light` / `&dark` 类给 `.cm-cursor` 写 `border-left-color: black` /
+   `#ddd`、给 `.cm-selectionBackground` 写 `#d9d9d9` / `#222`（无层、运行时注入）；本仓库
+   从不给 EditorView 挂 dark 主题，于是深色主题下光标是黑的。被压的选择器是
+   `&light .cm-cursor`；只覆盖一条属性，颜色走既有 Token（`--editor-caret`）。 */
+.luna-editor__surface .cm-cursor,
+.luna-vault-window .cm-cursor {
+  border-left-color: var(--editor-caret) !important;
+}
+
+/* **CM 自带的选区层整层藏起来**：选区矩形改由 `features/editor/selection-layer.ts` 自绘
+   （左界夹到正文列、换行残块不画，理由见该文件抬头）。`drawSelection` 的光标层与"隐藏
+   原生选区"仍要用，而它的选区层不可单独关闭——藏层是唯一的口子。不需要 important：
+   CM 对这一层只写内联 `display: ""`（有内容）/ `display: none`（空），前者等于没写。 */
+.luna-editor__surface .cm-selectionLayer,
+.luna-vault-window .cm-selectionLayer {
+  display: none;
+}
+
+/* **活动行底色与光标粗细同样被无层基类压着**：CM6 baseTheme 给 `.cm-activeLine` 写死
+   `#cceeff44` / `#99eeff33`（一层青蓝，深色主题下整段像被选中，真机 2026-09-02「编辑某一
+   位置时整个段落都被高亮」），层内那条 `--editor-active-line`（文字色 5% 混色）从未生效；
+   自绘光标 `.cm-cursor` 的 `border-left: 1.2px` 在高分屏上细得看不见。被压的选择器是
+   `&light .cm-activeLine` 与 `.cm-cursor, .cm-dropCursor`；各只覆盖一条属性，粗细走线宽 Token。 */
+.luna-editor__surface .cm-activeLine,
+.luna-vault-window .cm-activeLine {
+  background-color: var(--editor-active-line) !important;
+}
+
+.luna-editor__surface .cm-cursor,
+.luna-vault-window .cm-cursor {
+  border-left-width: var(--border-width-thick) !important;
+}
+
+/* **装订线列的底色与竖线归零**：CM6 的浅色主题给 `.cm-gutters` 注入 `background-color` /
+   `border-right` / `color`（无层，压过本仓库任何层内声明）。本仓库唯一的装订线是时间戳行
+   的播放键列，它应当与正文同一张纸——真机 2026-09-08 上报的"编辑器左侧意义不明的白条"
+   就是这条灰底。三条 important 各对应被压的那一条。 */
+.luna-editor__surface .cm-gutters,
+.luna-vault-window .cm-gutters {
+  background: transparent !important;
+  border: 0 !important;
+  color: inherit !important;
+}
+
+/* **查找 / 替换面板走应用自己的控件语言**（TDD-15 §3.3a：原生控件外观必须显式关掉）。
+   此前这一块写在 features 层，真机上看到的仍是灰底、渐变按钮、银边输入框——CM6 的
+   `.cm-panels` / `.cm-panel.cm-search` / `.cm-textfield` / `.cm-button` 主题是无层注入的，
+   层内常规声明压不过。**只对 CM 确实注入了的那一条属性加 important**，其余照常分层。
+   外形对标 `.luna-input` / `.luna-btn--secondary.luna-btn--sm`，尺度走 `--control-height-sm`。 */
+.luna-editor__surface .cm-panels,
+.luna-vault-window .cm-panels {
+  /* 被压：`&light .cm-panels { background-color; color }`、`.cm-panels-bottom { border-top }` */
+  background: var(--color-bg-panel) !important;
+  color: var(--color-text-primary) !important;
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle) !important;
+}
+
+.luna-editor__surface .cm-panel.cm-search,
+.luna-vault-window .cm-panel.cm-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1-5);
+  /* 被压：`.cm-panel.cm-search { padding }`；右侧留出关闭键（CM 把它绝对定位在右上角）。 */
+  padding: var(--space-2) var(--space-7) var(--space-2) var(--space-3) !important;
+  font-size: var(--font-size-sm);
+}
+
+.luna-editor__surface .cm-panel.cm-search label,
+.luna-vault-window .cm-panel.cm-search label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  /* 被压：`& input, & button, & label { margin }`、`& label { font-size }` */
+  margin: var(--space-0) !important;
+  font-size: var(--font-size-xs) !important;
+  color: var(--color-text-secondary);
+}
+
+.luna-editor__surface .cm-panel.cm-search input[type="checkbox"],
+.luna-vault-window .cm-panel.cm-search input[type="checkbox"] {
+  /* 被压：`& input { margin }` + `& input[type=checkbox] { margin-right }` */
+  margin: var(--space-0) !important;
+  accent-color: var(--color-accent);
+}
+
+.luna-editor__surface .cm-panel.cm-search .cm-textfield,
+.luna-vault-window .cm-panel.cm-search .cm-textfield {
+  min-block-size: var(--control-height-sm);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  outline: none;
+  /* 被压：`.cm-textfield { vertical-align; color; font-size; border; padding }`、
+     `&light .cm-textfield { background-color }`、`& input { margin }` */
+  margin: var(--space-0) !important;
+  padding: var(--space-0) var(--space-2) !important;
+  border: var(--border-width-thin) solid var(--color-border-subtle) !important;
+  background: var(--color-bg-surface) !important;
+  color: var(--color-text-primary) !important;
+  font-size: var(--font-size-sm) !important;
+  vertical-align: baseline !important;
+}
+
+.luna-editor__surface .cm-panel.cm-search .cm-textfield:focus,
+.luna-vault-window .cm-panel.cm-search .cm-textfield:focus {
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: calc(-1 * var(--outline-width-focus));
+  /* 被压：上一块自己的 `border` important（同层同权重，靠后者胜出）。 */
+  border-color: var(--color-border-focus) !important;
+}
+
+.luna-editor__surface .cm-panel.cm-search .cm-button,
+.luna-vault-window .cm-panel.cm-search .cm-button {
+  min-block-size: var(--control-height-sm);
+  background: var(--color-bg-surface);
+  font: inherit;
+  text-transform: none;
+  cursor: pointer;
+  /* 被压：`.cm-button { vertical-align; color; font-size; padding; border-radius }`、
+     `&light .cm-button { background-image; border }`、`& button { margin }` */
+  margin: var(--space-0) !important;
+  padding: var(--space-0) var(--space-2) !important;
+  border: var(--border-width-thin) solid var(--color-border-subtle) !important;
+  border-radius: var(--radius-sm) !important;
+  background-image: none !important;
+  color: var(--color-text-primary) !important;
+  font-size: var(--font-size-sm) !important;
+  vertical-align: baseline !important;
+}
+
+.luna-editor__surface .cm-panel.cm-search .cm-button:hover,
+.luna-vault-window .cm-panel.cm-search .cm-button:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-editor__surface .cm-panel.cm-search .cm-button:focus-visible,
+.luna-vault-window .cm-panel.cm-search .cm-button:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: var(--space-0-5);
+}
+
+/* 关闭键：位置沿用 CM 自己的右上角绝对定位，只换字号与颜色。被压：`& [name=close] { font }`。 */
+.luna-editor__surface .cm-panel.cm-search [name="close"],
+.luna-vault-window .cm-panel.cm-search [name="close"] {
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: var(--font-size-lg) !important;
+}
+
+/* **浮层外框（补全、斜杠菜单、表格尺寸选择器）同样被无层基类压着**：CM6 给
+   `&light .cm-tooltip` 注入 `border` / `background-color`（#f5f5f5），而字色由本层给出，
+   于是深色主题下是白底浅字、几乎读不出（真机 2026-10-04 斜杠菜单）。补全列表另被注入
+   `& > ul { font-family: monospace }`、`& > li { padding }`、选中项 `background` / `color`
+   （#17c 蓝底白字）。每条 important 对应被压的那一条，其余照常分层。 */
+.luna-editor__surface .cm-tooltip,
+.luna-vault-window .cm-tooltip {
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  border: var(--border-width-thin) solid var(--color-border-subtle) !important;
+  background-color: var(--color-bg-panel) !important;
+}
+
+.luna-editor__surface .cm-tooltip-autocomplete > ul,
+.luna-vault-window .cm-tooltip-autocomplete > ul {
+  font-family: inherit !important;
+}
+
+.luna-editor__surface .cm-tooltip-autocomplete > ul > li,
+.luna-vault-window .cm-tooltip-autocomplete > ul > li {
+  font-size: var(--font-size-sm);
+  padding: var(--space-1) var(--space-2-5) !important;
+}
+
+.luna-editor__surface .cm-tooltip-autocomplete > ul > li[aria-selected],
+.luna-vault-window .cm-tooltip-autocomplete > ul > li[aria-selected] {
+  background: var(--color-bg-selected) !important;
+  color: var(--color-accent) !important;
+}

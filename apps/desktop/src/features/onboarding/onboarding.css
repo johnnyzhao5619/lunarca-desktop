@@ -1,0 +1,765 @@
+/*
+ * 首启引导向导的样式（PRD-14 §3）。
+ *
+ * 此前这一百多条规则住在 `features/settings/settings.css` 里，占掉那个文件近一半——引导与
+ * 设置是两个 feature，而它们的媒体查询、容器查询与状态选择器在同一个文件里互相夹杂，改
+ * 任一边都得先分辨手上这条属于谁。本文件是**纯搬迁**：规则内容与相对顺序一字未改，层叠
+ * 位置仍由 `styles/index.css` 的 `layer(features)` 决定。
+ *
+ * 搬迁过程中掉出一处跨 feature 耦合：不定量进度动画原名 `luna-onboarding-indeterminate`，
+ * 而它的三个消费者里有一个是设置页的 CoreML 行。它已提为原语 `luna-bar-indeterminate`
+ * （`components/progress.css`）——一条共享动画不该挂着某个 feature 的名字。
+ */
+
+.luna-onboarding-viewport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-full);
+  height: var(--size-full);
+  min-block-size: 100dvh;
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: var(--space-6);
+  background: var(--color-bg-surface);
+}
+
+.luna-onboarding-card {
+  container: onboarding / inline-size;
+  display: grid;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
+  align-content: stretch;
+  gap: var(--space-6);
+  width: var(--size-full);
+  max-inline-size: var(--onboarding-card-max-inline);
+  /* 高度随内容：内容少的步骤（第一个任务只有两张卡）不再撑出一大片留白；
+     上限仍由视口给，超出时卡内滚动。 */
+  max-block-size: calc(100dvh - var(--space-6) - var(--space-6));
+  margin-block: auto;
+  padding: var(--space-6);
+  box-sizing: border-box;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  color: var(--color-text-primary);
+  background: var(--color-bg-panel);
+  transition: background var(--transition-base), border var(--transition-base), box-shadow var(--transition-base);
+}
+
+.luna-onboarding-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.luna-onboarding-logo {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* 覆盖层形态（重入）：压在工作区之上，不卸载它（PRD-14-060）。 */
+.luna-onboarding-viewport[data-overlay] {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: color-mix(in srgb, var(--color-bg-canvas) 80%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+/* —— 带标签步骤指示器（已到访步骤可点击回跳） —— */
+.luna-onboarding__stepper {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  overflow-x: auto;
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+  padding-block-end: var(--space-4);
+}
+
+.luna-onboarding__stepper-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: var(--onboarding-step-min-inline);
+  flex: 1 0 var(--onboarding-step-min-inline);
+  border: 0;
+  padding: var(--space-1);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: default;
+}
+
+.luna-onboarding__stepper-item:not(:disabled) {
+  cursor: pointer;
+}
+
+.luna-onboarding__stepper-item:not(:disabled):hover {
+  color: var(--color-text-primary);
+}
+
+.luna-onboarding__stepper-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--space-5);
+  block-size: var(--space-5);
+  border-radius: var(--radius-full);
+  background: var(--color-border-subtle);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+  transition: background var(--transition-base), box-shadow var(--transition-base);
+}
+
+.luna-onboarding__stepper-item[data-state="done"] .luna-onboarding__stepper-dot {
+  background: var(--color-status-success);
+  color: var(--color-action-primary-text);
+}
+
+.luna-onboarding__stepper-item[data-state="skipped"] .luna-onboarding__stepper-dot {
+  background: transparent;
+  box-shadow: inset 0 0 0 var(--border-width-thick) var(--color-status-attention);
+  color: var(--color-status-attention);
+}
+
+.luna-onboarding__stepper-item[data-active="true"] {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.luna-onboarding__stepper-item[data-active="true"] .luna-onboarding__stepper-dot {
+  background: var(--color-accent);
+  color: var(--color-action-primary-text);
+  opacity: 1;
+  box-shadow: 0 0 0 var(--onboarding-step-ring) color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+
+/* 窄卡时的紧凑投影：容器查询二选一——宽卡显示七个带标签的点，窄卡显示「第 N 步 / 共 M」+ 进度条。
+   阈值必须高于步进条铺得开所需的宽度（7 × `--onboarding-step-min-inline` + 6 × `--space-2`
+   = 788px @ 舒适档）。此前是 640px，于是容器宽在 641–790px 之间时两种投影都不合适：完整
+   步进条已经铺不下（`flex-shrink: 0`），退化成 `overflow-x: auto` 横向滚动——后面两三步滚出
+   视野，而屏幕上没有任何东西提示那里还有内容。 */
+.luna-onboarding__stepper-compact {
+  display: none;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: var(--size-full);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.luna-onboarding__stepper-bar {
+  flex: 1 1 auto;
+  block-size: var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--color-border-subtle);
+  overflow: hidden;
+}
+
+.luna-onboarding__stepper-bar-fill {
+  display: block;
+  block-size: var(--size-full);
+  inline-size: var(--progress-inline-size, 0%);
+  background: var(--color-accent);
+  transition: inline-size var(--transition-base);
+}
+
+@container onboarding (max-width: 800px) {
+  .luna-onboarding__stepper-item {
+    display: none;
+  }
+
+  .luna-onboarding__stepper-compact {
+    display: flex;
+  }
+}
+
+.luna-onboarding__stepper-label {
+  max-inline-size: 14ch;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.luna-onboarding__header h1 {
+  margin: var(--space-0);
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.luna-onboarding__body {
+  margin: var(--space-0);
+  max-inline-size: 68ch;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+}
+
+/* 步骤内容区。引导七步的**纵向节奏在这里声明一次**：块与块 `--onboarding-gap-stack`、
+   卡与卡 `--onboarding-gap-cards`，各步只引用不另定。此前七个步骤根各写一份 gap（欢迎与
+   模型 16px、其余 12px），五个列表容器又各写一份（8px 与 12px 混用），于是"下一块离我
+   多远"每翻一页都变一次——那正是截图里两页读起来不像同一个产品的原因之一。
+
+   上下两道阴影是**可滚提示**：内容区高度被卡片上限压住，长步骤（模型准备、权限）会在某
+   一行正中间截断，而截断处没有任何记号时它读起来就是"内容到此为止"。做法是两层 `local`
+   底色盖片压两层 `scroll` 阴影：不能滚时盖片正好盖住阴影，滚到端点时自动收回，不需要 JS，
+   也不需要监听滚动事件。
+
+   两道阴影各**往里收一根发丝线**：卡片在视口里垂直居中，内容区的上下沿常落在半像素上，
+   WebKit 把 `local` 层画进按整数取整的滚动内容层、`scroll` 层画在盒子本身，两者在那一行
+   对不齐——盖片盖不住阴影最深的那一行，不能滚时也在按钮下方留一道淡线，与底部导航的分隔线
+   叠成"两条线"（2026-10-21 真机截图；离屏 WKWebView 在 473.5 / 528.5 / 573.5 三个落点复现，
+   整数落点不出现）。把盖片铺大无效，收阴影有效；能滚时阴影仍在，只是离边缘一线。 */
+.luna-onboarding__content {
+  --onboarding-gap-stack: var(--space-4);
+  --onboarding-gap-cards: var(--space-2);
+  display: grid;
+  gap: var(--onboarding-gap-stack);
+  min-block-size: var(--space-0);
+  align-content: start;
+  overflow-y: auto;
+  background:
+    linear-gradient(var(--color-bg-panel) 40%, transparent) 0 0 / 100% var(--space-5) no-repeat local,
+    linear-gradient(transparent, var(--color-bg-panel) 60%) 0 100% / 100% var(--space-5) no-repeat local,
+    linear-gradient(color-mix(in srgb, var(--color-text-primary) 10%, transparent), transparent)
+      0 var(--border-width-thin) / 100% var(--space-1) no-repeat scroll,
+    linear-gradient(transparent, color-mix(in srgb, var(--color-text-primary) 10%, transparent))
+      0 calc(100% - var(--border-width-thin)) / 100% var(--space-1) no-repeat scroll;
+  animation: luna-onboarding-step-in var(--transition-base) ease-out;
+}
+
+@keyframes luna-onboarding-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-1));
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+:root[data-reduce-motion="true"] .luna-onboarding__content {
+  animation: none;
+}
+
+.luna-onboarding__header h1:focus-visible {
+  outline: none;
+}
+
+.luna-onboarding__hint {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.6;
+}
+
+.luna-onboarding__pending {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+/* 「已就绪」一行（内置模型、本机文本模型、示例已入队）。此前它叫 `luna-onboarding-models__ready`，
+   而第一个任务那一步也在用它——一个以别的步骤命名的类跨步复用，下次改模型页的人不会知道
+   自己同时改了别处。 */
+.luna-onboarding__ready {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-0);
+  color: var(--color-status-success);
+  font-size: var(--font-size-sm);
+  /* Vault 那一行报的是绝对路径，长到没有空格可断。 */
+  overflow-wrap: anywhere;
+}
+
+/* 步骤根（七步共用）：只负责纵向节奏，视觉全在里面的卡上。此前七个根各写一份
+   `display:grid + gap`，而那七份 gap 并不相等。 */
+.luna-onboarding-step {
+  display: grid;
+  gap: var(--onboarding-gap-stack);
+  align-content: start;
+}
+
+/* 卡列表：承诺、算力落点、权限、第一个任务、快捷键、语言与外观——六处此前各写一份同样的
+   `grid + gap + 去列表样式`。`border: 0` 是给 `<fieldset>` 形态用的（算力落点是单选组）。 */
+.luna-onboarding-list {
+  display: grid;
+  gap: var(--onboarding-gap-cards);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  border: 0;
+  list-style: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   引导卡（`.luna-onboarding-item`）——引导里「一行一件事」的唯一说法。
+
+   此前它被写了**六遍**：欢迎的承诺、算力落点、模型卡、权限行、快捷键行、第一个任务卡。
+   骨架全是 `flex + padding-3 + 细边 + radius-md + 面背景`，差异只有 align / gap / 有没有
+   背景——而那些差异不是设计决策，是漂移：算力落点少了 `background`，于是在画布底上读起来
+   是"凹陷"而其余各步是"浮起"；快捷键行干脆没有边框、圆角还小一号。六族里承诺与任务卡的
+   图标盒**逐字相同**，三族的标题/说明排版也是。截图里两页看着不像同一个产品，源头就在这。
+
+   本仓对这类问题已有判例（`components/empty-state.css` 曾并存四套、`failure-card.css`
+   两份），解法是**收成一处**而不是逐处对齐——逐处对齐只会在下一次改动时重新分叉。
+
+   它是**feature 内共用件，不是 TDD-15 §3.3a 意义上的原语**：那一条讲的是"被第三处
+   feature 需要"的外壳，要提到 `components/` 并改掉 feature 名。这里六个消费者全在引导内，
+   类名照实带着 `onboarding`；哪天设置页或工作区也要同一张卡，按 §3.3a 提上去、连名字一起换。
+
+   守护见 `onboarding-card-guard.test.ts`：这张表里再出现第二份卡骨架即判红。
+   ───────────────────────────────────────────────────────────────────────────── */
+.luna-onboarding-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+/* 右侧只有一颗按钮、左侧只有一两行时垂直居中读起来更稳；多行说明仍用默认的顶对齐。 */
+.luna-onboarding-item[data-align="center"] {
+  align-items: center;
+}
+
+/* 纵向形态：卡里还要展开一段内容（模型准备那一步的下载进度与说明）。
+   展开块放在卡**里面**而不是三张卡下面——放在下面时它与那三张是同级，读起来像第四个
+   选项；而它讲的只是"你刚选的那一条还差什么"。 */
+.luna-onboarding-item[data-layout="stack"] {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* 纵向形态里的主行：图标与文字仍然并排，展开块在它下面。 */
+.luna-onboarding-item__main {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  cursor: inherit;
+}
+
+/* 纵向形态下 `data-align` 要落到主行上——挂在外层那个 column 容器上是没有作用的。 */
+.luna-onboarding-item[data-align="center"] > .luna-onboarding-item__main {
+  align-items: center;
+}
+
+.luna-onboarding-item__detail {
+  display: grid;
+  gap: var(--space-2);
+  padding-block-start: var(--space-3);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* 两栏形态（快捷键、语言与外观）：左标签、右控件。控件列取 `auto` 让键位框与触发方式
+   **同一行**摆得下——此前列宽写死成设置页那档 `minmax(10rem, 16rem)`，两截被迫上下堆叠，
+   一行就有 90px 高，是其余各步卡片的两倍多，而左栏只有两三个字。 */
+.luna-onboarding-item[data-layout="columns"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+/* 行级错误横跨整行：它讲的是这一行刚被拒的那个组合，挤在控件旁边读不完。 */
+.luna-onboarding-item[data-layout="columns"] > .luna-onboarding__error {
+  grid-column: 1 / -1;
+}
+
+/* 快捷键控件在引导里横过来。`.luna-shortcut-control` 自己是纵向的，那在设置页是对的
+   ——那边控件列只有 `--control-column-inline`（16rem），键位框与触发方式并排放不下。
+   引导的卡宽得多，而左栏只有两三个字：纵向让一行长到 98px，是其余各步卡片的两倍多
+   （真机 2026-09-12 截图）。**只给列宽不够**——列宽改成 `auto` 之后控件照旧自己堆叠，
+   方向得在这里说。这是使用者对被复用件的布局定制，不碰它的皮肤（TDD-15 §3.3e）。 */
+.luna-onboarding-item[data-layout="columns"] .luna-shortcut-control {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: auto;
+}
+
+/* 录制框同样是照着定宽列写的（`inline-size: 100%`）：横过来之后它把整行吃光，分段控件
+   只剩一条窄缝，于是「按一次 / 双击」自己折成两行——行还是没收下来。这里让它按内容宽。 */
+.luna-onboarding-item[data-layout="columns"] .luna-shortcut-recorder {
+  inline-size: auto;
+}
+
+/* 两栏形态的左栏标签。 */
+.luna-onboarding-item__label {
+  min-inline-size: var(--space-0);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.luna-onboarding-item__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+/* 语气三档：强调（默认，"这是可以做的事"）、静音（"还没到点上"）、成功（"已经好了"）。
+   此前权限行自己写了一份 28px 的灰底图标盒，与另外两族的 32px 强调盒并列在同一个流程里。 */
+.luna-onboarding-item__icon[data-tone="muted"] {
+  color: var(--color-text-muted);
+  background: var(--color-bg-muted);
+}
+
+.luna-onboarding-item__icon[data-tone="success"] {
+  color: var(--color-status-success);
+  background: color-mix(in srgb, var(--color-status-success) 12%, transparent);
+}
+
+.luna-onboarding-item__text {
+  display: grid;
+  gap: var(--space-1);
+  align-content: start;
+  flex: 1;
+  min-inline-size: var(--space-0);
+}
+
+.luna-onboarding-item__text strong {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.luna-onboarding-item__text p,
+.luna-onboarding-item__text small {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+/* 右侧动作槽：按钮、状态字或一段控件都走它，故不写死宽度，只保证不被文字挤扁。 */
+.luna-onboarding-item__action {
+  flex-shrink: 0;
+}
+
+/* 设备算力摘要一行（并入模型准备页顶部，PRD-14-010）。 */
+.luna-onboarding-hardware__tier {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+/* 徽标（`.luna-onboarding__badge`）——引导里所有"一个词的状态或分类"都走它：推荐、生效中、
+   本地备用、许可证、已就绪、设备档位、权限状态。此前它被写了**四份**（模型徽标、档位徽标、
+   权限状态、落点徽标），骨架同是"胶囊 + xs + 600"，而内距已经开始分叉（6px / 8px）。
+   语气用 `data-tone`，默认是强调色。 */
+.luna-onboarding__badge {
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+.luna-onboarding__badge[data-tone="muted"] {
+  color: var(--color-text-muted);
+  background: var(--color-bg-muted);
+}
+
+.luna-onboarding__badge[data-tone="success"] {
+  color: var(--color-status-success);
+  background: color-mix(in srgb, var(--color-status-success) 14%, transparent);
+}
+
+.luna-onboarding__badge[data-tone="warning"] {
+  color: var(--color-status-warning);
+  background: color-mix(in srgb, var(--color-status-warning) 14%, transparent);
+}
+
+.luna-onboarding__badge[data-tone="error"] {
+  color: var(--color-status-error);
+  background: color-mix(in srgb, var(--color-status-error) 14%, transparent);
+}
+
+.luna-onboarding-models__section {
+  display: grid;
+  gap: var(--onboarding-gap-cards);
+}
+
+.luna-onboarding-models__section h3 {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.luna-onboarding-model__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.luna-onboarding-model__meta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-onboarding-model__progress {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-onboarding-model__progress-bar {
+  block-size: 4px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-muted);
+  overflow: hidden;
+}
+
+.luna-onboarding-model__progress-fill {
+  inline-size: var(--progress-inline-size);
+  block-size: var(--size-full);
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  transition: width var(--transition-base);
+}
+
+.luna-onboarding-model__progress-fill[data-indeterminate="true"] {
+  inline-size: 40%;
+  animation: luna-bar-indeterminate 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luna-onboarding-model__progress-fill[data-indeterminate="true"] {
+    animation: none;
+    inline-size: var(--size-full);
+    opacity: 0.5;
+  }
+}
+
+.luna-onboarding-permission__name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.luna-onboarding-permissions__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.luna-onboarding__vault-input-group {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* 输入框吃掉剩余宽度，「换一个文件夹…」不被路径挤扁。皮肤走 `.luna-input` 原语
+   ——此前这里自写了一份 padding / border / radius / focus，是全应用第四套输入框皮。 */
+.luna-onboarding__vault-input-group .luna-input {
+  flex: 1;
+  min-inline-size: var(--space-0);
+}
+
+.luna-onboarding__vault-input-group .luna-btn {
+  gap: var(--space-1-5);
+  flex-shrink: 0;
+}
+
+/* 「推荐位置」是路径那一行的徽标（`luna-onboarding__badge`），不另占一段说明（C04）。 */
+.luna-onboarding__vault-input-group .luna-onboarding__badge {
+  align-self: center;
+  flex-shrink: 0;
+}
+
+/* 绑定成功那一行：「在访达中显示」贴在行尾，路径仍可任意处折行。 */
+.luna-onboarding__ready .luna-btn {
+  flex-shrink: 0;
+  margin-inline-start: auto;
+  color: var(--color-text-primary);
+}
+
+.luna-onboarding__vault-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* 步骤收尾的那颗次要按钮（「查看全部快捷键」）跟着内容左缘走——不限定的话 grid 会把它
+   拉成整行并居中，看着像一颗孤立的主动作。 */
+.luna-onboarding-step > .luna-btn {
+  justify-self: start;
+}
+
+/* 成功态的算力落点：一句陈述（标签 + 值），不是列表。 */
+.luna-onboarding-success__compute {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: var(--space-0);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.luna-onboarding-success__compute strong {
+  color: var(--color-text-primary);
+}
+
+/* 主按钮灰着的原因行（壳层唯一渲染点）：贴着底部导航之上，与主按钮同一视线。 */
+.luna-onboarding__blocked {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+  margin: var(--space-0);
+  border-radius: var(--radius-sm);
+  background: var(--color-status-attention-surface);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 1.6;
+}
+
+/* —— 底部导航 —— */
+.luna-onboarding__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-block-start: var(--space-0);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+  padding-block-start: var(--space-4);
+}
+
+.luna-onboarding__actions-left,
+.luna-onboarding__actions-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: var(--space-0);
+}
+
+/* 后台下载胶囊：切步不丢（PRD-14-020）。 */
+.luna-onboarding__download-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  max-inline-size: 28ch;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  overflow: hidden;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.luna-onboarding__download-pill-fill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: var(--progress-inline-size, 0%);
+  background: var(--color-accent-surface);
+  transition: inline-size var(--transition-base);
+}
+
+.luna-onboarding__download-pill-fill[data-indeterminate="true"] {
+  inline-size: 40%;
+  animation: luna-bar-indeterminate 1.2s ease-in-out infinite;
+}
+
+.luna-onboarding__download-pill-text {
+  position: relative;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* —— 第一个任务：行内「去授权」与成功态 —— */
+.luna-onboarding__inline-action {
+  border: 0;
+  padding: var(--space-0);
+  background: transparent;
+  color: var(--color-accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.luna-onboarding-success {
+  display: grid;
+  gap: var(--onboarding-gap-stack);
+  justify-items: start;
+}
+
+.luna-onboarding-success__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--space-7);
+  block-size: var(--space-7);
+  border-radius: var(--radius-full);
+  background: var(--color-status-success-surface);
+  color: var(--color-status-success);
+}
+
+.luna-onboarding-success__title {
+  margin: var(--space-0);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.luna-onboarding-success__body {
+  margin: var(--space-0);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+.luna-onboarding__error {
+  margin: var(--space-0);
+  color: var(--color-status-error);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 768px) {
+  .luna-onboarding-viewport {
+    align-items: flex-start;
+    padding: var(--space-3);
+  }
+
+  .luna-onboarding-card {
+    grid-template-rows: none;
+    gap: var(--space-4);
+    padding: var(--space-5);
+  }
+
+  .luna-onboarding-logo {
+    justify-content: center;
+  }
+}
+
+/* 「这台设备」卡上的本机文本模型就绪度（C05）：就绪用成功色，缺模型用提醒色——文字本身已说清，
+   颜色只是第二线索。 */
+.luna-onboarding-item__text small[data-tone="success"] {
+  color: var(--color-status-success);
+}
+
+.luna-onboarding-item__text small[data-tone="attention"] {
+  color: var(--color-status-attention);
+}

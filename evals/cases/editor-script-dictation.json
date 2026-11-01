@@ -1,0 +1,37 @@
+{
+  "_comment": [
+    "视频脚本改稿动作「script.dictation」（PRD-19-013/014，ADR-162）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "editor",
+  "template": "creator.script.dictation",
+  "cases": [
+    {
+      "name": "整理口述：保留本人的话，只留改正后的说法",
+      "vars": {
+        "language_lock": "The output must stay in Chinese.",
+        "context": ""
+      },
+      "must_contain": [
+        "keep only the corrected version",
+        "Keep the speaker's own words",
+        "must stay in Chinese",
+        "Output only"
+      ],
+      "why": "口述稿里「不对，应该是……」很常见，模型若两版都留，稿子就自相矛盾"
+    },
+    {
+      "name": "标记与 broll 块原样保留",
+      "vars": {
+        "language_lock": "The output must stay in English.",
+        "context": ""
+      },
+      "must_contain": [
+        "`broll` code blocks",
+        "[口播]",
+        "exactly as they are"
+      ],
+      "why": "改稿若吃掉 broll 块或行首标记，脚本的分段时长与画面清单就全乱了（PRD-19-010）"
+    }
+  ]
+}

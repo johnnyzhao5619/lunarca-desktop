@@ -1,0 +1,513 @@
+/*
+ * 记录收件箱（`.luna-inbox`，PRD-06-058）——捕获框 + 时间桶列表 + 行内动作。
+ *
+ * 本文件同时是 `.luna-capture-field` 的归属地（`style-ownership-guard` ①：一个前缀的
+ * 主体规则只住在一个文件里）：那是「回车即落袋」那个控件的样式，服务侧栏胶囊与全局
+ * 文字速记面板两个消费面。它住在这里而不是 `components/`，是因为两个消费面都在
+ * `features/capture/` 之内——就近放置（TDD-15 §2.3），不为一个控件另起一层。
+ *
+ * 与功能清单（`.luna-filtered-list`）刻意分家而不是加修饰符：那一族的骨架是
+ * 「页头 + 文件夹树 + 条目」，这一个是「页头 + 常驻捕获框 + 时间桶 + 每行三枚动作」，
+ * 共用的只有页头原语（`.luna-sidebar-header__*`）与计数徽标——真正共享的那两件都已经
+ * 是 layout / primitives 层的原语，剩下的部分共用一个类只会让两边互相拆台。
+ *
+ * WKWebView 兼容：本文件不用任何新特性——`display: grid` + `attr()` 的镜像格子
+ * （自增高文本域）在 Safari 里比 `field-sizing: content` 早了近十年，而后者到 Safari 26
+ * 仍未落地；`:focus-within`、逻辑属性、`color-mix()`（经既有 `--color-status-*-surface`
+ * Token 间接使用）也都是仓内已在跑的既有面。
+ */
+
+.luna-inbox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: var(--space-0);
+  block-size: 100%;
+  max-block-size: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* ── 捕获框（B）───────────────────────────────────────────────────────────── */
+
+/* 捕获胶囊：语音主按钮在上、文字框在下。
+   间距走容器 gap 而不是子元素 margin——四条采集侧栏的顶部块都是这套排布语言，
+   `margin` 只会在下一个人往里加东西时留下一个对不齐的缺口。 */
+.luna-inbox__capture {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.luna-capture-field__row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-1);
+}
+
+/*
+ * 键盘教学脚注（PRD-06-058 P0-2）：静息也在场，只是收成一句短的；聚焦时换成完整三条。
+ *
+ * 为什么不塞回占位里：占位写成「随手记点什么…（回车存下，⌘回车存下并展开）」在侧栏
+ * 宽度下会折行并被裁掉半行——首屏第一眼是一段读不完整的话。教学信息保留，但不能以裁断
+ * 为代价。这里 `white-space: normal` 允许它折行：它在框下自己一整行，折了也读得完。
+ *
+ * 静息态从 `display: none` 改为短句（2026-09-09 评审）：整条脚注此前只在
+ * `:focus-within` 时出现，于是"这里能打字"这件事要先聚焦才看得到证据。首屏留一句
+ * 「回车即存」是这块界面最便宜的一次自我说明，代价只有一行 `--font-size-xs`。
+ */
+.luna-capture-field__hint {
+  margin: var(--space-1) var(--space-0) var(--space-0);
+  padding-inline: var(--space-2-5);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-base);
+}
+
+/* 两段互斥：短句静息在场，完整三条聚焦时接手。两个 span 恒在 DOM 里——`aria-describedby`
+   指向的是它们的父节点，读屏念的始终是完整契约（视觉折叠不该变成信息删减）。 */
+.luna-capture-field__hint-full,
+.luna-capture-field:focus-within .luna-capture-field__hint-short {
+  display: none;
+}
+
+.luna-capture-field:focus-within .luna-capture-field__hint-full {
+  display: inline;
+}
+
+/*
+ * 自增高文本域：容器与 `::after` 叠在同一个格子里，伪元素拿同一段文本撑出高度，
+ * textarea 铺满这个格子。于是"框随内容长高"不需要 JS 量任何东西。
+ * 末尾补一个空格是这套写法的经典细节——不补的话，敲下换行的那一刻高度不会跟上。
+ */
+.luna-capture-field__grow {
+  display: grid;
+  flex: 1;
+  min-inline-size: var(--space-0);
+  /* 封顶数行后内部滚动：捕获框长到半屏会把它下面的收件箱挤没，而那正是它服务的对象。 */
+  max-block-size: calc(var(--space-6) * 5);
+  overflow-y: auto;
+}
+
+.luna-capture-field__grow::after {
+  content: attr(data-value) " ";
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  visibility: hidden;
+}
+
+.luna-capture-field__grow > .luna-capture-field__input,
+.luna-capture-field__grow::after {
+  grid-area: 1 / 1 / 2 / 2;
+  /* 两者必须逐字同排版，否则镜像撑出来的高度不是真实高度。
+     内边距与 `.luna-input` 同档：此前这里是全应用第三套输入内边距（查询框一套、
+     `.luna-input` 一套、这里一套）。 */
+  padding: var(--space-1) var(--space-2-5);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+}
+
+.luna-capture-field__input {
+  resize: none;
+  overflow: hidden;
+  /* 比 `.luna-input` 默认的 `--color-border-subtle` 高一档（2026-09-09 评审）：这个框
+     不是表单里的一栏，它是这个空间的主入口之一，而 subtle 描边在面板底色上几乎读不出
+     边界——用户报的「没有文本速记的入口」，一半是这条线不够。 */
+  border-color: var(--color-border-default);
+}
+
+/* 提交按钮：鼠标用户看得见的那条"存下"路径（键盘契约在脚注里）。
+   不给 `tone="primary"`：同一侧栏内的实色主按钮只允许一颗，那一颗是「语音速记」
+   （PRD-07-067 ②，语音优先是裁决）。这里要的是可见，不是抢。 */
+.luna-capture-field__submit {
+  flex-shrink: 0;
+}
+
+/* 语音是主动作（PRD-07-066）：整宽实色主按钮排在文字框之上。形态、快捷键提示与接线
+   全归 `CaptureStartButton`（四条采集侧栏共用），本文件不再为它写任何私有规则——
+   与文字框之间的间距由 `.luna-inbox__capture` 的 gap 给。 */
+
+/* ── 就地查找 + 筛选档（A′）────────────────────────────────────────────────
+   捕获框之下、清单之上：先"记下来"，再"找回来"，顺序即用户的动线。 */
+
+/* 间距只由 `.luna-inbox` 的容器 gap 给：这里此前另加了一档 `margin-block-start`，
+   于是捕获框与筛选之间是 16px，而侧栏里其余相邻块都是 8px——首屏最显眼的那处空白。
+   行内 gap 与录音 / 转写的筛选行（`.luna-transcribe-filters`）同档，不另挑一个。 */
+.luna-inbox__filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.luna-inbox__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+/* 档位胶囊：单选一组。压下去的那一档用实心底 + 主文字色表达，而不是描边加粗——
+   侧栏窄，描边变化在 12px 字号上几乎读不出来。 */
+.luna-inbox__chip {
+  padding: var(--space-0-5) var(--space-2);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.luna-inbox__chip:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+}
+
+.luna-inbox__chip[aria-pressed="true"] {
+  background: var(--color-bg-selected);
+  color: var(--color-text-primary);
+}
+
+/* ── 主区「整理」栏（PRD-06-058 C）：选中一条时常驻在编辑器之上 ─────────────────── */
+
+.luna-quick-note-pane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  block-size: var(--size-full);
+  min-block-size: var(--space-0);
+}
+
+.luna-quick-note-pane > .luna-editor {
+  flex: 1 1 auto;
+  min-block-size: var(--space-0);
+}
+
+.luna-quick-note-actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-quick-note-actions__spacer {
+  flex: 1;
+}
+
+/* 删除是破坏性动作：悬停时才显出状态色，与全应用的破坏性按钮口径一致。 */
+.luna-quick-note-actions__delete:hover {
+  color: var(--color-status-error);
+  border-color: var(--color-status-error);
+}
+
+/* ── 撤销条（C）：转正是一步可逆动作，撤销就该在视线所在处 ──────────────────
+   它此前只长在侧栏里，而转正有两个入口（侧栏行内动作与主区「整理」栏）。从主区转正的
+   人眼睛不在侧栏，那条路等于没有撤销。转正后主区正好空出来，两个入口共用同一条。 */
+
+.luna-quick-note-pane__undo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  padding: var(--space-1-5) var(--space-2-5);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* ── 页头（PRD-07-071）：与另外四条清单同形，外壳归 `.luna-sidebar-header` 原语 ── */
+
+/* ── 时间桶列表（A）────────────────────────────────────────────────────────
+   桶的外壳与标题已随清单改挂 `FolderedItems` 而退役（2026-09-08）：分节由
+   `groupRootItems` 交给那个基座渲染，样式归 `.luna-filtered-list__group*`。此处此前还
+   留着两条规则，`style-ownership-guard` 的反向检查当场判红——有规则没消费者的样式，
+   看着像还在服役，其实只是没删干净。 */
+
+.luna-inbox__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  padding: var(--space-0);
+  margin: var(--space-0);
+  list-style: none;
+}
+
+.luna-inbox__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/*
+ * 行主体与行内动作是兄弟而不是父子：按钮不能嵌按钮（嵌了的话键盘走一遍只能走到
+ * 外层那颗，读屏念出来的也是外层的名字）。
+ */
+.luna-inbox__row-open {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-inline-size: var(--space-0);
+  padding: var(--space-1-5) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-inbox__row-open:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-inbox__row-open[aria-current] {
+  background: var(--color-bg-selected);
+  color: var(--color-text-primary);
+}
+
+.luna-inbox__row-icon {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.luna-inbox__row-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  flex: 1;
+  min-inline-size: var(--space-0);
+}
+
+.luna-inbox__row-title,
+.luna-inbox__row-preview {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 第二行：预览 + 待办 + 时长。
+   预览是唯一会收缩的那一个（`flex: 1` + `min-inline-size: 0`），徽标不收缩——第二行挤
+   不下时该让预览打省略号，而不是把「待办 2/5」截成「待办 2/」。 */
+.luna-inbox__row-meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-inline-size: var(--space-0);
+}
+
+.luna-inbox__row-preview {
+  flex: 1;
+  min-inline-size: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* 时龄常驻可见——「该整理了」的压力就该看得见（PRD-06-058 A）。住第二行行尾：没有预览时
+   也靠右，与有预览的行对齐。 */
+.luna-inbox__row-age {
+  flex-shrink: 0;
+  margin-inline-start: auto;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 「已提炼」信息（PRD-06-058 C′）：与时龄同一档的弱标记，只多一个 AI 语义色。 */
+/* 「AI 已整理」：一枚角标，名字进 title 与读屏名。
+   用图标不是为了好看：行尾还有相对时龄，两段文字在窄侧栏里会互相顶，而扫行时真正要读
+   的是时间。 */
+.luna-inbox__row-refined {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  color: var(--color-status-ai);
+}
+
+/* 待办进度：与预览同一行、同一档字号。全部勾完时换成完成色——那是这一行里唯一值得多看
+   一眼的状态。 */
+.luna-inbox__row-todos {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.luna-inbox__row-todos[data-done] {
+  color: var(--color-status-success);
+}
+
+/* 原声时长：与时龄同一档字号与色阶——它们都是"这行的元信息"，不该有两种轻重。 */
+.luna-inbox__row-duration {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/*
+ * 陈化警示：只染时龄那一处，不染整行。
+ * 整行泛黄读起来像"这条有问题"，而它没有问题——只是搁久了。判据（与知识体检同一个
+ * 门槛常量）由 Rust 下发 `stale`，前端不数天数。
+ */
+.luna-inbox__row[data-stale] .luna-inbox__row-age {
+  color: var(--color-status-warning);
+}
+
+/*
+ * 行内动作：静息隐藏、hover 或键盘焦点进入本行时露出。
+ * `:focus-within` 是键盘可达性的必需项——只挂 hover 的话，Tab 过去的那一刻按钮
+ * 仍是 `visibility: hidden`，于是它在键盘上根本不存在。
+ */
+.luna-inbox__row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-0-5);
+  flex-shrink: 0;
+  padding-inline-end: var(--space-1);
+  visibility: hidden;
+}
+
+.luna-inbox__row:hover .luna-inbox__row-actions,
+.luna-inbox__row:focus-within .luna-inbox__row-actions {
+  visibility: visible;
+}
+
+/* ── 「添加内容」Popover（PRD-07-067 ②）──────────────────────────────────────
+   五类动作恒在场：暂时执行不了的照样列出来并说清原因，藏掉的代价是用户以为这个能力
+   不存在。一行一动作，名字下一行短说明讲产物去向（PRD-07-069）。 */
+.luna-add-content {
+  position: absolute;
+  z-index: var(--z-floating-menu);
+  inset-block-start: calc(100% + var(--space-1));
+  /* 贴触发钮的末端展开，不是起始端（ADR-095 迁顶栏后）：宿主 `.luna-workspace__create`
+     现在位于顶栏右侧的工具区，而这张浮层宽 17rem——从按钮起始端向行末铺开会直接越出
+     窗口右缘（此前它挂在左侧主侧栏页头，起始端对齐才是对的）。 */
+  inset-inline-end: var(--space-0);
+  min-inline-size: 17rem;
+  padding: var(--space-1);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  box-shadow: var(--shadow-lg);
+}
+
+.luna-add-content__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-add-content__row {
+  display: flex;
+  flex-direction: column;
+}
+
+.luna-add-content__action {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  inline-size: var(--size-full);
+  padding: var(--space-1-5) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-primary);
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-add-content__action:hover:not(:disabled),
+.luna-add-content__action:focus-visible {
+  background: var(--color-bg-hover);
+}
+
+/* 不可用的那一行仍看得见（只是弱化），因为它承载的信息是"这个能力存在，只是现在
+   还差一步"——藏掉等于告诉用户它不存在。 */
+.luna-add-content__action:disabled {
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+.luna-add-content__icon {
+  display: flex;
+  flex: 0 0 auto;
+  padding-block-start: var(--space-0-5);
+  color: var(--color-text-secondary);
+}
+
+.luna-add-content__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-inline-size: var(--space-0);
+}
+
+.luna-add-content__label {
+  font-size: var(--font-size-sm);
+}
+
+/* 产物去向：两个麦克风动作不能只靠图标区分（PRD-07-069）。 */
+.luna-add-content__destination {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-base);
+}
+
+.luna-add-content__reason {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0) var(--space-2) var(--space-1-5)
+    calc(var(--space-2) + var(--space-4));
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* 修复钮可独立聚焦：读屏用户要能单独走到"去解决"上，而不是只能听见一句禁用原因。 */
+.luna-add-content__repair {
+  padding: var(--space-0);
+  border: 0;
+  background: transparent;
+  color: var(--color-accent-strong);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* 快速捕获（2026-10-08 R1）：默认只是一颗「快速捕获」次按钮；展开后才是输入框 + 行尾收起。
+   输入框吃满剩余宽度，收起键贴在首行（有字时禁用，见 `CaptureBox`）。 */
+.luna-inbox__capture-toggle {
+  justify-content: flex-start;
+  gap: var(--space-1-5);
+}
+
+.luna-inbox__capture-text {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.luna-inbox__capture-text > .luna-capture-field {
+  flex: 1;
+  min-inline-size: var(--space-0);
+}
+
+.luna-inbox__capture-close {
+  flex-shrink: 0;
+}

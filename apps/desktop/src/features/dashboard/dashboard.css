@@ -1,0 +1,532 @@
+/* ─── 控制中心仪表盘（PRD-07-050~054）──────────────────────────────────────
+ * 无侧栏目的地、主区全宽 → 「主列 + 侧列」两栏铺开，而不是把七个区块纵向排成一根长条
+ * （后者在宽屏上既浪费横向空间，又要滚两屏才看得到引擎状态与快捷键）。 */
+.luna-dashboard {
+  /* 判据是**容器**不是视口：仪表盘如今渲染在启动概览弹窗里（`min(72rem, 94vw)` 的
+     定宽面板），视口再宽它也就那么宽——下面那条堆叠断点若按视口量，等于永远不触发。 */
+  container-type: inline-size;
+  container-name: dashboard;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-inline-size: var(--dashboard-measure);
+  margin-inline: auto;
+  overflow-y: auto;
+  block-size: var(--size-full);
+}
+
+/* 脉搏条：首屏第一件东西，一行答完「现在系统在干什么」，每项都可点进对应视图 */
+.luna-dashboard__pulse {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-end: var(--space-3);
+}
+
+.luna-dashboard__pulse-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-surface);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.luna-dashboard__pulse-item:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
+}
+
+.luna-dashboard__pulse-dot {
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-status-muted);
+}
+
+/* 状态点一色一义：空闲=就绪绿、有活在跑=注意金（并脉动）、引擎缺件=警告橙 */
+.luna-dashboard__pulse-item[data-tone="idle"] .luna-dashboard__pulse-dot {
+  background: var(--color-status-success);
+}
+
+.luna-dashboard__pulse-item[data-tone="busy"] .luna-dashboard__pulse-dot {
+  background: var(--color-status-attention);
+  animation: luna-pulse 1.6s ease-in-out infinite;
+}
+
+.luna-dashboard__pulse-item[data-tone="attention"] {
+  border-color: var(--color-status-warning);
+  color: var(--color-status-warning);
+}
+
+.luna-dashboard__pulse-item[data-tone="attention"] .luna-dashboard__pulse-dot {
+  background: var(--color-status-warning);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luna-dashboard__pulse-item[data-tone="busy"] .luna-dashboard__pulse-dot {
+    animation: none;
+  }
+}
+
+.luna-dashboard__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(var(--dashboard-side-min), 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.luna-dashboard__column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+/* 窄容器：侧列落到主列下方（两栏挤在一起两边都读不了）。 */
+@container dashboard (max-width: 1100px) {
+  .luna-dashboard__columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.luna-dashboard-section {
+  background: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.luna-dashboard-section h2 {
+  font-size: var(--font-size-md);
+  margin: var(--space-0);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* 区块底部的「去设置」文字链：让每张卡都有明确的下一步 */
+.luna-dashboard-section__link {
+  align-self: flex-start;
+  padding: var(--space-0);
+  border: 0;
+  color: var(--color-accent);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.luna-dashboard-section__link:hover {
+  color: var(--color-accent-strong);
+  text-decoration: underline;
+}
+
+/* 成效看板（PRD-07-051）：两列小格压实纵向占用；节省额横跨整行保持高亮 */
+.luna-dashboard-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.luna-dashboard-metric {
+  display: grid;
+  gap: var(--space-0-5);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-panel);
+}
+
+/* 修饰块必须整体排在基类 `.luna-dashboard-metric` 之后：两者同为单类选择器（特异性相
+   等），元素同时挂着二者，边框与底色的归属**只由顺序决定**。 */
+.luna-dashboard-metric--highlight {
+  grid-column: 1 / -1;
+  border-color: var(--color-accent);
+  background: linear-gradient(
+    135deg,
+    var(--color-bg-panel) 0%,
+    var(--color-accent-surface) 100%
+  );
+}
+
+/* 快捷键是侧列第一块、也是最常被瞟的一块：键位用等宽数字对齐，扫读不跳行 */
+.luna-shortcut-item kbd {
+  padding: var(--space-0-5) var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  box-shadow: inset 0 -1px 0 var(--color-border-subtle);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.luna-dashboard-metric__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-dashboard-metric__value {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-dashboard-metric__sub {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-engine-status-list,
+.luna-shortcuts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.luna-engine-status-item,
+.luna-shortcut-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-panel);
+  border-radius: var(--radius-sm);
+}
+
+.luna-engine-status-item__left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-inline-size: 0;
+}
+
+.luna-engine-status-item__left strong {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.luna-engine-status-item__left span {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-dashboard-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+  padding: var(--space-0);
+  margin: var(--space-0);
+}
+
+.luna-dashboard-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: var(--size-full);
+  border: 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-panel);
+  border-radius: var(--radius-sm);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.luna-dashboard-history-item:hover {
+  background: var(--color-bg-hover);
+  outline: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-dashboard-history-item__left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-inline-size: 0;
+}
+
+.luna-dashboard-history-item__left strong {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.luna-dashboard-history-item__left span {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-dashboard-history-item__time {
+  flex: 0 0 auto;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Dashboard 快速开始行动卡片区块 ─────────────────────────────────── */
+.luna-dashboard-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.luna-dashboard-actions__title {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.luna-dashboard-actions__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--dashboard-action-min), 1fr));
+  gap: var(--space-3);
+}
+
+.luna-dashboard-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-3);
+  background: var(--color-bg-panel);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-align: start;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.luna-dashboard-action-card:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-focus);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.luna-dashboard-action-card:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 图标静息中性、hover 点亮品牌金——AI 紫是「这是 AI 在工作」的语义标记，
+   录音/新建笔记这类入口不是 AI 动作，刷成紫色只会让语义色降格为装饰色（TDD-11 §2.1）。 */
+.luna-dashboard-action-card__icon {
+  display: inline-flex;
+  color: var(--color-text-secondary);
+  flex: 0 0 auto;
+  transition: color var(--transition-fast);
+}
+
+.luna-dashboard-action-card:hover .luna-dashboard-action-card__icon {
+  color: var(--color-accent);
+}
+
+/* 产物去向（PRD-07-069）：概览这一屏最需要它——新用户正是在这里第一次面对
+   "这两个麦克风有什么区别"。弱一档，它是补充说明不是标题。 */
+.luna-dashboard-action-card__destination {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-base);
+  text-align: center;
+}
+
+/* 暂时不可用的卡片仍看得见：藏掉等于告诉用户这个能力不存在，而它只是差一步。 */
+.luna-dashboard-action-card:disabled {
+  cursor: default;
+  opacity: var(--opacity-disabled);
+}
+
+/* 卡片 + 「为什么 / 怎么解决」是一格里的**兄弟**：禁用按钮不可聚焦，原因塞进它的
+   `title` 键盘与读屏用户根本拿不到，修复钮更不可能嵌在一个禁用按钮里。 */
+.luna-dashboard-action-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: var(--space-0);
+}
+
+.luna-dashboard-action-cell__reason {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-align: center;
+}
+
+.luna-dashboard-action-cell__repair {
+  padding: var(--space-0);
+  border: 0;
+  background: transparent;
+  color: var(--color-accent-strong);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.luna-dashboard-continue {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-inline-start-width: var(--border-width-thick);
+  border-inline-start-color: var(--color-accent);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-panel);
+  box-shadow: var(--shadow-sm);
+}
+
+.luna-dashboard-continue__heading,
+.luna-dashboard-section__heading,
+.luna-dashboard-actions__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.luna-dashboard-continue__heading h2,
+.luna-dashboard-section__heading h2 {
+  margin: var(--space-0);
+}
+
+.luna-dashboard-continue__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: var(--size-full);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  cursor: pointer;
+  text-align: start;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.luna-dashboard-continue__item:hover {
+  border-color: var(--color-border-focus);
+  background: var(--color-bg-hover);
+}
+
+.luna-dashboard-continue__item > svg {
+  color: var(--color-text-secondary);
+  flex: 0 0 auto;
+}
+
+.luna-dashboard-continue__item span {
+  display: grid;
+  gap: var(--space-0-5);
+  min-inline-size: var(--space-0);
+}
+
+.luna-dashboard-continue__item small,
+.luna-dashboard-continue__empty,
+.luna-dashboard-actions__heading p {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-dashboard-actions__heading > div,
+.luna-dashboard-section__heading > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.luna-dashboard-section__heading > svg {
+  color: var(--color-status-success);
+}
+
+/* ── 分层可感知化（PRD-06-048 / ADR-024）：身份徽标 ───────────────────────── */
+
+/* 启动概览弹窗（仪表盘的新形态，PRD-07-057 二次修订）：宽面板承载既有 DashboardView。 */
+/* 外壳归 `.luna-dialog` + `--panel` 原语；此处只写它自己的尺寸。 */
+.luna-dashboard-overlay {
+  inline-size: min(72rem, 94vw);
+  max-block-size: 88vh;
+}
+
+.luna-dashboard-overlay__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-dashboard-overlay__footer {
+  display: flex;
+  padding: var(--space-2) var(--space-3);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-dashboard-overlay__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.luna-dashboard-overlay__body {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+}
+
+/* 脉搏里与栈顶并列的那一行（主题页建议，2026-07-29 真机裁决）：
+   视觉上明确次一级——不抢栈顶的主按钮，只给次级动作与 ✕。 */
+.luna-knowledge-pulse__aside-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  width: 100%;
+  margin-block-start: var(--space-2);
+  padding-block-start: var(--space-2);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-knowledge-pulse__aside-row p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+}

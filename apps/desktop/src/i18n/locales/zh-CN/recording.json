@@ -1,0 +1,121 @@
+{
+  "title": "录音",
+  "status": {
+    "idle": "$t(common:hud.status.idle)",
+    "recording": "录音中",
+    "recognizing": "识别中",
+    "paused": "已暂停",
+    "stopping": "正在保存…",
+    "error": "错误",
+    "saved": "录音已保存"
+  },
+  "degraded": {
+    "yellow": "负载较高 — 已精简实时字幕以保流畅，完整文字停录后补全",
+    "orange": "负载较高 — 已精简实时字幕以保流畅，完整文字停录后补全",
+    "red": "负载过高 — 暂以纯录音进行，负载回落将自动恢复实时；停录后完整转写",
+    "window_drop": "高负载下跳过部分实时文字 — 音频已完整保存，停录后自动补全",
+    "admission_wait": "实时转写还在等待本机额度 — 录音与音频保存不受影响，稍后可二次转写补齐"
+  },
+  "transcribe_reconnecting": "网络不稳，正在重连服务端——录音与本地音频不受影响",
+  "transcribe_stopped": {
+    "generic": "实时字幕已停，录音继续——音频完整保存，停录后将重新转写补齐",
+    "quota_exhausted": "服务端转写额度已用尽，实时字幕已停；录音继续，停录后将重新转写补齐",
+    "account_frozen": "账户已转为只读，服务端转写已停；录音继续，停录后将重新转写补齐",
+    "spend_cap_reached": "已达到你设置的本月预付额度上限，服务端转写已停；录音继续，停录后将重新转写补齐",
+    "rate_limited": "转写服务当前繁忙，实时字幕已停；录音继续，停录后将重新转写补齐",
+    "sign_in_required": "登录已失效，服务端转写已停；录音继续，停录后将重新转写补齐",
+    "strict_local_blocked": "已切换到「仅本地」，服务端转写已停；录音继续，停录后将用本机模型补齐",
+    "provider_unavailable": "转写服务连不上，实时字幕已停；录音继续，停录后将重新转写补齐",
+    "model_missing": "转写模型不可用，实时字幕已停；录音继续，停录后将重新转写补齐",
+    "timeout": "转写超时，实时字幕已停；录音继续，停录后将重新转写补齐",
+    "local_session_busy": "本机实时会话额度被占用，实时字幕未能开始；录音继续，停录后将重新转写补齐",
+    "free_quota_withheld": "这个账户此刻领不到免费额度，服务端转写已停；录音继续，停录后将重新转写补齐"
+  },
+  "translate_stopped": {
+    "generic": "实时译文已停，转写与录音继续——停录后的二次转写会补齐完整双语",
+    "model_missing": "翻译模型不可用，实时译文已停；转写继续，停录后的二次转写会补齐双语",
+    "sign_in_required": "登录已失效，实时译文已停；转写继续，停录后的二次转写会补齐双语",
+    "quota_exhausted": "服务端翻译额度已用尽，实时译文已停；转写继续，停录后的二次转写会补齐双语",
+    "account_frozen": "账户已转为只读，服务端翻译已停，实时译文已停；转写继续，停录后的二次转写会补齐双语",
+    "spend_cap_reached": "已达到你设置的本月预付额度上限，实时译文已停；转写继续，停录后的二次转写会补齐双语",
+    "capability_not_allowed": "组织未开放服务端翻译，且本机没有可用翻译模型，实时译文已停；转写与录音继续",
+    "permission_denied": "缺少必要权限，实时译文已停；转写继续，停录后的二次转写会补齐双语",
+    "strict_local_blocked": "已切换到「仅本地」而本机没有可用翻译模型，实时译文已停；转写继续",
+    "route_lane_empty": "服务端未配置实时翻译，实时译文已停；转写继续，停录后的二次转写会补齐双语",
+    "server_misconfigured": "服务端这台部署配置不可用，实时译文已停；转写继续，停录后的二次转写会补齐双语",
+    "free_quota_withheld": "这个账户此刻领不到免费额度，实时译文已停；转写继续，停录后的二次转写会补齐双语"
+  },
+  "action": {
+    "start": "$t(common:hud.action.start)录音",
+    "stop": "$t(common:hud.action.stop)",
+    "pause": "暂停",
+    "resume": "继续",
+    "bookmark": "书签",
+    "mute": "静音",
+    "unmute": "取消静音",
+    "closePanel": "$t(common:hud.action.close)",
+    "more": "更多",
+    "settings": "录音设置",
+    "openRecording": "打开"
+  },
+  "bookmark": {
+    "added": "已在 {{time}} 打点",
+    "failed": "书签没有保存",
+    "notePlaceholder": "加一句备注，回车保存",
+    "noteLabel": "书签备注",
+    "dismiss": "关闭书签提示"
+  },
+  "option": {
+    "device": "麦克风",
+    "deviceDefault": "系统默认",
+    "transcribe": "实时转写",
+    "translate": "实时转译",
+    "translateTarget": "目标语言",
+    "translateNeedsTranscribe": "需先开启实时转写",
+    "separateTranslation": "译文独立窗",
+    "separateTranslationHint": "译文用独立窗口大字显示，本面板仅显示原文",
+    "language": "语言",
+    "transcribeLang": "转写语言",
+    "dualAuto": "双路各自自动检测",
+    "captureSource": "采集源"
+  },
+  "settings": {
+    "title": "录音设置",
+    "show": "设置",
+    "hide": "收起设置",
+    "summary": "{{source}} · {{processing}}",
+    "recordOnly": "仅录音",
+    "transcribeAndTranslate": "实时转写与转译"
+  },
+  "label": {
+    "source": "转写",
+    "translation": "转译",
+    "translationDetached": "转译 · 独立窗",
+    "translationDetachedHint": "译文正在独立窗口中显示"
+  },
+  "panel": {
+    "transcriptEmpty": "开始录音后，字幕会实时出现在这里。",
+    "waitingForSpeech": "等待语音…"
+  },
+  "aria": {
+    "status": "状态：{{status}}",
+    "elapsed": "已录：{{time}}",
+    "controls": "录音控制",
+    "options": "录音选项",
+    "settings": "录音设置",
+    "transcript": "实时字幕",
+    "uplink": "音频正在离开本机进行转写",
+    "uplink_named": "音频正在离开本机，由「{{name}}」转写",
+    "uplink_idle": "说话时音频将离开本机进行转写",
+    "uplink_idle_named": "说话时音频将交给「{{name}}」转写"
+  },
+  "error": {
+    "note_create_failed": "创建笔记失败",
+    "start_failed": "启动录音失败",
+    "stop_failed": "停止录音失败",
+    "capture_failed": "采集失败，请检查麦克风",
+    "archive_failed": "归档失败，音频已保留",
+    "state_lock": "录音状态不可用",
+    "control_failed": "操作没有生效"
+  }
+}

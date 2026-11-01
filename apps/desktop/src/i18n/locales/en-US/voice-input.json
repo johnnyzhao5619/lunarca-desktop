@@ -1,0 +1,100 @@
+{
+  "title": "Voice Notes",
+  "summary": "{{mode}} · writes across apps",
+  "action": {
+    "cancel": "$t(common:hud.action.cancel)",
+    "close": "$t(common:hud.action.close)",
+    "auto_refine": "Auto-refine",
+    "quick_note_refine": "AI refine saved note",
+    "translate_output": "Translate output",
+    "processing_options": "Processing",
+    "retry": "Retry",
+    "start": "$t(common:hud.action.start) speaking",
+    "start_hold": "Hold {{shortcut}} to speak",
+    "start_toggle": "Press {{shortcut}} to $t(common:hud.action.start)",
+    "stop": "Finish",
+    "processing": "$t(common:hud.status.processing)",
+    "download_and_fix": "Download, then start recording",
+    "pin": "Pin position",
+    "unpin": "Unpin",
+    "more": "More",
+    "settings": "Voice settings"
+  },
+  "landing": {
+    "label": "Output destination",
+    "default_label": "Default output",
+    "default": "Default",
+    "clipboard": "Clipboard",
+    "inject": "Insert at cursor",
+    "quick_note": "Save to quick note",
+    "open_note": "Open quick note",
+    "another": "Record another",
+    "review_first": "You review the result before it goes to {{destination}}"
+  },
+  "configuration": {
+    "summary": "{{style}} · {{destination}} · {{input}} · {{processing}}"
+  },
+  "mode": {
+    "label": "Output Style",
+    "input_label": "Speaking mode",
+    "hold": "Hold to talk",
+    "toggle": "Toggle",
+    "general": "General Polish",
+    "email": "Formal Email",
+    "slack": "Slack Message",
+    "codeComment": "Code Comment",
+    "raw": "Raw transcript"
+  },
+  "translation": {
+    "target": "Target"
+  },
+  "close": {
+    "title": "Discard this voice input?",
+    "activeBody": "Recording or processing is still in progress. Closing will discard this input.",
+    "resultBody": "This result hasn't been sent anywhere. Closing will discard it.",
+    "keep": "Keep working",
+    "discard": "Discard and close"
+  },
+  "status_label": {
+    "danger": "Needs attention"
+  },
+  "preview": {
+    "raw": "Transcript",
+    "refined": "Polished result",
+    "translated": "Translated result",
+    "edited": "Edited",
+    "edit_label": "Edit output before landing",
+    "source": "Source transcript",
+    "show_raw": "Show raw transcript"
+  },
+  "status": {
+    "cancelled": "Cancelled",
+    "copied": "Copied to clipboard",
+    "copied_fallback": "Insert unavailable; copied to clipboard",
+    "diagnostic": "$t(common:hud.status.listening)",
+    "error": "Voice input unavailable",
+    "idle": "Ready",
+    "injected": "Inserted at cursor",
+    "injected_clipboard_not_restored": "Inserted at cursor, but the clipboard's previous contents could not be put back",
+    "target_changed": "The target window is no longer in front; copied to clipboard",
+    "landing": "Finishing...",
+    "mic_busy": "Microphone is busy",
+    "popup_filled": "Filled popup input",
+    "script_filled": "Inserted into the script",
+    "ready_to_land": "Choose output",
+    "saved_note": "Saved as quick note",
+    "recognizing": "Recognizing...",
+    "refining": "Polishing...",
+    "translating": "Translating...",
+    "recording": "$t(common:hud.status.listening)",
+    "speech_started": "Speech detected",
+    "admission_wait": "Waiting for transcription to start…"
+  },
+  "error": {
+    "install_failed": "Model installation failed. Try again.",
+    "model_missing_fix_tip": "Download the recommended model (~{{size}}) to continue."
+  },
+  "models": {
+    "installing": "Downloading"
+  }
+}

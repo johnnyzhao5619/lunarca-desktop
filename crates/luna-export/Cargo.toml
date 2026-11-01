@@ -1,0 +1,17 @@
+[package]
+name = "luna-export"
+description = "Lunarca 导出管线：注册式 Exporter（txt/SRT 首批），纯函数、IO 在调用方（TDD-10）"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+luna-core = { path = "../luna-core" }
+luna-vault = { path = "../luna-vault" }
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+# 中文字形转换（PRD-11-013）：纯 Rust 的 OpenCC，Apache-2.0，词典随 crate 内嵌（ADR-005 核查过）。
+ferrous-opencc = "0.4"

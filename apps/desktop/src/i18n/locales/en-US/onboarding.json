@@ -1,0 +1,184 @@
+{
+  "title": "Welcome to Lunarca",
+  "action": {
+    "next": "Continue",
+    "back": "Back",
+    "finish": "Start using Lunarca",
+    "done": "Done",
+    "enter_now": "Enter the app now",
+    "close": "Close",
+    "recheck": "Check again"
+  },
+  "blocked": {
+    "needs_vault": "Choose a notes folder to get started — it's the only required step.",
+    "go_vault": "Choose a notes folder"
+  },
+  "shortcuts": {
+    "all": "See all shortcuts"
+  },
+  "progress": "Onboarding progress",
+  "progress_compact": "Step {{current}} of {{total}}",
+  "stepper_label": "{{title}} · {{state}}",
+  "state": {
+    "pending": "Not started",
+    "skipped": "Skipped",
+    "done": "Done"
+  },
+  "download_pill": {
+    "progress": "Downloading {{name}} · {{percent}}% ({{done}} / {{total}})",
+    "indeterminate": "Downloading {{name}}…",
+    "coreml": "Preparing CoreML acceleration for {{name}}…"
+  },
+  "banner": {
+    "title": "Finish setup ({{done}}/{{total}})",
+    "body": "Still open: {{items}}",
+    "action": "Continue setup",
+    "dismiss": "Not now"
+  },
+  "step": {
+    "welcome": {
+      "title": "Welcome",
+      "body": "Translation, voice input, transcription and notes in one workspace. Start with your language and look.",
+      "promise": {
+        "local": {
+          "title": "Your data stays local",
+          "desc": "Notes are saved as Markdown and recordings as audio files, in a folder on this Mac."
+        },
+        "compute": {
+          "title": "Compute is your choice",
+          "desc": "Run AI on this device, or use Lunarca Cloud or your organization's server. No sign-in required."
+        },
+        "network": {
+          "title": "You control network access",
+          "desc": "Network use is always shown and can be turned off. Switch to strict local any time."
+        }
+      }
+    },
+    "vault": {
+      "title": "Choose a notes folder",
+      "body": "Your notes will be saved in this folder.",
+      "browse": "Choose another folder…",
+      "use": "Use this location",
+      "path_placeholder": "Enter an absolute local folder path…",
+      "path_label": "Notes folder",
+      "suggested_hint": "Suggested",
+      "onedrive_moved_hint": "Your Documents folder is synced by OneDrive, so the notes folder goes here by default: inside Documents, OneDrive and Lunarca sync would both change the same files and create conflict copies.",
+      "onedrive_inside_hint": "This location is inside a folder synced by OneDrive: OneDrive and Lunarca sync may both change the same files and create conflict copies. You can still use it.",
+      "bound": "Current notes folder: {{path}}",
+      "error": "Could not open that folder"
+    },
+    "compute": {
+      "title": "Sign in (optional)",
+      "body": "The server you sign in to provides AI and sync. Without signing in, everything on this device still works.",
+      "loading": "Reading account status…",
+      "skip_hint": "To use only this device, just choose Continue. You can sign in any time under Settings › Account.",
+      "signed_in_as": "Signed in to {{server}} as {{account}}"
+    },
+    "models": {
+      "title": "Prepare models",
+      "body": "A transcription model ships with Lunarca and works out of the box. What else you need depends on your last choice.",
+      "hardware_checking": "Checking this machine…",
+      "hardware_error": "Hardware check failed; recommending the standard tier.",
+      "hardware_line": "{{chip}} · {{memory}} memory",
+      "tier": {
+        "low": "Light",
+        "standard": "Standard",
+        "high": "Performance"
+      },
+      "low_hint": "This device has options: a smaller model, or the server you picked in the previous step.",
+      "asr_title": "Transcription model",
+      "asr_fallback_title": "Local standby transcription model",
+      "bundled_ready": "The bundled model is ready — transcribe without downloading anything.",
+      "fallback_not_ready": "The local standby is not ready yet: transcription will be unavailable whenever the server cannot be reached.",
+      "fallback_hint": "Only used when your server can't be reached; skipping it now won't stop you from getting started.",
+      "recommended_badge": "Recommended",
+      "fallback_badge": "Local standby",
+      "size_note": "Download size {{size}}",
+      "install": "Download",
+      "installing": "Downloading…",
+      "installed": "Ready",
+      "offline": "Offline right now — download once you're connected",
+      "progress": "Downloaded {{done}} / {{total}}",
+      "later_hint": "You can download it later in Settings › Local models.",
+      "later_hint_downloading": "The download continues in the background — you can move on.",
+      "llm_title": "Local text model",
+      "llm_detected": "{{count}} text model(s) already installed on this device and ready to use.",
+      "llm_none": "No local text model yet — download the recommended one to polish and translate text on this device.",
+      "error": "Failed to read the model list",
+      "pause": "Pause",
+      "resume_from": "Resume ({{value}} downloaded)",
+      "size_bundled": "Bundled · {{size}} on disk"
+    },
+    "permissions": {
+      "title": "System permissions",
+      "body": "You can grant permissions the first time a feature needs them.",
+      "kind": {
+        "microphone": {
+          "name": "Microphone",
+          "purpose": "Voice input and meeting recording need to capture audio; without it those features are unavailable.",
+          "later": "You can wait: the system asks again the first time you start voice input."
+        },
+        "accessibility": {
+          "name": "Accessibility",
+          "purpose": "Popup translation's double-copy and \"replace original\" need to observe shortcuts and write text back at the cursor; without it, use the fallback hotkey and paste manually.",
+          "later": "Tick Lunarca under System Settings › Privacy & Security › Accessibility; the status refreshes when you switch back."
+        },
+        "notification": {
+          "name": "Notifications",
+          "purpose": "Get notified when long background tasks (transcription, model downloads) finish; declining doesn't block anything — in-app notices are used instead.",
+          "later": "macOS does not expose this permission's state. After the first notification, find Lunarca under System Settings › Notifications; turning it off falls back to in-app messages."
+        }
+      },
+      "status": {
+        "granted": "Granted",
+        "denied": "Denied",
+        "not_determined": "Not asked yet",
+        "unsupported": "Unknown"
+      },
+      "grant": "Grant",
+      "skip_hint": "All of these can be skipped — the feature will guide you again the first time it needs them.",
+      "none_required": "No extra permissions are needed on this platform — voice input, popup translation and notifications work out of the box."
+    },
+    "shortcuts": {
+      "title": "Shortcuts",
+      "body": "These shortcuts work in any app."
+    },
+    "first_task": {
+      "title": "First task",
+      "body": "Try one and see it work. This step ticks itself once you succeed.",
+      "voice_title": "Voice input",
+      "voice_desc": "Press {{shortcut}} to open the voice panel; speak and it becomes text.",
+      "voice_desc_unbound": "Open the voice panel; speak and it becomes text.",
+      "voice_try": "Try voice input",
+      "voice_not_ready": "The transcription model isn't ready yet, so voice input can't run.",
+      "prepare": "Set up the model",
+      "mic_denied": "Microphone access is denied, so voice input can't run.",
+      "translate_title": "Popup translation",
+      "translate_desc": "Select text and press {{shortcut}} to translate. A sample sentence is filled in — click Translate.",
+      "translate_desc_unbound": "Open the translation popup; a sample sentence is already filled in — click Translate to see the result.",
+      "translate_try": "Try popup translation",
+      "translate_not_ready": "The text model isn't ready yet, so translation can't run.",
+      "clip_title": "Transcribe a sample clip",
+      "clip_desc": "No microphone, no download. A short English clip that ships with Lunarca, transcribed in seconds — your first note.",
+      "clip_not_ready": "The transcription model is not ready yet, so the sample cannot run.",
+      "clip_try": "Transcribe the sample",
+      "clip_queued": "Queued — this step ticks itself once transcription finishes.",
+      "clip_credit": "Sample speech: LibriSpeech (CC BY 4.0)",
+      "none_ready_hint": "Both still need a model. Go back and set one up, or enter the app now.",
+      "sample_text": "Lunarca 把笔记留在这台设备上，并让你决定 AI 在哪里运行。",
+      "panel_hint": "Panels float above your current app without interrupting it.",
+      "error": "Failed to open",
+      "success_title": "First task done",
+      "success_body": "Notes and recordings are saved in the folder you just picked; notes are Markdown, so other editors can open them.",
+      "summary_compute": "AI compute",
+      "location": {
+        "on_device": "All on this device",
+        "strict_local": "Strictly local",
+        "organization": "Organization server",
+        "official_cloud": "Lunarca Cloud"
+      },
+      "remaining_hint": "Still open: {{items}}. A bar stays at the top of the app so you can come back any time.",
+      "all_done_hint": "All done. You can re-run this guide from Settings › General."
+    }
+  }
+}

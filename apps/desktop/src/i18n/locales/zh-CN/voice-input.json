@@ -1,0 +1,100 @@
+{
+  "title": "语音速记",
+  "summary": "{{mode}} · 跨应用写入",
+  "action": {
+    "cancel": "$t(common:hud.action.cancel)",
+    "close": "$t(common:hud.action.close)",
+    "auto_refine": "自动优化",
+    "quick_note_refine": "存为速记后 AI 提炼",
+    "translate_output": "翻译输出",
+    "processing_options": "处理方式",
+    "retry": "重说",
+    "start": "$t(common:hud.action.start)说话",
+    "start_hold": "按住 {{shortcut}} 说话",
+    "start_toggle": "按 {{shortcut}} $t(common:hud.action.start)说话",
+    "stop": "完成",
+    "processing": "$t(common:hud.status.processing)",
+    "download_and_fix": "下载并开始录音",
+    "pin": "固定位置",
+    "unpin": "取消固定",
+    "more": "更多",
+    "settings": "语音设置"
+  },
+  "landing": {
+    "label": "输出位置",
+    "default_label": "默认输出",
+    "default": "默认",
+    "clipboard": "剪贴板",
+    "inject": "注入光标",
+    "quick_note": "存入速记笔记",
+    "open_note": "打开速记",
+    "another": "再说一条",
+    "review_first": "识别后先审阅，确认后才写入「{{destination}}」"
+  },
+  "configuration": {
+    "summary": "{{style}} · {{destination}} · {{input}} · {{processing}}"
+  },
+  "mode": {
+    "label": "输出风格",
+    "input_label": "说话方式",
+    "hold": "按住说话",
+    "toggle": "点按切换",
+    "general": "通用润色",
+    "email": "正式邮件",
+    "slack": "Slack 消息",
+    "codeComment": "代码注释",
+    "raw": "纯转写"
+  },
+  "translation": {
+    "target": "目标语言"
+  },
+  "close": {
+    "title": "放弃这次语音输入？",
+    "activeBody": "正在录入或处理的内容还没有完成，关闭会放弃本次内容。",
+    "resultBody": "识别结果还没有写入任何位置，关闭会放弃这份结果。",
+    "keep": "继续处理",
+    "discard": "放弃并关闭"
+  },
+  "status_label": {
+    "danger": "需要处理"
+  },
+  "preview": {
+    "raw": "识别结果",
+    "refined": "优化结果",
+    "translated": "翻译结果",
+    "edited": "已编辑",
+    "edit_label": "编辑输出结果（落地前可修正）",
+    "source": "源语言识别",
+    "show_raw": "查看原始转写"
+  },
+  "status": {
+    "cancelled": "已取消",
+    "copied": "已复制到剪贴板",
+    "copied_fallback": "注入不可用，已复制到剪贴板",
+    "diagnostic": "$t(common:hud.status.listening)",
+    "error": "语音输入不可用",
+    "idle": "准备就绪",
+    "injected": "已注入光标",
+    "injected_clipboard_not_restored": "已注入光标，但没能把你原来的剪贴板内容放回去",
+    "target_changed": "目标窗口已不在前台，已复制到剪贴板",
+    "landing": "正在落地…",
+    "mic_busy": "麦克风正被占用",
+    "popup_filled": "已填入弹窗输入框",
+    "script_filled": "已插入脚本",
+    "ready_to_land": "选择输出位置",
+    "saved_note": "已存为速记笔记",
+    "recognizing": "识别中…",
+    "refining": "优化中…",
+    "translating": "翻译中…",
+    "recording": "$t(common:hud.status.listening)",
+    "speech_started": "检测到语音",
+    "admission_wait": "正在等待转写就绪…"
+  },
+  "error": {
+    "install_failed": "模型安装失败，请重试",
+    "model_missing_fix_tip": "下载推荐模型（约 {{size}}）后即可继续。"
+  },
+  "models": {
+    "installing": "正在下载"
+  }
+}

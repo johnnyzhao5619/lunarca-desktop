@@ -1,0 +1,21 @@
+[package]
+name = "luna-core"
+description = "Lunarca 领域模型：Job / Provider / ResultSchema / 错误类型（零 IO，可被所有上层依赖）"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde.workspace = true
+uuid.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+# Provider trait 是异步接口（TDD-01 §3）：只引入"形状"所需的轻量依赖，
+# 实现侧（tokio/reqwest 等）的 IO 依赖仍留在 luna-provider/luna-jobqueue。
+async-trait.workspace = true
+futures-core.workspace = true
+# 随包能力提示词资源（`prompts/bundled.json`，ADR-050）编译期嵌入、首次取用时解析一次。
+# 它是**数据**而不是代码，故不写成 Rust 字面量——那正是本批要消灭的形态。
+serde_json.workspace = true

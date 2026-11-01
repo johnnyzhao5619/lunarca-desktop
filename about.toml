@@ -1,0 +1,53 @@
+# cargo-about —— 第三方许可证归示清单（THIRD_PARTY_LICENSES）生成配置。
+# 事实源：TDD-04 §5、TDD-13 §2。产物在发布管线生成、随发行物附带，不提交入库（防陈旧）：
+#   cargo about generate --all-features about.hbs -o THIRD_PARTY_LICENSES.html
+# accepted 与 deny.toml [licenses].allow 保持同步（deny 是白名单执法，about 是归示生成；
+# 两边不一致会出现「deny 放行但 about 拒绝生成」的假红）。OR 表达式自动取已接受分支。
+
+accepted = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unicode-3.0",
+    "CC0-1.0",
+    "MPL-2.0",
+    "AGPL-3.0-only",
+    "Unlicense",
+    "CDLA-Permissive-2.0",
+]
+
+# webrtc-audio-processing 三兄弟无 SPDX license 字段（只有 license-file = COPYING，
+# Google BSD-3-Clause 原文）——cargo-deny 靠文件扫描判定通过（TDD-04 §5 台账已登记），
+# cargo-about 需显式 clarify；checksum 锁 COPYING 内容，上游改许可时此处会如实变红。
+
+[webrtc-audio-processing.clarify]
+license = "BSD-3-Clause"
+
+[[webrtc-audio-processing.clarify.files]]
+path = "COPYING"
+checksum = "6db9d4840c6ff0fb3c37ace8e32cfd3eb6c6e759c67b4ecbee969cd8d75154a9"
+
+[webrtc-audio-processing-config.clarify]
+license = "BSD-3-Clause"
+
+[[webrtc-audio-processing-config.clarify.files]]
+path = "COPYING"
+checksum = "9b79539028e216e813e152d45f5c1ed5fdd0554426ad50270fb03134e7082dac"
+
+[webrtc-audio-processing-sys.clarify]
+license = "BSD-3-Clause"
+
+[[webrtc-audio-processing-sys.clarify.files]]
+path = "COPYING"
+checksum = "9b79539028e216e813e152d45f5c1ed5fdd0554426ad50270fb03134e7082dac"
+
+# 自有的、不发布到任何 registry 的 crate 不进第三方归示清单（本就只该列第三方依赖）。
+# 这是 cargo-about 的**官方机制**；此前靠 `publish = false` 的偶然跳过行为不可靠——
+# 依赖图一变（例如给 luna-cloud 加 tauri-plugin 构建依赖）就会重新踩进该工具的
+# `is_char_boundary` panic，整条 THIRD_PARTY_LICENSES 生成中断（CI 门禁，TDD-13 §2）。
+[private]
+ignore = true

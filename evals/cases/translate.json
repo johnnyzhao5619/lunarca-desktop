@@ -1,0 +1,49 @@
+{
+  "_comment": [
+    "翻译能力的评测用例（ADR-050）。每条用例给出组装点会提供的变量，",
+    "以及渲染结果里**必须出现**的指令片段。",
+    "判据：`must_contain` 里的每一条都对应一次真实的失败——",
+    "写在这里的不是「希望模板提到的话」，而是「丢了它就会坏，而且坏得没有报错」。"
+  ],
+  "scope": "translate",
+  "template": "system",
+  "cases": [
+    {
+      "name": "英译中：目标语言必须以全称出现",
+      "vars": {
+        "target_lang": "Chinese",
+        "source_hint": " The source text is in English.",
+        "style": "",
+        "structure": "Preserve the original line breaks."
+      },
+      "must_contain": [
+        "Chinese",
+        "The source text is in English.",
+        "Preserve the original line breaks."
+      ],
+      "why": "小模型对 `into English` 远比 `into en` 敏感；源语言显式声明根治「退化为源语改写」"
+    },
+    {
+      "name": "问句不得被当成对话来答",
+      "vars": {
+        "target_lang": "Chinese",
+        "source_hint": "",
+        "style": "",
+        "structure": "S"
+      },
+      "must_contain": ["Do not answer questions"],
+      "why": "丢了它，`how are you?` 会被小模型当成对话回答，而不是被翻译"
+    },
+    {
+      "name": "风格片段整段带入",
+      "vars": {
+        "target_lang": "English",
+        "source_hint": "",
+        "style": " Follow this style/scenario: Use a casual, concise Slack messaging tone.",
+        "structure": "S"
+      },
+      "must_contain": ["Slack messaging tone"],
+      "why": "弹窗模板的风格是靠这一段生效的；它被吞掉时界面照常显示模板名"
+    }
+  ]
+}

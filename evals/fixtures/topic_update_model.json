@@ -1,0 +1,73 @@
+{
+  "_comment": "Synthetic topic-update probe (E05/E07 shape) only. Fictional content; it does not establish semantic support or replace two independent reviewers.",
+  "baseline_source_path": "Notes/旧计划.md",
+  "baseline_source_markdown": "# 旧计划\n\n## 项目 A\n\n本月发布。\n\n原型已进入内测。\n",
+  "existing_claims": [
+    {
+      "text": "项目 A 计划本月发布",
+      "quote": "本月发布。"
+    },
+    {
+      "text": "项目 A 原型已进入内测",
+      "quote": "原型已进入内测。"
+    }
+  ],
+  "cases": [
+    {
+      "name": "append-and-conflict",
+      "source_path": "Notes/周会.md",
+      "source_markdown": "# 周会\n\n## 项目 A\n\n原型已进入内测。\n\n发布推迟到下月。\n\n安装包体积降到 80 MB。\n\n## 项目 B\n\n预算已批准。\n",
+      "scope": {
+        "title": "项目 A",
+        "description": "只整理项目 A 的发布与进展",
+        "includes": [
+          "项目/A"
+        ],
+        "excludes": [
+          "项目/B"
+        ]
+      },
+      "expected_status": "claims",
+      "allowed_quotes": [
+        "发布推迟到下月。",
+        "安装包体积降到 80 MB。",
+        "原型已进入内测。"
+      ],
+      "expect_conflict_with": "c0000"
+    },
+    {
+      "name": "only-duplicates",
+      "source_path": "Notes/复述.md",
+      "source_markdown": "# 复述\n\n## 项目 A\n\n原型已进入内测。\n",
+      "scope": {
+        "title": "项目 A",
+        "description": "只整理项目 A 的发布与进展",
+        "includes": [
+          "项目/A"
+        ],
+        "excludes": [
+          "项目/B"
+        ]
+      },
+      "expected_status": "no_new",
+      "allowed_quotes": []
+    },
+    {
+      "name": "unrelated-scope",
+      "source_path": "Notes/周会B.md",
+      "source_markdown": "# 周会\n\n## 项目 B\n\n预算已批准。\n",
+      "scope": {
+        "title": "项目 A",
+        "description": "只整理项目 A 的发布与进展",
+        "includes": [
+          "项目/A"
+        ],
+        "excludes": [
+          "项目/B"
+        ]
+      },
+      "expected_status": "no_new",
+      "allowed_quotes": []
+    }
+  ]
+}

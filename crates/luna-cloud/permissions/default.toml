@@ -1,0 +1,42 @@
+# 云插件默认权限集（Tauri v2 ACL）。
+#
+# **允许清单即攻击面**：这里列出的每条命令，webview 都能调用。全部列出而非用通配，
+# 是为了让「新增一条云命令」必须显式经过这里——与 `commands.rs` 的命令面钉死测试
+# 同一条纪律（ADR-037：单一构建下，护栏从构建期移到运行期，就必须处处可审）。
+#
+# 未列出的命令即便在 Rust 侧注册，也会被 ACL 拒绝——这正是迁移时踩到的坑：
+# 插件无权限清单 → 全部命令被拒 → 前端拿到不带 `code` 的拒绝对象 → UI 显示
+# `error.undefined`（真机验收发现，见 build.rs 头注释）。
+[default]
+description = "Lunarca 云客户端：账户与登录、设备管理、账户数据导出与注销、权益、用量与月度上限、收单与签名模型目录。"
+permissions = [
+    "allow-account-state",
+    "allow-account-sign-in-begin",
+    "allow-account-sign-in-password",
+    "allow-account-sign-in-code",
+    "allow-account-sign-in-set-password",
+    "allow-account-sign-in-request-code",
+    "allow-account-change-password",
+    "allow-account-sign-in-browser",
+    "allow-account-sign-in-reopen-browser",
+    "allow-account-sign-in-cancel",
+    "allow-account-sign-in-resolve-device-limit",
+    "allow-account-sign-out",
+    "allow-devices-list",
+    "allow-device-revoke",
+    "allow-account-deletion-preview",
+    "allow-account-delete",
+    "allow-account-export",
+    "allow-entitlements",
+    "allow-usage",
+    "allow-spend-cap-set",
+    "allow-billing-offer",
+    "allow-billing-available",
+    "allow-billing-checkout",
+    "allow-billing-portal",
+    "allow-billing-verify-card",
+    "allow-catalog-status",
+    "allow-prompt-catalog-status",
+    "allow-trust-status",
+    "allow-trust-confirm-change",
+]

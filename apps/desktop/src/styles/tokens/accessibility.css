@@ -1,0 +1,17 @@
+/* 高对比度 */
+:root[data-contrast="high"] {
+  --color-border-subtle: var(--color-text-primary);
+  --color-border-control: var(--color-text-primary);
+  --color-text-muted: var(--color-text-primary);
+  --outline-width-focus: 3px;
+}
+
+/* 减少动效 */
+:root[data-reduce-motion="true"] *,
+:root[data-reduce-motion="true"] *::before,
+:root[data-reduce-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}

@@ -1,0 +1,417 @@
+/*
+ * HUD 共用零件（`.luna-hud-*`）——三扇独立悬浮窗（翻译 / 语音速记 / 录音）与快捷对话
+ * 面板共用的那一层：窗口栏、标题、上下文徽标、图标键、低频动作菜单。
+ *
+ * **它此前住在 `features/voice-input/voice-input.css`**：一个被四处共用的东西挂在其中
+ * 一个使用者的名下——`.luna-icon-btn` 的定义要去"语音输入"里找，而翻译弹窗、录音 HUD、
+ * 对话面板都在用它。与 `.luna-sidebar-header` / `.luna-dialog` 同一条判据（TDD-15 §3.3a）。
+ */
+
+/*
+ * HUD 外壳（`.luna-hud-surface`，ADR-111 ②）：五扇悬浮面共用的唯一根声明。
+ * 此前这一块在四个 feature 样式里各抄一份（`.luna-popup` / `.luna-voice` /
+ * `.luna-rec-hud` / `.luna-caption` 逐字相同），快捷对话面板又是第五种写法。
+ * feature 类从此只声明自己的布局差异（间距 / 透明度），不再拥有外壳。
+ *
+ * 材质（ADR-137 V1）：窗口本身透明（Rust `hud_chrome()`），这里画的是浮在上面的那块
+ * 圆角面——细边把它从任意背景里托起来，阴影由系统按内容投（CSS 阴影会被窗口边缘
+ * 裁掉，故这里不写 box-shadow）。此前窗口不透明、直角，看上去就是一扇普通窗口。
+ */
+html:has(.luna-hud-surface),
+body:has(.luna-hud-surface),
+#root:has(.luna-hud-surface) {
+  background: transparent;
+}
+
+.luna-hud-surface {
+  display: flex;
+  flex-direction: column;
+  inline-size: var(--size-full);
+  block-size: var(--size-full);
+  min-inline-size: 0;
+  min-block-size: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: var(--hud-pad-block) var(--hud-pad-inline);
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--hud-radius);
+  color: var(--color-text-primary);
+  background: var(--color-bg-panel);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+}
+
+/* 整面可拖的窗（翻译/语音/录音/字幕）：外壳不可选（TDD-15 §3.6b，内容区显式放开）。
+   不再画顶部拖动指示条（ADR-137 V2）：整面本来就可拖，那根条只是在占一行。
+   快捷对话只由头部拖动，正文保持可选中——不带本变体。 */
+.luna-hud-surface[data-drag-root] {
+  cursor: grab;
+  user-select: none;
+}
+
+.luna-hud-surface[data-drag-root]:active {
+  cursor: grabbing;
+}
+
+/* HUD 状态行（ADR-137 V2）：「身份图标 · 状态 · 配置胶囊 · 联网点 ··· 窗口动作」一行，
+   与内容之间不再画分隔线——它是内容的第一行，不是一条独占一行的标题栏。
+   窗口名只给读屏（`.luna-visually-hidden`）：每次都一样的「翻译」「录音」不必占地方，
+   身份由图标说。 */
+.luna-hud-header {
+  display: flex;
+  min-block-size: var(--hud-control-size);
+  align-items: center;
+  gap: var(--hud-gap);
+}
+
+.luna-hud-title {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  color: var(--color-text-muted);
+}
+
+.luna-hud-context-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  overflow: hidden;
+  padding: var(--space-0-5) var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 头部拖动形态（快捷对话：整窗不可拖、只由窗口栏拖动）。 */
+.luna-hud-header[data-draggable="true"] {
+  cursor: grab;
+  user-select: none;
+}
+
+.luna-hud-header[data-draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* 与状态同排的内容：吃掉余宽，动作区被推到右缘（它自己的 `margin-inline-start: auto`
+   在这里不再起作用，余宽已归内容）。 */
+.luna-hud-header-lane {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--hud-gap);
+  min-inline-size: 0;
+}
+
+.luna-hud-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-inline-start: auto;
+  flex-shrink: 0;
+}
+
+/*
+ * 联网指示（ADR-038 ④ / ADR-111 ⑤⑴）：与录音圆点同尺寸、可同处一行，但**形状与颜色
+ * 都不同**——只靠颜色区分的话，色觉障碍用户看到的是两个一样的点。组件在
+ * `components/ui/HudUplinkDot.tsx`；它是表面级插槽，任何 HUD 形态（含沉浸字幕）
+ * 都必须保留挂载点，不得随任何容器一起被 `display: none`。
+ */
+.luna-hud-uplink-dot {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  color: var(--color-status-warning);
+}
+
+/* 采集中：云底填一层警告色面（实心）；空闲：描边 + 中性色。两态不只靠颜色区分。 */
+.luna-hud-uplink-dot[data-active="true"] svg {
+  fill: var(--color-status-warning-surface);
+}
+
+.luna-hud-uplink-dot[data-active="false"] {
+  color: var(--color-text-muted);
+}
+
+/* 这里此前是 `.luna-icon-btn` 的整套实现——与 `.luna-icon-btn` 讲同一件事（方形、
+   幽灵底、hover 给底、按下微缩），只是大一档、按下态与焦点圈各写了另一种。批次 1 收编
+   顶栏与侧栏那两份时，这一份因为服务三扇独立窗口而缓到本批；现在它是 `.luna-icon-btn`
+   的一个尺寸修饰符（`--hud`），全应用"一颗图标按钮"至此只有一个定义点。 */
+
+.luna-hud-menu {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.luna-hud-menu__popover {
+  position: absolute;
+  z-index: var(--z-floating-menu);
+  min-inline-size: var(--hud-menu-min-inline-size);
+  /* 宽随最长的一项，而不是卡在下限把文字折成两行（真机 2026-10-01：快捷对话的
+     「临时对话（不保存到历史）」折行）。 */
+  inline-size: max-content;
+  max-inline-size: var(--hud-menu-max-inline-size);
+  padding: var(--space-1);
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  box-shadow: var(--shadow-md);
+}
+
+.luna-hud-menu[data-side="top"] .luna-hud-menu__popover {
+  inset-block-end: calc(100% + var(--space-1));
+}
+
+.luna-hud-menu[data-side="bottom"] .luna-hud-menu__popover {
+  inset-block-start: calc(100% + var(--space-1));
+}
+
+.luna-hud-menu[data-align="end"] .luna-hud-menu__popover {
+  inset-inline-end: 0;
+}
+
+.luna-hud-menu[data-align="start"] .luna-hud-menu__popover {
+  inset-inline-start: 0;
+}
+
+.luna-hud-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: var(--size-full);
+  min-block-size: var(--hud-control-size);
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-hud-menu__item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--space-4);
+  inline-size: var(--space-4);
+}
+
+.luna-hud-menu__item-label {
+  flex: 1;
+  min-inline-size: 0;
+  text-align: start;
+}
+
+.luna-hud-menu__item-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--space-4);
+  inline-size: var(--space-4);
+}
+
+.luna-hud-menu__item:hover:not(:disabled),
+.luna-hud-menu__item:focus-visible {
+  background: var(--color-bg-hover);
+  outline: none;
+}
+
+.luna-hud-menu__item[data-tone="danger"] {
+  color: var(--color-status-error);
+}
+
+.luna-hud-menu__item:disabled {
+  color: var(--color-text-muted);
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+/* ── 电平条（`.luna-hud-meter__bar`）─────────────────────────────────────────
+   **同一组十二条规则此前在两个 HUD 各写了一份**（语音速记的 `.luna-voice__meter span`
+   与录音的 `.luna-rec-hud__bar`）：同样的 Token、同样的过渡、同样的十档高度，逐字节相同。
+   容器不提——两处真的不一样（语音是一排柱子，录音是「轨道名 + 一排柱子」的行），差异在
+   容器上，柱子本身没有任何差异。 */
+.luna-hud-meter__bar {
+  flex: 0 0 var(--space-1-5);
+  inline-size: var(--space-1-5);
+  block-size: var(--hud-meter-size-0);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+  transition:
+    block-size var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.luna-hud-meter__bar[data-active="true"] {
+  background: var(--color-border-focus);
+}
+
+.luna-hud-meter__bar[data-level="1"] {
+  block-size: var(--hud-meter-size-1);
+}
+
+.luna-hud-meter__bar[data-level="2"] {
+  block-size: var(--hud-meter-size-2);
+}
+
+.luna-hud-meter__bar[data-level="3"] {
+  block-size: var(--hud-meter-size-3);
+}
+
+.luna-hud-meter__bar[data-level="4"] {
+  block-size: var(--hud-meter-size-4);
+}
+
+.luna-hud-meter__bar[data-level="5"] {
+  block-size: var(--hud-meter-size-5);
+}
+
+.luna-hud-meter__bar[data-level="6"] {
+  block-size: var(--hud-meter-size-6);
+}
+
+.luna-hud-meter__bar[data-level="7"] {
+  block-size: var(--hud-meter-size-7);
+}
+
+.luna-hud-meter__bar[data-level="8"] {
+  block-size: var(--hud-meter-size-8);
+}
+
+.luna-hud-meter__bar[data-level="9"] {
+  block-size: var(--hud-meter-size-9);
+}
+
+.luna-hud-meter__bar[data-level="10"] {
+  block-size: var(--hud-meter-size-10);
+}
+
+/* 配置摘要折叠条（`.luna-hud-config-summary`）随 ADR-137 退役：语音的配置是面板档本身，
+   录音的配置摘要是空闲行里的一段可点文字——两处都不再是一条独占一行的折叠条。 */
+
+/* ── 行内复选式开关（`.luna-hud-toggle`）─────────────────────────────────────
+   图标 + 文字的行内切换（「自动润色」「双语字幕」…）。两个 HUD 此前对同一种控件给了
+   两种选中反馈：录音给背景、语音只给勾选图标——同一个动作在两扇窗里读起来不是一回事。
+   收敛为一种：勾选图标（非颜色-only）**加**选中底色，两条信息都在。 */
+.luna-hud-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.luna-hud-toggle:hover:not(:disabled) {
+  color: var(--color-text-primary);
+}
+
+.luna-hud-toggle[aria-pressed="true"] {
+  color: var(--color-text-primary);
+  background: var(--color-bg-selected);
+}
+
+.luna-hud-toggle:disabled {
+  color: var(--color-text-muted);
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+/* ── 回执线（`.luna-hud-receipt`，ADR-137 V5）──────────────────────────────────
+   每扇悬浮窗的反馈只出现在这一行。成功：一句短话，停留 `--hud-receipt-linger` 后淡出，
+   悬停或键盘聚焦在上面时暂停（要点「打开」的人不该被它跑掉）。失败：错误色底、不淡出。
+   红色只在失败态出现——成功回执用中性字 + 成功色的勾，不铺色块。 */
+.luna-hud-receipt {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--hud-gap);
+  min-block-size: var(--hud-control-size);
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.luna-hud-receipt[data-kind="success"] {
+  animation: luna-hud-receipt-out var(--transition-fast) var(--hud-receipt-linger) forwards;
+}
+
+.luna-hud-receipt[data-kind="success"]:hover,
+.luna-hud-receipt[data-kind="success"]:focus-within {
+  animation-play-state: paused;
+}
+
+.luna-hud-receipt[data-kind="error"] {
+  color: var(--color-text-primary);
+  background: var(--color-status-error-surface);
+}
+
+.luna-hud-receipt__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.luna-hud-receipt[data-kind="success"] .luna-hud-receipt__icon {
+  color: var(--color-status-success);
+}
+
+.luna-hud-receipt[data-kind="error"] .luna-hud-receipt__icon {
+  color: var(--color-status-error);
+}
+
+.luna-hud-receipt__message {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-hud-receipt__detail {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 动作贴右：消息占满余宽，动作永远在同一个位置。 */
+.luna-hud-receipt__action {
+  flex-shrink: 0;
+  margin-inline-start: auto;
+  padding: var(--space-0-5) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-accent-strong);
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.luna-hud-receipt__action:hover,
+.luna-hud-receipt__action:focus-visible {
+  background: var(--color-bg-hover);
+  outline: none;
+}
+
+@keyframes luna-hud-receipt-out {
+  to {
+    opacity: 0;
+  }
+}

@@ -1,0 +1,8 @@
+/* 「索引中，结果可能不全」（`components/ui/IndexingNotice.tsx`）：与搜索视图那条摘要同一种
+   弱提示——一行小字、不抢视线，扫描结束即消失。 */
+.luna-indexing-notice {
+  margin: var(--space-0);
+  padding-block: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}

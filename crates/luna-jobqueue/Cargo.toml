@@ -1,0 +1,23 @@
+[package]
+name = "luna-jobqueue"
+description = "Job 调度：优先级 / 并发 / 路由执行 / 取消 / 兜底（TDD-01 §5）"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+luna-core = { path = "../luna-core" }
+luna-provider = { path = "../luna-provider" }
+luna-audio = { path = "../luna-audio" }
+futures.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+luna-provider = { path = "../luna-provider" }
+async-stream.workspace = true
+async-trait.workspace = true
+# 准入等待阈值是十几秒量级：靠真实等待既慢又是竞态，故用 tokio 的可控时钟
+# （`start_paused` / `advance`）把 ADR-078 ③ 的两个阈值测成确定性用例。
+tokio = { workspace = true, features = ["test-util"] }

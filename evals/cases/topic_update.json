@@ -1,0 +1,58 @@
+{
+  "_comment": [
+    "主题增量提示词的结构门禁；不替代真实模型评测与两名评审的语义验收。"
+  ],
+  "scope": "ingest",
+  "template": "topic_update",
+  "cases": [
+    {
+      "name": "范围、既有声明与同源跨项目片段",
+      "vars": {},
+      "must_contain": [
+        "scope.title",
+        "scope.description",
+        "scope.includes",
+        "scope.excludes",
+        "existing_claims",
+        "never put an existing claim id in evidence_ids",
+        "never rewrite, delete, merge or reorder existing claims",
+        "heading_path",
+        "shared tag",
+        "Sharing a word, name or character with the scope is not relevance",
+        "untrusted data"
+      ],
+      "why": "增量只能在完整范围内追加；既有声明是上下文不是证据，也不能被模型改写。"
+    },
+    {
+      "name": "重复、分歧与封闭输出",
+      "vars": {},
+      "must_contain": [
+        "is a duplicate, not an addition",
+        "status set to no_op",
+        "Do not include reason in a claims response",
+        "conflicts_with",
+        "a newer date is not proof",
+        "must omit conflicts_with",
+        "never use transcript_record for a formal_note",
+        "exact evidence IDs",
+        "input_complete",
+        "complete_input",
+        "Never emit triple backticks",
+        "one complete JSON object"
+      ],
+      "why": "重复要返回无新增；分歧须并列双出处且不按日期裁决；输出必须封闭可解析。结构检查不证明语义质量。"
+    },
+    {
+      "name": "保留原文的确定程度",
+      "vars": {},
+      "must_contain": ["level of certainty", "never as a plan, decision or settled fact"],
+      "why": "真机 2026-09-27 云端模型两次把「客户希望/期望」写成「项目计划/首版将支持」——愿望被升格为决定。证据校验只核出处存在，挡不住语义夸大；规则被删时这条必须变红"
+    },
+    {
+      "name": "替换只在来源明确说原事实变了时用，拿不准就标分歧",
+      "vars": {},
+      "must_contain": ["Use replaces only when the evidence explicitly says", "Never replace a conflict claim", "never combine replaces with conflicts_with", "use conflict instead", "must omit replaces"],
+      "why": "K4 替换会改掉页面上既有的一句话；解析层已拒绝替换分歧、重复替换、与分歧并用，但「是不是真的更新」只能靠模型判断，规则被删时这条必须变红"
+    }
+  ]
+}

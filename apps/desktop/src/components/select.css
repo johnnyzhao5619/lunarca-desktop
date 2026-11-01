@@ -1,0 +1,117 @@
+/*
+ * 下拉选择原语（`.luna-select`）——跨 feature 的控件原语（TDD-15 §3.3a）。
+ *
+ * **同一件事此前有七种长相**：设置字段（`.luna-settings-field__select`，32px 定高）、
+ * 归档筛选排序（裸 `.luna-input` + 一句手调 `padding-block`）、视频舞台字号档
+ * （`.luna-video-stage__size`）、朗读倍速（`.luna-read-aloud__rate`）、回放二次翻译目标
+ * （`.luna-playback__translate-target`）、语音 HUD 模式（`.luna-voice__mode-select`）、
+ * 实时字幕目标语言（`.luna-subtitle-target`）——每一处都自己重写了一遍 border / radius /
+ * background / font，而**七处没有一处关掉原生外观**。
+ *
+ * 原生 `<select>` 未关外观的代价不是"不够好看"：它在 WebKit 下自带最小高度与内边距、
+ * **忽略 `line-height`**，于是它与同一行里的查询框永远对不齐——这正是 2026-09-08 真机
+ * 上报的那条（TDD-15 §3.3a 早已写明"原生控件的默认外观必须显式关掉"，判据是"一个表面上
+ * 凡是只有这一处长得像浏览器默认控件的，它就是没适配"）。
+ *
+ * **结构与 `.luna-query-box` 刻意同构**：外框负责边框/圆角/焦点圈/行高下限，内部控件
+ * 自己不画边界。两者因此是同一个盒模型，"同一行里等高"是结构保证的，不是手调凑出来的。
+ * 箭头用应用自己的 chevron 图标语言（同文件树段头那一枚），不是 UA 的三角。
+ *
+ * 七处已于 2026-09-08 全部收编（HUD 两处的控件档 32px 与本原语 md 档同值；段控成员走
+ * `--flush` 变体）。`theme/control-height-guard` 的台账已清空——新写一个 `<select>` 皮就红，
+ * 没写类名的裸 `<select>` 也红。
+ */
+
+.luna-select {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: var(--control-height-md);
+  padding-inline: var(--space-2-5);
+  border: var(--border-width-thin) solid var(--color-border-control);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+/* 焦点表现落在**外框**上（同 `.luna-query-box`）：内部控件自己不画圈，否则框里套一个圈。 */
+.luna-select:focus-within {
+  border-color: var(--color-border-focus);
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: calc(-1 * var(--outline-width-focus));
+}
+
+.luna-select__control {
+  flex: 1 1 0;
+  min-inline-size: var(--space-0);
+  /* 原生外观三件套：`appearance` 之外还要显式清 border / background，否则 WebKit
+     仍会给出自带的凹槽与最小内边距。 */
+  appearance: none;
+  padding: var(--space-0);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: inherit;
+  /* 文本溢出时省略而不是把框撑破（窄侧栏里的长语言名）。 */
+  text-overflow: ellipsis;
+}
+
+.luna-select__control:focus {
+  outline: none;
+}
+
+.luna-select__chevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  /* 箭头只是装饰：点击落到它上面时仍应打开下拉，而不是被它吃掉。 */
+  pointer-events: none;
+}
+
+/* ── 尺寸 ────────────────────────────────────────────────────────────────── */
+
+/* 紧凑尺寸：嵌在工具条里的档位选择（字号档 / 倍速）——常规尺寸会把工具条撑高。
+   与 `.luna-btn--sm` 同一条命名与用意，值同源于 `--control-height-sm`。 */
+.luna-select--sm {
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-1-5);
+}
+
+.luna-select--sm .luna-select__control {
+  font-size: var(--font-size-xs);
+}
+
+/* 段控成员：嵌在「译成 ▾ + 翻译」这类一体化段控里的一段——外框归段控，本体不画边界，
+   只保留关掉原生外观与应用自己的 chevron 这两件事（原生 `<select>` 的上下三角就是从这里
+   漏出来的最后一处）。 */
+.luna-select--flush {
+  min-block-size: auto;
+  padding-inline: var(--space-2) var(--space-1-5);
+  border: 0;
+  border-radius: var(--radius-none);
+  background: transparent;
+}
+
+.luna-select--flush:focus-within {
+  border-color: transparent;
+}
+
+/* HUD 档：与同排的按钮、图标钮同高（ADR-137 V6）。 */
+.luna-hud-surface .luna-select {
+  min-block-size: var(--hud-control-size);
+}
+
+/* ── 状态 ────────────────────────────────────────────────────────────────── */
+
+.luna-select:has(.luna-select__control:disabled) {
+  color: var(--color-text-muted);
+  background: var(--color-bg-disabled);
+  cursor: not-allowed;
+}
+
+.luna-select__control:disabled {
+  cursor: inherit;
+}

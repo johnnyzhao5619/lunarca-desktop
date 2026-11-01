@@ -1,0 +1,442 @@
+{
+  "config_recovered": {
+    "title": "Config file was damaged and rebuilt",
+    "body": "The device config file could not be parsed, so defaults were used for this launch. The original was archived as config.corrupt-<time>.toml if you need anything from it. Settings are editable again.",
+    "action": "Open advanced settings"
+  },
+  "config_values_reset": {
+    "title": "{{count}} setting(s) reset to default",
+    "body": "These values are no longer valid in this version and each went back to its default: {{keys}}. Everything else is untouched.",
+    "action": "Open advanced settings"
+  },
+  "permission_revoked": {
+    "title": "System permission revoked",
+    "body": "Related entry points have been degraded. Re-authorize in system settings.",
+    "action": "Open permission settings"
+  },
+  "strict_local_blocked": {
+    "title": "Strict local mode blocked a network task",
+    "body": "This task requires external capability and was blocked by your privacy setting.",
+    "action": "Open privacy settings"
+  },
+  "prompt_catalog_rejected": {
+    "title": "Server prompt catalog is incomplete; using bundled prompts",
+    "body": "The server configuration didn't pass validation, so the built-in one is in use. AI features work normally.",
+    "diagnostic": "Prompt catalog v{{version}} from the server is missing the required template {{key}}, so this device ignored it entirely and uses the bundled prompts. An administrator needs to publish a complete catalog from the console.",
+    "action": "Open AI model settings"
+  },
+  "prompt_catalog_degraded": {
+    "title": "Server prompt catalog matches an older manifest",
+    "body": "Some settings use built-in defaults; AI features work normally.",
+    "diagnostic": "Prompt catalog v{{version}} was published against an older manifest (v{{manifest}}) and is in effect; the {{missing}} template(s) added in this app version use bundled defaults until an administrator republishes.",
+    "action": "Open AI model settings"
+  },
+  "recording_disk_low": {
+    "title": "Disk space is running low",
+    "body": "Recording continues, but consider finishing soon to keep the audio safe."
+  },
+  "recording_disk_critical": {
+    "title": "Disk almost full — recording stopped",
+    "body": "Recording stopped gracefully; everything captured so far is saved."
+  },
+  "recording_save_unavailable": {
+    "title": "Recording is not being saved to disk",
+    "body": "Audio file could not be created. Live transcription continues without archiving."
+  },
+  "recording_device_lost": {
+    "title": "Microphone disconnected",
+    "body": "The recording was finalized with the audio captured so far."
+  },
+  "recording_input_device_fallback": {
+    "title": "Selected microphone unavailable",
+    "body": "Recording continues with the system default input. Check the device setting."
+  },
+  "recording_window_dropped": {
+    "title": "Realtime transcription overloaded",
+    "body": "Some live text was skipped. Audio is fully saved — run a second pass later."
+  },
+  "recording_transcribe_waiting": {
+    "title": "Live transcription hasn't started",
+    "body": "The local realtime session slots are busy, so no captions yet. Recording and audio saving are unaffected — run a second pass later."
+  },
+  "recording_retranscribed": {
+    "title": "Transcript refined",
+    "body": "This recording was re-transcribed with a higher-accuracy model for a more precise result.",
+    "action": "View recording"
+  },
+  "recording_mic_silent_input": {
+    "title": "No microphone signal",
+    "body": "Recording continues, but no sound is coming from the microphone.",
+    "diagnostic": "Check System Settings › Privacy & Security › Microphone for Lunarca, the system input volume, and the selected input device.",
+    "action": "Check input device"
+  },
+  "recording_source_rate_mismatch": {
+    "title": "System audio timeline is off",
+    "body": "The system audio track is being delivered at a different rate than the device declares, so this track's timestamps and duration will not match real time (audio is still being saved). Stop and restart this recording; if it keeps happening, include the recording time in your report."
+  },
+  "distill_batch_queued": {
+    "title": "{{count}} added to the queue",
+    "body": "They run in order; progress is in the processing queue.",
+    "action": "Open queue"
+  },
+  "identifier_migrated": {
+    "title": "App identifier updated",
+    "body": "This version uses the app’s final identifier. Your notes, settings and models are all still here. System permissions such as microphone, accessibility, screen and system audio are tied to the identifier, so you need to grant them once more.",
+    "action": "Open privacy settings"
+  },
+  "recording_speaker_playback": {
+    "title": "Playing through speakers",
+    "body": "System audio is playing through the built-in speakers, so the microphone will pick up the other side. Wear headphones for the best track separation and recognition."
+  },
+  "transcribe_fetched": {
+    "title": "Link transcription finished",
+    "body": "The media downloaded from your link has been transcribed and is ready to proofread.",
+    "action": "View transcription"
+  },
+  "recording_diarized": {
+    "title": "Speaker diarization finished",
+    "body": "Speaker labels for this recording are ready — review and rename them in playback.",
+    "action": "View recording"
+  },
+  "graph_tags_rescanned": {
+    "title": "Relation tags backfilled",
+    "body": "The vault-wide AI relation tag rescan has finished; graph links are updated.",
+    "action": "Open graph"
+  },
+  "graph_tags_rescan_halted": {
+    "title": "Relation tag rescan stopped",
+    "body": "Several notes failed in a row, so the rescan stopped early. Open the graph and try again.",
+    "body_strict_local": "Several notes failed in a row, so the rescan stopped early. Local-only mode is on, so tags are generated on this device — check that the AI engine is running and that the chat model in Model assignment is installed.",
+    "body_on_device": "Several notes failed in a row, so the rescan stopped early. Tags are generated on this device — check that the AI engine is running and that the chat model in Model assignment is installed.",
+    "body_official_cloud": "Several notes failed in a row, so the rescan stopped early. Tags are generated by Lunarca Cloud — check your connection and account quota, then try again.",
+    "body_organization": "Several notes failed in a row, so the rescan stopped early. Tags are generated by your organization server — check the server status or contact your administrator.",
+    "action": "Open graph"
+  },
+  "fallback": {
+    "title": "Lunarca notification",
+    "body": "A status update needs your attention."
+  },
+  "history": {
+    "title": "Notification history",
+    "count": "{{count}} items",
+    "loading": "Loading",
+    "empty": "No notifications",
+    "search_label": "Search notifications",
+    "search_placeholder": "Search notification titles, bodies, or categories",
+    "mark_all_read": "Mark all read",
+    "no_unread": "No unread notifications",
+    "clear": "Clear",
+    "clear_title": "Clear all notification history?",
+    "clear_desc": "This cannot be undone.",
+    "unread": "Unread",
+    "class": {
+      "completion": "Completed",
+      "failure": "Failed",
+      "system_health": "System health",
+      "user_action": "Needs action",
+      "info": "Info"
+    },
+    "severity": {
+      "info": "Info",
+      "warning": "Warning",
+      "error": "Error",
+      "critical": "Critical"
+    },
+    "detail": "View details",
+    "go": "Go to",
+    "mark_read": "Mark as read",
+    "count_filtered": "{{shown}} of {{total}} shown",
+    "scope_label": "Scope",
+    "scope_all": "All",
+    "scope_unread": "Unread {{count}}",
+    "filter_label": "Filter by category",
+    "filter_all_classes": "All categories",
+    "maintenance_label": "More actions",
+    "clear_read": "Clear read",
+    "clear_filter": "Clear filters",
+    "empty_filtered": "No notifications match these filters",
+    "empty_hint": "Finished tasks, permission changes, and system health all land here for you to revisit.",
+    "load_more": "Load more ({{loaded}} of {{total}} loaded)"
+  },
+  "action": {
+    "dismiss": "Dismiss",
+    "history": "View history",
+    "open": "Open"
+  },
+  "detail": {
+    "class": "Category",
+    "severity": "Severity",
+    "channels": "Delivered via",
+    "time": "Time",
+    "close": "Close",
+    "diagnostic": "Diagnostics",
+    "channelSeparator": ", ",
+    "channel": {
+      "banner": "Top banner",
+      "toast": "Toast",
+      "inline": "Inline",
+      "status": "Status bar & badge",
+      "system": "System notification"
+    }
+  },
+  "screenshot_permission_missing": {
+    "title": "Screenshot translate needs Screen Recording",
+    "body": "Enable Lunarca under System Settings › Privacy & Security › Screen Recording, then restart the app.",
+    "action": "Open permission settings"
+  },
+  "screenshot_no_text": {
+    "title": "No text recognized",
+    "body": "The selected area contains no recognizable text. Try capturing a clearer text region."
+  },
+  "desktop_lens_region_offscreen": {
+    "title": "Capture range spans displays",
+    "body": "The Translate Space frame straddles two displays, so a single capture cannot reproduce it faithfully. Move the frame back onto one display and try again."
+  },
+  "desktop_lens_geometry_not_saved": {
+    "title": "Frame position not saved",
+    "body": "The Translate Space frame works for this session, but its position could not be written to disk and will not be remembered after a restart. Check storage permissions and disk space."
+  },
+  "llm_default_model_missing": {
+    "title": "Default text model not installed",
+    "body": "The default model {{model}} is not installed on this device, so translation/refinement cannot run. Other models are installed — switch the default or re-download.",
+    "action": "Open model settings"
+  },
+  "llm_no_models_installed": {
+    "title": "No local models installed",
+    "body": "There is no local text model on this device yet, so translation/refinement cannot run. Download a recommended model first.",
+    "action": "Download a model"
+  },
+  "recording_system_audio_no_data": {
+    "title": "No system audio captured",
+    "body": "Allow Lunarca under System Settings › Privacy & Security › Screen & System Audio Recording, or make sure audio is playing, then start again."
+  },
+  "hostLabel": "In-app notifications",
+  "overflow": "{{count}} more · View all",
+  "repeated": "{{count}} of the same",
+  "recording_retranscribed_distill": {
+    "title": "Transcript refined",
+    "body": "The result is more accurate. You can turn this recording into a knowledge note from the playback view.",
+    "action": "Open recording"
+  },
+  "transcribe_fetched_distill": {
+    "title": "Linked media transcribed",
+    "body": "The transcript is ready. You can turn it into a knowledge note from the transcript view.",
+    "action": "Open transcript"
+  },
+  "transcribe_imported": {
+    "title": "Imported media transcribed",
+    "body": "The imported audio or video has been transcribed and is ready to proofread.",
+    "action": "View transcription"
+  },
+  "transcribe_imported_distill": {
+    "title": "Imported media transcribed",
+    "body": "The transcript is ready. You can turn it into a knowledge note from the transcript view.",
+    "action": "Open transcript"
+  },
+  "transcript_translated": {
+    "title": "Transcript translation finished",
+    "body": "The translation for this transcript is ready in the playback or transcript view.",
+    "action": "View translation"
+  },
+  "chat_ended_distill": {
+    "title": "Chat archived",
+    "body": "This conversation can be distilled into a knowledge note — from the chat header or the history context menu.",
+    "action": "Open chat note"
+  },
+  "topic_composed": {
+    "title": "Topic page ready",
+    "body": "A first version of the topic page is ready — click to open. Lunarca will keep filing new points into it."
+  },
+  "knowledge_ingested": {
+    "title": "Knowledge base updated",
+    "body": "This knowledge note's key point was filed into your topic pages — click to see which."
+  },
+  "semantic_index_built": {
+    "title": "Semantic index ready",
+    "body": "Rephrased questions and other languages will now find your notes. Click to review the index."
+  },
+  "semantic_index_halted": {
+    "title": "Semantic index build stopped",
+    "body": "Several notes failed in a row, so indexing stopped early. Open settings and try again.",
+    "body_strict_local": "Several notes failed in a row, so indexing stopped early. Local-only mode is on, so embeddings are generated on this device — check that the AI engine is running and that the bge-m3 embedding model is installed.",
+    "body_on_device": "Several notes failed in a row, so indexing stopped early. Embeddings are generated on this device — check that the AI engine is running and that the bge-m3 embedding model is installed.",
+    "body_official_cloud": "Several notes failed in a row, so indexing stopped early. Embeddings are generated by Lunarca Cloud — check your connection and account quota, then try again.",
+    "body_organization": "Several notes failed in a row, so indexing stopped early. Embeddings are generated by your organization server — check the server status or contact your administrator."
+  },
+  "knowledge_checkup_done": {
+    "title": "Deep checkup finished",
+    "body": "Every topic-page claim was checked against its source. Tap to see the report."
+  },
+  "knowledge_checkup_halted": {
+    "title": "Deep checkup stopped",
+    "body": "Several claims in a row could not be judged, so the checkup stopped early. Open the results and try again.",
+    "body_strict_local": "Several claims in a row could not be judged, so the checkup stopped early. Local-only mode is on, so judging happens on this device — check that the AI engine is running and that the chat model in Model assignment is installed.",
+    "body_on_device": "Several claims in a row could not be judged, so the checkup stopped early. Judging happens on this device — check that the AI engine is running and that the chat model in Model assignment is installed.",
+    "body_official_cloud": "Several claims in a row could not be judged, so the checkup stopped early. Judging happens in Lunarca Cloud — check your connection and account quota, then try again.",
+    "body_organization": "Several claims in a row could not be judged, so the checkup stopped early. Judging happens on your organization server — check the server status or contact your administrator."
+  },
+  "knowledge_checkup_due": {
+    "title": "Time for a knowledge checkup",
+    "body": "It has been over two weeks since the last deep checkup. Tap to look — running it is your call."
+  },
+  "knowledgeReceipt": {
+    "hostLabel": "Knowledge processing receipts",
+    "body": {
+      "saved": "“{{title}}” was saved to your knowledge base.",
+      "queued": "“{{title}}” was saved. Connecting it to your existing knowledge…",
+      "updated": "“{{title}}” was filed into {{topics}}.",
+      "degraded": "“{{title}}” is safely saved; some background maintenance did not finish.",
+      "failed": "“{{title}}” is safely saved, but background maintenance did not complete.",
+      "updated_map": "“{{topics}}” was updated.",
+      "queued_map": "“{{title}}” was saved; updating the index…"
+    },
+    "appliedItems": "{{count}} sourced items were written to the page.",
+    "appliedItems_one": "{{count}} sourced item was written to the page.",
+    "queued": "Running in the background: {{steps}}",
+    "degraded": "Not completed: {{steps}}. The knowledge note is safe and can be retried later.",
+    "stepSeparator": ", ",
+    "step": {
+      "tag": "relationship tags",
+      "embed": "semantic indexing",
+      "ingest": "preparing topic suggestions",
+      "knowledge_map": "knowledge map",
+      "index": "search index",
+      "baseline": "maintenance baseline"
+    },
+    "open": "Open note",
+    "outcome": {
+      "saved": "Knowledge saved",
+      "queued": "Knowledge saved",
+      "updated": "Knowledge relationships updated",
+      "degraded": "Knowledge saved with reduced maintenance",
+      "failed": "Knowledge maintenance incomplete"
+    }
+  },
+  "drawer": {
+    "close": "Close notification history"
+  },
+  "note_ai_ready": {
+    "title": "AI result ready",
+    "body": "The backgrounded AI action finished — click to open; you decide how it lands."
+  },
+  "sync_read_only_started": {
+    "title": "Cloud sync is now read-only",
+    "body": "Your plan no longer includes cloud sync: you can download but not upload changes. Cloud copies are removed on {{date}}; notes on this Mac are not affected.",
+    "action": "View"
+  },
+  "sync_read_only_reminder": {
+    "title": "Cloud copies removed in {{days}} days",
+    "body": "Cloud copies are removed on {{date}}; renew to keep them. Notes on this Mac are not affected.",
+    "action": "View"
+  },
+  "sync_read_only_today": {
+    "title": "Cloud copies are removed today",
+    "body": "The read-only period ends today and cloud copies will be removed; notes on this Mac are not affected.",
+    "action": "View"
+  },
+  "sync_vault_deleted_remotely": {
+    "title": "Cloud vault deleted",
+    "body": "The cloud vault “{{name}}” was deleted on another device. This device has stopped syncing it; your local files are all still here.",
+    "action": "View"
+  },
+  "session_expired": {
+    "title": "Signed out by the server",
+    "body": "The server no longer accepts this device's sign-in credentials (the session expired or the device was revoked). Server-provided chat, translation and transcription will fail until you sign in again; local features are unaffected.",
+    "action": "Sign in again"
+  },
+  "billing_past_due": {
+    "title": "Payment failed",
+    "body": "Your payment failed. Update your payment method by {{date}}, or your account will move to the free plan. Service continues and your local data is not affected.",
+    "action": "Update payment method"
+  },
+  "billing_frozen": {
+    "title": "Account is read-only",
+    "body": "Your account is read-only because of a payment dispute: cloud inference and sync uploads are paused and your data is not affected. Please contact support.",
+    "action": "View"
+  },
+  "billing_restored": {
+    "title": "Account back to normal",
+    "body": "The payment issue is resolved; cloud inference and sync work as usual.",
+    "action": "View"
+  },
+  "usage_subscription_p80": {
+    "title": "Plan quota 80% used",
+    "body": "One item of this period's plan quota is 80% used. See remaining amounts and reset times under Account › Subscription & usage.",
+    "action": "View usage"
+  },
+  "usage_subscription_p95": {
+    "title": "Plan quota almost used up",
+    "body": "One item of this period's plan quota is 95% used. Once it's used up, server tasks draw on prepaid credits, or are refused before they start if you have none, until the period resets.",
+    "action": "View usage"
+  },
+  "usage_subscription_exhausted": {
+    "title": "Plan quota used up",
+    "body": "One item of this period's plan quota is used up: server tasks now draw on prepaid credits, or are refused before they start if you have none, until the period resets. Upgrade, buy credits, or switch to an on-device model.",
+    "action": "View usage"
+  },
+  "usage_prepaid_p80": {
+    "title": "Prepaid credits 80% used",
+    "body": "You've used 80% of the prepaid credits you bought. Prepaid credits never expire; check your balance or buy more on the Account page.",
+    "action": "View usage"
+  },
+  "usage_prepaid_p95": {
+    "title": "Prepaid credits almost used up",
+    "body": "You've used 95% of the prepaid credits you bought. Once they're gone, tasks beyond your plan quota are refused before they start.",
+    "action": "View usage"
+  },
+  "usage_prepaid_exhausted": {
+    "title": "Prepaid credits used up",
+    "body": "Your prepaid credits are used up: tasks beyond your plan quota are refused before they start. Buy more credits or switch to an on-device model.",
+    "action": "View usage"
+  },
+  "usage_spend_cap_p80": {
+    "title": "Prepaid spending at 80% of your cap",
+    "body": "This month's prepaid spending has reached 80% of the cap you set. Once the cap is reached, tasks that need prepaid credits stop; subscription-included quota isn't affected.",
+    "action": "View cap"
+  },
+  "usage_spend_cap_p95": {
+    "title": "Prepaid spending close to your cap",
+    "body": "This month's prepaid spending has reached 95% of the cap you set. Once the cap is reached, tasks that need prepaid credits stop; subscription-included quota isn't affected.",
+    "action": "Adjust cap"
+  },
+  "usage_spend_cap_exhausted": {
+    "title": "Monthly prepaid cap reached",
+    "body": "This month's prepaid spending has reached the cap you set: tasks that need prepaid credits won't start, and running ones stop where they are — output so far is kept and billed for what was used. Subscription-included quota isn't affected; adjust the cap on the Account page.",
+    "action": "Adjust cap"
+  },
+  "signed_in": {
+    "title": "Signed in",
+    "body": "The browser sign-in is complete. Server capabilities are now available.",
+    "action": "View connection"
+  },
+  "trust_rotated": {
+    "title": "The server rotated its signing keys",
+    "body": "This server rotated its signing keys. The rotation was endorsed by a signature from the previous keys and verified, so Lunarca switched to the new ones automatically. You need to sign in again; until you do, server-provided chat, translation and transcription will fail. Local features are unaffected.",
+    "action": "Sign in again"
+  },
+  "service_quick_note_saved": {
+    "title": "Saved as a quick note",
+    "body": "The selected text is now in your quick notes.",
+    "action": "View quick note"
+  },
+  "service_quick_note_failed": {
+    "title": "Couldn’t save the quick note",
+    "body": "The selected text wasn’t saved. Open Lunarca, make sure a vault is open, and try again.",
+    "action": "Open Lunarca"
+  },
+  "app_release_ask": {
+    "title": "Check for updates at launch?",
+    "body": "Lunarca doesn’t go online to check for updates unless you allow it. Choose under Settings › General › About & updates.",
+    "action": "Choose"
+  },
+  "app_release_available": {
+    "title": "A new Lunarca version is available",
+    "body": "See the release notes and install it under Settings › General › About & updates.",
+    "action": "View"
+  },
+  "app_release_installed": {
+    "title": "Update installed",
+    "body": "The new version starts the next time you open Lunarca.",
+    "action": "View"
+  }
+}

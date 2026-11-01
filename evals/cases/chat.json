@@ -1,0 +1,13 @@
+{
+  "_comment": "对话能力的系统提示词来自角色预设（`chat` 域的四个 role.* 模板）。",
+  "scope": "chat",
+  "template": "role.chat_general",
+  "cases": [
+    {
+      "name": "跟随用户语言作答",
+      "vars": {},
+      "must_contain": ["same language"],
+      "why": "丢了它，中文提问会拿到英文回答——对话能力最高频的一条投诉"
+    }
+  ]
+}

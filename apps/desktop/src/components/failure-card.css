@@ -1,0 +1,74 @@
+/*
+ * 失败卡（`.luna-failure-card`）——错误文本的第三种形态（组件在 `components/ui/
+ * FailureCard.tsx`）：带修复动作的失败。与 `error-text.css` 的两种形态并列：
+ * `.luna-field-error` 贴控件的一句红字、`.luna-error-banner` 整块内容的失败横幅、
+ * 本卡 = 失败 + 下一步（修复深链 / 重试）。
+ *
+ * 此前它有两份实现：`.luna-chat-failure`（features/chat）与
+ * `.luna-popup-slot__alert`（features/popup-translate），红卡皮几乎逐字相同、
+ * 动作按钮两种皮（ghost 提示钮 / 描边药丸）。收敛为一份：药丸描边 + 重试主变体。
+ */
+
+.luna-failure-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-status-error);
+  border-radius: var(--radius-md);
+  background: var(--color-status-error-surface);
+  color: var(--color-status-error);
+}
+
+.luna-failure-card__message {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.luna-failure-card__detail {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  opacity: 0.85;
+}
+
+/* 动作行：修复深链与重试并排，窄窗换行不挤压。 */
+.luna-failure-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.luna-failure-card__action {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-status-error);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-status-error);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.luna-failure-card__action:hover:not(:disabled) {
+  background: var(--color-status-error);
+  color: var(--color-bg-surface);
+}
+
+/* 重试是卡上的主动作：常态即填充，退避倒计时期间禁用置灰。 */
+.luna-failure-card__action[data-variant="primary"] {
+  border-color: transparent;
+  background: var(--color-status-error);
+  color: var(--color-bg-surface);
+}
+
+.luna-failure-card__action:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}

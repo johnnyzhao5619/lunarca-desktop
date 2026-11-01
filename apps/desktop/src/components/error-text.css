@@ -1,0 +1,32 @@
+/*
+ * 错误文本的两种形态——**只有这两种，都在这一个文件里**。
+ *
+ * 收编前有五份"一行红字"：设置（sm + 底色边框）、搜索（xs）、版本历史（继承字号）、
+ * 语音下载（sm）、对话框（sm）。差别只在字号，而字号不是"这条错误有多严重"的表达，
+ * 是抄的时候顺手改的。两种形态的区别才是真的：**一行红字**贴着出错的那个控件说"这一处
+ * 不行"；**红底横幅**是整块内容的失败，它自己就是一块内容。
+ *
+ * 行内错误行（`.luna-field-error`）——控件下方那一句红字。
+ *
+ * 它此前叫 `.luna-settings-field__error`，而图谱侧栏的地图差异卡**直接借用了它**——
+ * 一个叫"设置行的错误"的类出现在图谱里，下一个人要么继续借、要么另抄一份（§3.3a）。
+ */
+
+.luna-field-error {
+  margin: var(--space-0);
+  color: var(--color-status-error);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+/* 整块内容加载/操作失败的横幅：它不贴着某一个控件，它自己占一块地方。 */
+.luna-error-banner {
+  margin: var(--space-0);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-status-error-surface);
+  border-radius: var(--radius-sm);
+  background: var(--color-status-error-surface);
+  color: var(--color-status-error);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,186 @@
+{
+  "code_normalization": [
+    {
+      "input": "7K3MQ-X9P2D",
+      "normalized": "7K3MQX9P2D"
+    },
+    {
+      "input": "7k3mq x9p2d",
+      "normalized": "7K3MQX9P2D"
+    },
+    {
+      "input": "o1il0-L1OI0",
+      "normalized": "0111011010"
+    },
+    {
+      "input": "ABCDEFGHJ",
+      "normalized": null
+    },
+    {
+      "input": "ABCDEFGHJU",
+      "normalized": null
+    }
+  ],
+  "conventions": {
+    "aad": "\"lunarca/v16/trust-bundle\" ‖ login_id(16 字节原样) ‖ deployment_id(UTF-8)",
+    "bundle_key": "HKDF-SHA512(IKM = session_key, salt = login_id, info = \"lunarca/v16/trust-bundle\")，32 字节，AES-256-GCM",
+    "client_identity": "规整后的邮箱：trim → NFKC → 小写（Unicode 小写）",
+    "code_password": "一次性码先规整（去空白与 '-'、转大写、I/L→1、O→0，必须恰为 10 个 Crockford base32 字符）再作口令",
+    "credential_identifier": "仅服务端：\"<purpose>:<client_identity>\"",
+    "encoding": "*_hex 为十六进制；*_b64u 为线上用的 base64url 无填充；*_utf8 为 UTF-8 文本",
+    "k_claim": "HKDF-SHA512(IKM = session_key, salt = login_id, info = \"lunarca/v16/session-claim\")，32 字节；claim = b64u(K_claim)；服务端只存 SHA-256(K_claim)",
+    "rng": "每一步的随机数按给定字节循环供给（同 opaque-ke 的 CycleRng）。盲化因子是 64 字节：规范标量 ‖ 32 个零字节（opaque-ke 非测试构建的盲化走 curve25519-dalek Scalar::random，取 64 字节宽整数模 ℓ）。client_start = 盲化因子(64) ‖ 客户端密钥份额种子 ‖ 客户端 nonce；server_start = 伪造记录掩码钥(64) ‖ 掩码 nonce ‖ 服务端密钥份额种子 ‖ 服务端 nonce；注册 client_start = 盲化因子(64)，client_finish = 信封 nonce；客户端 login finish 不消耗随机数",
+    "sealed_bundle": "nonce(12) ‖ AES-256-GCM 密文（含 16 字节标签）",
+    "server_identity": "deployment_id 的 UTF-8"
+  },
+  "description": "Lunarca OPAQUE 登录互通向量（ADR-158 / TDD-16 §5.2a，协议 v16，记录版本 1）。服务端 cp_domain::opaque_auth 逐字重算本文件；客户端照同一流程与 RNG 脚本复现即为互通。",
+  "email_normalization": [
+    {
+      "input": "  Alice@Example.COM ",
+      "normalized": "alice@example.com"
+    },
+    {
+      "input": "ＡＬＩＣＥ@example.com",
+      "normalized": "alice@example.com"
+    },
+    {
+      "input": "ﬁona@Example.com",
+      "normalized": "fiona@example.com"
+    },
+    {
+      "input": "ÉMILE@example.com",
+      "normalized": "émile@example.com"
+    },
+    {
+      "input": "Straße@Example.de",
+      "normalized": "straße@example.de"
+    }
+  ],
+  "server_setup": {
+    "derivation": "HKDF-SHA512(salt = \"lunarca/opaque/server-setup/v1\", IKM = seed)：oprf_seed = Expand(\"oprf-seed\", 64)；服务端私钥 = DeriveKeyPair(Expand(\"server-keypair\", 32))；伪造记录公钥 = DeriveKeyPair(Expand(\"dummy-keypair\", 32)) 的公钥；ServerSetup = oprf_seed ‖ 私钥 ‖ 伪造记录公钥（仅服务端）",
+    "seed_base64": "quV/14whJ9WZmeprRWjf8W1eI6o2pylfzLBUF7/hNGSYUmqNvfuqJ/+IHvDGOytqbvEy2pI9W2Ov0a5WsCTseg==",
+    "seed_hex": "aae57fd78c2127d59999ea6b4568dff16d5e23aa36a7295fccb05417bfe1346498526a8dbdfbaa27ff881ef0c63b2b6a6ef132da923d5b63afd1ae56b024ec7a",
+    "server_public_key_hex": "726b1c4fc8c5937510844b589a2fd6639af2442cd444d9f22a291bae838e7e30",
+    "server_setup_hex": "8ee91e248d2dfd4e5ce3e768727c99a2a3077cffbdf3e3a31148ebf480d26eed57c70cb15b3b617baf0137463a668e79b52ded72034e13cdd038f7d302e28e4998109ec483bdb337ed1dd0dc11fea589df2534dbfa68131e10e3c89bf98a6509ba2f8adfe63f1657f70f89b845823ea6f17b6705f574f1ba969cde4248624d5b"
+  },
+  "suite": {
+    "context_utf8": "lunarca-opaque-v1",
+    "key_exchange": "3DH(ristretto255, SHA-512)",
+    "ksf": {
+      "algorithm": "argon2id",
+      "iterations": 3,
+      "memory_kib": 65536,
+      "note": "opaque-ke 的 KSF 约定：hash_password_into(input, 16 个零字节盐, 输出长度 = 输入长度)",
+      "parallelism": 1,
+      "salt_hex": "00000000000000000000000000000000",
+      "version": 19
+    },
+    "opaque_ke": "4.0.1",
+    "oprf": "ristretto255-SHA512",
+    "record_version": 1
+  },
+  "vectors": [
+    {
+      "client_identity": "alice@example.com",
+      "credential_identifier_hex": "70617373776f72643a616c696365406578616d706c652e636f6d",
+      "email_input": "  Alice@Example.COM ",
+      "login": {
+        "credential_finalization_b64u": "_2oQWotdbmLNUVjrKdmk20e_kUpJ-kCt1RTjBZ8yS9wHKHXgXCNRRW9TMgaZFofwT-OeMVhxc4V-UAn5Ie3sVA",
+        "credential_finalization_hex": "ff6a105a8b5d6e62cd5158eb29d9a4db47bf914a49fa40add514e3059f324bdc072875e05c2351456f533206991687f04fe39e31587173857e5009f921edec54",
+        "credential_request_b64u": "yjRyHt-6DHyuTyxSDR8uTSUjBIC0Q3MZ_0q_GBKF3U2-OcHt-O2uyLtM7pMkI_5VY3rypX3fVZZA8GeRZTAaNS4vP23YQ9iNxN2-2O0y5YqKr7ZAROVNBI3LKai-DGcD",
+        "credential_request_hex": "ca34721edfba0c7cae4f2c520d1f2e4d25230480b4437319ff4abf181285dd4dbe39c1edf8edaec8bb4cee932423fe55637af2a57ddf559640f0679165301a352e2f3f6dd843d88dc4ddbed8ed32e58a8aafb64044e54d048dcb29a8be0c6703",
+        "credential_response_b64u": "4GtIVmPxeYQ8vXcvIJovGcylVtMdf1EnDOGZ7J9ITAoRnIoFR9govZKKEU9ysSlMHme_DdrnmiUieB5Rv0a4eaeB3aLcSHFBBSkCG-W5OiuUUEe_7oZ335krwQHEj1Uae2baQ771BiwPVbW7Gj7w3jr7WOppQ61eFodwsg7YURQ9LtB0_TsgFcAprux2llKnVPauD9Y1D_Vk0uZJyLYN4yqgW8MLbY4qoO0j5sZzS33ymH5RRFDPHJy6AdetznlFu_uvzFpoEhMdf5EFZ7bZY2nicyufzKYNRGVXVy4y_TkK7KWfaNpYQ2Kr9Trp_WQwEvg2Xx9HZzDz7i92G2AzEZoMqaB4CKTzVmNHOy0B4ky5hykkojRsCQmP3jk_cOKZkEW4WwSORknFbwVcbZQKGfOusx1OcqyCDVYHm1Q_SlI",
+        "credential_response_hex": "e06b485663f179843cbd772f209a2f19cca556d31d7f51270ce199ec9f484c0a119c8a0547d828bd928a114f72b1294c1e67bf0ddae79a2522781e51bf46b879a781dda2dc4871410529021be5b93a2b945047bfee8677df992bc101c48f551a7b66da43bef5062c0f55b5bb1a3ef0de3afb58ea6943ad5e168770b20ed851143d2ed074fd3b2015c029aeec769652a754f6ae0fd6350ff564d2e649c8b60de32aa05bc30b6d8e2aa0ed23e6c6734b7df2987e514450cf1c9cba01d7adce7945bbfbafcc5a6812131d7f910567b6d96369e2732b9fcca60d446557572e32fd390aeca59f68da584362abf53ae9fd643012f8365f1f476730f3ee2f761b6033119a0ca9a07808a4f35663473b2d01e24cb9872924a2346c09098fde393f70e2999045b85b048e4649c56f055c6d940a19f3aeb31d4e72ac820d56079b543f4a52",
+        "rng": {
+          "client_start_hex": "20732006df13cc0fdd88431958bea3efc0ef75dc75fab3a1b262a4f96f9366060000000000000000000000000000000000000000000000000000000000000000645bb8ed5a44a5bfcfeb58ece6481ebcf6083fb1465065c03a9aa78c5a2a8f97be39c1edf8edaec8bb4cee932423fe55637af2a57ddf559640f0679165301a35",
+          "server_start_hex": "8e1b25840081d79c2c9fa05dc0d380104c9f0ec25ed89be254a81e10f88cb0c4ee3932a6b3c0fc8ff1bc88628f4261bda6f9834ac9af01435b3518a2b2b379fd119c8a0547d828bd928a114f72b1294c1e67bf0ddae79a2522781e51bf46b87966987a408ff5205c081875035f4d5af91cb1c4af8d5e2233a76b3449af2ae2ffbbfbafcc5a6812131d7f910567b6d96369e2732b9fcca60d446557572e32fd39"
+        },
+        "session_key_hex": "f26b96b604b92f56dae217a0785c0b4a1d583d5af190bea3772cf02b8f38bc7e957e317b33ae67f65faca50a95e2b32be8d255b826bc984fa69f30cb3a674863"
+      },
+      "name": "password-login-pinned-root",
+      "password_utf8": "correct horse battery staple",
+      "purpose": "password",
+      "registration": {
+        "opaque_record_hex": "3237101cb76da3c74b96e35cc9699eef7576527a5f9b2860a8a9ff2ba15dfa39ba0fc18519b7e35f28046d701c2049a9847aab0d32b4000c8dd4b1e035bef6aa98c8fc23cb206934af99d5b4dcee4f008ea8553f1e226aea89088c0b918277d14940e494f4c69ef5a0d6b7bf9cab879ca0a28cadc869429280ff94f71a323ab0587012230ca6f39ae1d87173054910ce7e9cca9e5881a270b00d7975dc047ed60deb8ce094827577d01bd97a0665db52019017b6cf63aa84ec1f5a21af43ed88",
+        "registration_request_b64u": "wshw6IIVKUQddJebzer4tPLeF7yXW0tN7P1QZm0WoSA",
+        "registration_request_hex": "c2c870e8821529441d74979bcdeaf8b4f2de17bc975b4b4decfd50666d16a120",
+        "registration_response_b64u": "Ho84-_EN4u3Q0X53YR-CQftzPohSF00PLNr4tkwgwH1yaxxPyMWTdRCES1iaL9ZjmvJELNRE2fIqKRuug45-MA",
+        "registration_response_hex": "1e8f38fbf10de2edd0d17e77611f8241fb733e8852174d0f2cdaf8b64c20c07d726b1c4fc8c5937510844b589a2fd6639af2442cd444d9f22a291bae838e7e30",
+        "registration_upload_b64u": "MjcQHLdto8dLluNcyWme73V2UnpfmyhgqKn_K6Fd-jm6D8GFGbfjXygEbXAcIEmphHqrDTK0AAyN1LHgNb72qpjI_CPLIGk0r5nVtNzuTwCOqFU_HiJq6okIjAuRgnfRSUDklPTGnvWg1re_nKuHnKCijK3IaUKSgP-U9xoyOrBYcBIjDKbzmuHYcXMFSRDOfpzKnliBonCwDXl13AR-1g3rjOCUgnV30BvZegZl21IBkBe2z2OqhOwfWiGvQ-2I",
+        "registration_upload_hex": "3237101cb76da3c74b96e35cc9699eef7576527a5f9b2860a8a9ff2ba15dfa39ba0fc18519b7e35f28046d701c2049a9847aab0d32b4000c8dd4b1e035bef6aa98c8fc23cb206934af99d5b4dcee4f008ea8553f1e226aea89088c0b918277d14940e494f4c69ef5a0d6b7bf9cab879ca0a28cadc869429280ff94f71a323ab0587012230ca6f39ae1d87173054910ce7e9cca9e5881a270b00d7975dc047ed60deb8ce094827577d01bd97a0665db52019017b6cf63aa84ec1f5a21af43ed88",
+        "rng": {
+          "client_finish_hex": "4940e494f4c69ef5a0d6b7bf9cab879ca0a28cadc869429280ff94f71a323ab0",
+          "client_start_hex": "2cc5f843bd4e7fbb0aca96132c6701986e5402bae3a1b08bc537e2c1de90b5010000000000000000000000000000000000000000000000000000000000000000"
+        }
+      },
+      "secret_input": "correct horse battery staple",
+      "server_identity": "acme-prod",
+      "session": {
+        "claim_b64u": "8z8iqFMszHUHtz6nr-VO5I75rOuskh9fbeW61R_GfTk",
+        "claim_sha256_hex": "b7e42d35b881ec8003ac22481b9e89a53218f3439bece51f9a9e901ce976f983",
+        "k_claim_hex": "f33f22a8532ccc7507b73ea7afe54ee48ef9acebac921f5f6de5bad51fc67d39",
+        "login_id_b64u": "Hb6t8C0hxmqKzvmqvpmavQ",
+        "login_id_hex": "1dbeadf02d21c66a8acef9aabe999abd"
+      },
+      "trust_bundle": {
+        "aad_hex": "6c756e617263612f7631362f74727573742d62756e646c651dbeadf02d21c66a8acef9aabe999abd61636d652d70726f64",
+        "bundle_key_hex": "8f72972f8c252f6c2ac8bcbb5809e73877a3ccb3e958edb6749bfbd42717b47e",
+        "nonce_hex": "5b044780c20379ea81621f74",
+        "plaintext_json": "{\"format_version\":1,\"deployment_id\":\"acme-prod\",\"tls\":{\"kind\":\"pinned_root\",\"root_pem\":\"-----BEGIN CERTIFICATE-----\\nMIIBbDCCARKgAwIBAgIUCaxSJZTtUFopdREqDXcVMPYi3J0wCgYIKoZIzj0EAwIw\\n-----END CERTIFICATE-----\\n\"},\"lease_pubkey\":\"09933b182bd139443c6f227333a42d1d4700aa51efb4f9290a4e05d32c9e792b\",\"catalog_pubkey\":\"7912b091433d715fa91450dd41463644043e44a905535ce733bbec14ab1a4d8a\"}",
+        "sealed_bundle_b64u": "WwRHgMIDeeqBYh90oW5BL5Gx7KtRtwjFlcd6vDRmUJGJcqn3dj3AtSuqnUFY-LcLHBFkKdkr7730m5-Hu9iGYrnJsF1Ar5BJLZ_TG2jGK4Mg5mn9OwrenKHuOlkMDp2p6kDzZXI_X5h_gOJLZQcWkYM4OHLRZqGbNEFE5IPgqo-bpvm2qhtezF1s-RqhDclTajp10vuUXRk4z12YQJreDAMoLNlXnKsjLtpKm78Iclj7cMgSLHxUMgO1ihJvJUAEykC7PdNfsM41FQbjBusQADbg86T4Y2EvXGeC2Iuh7AB5TQftnPkO_5IjDVBOJdgdXfvGticmS1h9iDGjxFbDThto0J8LzxX7BYzh8iodlBWT_cNhF1YQwkMQCAT6K8DGFsIsAIrD8TrZSuPb1ZMSmel_OTuaEn2d-HOrRFWAkdKTOT4-hPGMIPQ48pzAgdPr3djlaDZtrR-aPOrxh1kDzA7sHKiBPVx_233r-JhHHrmlNG6RolcBeSIhlXU6InSTs-qA0hvGnoHcxL4aK95LxyEWeHWSH8k",
+        "sealed_bundle_hex": "5b044780c20379ea81621f74a16e412f91b1ecab51b708c595c77abc346650918972a9f7763dc0b52baa9d4158f8b70b1c116429d92befbdf49b9f87bbd88662b9c9b05d40af90492d9fd31b68c62b8320e669fd3b0ade9ca1ee3a590c0e9da9ea40f365723f5f987f80e24b6507169183383872d166a19b344144e483e0aa8f9ba6f9b6aa1b5ecc5d6cf91aa10dc9536a3a75d2fb945d1938cf5d98409ade0c03282cd9579cab232eda4a9bbf087258fb70c8122c7c543203b58a126f254004ca40bb3dd35fb0ce351506e306eb100036e0f3a4f863612f5c6782d88ba1ec00794d07ed9cf90eff92230d504e25d81d5dfbc6b627264b587d8831a3c456c34e1b68d09f0bcf15fb058ce1f22a1d941593fdc361175610c243100804fa2bc0c616c22c008ac3f13ad94ae3dbd5931299e97f393b9a127d9df873ab44558091d293393e3e84f18c20f438f29cc081d3ebddd8e568366dad1f9a3ceaf1875903cc0eec1ca8813d5c7fdb7debf898471eb9a5346e91a2570179222195753a227493b3ea80d21bc69e81dcc4be1a2bde4bc721167875921fc9"
+      }
+    },
+    {
+      "client_identity": "bob@example.org",
+      "credential_identifier_hex": "636f64653a626f62406578616d706c652e6f7267",
+      "email_input": "ＢＯＢ@Example.org",
+      "login": {
+        "credential_finalization_b64u": "LCUBqCl297B2VSipX770rge2gYxVPOv_akKYfLJeDf8TflkXBniEuLaN-QsJrtZooC8y_1RI-yYaGHVgfMlBtA",
+        "credential_finalization_hex": "2c2501a82976f7b0765528a95fbef4ae07b6818c553cebff6a42987cb25e0dff137e5917067884b8b68df90b09aed668a02f32ff5448fb261a1875607cc941b4",
+        "credential_request_b64u": "hLRuoaf3v-ylzrDysWAv3aK9VEqlALLc3Id5c83zAV3VukybS3K-i-bfu5ennnLbV5RB8FueeV7KUHe0StHZDHY0h6RqG0MuVPXTkV30Pif34dWjKQ9CAJsC3eKmrCBG",
+        "credential_request_hex": "84b46ea1a7f7bfeca5ceb0f2b1602fdda2bd544aa500b2dcdc877973cdf3015dd5ba4c9b4b72be8be6dfbb97a79e72db579441f05b9e795eca5077b44ad1d90c763487a46a1b432e54f5d3915df43e27f7e1d5a3290f42009b02dde2a6ac2046",
+        "credential_response_b64u": "OpSkPwQ2ghGXi2NFIxG0zV5LzhtIimtfr4-g6nbCKBo9vN4GM_10DyZnTHK0E1tvJGCgrvPZ1H4DPUVIduadowS2Dkjq5hXBB0LuwPQl5Vk7g4JZO4KzCPxU9JE6dXz8XVb8mla-Y8suQ7MIgCZFVZinADDCPrrYHhnVAkG4pqkWNAzZDuqEm-Ftp2ybZDzmbA5HJNA-FGJCjpsmIJksxll5nlBseQRZrf3RN5DvO0JSCMOAb8GTim-toteDt-0bqqGQUAPlF9KeDh0xUnJNZ4iKiKbg70R35zTBKfvi8ooizAS39jrEp1DnNp8aDoDJL2CfHM1ivZw2xN7p-8ZBa9p1p-XHldXMSjZqJpsvGa5i0Wnp_HAxS3KpAyavwFGDCQ3Kz-keUSmZNBCN285vCqfrXJm3WCHKEYD_HO7oZ6E",
+        "credential_response_hex": "3a94a43f04368211978b63452311b4cd5e4bce1b488a6b5faf8fa0ea76c2281a3dbcde0633fd740f26674c72b4135b6f2460a0aef3d9d47e033d454876e69da304b60e48eae615c10742eec0f425e5593b8382593b82b308fc54f4913a757cfc5d56fc9a56be63cb2e43b3088026455598a70030c23ebad81e19d50241b8a6a916340cd90eea849be16da76c9b643ce66c0e4724d03e1462428e9b2620992cc659799e506c790459adfdd13790ef3b425208c3806fc1938a6fada2d783b7ed1baaa1905003e517d29e0e1d3152724d67888a88a6e0ef4477e734c129fbe2f28a22cc04b7f63ac4a750e7369f1a0e80c92f609f1ccd62bd9c36c4dee9fbc6416bda75a7e5c795d5cc4a366a269b2f19ae62d169e9fc70314b72a90326afc05183090dcacfe91e51299934108ddbce6f0aa7eb5c99b75821ca1180ff1ceee867a1",
+        "rng": {
+          "client_start_hex": "626f633953d4f159bc65d75c60f493b480a201b38341035307e279a9f5a7bc08000000000000000000000000000000000000000000000000000000000000000077065c2971d919c45ee4100e672df37ac19645d5249f356469e828f1dfd4a095d5ba4c9b4b72be8be6dfbb97a79e72db579441f05b9e795eca5077b44ad1d90c",
+          "server_start_hex": "3c7f1f108ff7a0c7803ac7e31e0b1bcb3d7e4ee516d11d9b4fa5768ca5a09038e7b0e3e184d74bde167dbbffb8dda83c2c75b57eb8cd71581d888c84eeac42fa3dbcde0633fd740f26674c72b4135b6f2460a0aef3d9d47e033d454876e69da3fee61c2848984b147a673921f138eacfba77d6c66233ba8cf93205d194faeb51aaa1905003e517d29e0e1d3152724d67888a88a6e0ef4477e734c129fbe2f28a"
+        },
+        "session_key_hex": "bb15f09ab3e869a2a517e0f0b0d07358abb141cdcf821c63a5943c9e28fa0eafa3a53783f928b931b641f915e9de34400c39374d13ad6b6830b6739bccea9d2a"
+      },
+      "name": "code-login-public-tls",
+      "password_utf8": "7K3MQX9P2D",
+      "purpose": "code",
+      "registration": {
+        "opaque_record_hex": "648c4949fcf6f942e1f2ee5532c7015b2f6ef48495f53a6761896662065b245497e0f4d61e6e98c996049ca19de80317e4457418d7a5e6dd3247144763bac0b95104b4f6697d32ed8492e9aa71081efede97819ad85b6cd7d5877f97aed9ceb53f56754cbcf9a48629e8c073636f4c58af5a2dde0ebe530aefc8f208c04364592249209e08aa82ab4c4f61b852d4c42e6ecf98b67a473c95c2518da09d3c73c8284d017f4ce37706a98b6eff8f9e5e39258ec065deb5b3439b41c33cbf984ae2",
+        "registration_request_b64u": "stoFDZiSDvnzUhu3cNOJ_gUlnuOvs5AtPjz652rOoEU",
+        "registration_request_hex": "b2da050d98920ef9f3521bb770d389fe05259ee3afb3902d3e3cfae76acea045",
+        "registration_response_b64u": "fBcNEcg9yZ_i-idAp04LHFXfN7arDmb9aMRYvn5WX1ZyaxxPyMWTdRCES1iaL9ZjmvJELNRE2fIqKRuug45-MA",
+        "registration_response_hex": "7c170d11c83dc99fe2fa2740a74e0b1c55df37b6ab0e66fd68c458be7e565f56726b1c4fc8c5937510844b589a2fd6639af2442cd444d9f22a291bae838e7e30",
+        "registration_upload_b64u": "ZIxJSfz2-ULh8u5VMscBWy9u9ISV9TpnYYlmYgZbJFSX4PTWHm6YyZYEnKGd6AMX5EV0GNel5t0yRxRHY7rAuVEEtPZpfTLthJLpqnEIHv7el4Ga2Fts19WHf5eu2c61P1Z1TLz5pIYp6MBzY29MWK9aLd4OvlMK78jyCMBDZFkiSSCeCKqCq0xPYbhS1MQubs-YtnpHPJXCUY2gnTxzyChNAX9M43cGqYtu_4-eXjkljsBl3rWzQ5tBwzy_mEri",
+        "registration_upload_hex": "648c4949fcf6f942e1f2ee5532c7015b2f6ef48495f53a6761896662065b245497e0f4d61e6e98c996049ca19de80317e4457418d7a5e6dd3247144763bac0b95104b4f6697d32ed8492e9aa71081efede97819ad85b6cd7d5877f97aed9ceb53f56754cbcf9a48629e8c073636f4c58af5a2dde0ebe530aefc8f208c04364592249209e08aa82ab4c4f61b852d4c42e6ecf98b67a473c95c2518da09d3c73c8284d017f4ce37706a98b6eff8f9e5e39258ec065deb5b3439b41c33cbf984ae2",
+        "rng": {
+          "client_finish_hex": "3f56754cbcf9a48629e8c073636f4c58af5a2dde0ebe530aefc8f208c0436459",
+          "client_start_hex": "91ca7d57f8f5828191cafe080742af63ea6354c94c27407c74f377596f682c010000000000000000000000000000000000000000000000000000000000000000"
+        }
+      },
+      "secret_input": "7K3MQ-X9P2D",
+      "server_identity": "acme-prod",
+      "session": {
+        "claim_b64u": "2HMDg5EVHXs2zez5K6uaUs1nBCW9Fh61z0vA4uSOWe4",
+        "claim_sha256_hex": "409105d2a69c5013ff794d1c1d2151395d8b967bb25e9b5bc795e89e1e9ffa70",
+        "k_claim_hex": "d873038391151d7b36cdecf92bab9a52cd670425bd161eb5cf4bc0e2e48e59ee",
+        "login_id_b64u": "9h25JwvXvipgi0BI8-Gn-g",
+        "login_id_hex": "f61db9270bd7be2a608b4048f3e1a7fa"
+      },
+      "trust_bundle": {
+        "aad_hex": "6c756e617263612f7631362f74727573742d62756e646c65f61db9270bd7be2a608b4048f3e1a7fa61636d652d70726f64",
+        "bundle_key_hex": "71fc670af9bf9cb85a503c434a32c47e3b9e6a0135d97e9ceb66d041a117a89a",
+        "nonce_hex": "0c253bf7b81ac47eee19fbde",
+        "plaintext_json": "{\"format_version\":1,\"deployment_id\":\"acme-prod\",\"tls\":{\"kind\":\"public\"},\"lease_pubkey\":\"09933b182bd139443c6f227333a42d1d4700aa51efb4f9290a4e05d32c9e792b\",\"catalog_pubkey\":\"7912b091433d715fa91450dd41463644043e44a905535ce733bbec14ab1a4d8a\"}",
+        "sealed_bundle_b64u": "DCU797gaxH7uGfvet150Og0EI-UbWgn2K0KohY6B_LpXmFwv2tzvIV5ZlRHRgDYXoBW9mf2iVJ852UOUdpyI1yoGAw6_V15daumGj-rEBxRXMmWIhuKw-tD1xN1SpwnPCOHSfJlAavvvILsqgVhZOTx_33pD222W3QOIHztnyV-MOcwVSVVdsR5m636konXVeZUjvjEcuPScSNbnyki6IZyQ_ci7CgZmK3CtUwYi79lGwrW0YNiMfwdyI59fz-nBqjoMxmtLKvgx9kvgp9vOFGob-Zwyc0Xybm5X_LkLPZUFsNOQbWYgA1Eqf6oc7iMak58i3BO06qcB9M3s05yWYIdn7k1FVu7gwag",
+        "sealed_bundle_hex": "0c253bf7b81ac47eee19fbdeb75e743a0d0423e51b5a09f62b42a8858e81fcba57985c2fdadcef215e599511d1803617a015bd99fda2549f39d94394769c88d72a06030ebf575e5d6ae9868feac407145732658886e2b0fad0f5c4dd52a709cf08e1d27c99406afbef20bb2a815859393c7fdf7a43db6d96dd03881f3b67c95f8c39cc1549555db11e66eb7ea4a275d5799523be311cb8f49c48d6e7ca48ba219c90fdc8bb0a06662b70ad530622efd946c2b5b460d88c7f0772239f5fcfe9c1aa3a0cc66b4b2af831f64be0a7dbce146a1bf99c327345f26e6e57fcb90b3d9505b0d3906d662003512a7faa1cee231a939f22dc13b4eaa701f4cdecd39c96608767ee4d4556eee0c1a8"
+      }
+    }
+  ]
+}

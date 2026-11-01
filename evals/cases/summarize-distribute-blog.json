@@ -1,0 +1,63 @@
+{
+  "_comment": [
+    "二次分发 distribute.blog（PRD-19-024 / 025，ADR-165 ⑧；v11 起按目标渠道写，ADR-166 ④）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "summarize",
+  "template": "creator.distribute.blog",
+  "cases": [
+    {
+      "name": "像一篇写给没看视频的人的文章",
+      "vars": {
+        "channel": "X",
+        "limits": "Each post at most 280 characters.",
+        "style": "None."
+      },
+      "must_contain": [
+        "level-1 Markdown heading",
+        "readers who have not watched the video"
+      ],
+      "why": "改写出来还是口播稿，读者看不懂上下文"
+    },
+    {
+      "name": "不编造、去掉口播痕迹",
+      "vars": {
+        "channel": "X",
+        "limits": "Each post at most 280 characters.",
+        "style": "None."
+      },
+      "must_contain": [
+        "never invent numbers",
+        "delivery cues such as [CAM] or [VO]"
+      ],
+      "why": "模型爱补一个没有出处的数字；[口播] 标记原样留在文章里"
+    },
+    {
+      "name": "同语言、只回正文",
+      "vars": {
+        "channel": "X",
+        "limits": "Each post at most 280 characters.",
+        "style": "None."
+      },
+      "must_contain": [
+        "same language as the text",
+        "Output only the article in Markdown"
+      ],
+      "why": "中文视频得到英文文章，或回带解释与代码围栏"
+    },
+    {
+      "name": "目标渠道的名字、上限、风格都进得来",
+      "vars": {
+        "channel": "WeChat article",
+        "limits": "The title at most 64 characters.",
+        "style": "Write in Simplified Chinese."
+      },
+      "must_contain": [
+        "Target: WeChat article.",
+        "The title at most 64 characters.",
+        "Write in Simplified Chinese."
+      ],
+      "why": "变量没进模板时，每个渠道拿到的都是同一份通用改写，X 的推文超长、领英拿到推文串"
+    }
+  ]
+}

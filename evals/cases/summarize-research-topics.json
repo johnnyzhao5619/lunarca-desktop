@@ -1,0 +1,37 @@
+{
+  "_comment": [
+    "从研究简报出发 creator.research.topics（PRD-19-046，ADR-167 ⑥）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "summarize",
+  "template": "creator.research.topics",
+  "cases": [
+    {
+      "name": "恰好三个、各说讲什么讲给谁",
+      "vars": {},
+      "must_contain": [
+        "exactly three different topics",
+        "who it is for"
+      ],
+      "why": "选题不写受众，后面脚本的口吻就没法定"
+    },
+    {
+      "name": "只依据简报",
+      "vars": {},
+      "must_contain": [
+        "Base every topic only on the brief",
+        "never invent findings"
+      ],
+      "why": "模型会凭常识另起炉灶，选题和研究脱节"
+    },
+    {
+      "name": "只回 JSON",
+      "vars": {},
+      "must_contain": [
+        "Output only JSON",
+        "\"topics\""
+      ],
+      "why": "回成列表时 Rust 解析不了"
+    }
+  ]
+}

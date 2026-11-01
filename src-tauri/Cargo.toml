@@ -1,0 +1,189 @@
+[package]
+name = "luna-app"
+description = "Lunarca 桌面应用装配（Tauri 2；承担 src-tauri 角色，TDD-00 §3）"
+# 本 crate 有两个 binary（主程序 + export-bindings）；`cargo tauri dev` 的 `cargo run` 需
+# default-run 指定默认跑主程序，否则报 "could not determine which binary to run"。
+default-run = "luna-app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "luna_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "export-bindings"
+path = "src/bin/export_bindings.rs"
+
+[[bin]]
+name = "export-settings-registry"
+path = "src/bin/export_settings_registry.rs"
+
+[[bin]]
+name = "export-prompt-manifest"
+path = "src/bin/export_prompt_manifest.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+chrono.workspace = true
+# build.rs 从 tauri.conf.json 读随包资源清单，而不是再抄一份路径（见 build.rs 里那条前置检查）。
+serde_json.workspace = true
+
+[dependencies]
+luna-core = { path = "../crates/luna-core" }
+luna-jobqueue = { path = "../crates/luna-jobqueue" }
+luna-provider = { path = "../crates/luna-provider" }
+luna-config = { path = "../crates/luna-config" }
+luna-engine = { path = "../crates/luna-engine" }
+luna-model-catalog = { path = "../crates/luna-model-catalog" }
+luna-content-schema = { path = "../crates/luna-content-schema" }
+luna-content = { path = "../crates/luna-content" }
+luna-model-fetch = { path = "../crates/luna-model-fetch" }
+# 网络媒体抓取（yt-dlp 进程外编排，ADR-023）：与 luna-engine 同层，独立成 crate 是为了不让
+# 纯逻辑的抓取模块被 whisper-rs 的 FFI 构建拖慢测试迭代。
+luna-fetch = { path = "../crates/luna-fetch" }
+luna-audio = { path = "../crates/luna-audio" }
+# 磁盘剩余空间查询（抓取入队前的落盘预检，PRD-05 §5）：已在 workspace 清单（luna-audio
+# 的录音写盘线程同用），此处只是让 IPC 层也能读同一口径，**不引入新依赖**。
+fs4.workspace = true
+luna-vault = { path = "../crates/luna-vault" }
+luna-export = { path = "../crates/luna-export" }
+luna-docimport = { path = "../crates/luna-docimport" }
+luna-metrics = { path = "../crates/luna-metrics" }
+luna-cloud = { path = "../crates/luna-cloud" }
+# 官方同步核心（ADR-148）：远端与钥匙串的适配在 cloud_sync.rs，S4 接线前不进命令面。
+luna-sync = { path = "../crates/luna-sync" }
+# 云客户端（账户/会话/Lease/目录/制品）——ADR-037 后为普通依赖，无 feature 门。
+# 未登录且未配置计算服务时零云网络行为，由 `cloud::CloudGate` 保证并有机器断言。
+tokio.workspace = true
+# OCR Provider（vision-ocr）实现 luna_core::AIProvider：异步 trait + 事件流（同 luna-engine/provider）。
+async-trait.workspace = true
+async-stream.workspace = true
+# 受管工具下载的流式读取（`bytes_stream()` 需 StreamExt）：已在 workspace 清单，
+# 且 reqwest 的流式特性本就依赖它，**不引入新依赖**。
+futures.workspace = true
+# 后端 i18n（Fluent runtime，TDD-11）：仅服务后端产生的通知/错误 key 文案。
+# 许可：fluent-bundle = Apache-2.0/MIT，unic-langid = MIT/Apache-2.0（均在 deny.toml allow 列表）。
+fluent-bundle = "0.16"
+unic-langid = { version = "0.9", features = ["macros"] }
+serde.workspace = true
+serde_json.workspace = true
+rusqlite.workspace = true
+reqwest.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+# 粘贴附件落盘（PRD-06-012）：前端 FileReader.readAsDataURL 送 base64 data URL，
+# 此处解码为字节。MIT/Apache-2.0（已在 deny.toml allow 列表），已在依赖树中零新增传递依赖。
+base64 = "0.22"
+# 设备私有知识度量密钥必须来自系统随机源；不得用时间戳、UUID 拼接或可预测种子代替。
+getrandom = "0.3"
+# 细分-分割模型安装（TDD-04 §2 / TDD-03 §10.2）：sherpa-onnx 官方发布物为 tar.bz2 归档，
+# 安装时提取其中的 model.onnx。tar（MIT/Apache-2.0）与 bzip2（MIT/Apache-2.0）已作为
+# sherpa-onnx-sys 的构建依赖在依赖树中（版本对齐锁文件，零新增传递依赖）。
+tar = "0.4"
+bzip2 = "0.4"
+# 受管 JS 运行时安装（TDD-03 §11.1f）：Deno 官方发布物是**单条目 deflate zip**
+# （核实过 v2.9.5 的中央目录：一个条目 `deno`，method=8），故只开 `deflate`——
+# 不要 bzip2/zstd/aes/lzma 那些默认特性，它们既没用上又扩大依赖面与许可面。
+# MIT，已在 deny.toml 的允许列表内。用 9.x：8.x 的 `extract()` 有 RUSTSEC-2026-0367/0368/0369
+# （我们从不调 `extract()`，两处都是逐条读 + 自己落盘），升上来是为了让依赖树里不再有带洞的版本。
+# 9.x 只在 macOS/BSD 上多拉 nix（MIT）+ cfg_aliases（MIT）。
+zip = { version = "9", default-features = false, features = ["deflate"] }
+# macos-private-api：实时字幕面板需**透明窗口**（沉浸显示，PRD-04-040）；
+# macOS 上 `WebviewWindowBuilder::transparent` 由此特性开启（配合 tauri.conf `app.macOSPrivateApi`）。
+# 非 App Store 分发（AGPL 桌面），使用私有 API 可接受。
+# `image-png`：菜单栏托盘运行时读取由 `luna-icon.svg` 生成的 32px 品牌资源，和应用图标同源。
+tauri = { workspace = true, features = ["protocol-asset", "tray-icon", "image-png", "macos-private-api"] }
+tauri-specta.workspace = true
+specta.workspace = true
+specta-typescript.workspace = true
+# 标准全局热键（TDD-05 §3）：备用弹窗翻译热键 Cmd+Shift+T。**不走 CGEventTap、不需辅助功能**，
+# 故是 S1（双击，需授权）受阻时验 ADR-015 不夺焦（A1）的独立入口；亦为 PRD-01-002 计划内备用键。
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-dialog = "2"
+# 系统资源采样（状态栏 CPU/GPU 占用，PRD-04-033）：跨平台 CPU/内存；MIT 许可。
+# GPU 利用率 macOS 侧经 IOKit（见 platform/macos/gpu.rs），sysinfo 不含 GPU。
+sysinfo = { version = "0.33", default-features = false, features = ["system"] }
+
+# macOS 原生系统集成（TDD-05）：CGEventTap 双击观测 + CFRunLoop。仅 macOS 编译。
+# 选 core-graphics/core-foundation 而非 rdev：rdev 高层 listen 读不到事件源标识，
+# 无法做自污染过滤（TDD-05 §1.4 收口，已决策）。
+# 说话人细分（L1，ADR-020/TDD-03 §10）：官方 sherpa-onnx Rust 绑定（Apache-2.0，
+# sys 包链接预编译静态库；pyannote 分割 + CAM++ 嵌入 + FastClustering）。
+sherpa-onnx = "1.13"
+tauri-plugin-notification = "2"
+# 应用自身的更新通道（PRD-09-051，TDD-13 §5；客户端分发 D2）：minisign 验签，不依赖 Apple 公证。MIT OR Apache-2.0。
+tauri-plugin-updater = "2"
+tauri-plugin-deep-link = "2"
+
+# 单实例 + 连接链接转交（Windows / Linux，TDD-05 §6）：这两个平台点 `lunarca://` 会另起一个进程，
+# 须把链接转给已在跑的那个（`deep-link` feature 让它走同一条 `on_open_url`）。macOS 由系统把
+# URL 交给已在跑的实例，不需要也不编译它。Apache-2.0 OR MIT（ADR-005）。
+[target.'cfg(not(target_os = "macos"))'.dependencies]
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
+
+# Windows 上同步大文件的暂停条件（ADR-156 ③，`platform/windows/power_network.rs`）：WinRT 网络费用
+# （`Networking_Connectivity`）与 `GetSystemPowerStatus`（`Win32_System_Power`）。版本与 tauri / wry 已在
+# 依赖树里的 0.61 一致，只开 feature、零新增 crate。MIT OR Apache-2.0（ADR-005）。
+#
+# 弹窗翻译、文本注入与非激活 HUD（ADR-163，`platform/windows/`）在同一个 crate 上多开几组 Win32 接口：
+# 窗口与低层键盘钩子（`UI_WindowsAndMessaging`、`UI_Shell` 的窗口子类化）、合成按键
+# （`UI_Input_KeyboardAndMouse`）、输入法开关（`UI_Input_Ime`）、剪贴板（`System_DataExchange`、
+# `System_Memory`）、UI Automation 取选区（`UI_Accessibility`、`System_Com`）、
+# 前台窗口所属进程与权限级别（`System_Threading`、`Security`）、钩子模块句柄（`System_LibraryLoader`）。
+# 同样只开 feature、零新增 crate。
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.61", features = [
+    "Networking_Connectivity",
+    "Win32_Security",
+    "Win32_System_Com",
+    "Win32_System_DataExchange",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Memory",
+    "Win32_System_Power",
+    "Win32_System_Threading",
+    "Win32_UI_Accessibility",
+    "Win32_UI_Input_Ime",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+core-graphics = "0.24"
+core-foundation = "0.10"
+# CATap 符号 dlsym 弱化绑定（system_audio_tap.rs：强链接 14.2+ 新符号会使老系统无法启动）。
+libc = "0.2"
+# 取 CGEventSource 底层指针（ForeignType::as_ptr）以 CGEventSourceSetUserData 打自发事件指纹
+# （§1.4 自污染防护）。版本须与 core-graphics 0.24 所用一致（0.5）。
+foreign-types = "0.5"
+# 非激活 NSPanel 转换（ADR-015，TDD-05 §5）。选 objc2 而非 tauri-nspanel：后者 v2 仍依赖
+# 已弃用的 cocoa/objc 0.2（违反 TDD-05 §5）；objc2 已随 Tauri 2.11 进入依赖树（零新增）。
+objc2 = "0.6"
+block2 = "0.6"
+# NSSpellChecker：西文拼写建议与「学习拼写」（W6a，`platform/macos/spelling.rs`），同一 crate 的 feature，零新增依赖。
+objc2-app-kit = { version = "0.3", features = ["NSWindow", "NSPanel", "NSResponder", "NSView", "NSPasteboard", "NSSpellChecker"] }
+# S15 桌面翻译镜：窗口枚举、显示器排除过滤器与只计数不读像素的 `SCStreamOutput`。
+# 关闭默认 feature，避免把录制、Picker、AVFoundation 等与本次验证无关的绑定引入依赖图。
+objc2-screen-capture-kit = { version = "0.3.2", default-features = false, features = ["std", "block2", "dispatch2", "objc2-core-graphics", "objc2-core-media", "SCShareableContent", "SCStream", "SCScreenshotManager"] }
+# 仅为 S15 调试探针接收 `SCScreenshotManager` 的 `CGImage*` 回调类型；不读取像素，实物
+# 由 ScreenCaptureKit 已引入，显式声明避免透传依赖。
+objc2-core-graphics = { version = "0.3.2", default-features = false, features = ["CGImage"] }
+# S15 流输出回调仅接收 `CMSampleBuffer` 类型并原子计数，绝不解锁、读取或转存像素缓冲。
+objc2-core-media = { version = "0.3.2", default-features = false, features = ["CMSampleBuffer"] }
+# NSPasteboard 备份/还原（剪贴板自适应保护锁，TDD-05 §1.4-B/§2.1-B）：用非弃用的 objc2-foundation
+# 处理 NSString/NSData/NSArray（objc2-app-kit 已依赖它，显式列出零新增传递依赖）。
+# NSDictionary/NSError/NSURL：截屏翻译 Vision OCR（platform/macos/ocr.rs，PRD-01-007）构造
+# VNImageRequestHandler 所需（同 crate 内 feature 扩展，零新增依赖）。
+objc2-foundation = { version = "0.3", features = ["NSString", "NSData", "NSArray", "NSDictionary", "NSError", "NSURL"] }
+
+[dev-dependencies]
+tempfile = "3"
+# 可控时钟（`start_paused`）：会话池准入的放弃阈值是十几秒量级，用例不该真的等它
+# ——同 luna-jobqueue 的 dev 依赖，理由见那里。
+tokio = { workspace = true, features = ["test-util"] }

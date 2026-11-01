@@ -1,0 +1,56 @@
+/*
+ * 文本输入原语（`.luna-input` + 尺寸修饰符）——跨 feature 的控件原语。
+ *
+ * **它此前住在 `features/settings/settings.css`**，而消费者是回收站、标签面板、
+ * 动态中心、语音速记清单、回放改名、词典、库管理……设置只是它众多使用者里的一个。
+ * 按 TDD-15 §3.3a，被第三处需要的外壳不归任何 feature。
+ *
+ * **同批把树内联编辑的第二套皮肤并了进来**：`.luna-note-tree__edit-input` 自己写了
+ * 一份 padding / border / radius / background / font——与本原语讲的是同一件事（一个
+ * 可输入的框），只是小一号。于是"改一次输入框观感"要改两处，而两处早已不一致（一个
+ * 圆角 `sm` 一个 `xs`、一个有焦点圈一个 `outline: none`）。尺寸差异提为正交的
+ * `--sm`（与 `.luna-btn--sm` 同一条命名与用意），私有皮肤删除、只留它真正私有的
+ * 那两条布局声明。
+ */
+
+.luna-input {
+  /* 行高走 `--control-height-md`（下限而非死高：字号档调大时跟着长高，不裁字）；
+     内边距因此只剩"文字离边框多远"这一件事，不再兼任"控件多高"。 */
+  box-sizing: border-box;
+  min-block-size: var(--control-height-md);
+  padding: var(--space-1) var(--space-2-5);
+  border: var(--border-width-thin) solid var(--color-border-control);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  transition: border-color var(--transition-fast);
+}
+
+.luna-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.luna-input:focus {
+  border-color: var(--color-border-focus);
+  /* 焦点圈**内缩**：输入框常常紧贴列表行或工具条边缘，外扩的圈会被相邻元素裁掉。 */
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: calc(-1 * var(--outline-width-focus));
+}
+
+.luna-input:disabled {
+  color: var(--color-text-muted);
+  background: var(--color-bg-disabled);
+  cursor: not-allowed;
+}
+
+/* 紧凑尺寸：嵌在列表行里的就地编辑（重命名 / 新建）用它——常规尺寸会把行撑高，
+   树的行节奏当场断掉。
+   它**刻意不接 `--control-height-sm`**：高度必须跟着**行**走而不是跟着控件档走，
+   给它一个 28px 下限会把比它矮的树行整体撑高。 */
+.luna-input--sm {
+  min-block-size: var(--space-0);
+  padding: var(--space-0-5) var(--space-1);
+  border-radius: var(--radius-xs);
+}

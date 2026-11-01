@@ -1,0 +1,52 @@
+/*
+ * 侧栏面板头的**共享零件**（`.luna-sidebar-header__*`）——跨 feature 的布局原语。
+ *
+ * 主侧栏一次呈现一个面板（笔记树 / 搜索 / 标签 / 图谱 / 功能清单 / 历史会话 / 副库窗口），
+ * 七处共用同一条页头语言：标题排版、`标题 + 计数徽标`的标题簇、右侧的图标动作。
+ *
+ * **它此前叫 `.luna-note-tree__*`**：七个面板里六个借用笔记树的类名，规则本体还住在
+ * `features/editor/editor-core.css`——与它服务的六个 feature 里五个都无关。类名归属一旦
+ * 说谎，接下来每个新面板要么继续借（债越滚越大），要么另抄一份（页头开始各长各的）。
+ * 名字改成它真正的身份，位置改成它真正的层级（layout：任何 feature 都能用，任何
+ * feature 都不拥有）。
+ *
+ * **原语只管零件，不管容器排布**：`.luna-sidebar-header` 本身**只定标题排版**。
+ * 七个页头里有三个是 `flex-direction: column`（搜索 / 标签 / 图谱：标题下面还有一行查询框），
+ * 一个根本不是 flex 容器（历史会话的小标题）——把「两端对齐 + 垂直居中」写进共享类，
+ * 会把那三个页头的查询框按内容宽度居中缩成一条。容器怎么排是各页头自己的事。
+ *
+ * 尺寸一律走设计阶梯 Token（TDD-15）：此处此前有 `36px` / `2px 8px` / `6px` / `28px`
+ * 四处写死值，混在 Token 之间，改主题密度时它们不会跟着走。
+ */
+
+.luna-sidebar-header h1,
+.luna-sidebar-header h2 {
+  margin: var(--space-0);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+  line-height: var(--line-height-base);
+  /* 窄侧栏里标题**截断**而不逐字竖排（PRD-06-006 可拖拽窄树）。 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 标题簇：标题 + 计数。 */
+.luna-sidebar-header__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: var(--space-0);
+  /* 36px：动作按钮（`--space-7`）加上下各半档，页头高度因此不随有无徽标而跳动。
+     阶梯上没有 36 这一档，故就地由阶梯算出来，而不是写一个游离的字面量。 */
+  min-block-size: calc(var(--space-7) + var(--space-2));
+}
+
+/* 计数徽标已归位为 `components/count-badge.css` 的 `.luna-count-badge`：同一枚"这里有几条"
+   此前在页头、搜索命中、标签行、回收站、图谱 CTA 上各有一份长相（§3.3a）。 */
+
+/* 面板头右侧那一排图标动作**不再有自己的类**：它与顶栏工具键、对话框关闭钮是同一种
+   控件，已收编进 `components/icon-button.css` 的 `.luna-icon-btn`（破坏性动作用
+   `--danger`）。此处只留页头自己的排版零件——一个"侧栏页头"不该顺带定义"按钮长什么样"。 */

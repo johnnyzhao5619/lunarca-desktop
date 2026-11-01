@@ -1,0 +1,338 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 关系图谱视图（PRD-06-034，Obsidian Graph View 对标）
+ * ═══════════════════════════════════════════════════════════════════════════ */
+.luna-graph {
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+  min-block-size: 0;
+  background: var(--color-bg-canvas);
+}
+
+/* 胶囊开关此前叫 `.luna-graph__toggle` 并住在这里，却被标签面板与副库窗口一并借用
+   （§3.3a）。已归位为 `components/pill-toggle.css` 的 `.luna-pill-toggle`。 */
+
+.luna-graph__focus-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-focus);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-surface);
+}
+
+.luna-graph__focus-name {
+  max-inline-size: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.luna-graph__canvas-wrap {
+  position: relative;
+  flex: 1;
+  min-block-size: 0;
+}
+
+.luna-graph__canvas {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  display: block;
+  touch-action: none;
+}
+
+/* 画布上的覆盖层（空态 / 错误）。`pointer-events` 只在容器上关掉，内部动作按钮要能点
+   ——筛空空态给了「清空搜索与过滤器」，点不动的按钮比没有按钮更糟。 */
+.luna-graph__overlay {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline: 0;
+  transform: translateY(-50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.luna-graph__overlay .luna-empty-state {
+  block-size: auto;
+  pointer-events: auto;
+}
+
+.luna-graph__error {
+  margin: var(--space-0);
+  color: var(--color-status-error);
+  font-size: var(--font-size-sm);
+}
+
+/* 关系说明进入正常文档流，展开时让出画布空间，不遮挡节点或视图切换。 */
+.luna-graph__relation-help {
+  flex-shrink: 0;
+  padding: var(--space-2) var(--space-3);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.luna-graph__relation-help summary {
+  cursor: pointer;
+}
+
+.luna-graph__relation-help p {
+  margin: var(--space-0);
+  padding-block-start: var(--space-2);
+  line-height: var(--line-height-base);
+}
+
+/* 画布 / 关系列表切换：右上角，列表打开时仍在列表之上。 */
+.luna-graph__view-switch {
+  position: absolute;
+  inset-block-start: var(--space-2);
+  inset-inline-end: var(--space-3);
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* 关系列表覆盖画布区域（画布保持尺寸不隐藏，切回时无需重新量）。 */
+.luna-graph__list-panel {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: var(--space-7) var(--space-3) var(--space-3);
+  background: var(--color-bg-surface);
+}
+
+.luna-graph__list-notice {
+  margin: var(--space-0) var(--space-0) var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-graph-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-graph-list__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.luna-graph-list__summary:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-graph-list__label {
+  flex: 1 1 auto;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.luna-graph-list__count,
+.luna-graph-list__kind {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-graph-list__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2) var(--space-2) var(--space-6);
+}
+
+.luna-graph-list__relations {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-graph-list__relations li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.luna-graph-list__target {
+  padding: var(--space-0);
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.luna-graph__hint {
+  flex-shrink: 0;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* ── 图谱主侧栏（PRD-07-057 控制面归位；与搜索侧栏同一节奏） ───────────────── */
+.luna-graph-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  block-size: 100%;
+  min-block-size: 0;
+}
+
+.luna-graph-side__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* 页头标题行：标题 + 统计靠左，「重新布局」动作钮靠右（动作不混进过滤器区）。 */
+.luna-graph-side__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.luna-graph-side__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-block-size: 0;
+  overflow-y: auto;
+}
+
+.luna-graph-side__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.luna-graph-side__section-title {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.luna-graph-side__toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.luna-graph-side__desc {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-base);
+}
+
+/* 节点颜色直接长在过滤开关上：类型、标签、未创建只解释一次，且与画布 Token 同源。 */
+.luna-graph-side__node-dot {
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.luna-graph-side__node-dot--note {
+  background: var(--graph-node-note);
+}
+
+.luna-graph-side__node-dot--quick {
+  background: var(--graph-node-quick);
+}
+
+.luna-graph-side__node-dot--recording {
+  background: var(--graph-node-recording);
+}
+
+.luna-graph-side__node-dot--transcript {
+  background: var(--graph-node-transcript);
+}
+
+.luna-graph-side__node-dot--chat {
+  background: var(--graph-node-chat);
+}
+
+.luna-graph-side__node-dot--document {
+  background: var(--graph-node-document);
+}
+
+.luna-graph-side__node-dot--tag {
+  background: var(--graph-node-tag);
+}
+
+/* 未创建 = 画布上的淡显幽灵节点，对应开关同样以空心呈现（实心会撒谎）。 */
+.luna-graph-side__node-dot--ghost {
+  background: transparent;
+  border: var(--border-width-thin) solid var(--graph-node-ghost);
+}
+
+/* 全库补齐入口通栏：区内唯一主动作，窄侧栏里小按钮悬在左上显得零碎。 */
+.luna-graph-side__cta {
+  align-self: stretch;
+  justify-content: center;
+}
+
+/* 外观归 `.luna-progress` 原语（此前这里只设了 `accent-color`，其余全是浏览器默认控件）；
+   这里只留它在侧栏里比常规细一档。 */
+.luna-graph-side__progress-bar {
+  block-size: var(--space-1);
+}
+
+/* 图谱类型过滤器的两小组（知识 / 资料）。 */
+.luna-graph-side__type-group + .luna-graph-side__type-group {
+  margin-block-start: var(--space-2);
+}
+
+.luna-graph-side__type-group-title {
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* 成熟度开关（ADR-086）：与类型开关同住「知识」小组内，但**另起一段并画一条分隔线**
+   ——它是正交的第二根轴，紧挨着五个类型开关排下去会被读成"第六种类型"。 */
+.luna-graph-side__maturity {
+  margin-block-start: var(--space-1-5);
+  padding-block-start: var(--space-1-5);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* 「怎么办」：比说明更亮一点——它是这张卡真正要用户读的那一行。 */
+/* 侧栏 CTA 上的计数徽标：常驻按钮 + 只在真有东西时说话的数字。 */
+/* CTA 上的计数只留"贴到最右"这一条它自己的事，形态由 `.luna-count-badge` 给。 */
+.luna-graph-side__cta-badge {
+  margin-inline-start: auto;
+}
+
+/* 启动概览与知识库脉搏 的样式已按 TDD-15 §2.3 归位到 features/dashboard/dashboard.css。 */
+
+/* 标签行的 AI 标记 的样式已按 TDD-15 §2.3 归位到 features/workspace/workspace.css。 */
+
+/* 推荐卡（`KnowledgeNextActionCard`）的样式已随组件两处安家而归位到
+   features/knowledge/knowledge.css（`.luna-next-action*`）；侧栏「运行中」块占用
+   同一卡位，也用那一套。本文件只剩侧栏自己的维护区元素。 */

@@ -1,0 +1,677 @@
+/* 外壳归 `.luna-hud-surface`（ADR-111 ②）；这里只剩本窗的布局差异。 */
+.luna-popup {
+  gap: var(--space-2);
+}
+
+.luna-popup__input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--color-bg-panel);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.luna-popup__input:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 var(--outline-width-focus) var(--color-focus-ring);
+}
+
+.luna-popup__input-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-popup__input textarea {
+  width: var(--size-full);
+  padding: var(--space-0);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  resize: none;
+  outline: none;
+  min-height: calc(var(--space-7) + var(--space-3));
+}
+
+/* 窗口栏配置胶囊里的预设选择器：胶囊已经给了边框与圆角，选择器本身去壳。 */
+.luna-popup__preset-capsule {
+  max-inline-size: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* 语音录入中：麦克风键脉冲——状态挂在按钮自身，不再占用键盘引导那一格。 */
+.luna-popup__mic[data-recording="true"] {
+  color: var(--color-status-error);
+  animation: luna-popup-mic-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes luna-popup-mic-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+:root[data-reduce-motion="true"] .luna-popup__mic[data-recording="true"] {
+  animation: none;
+}
+
+.luna-popup__input-status {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+/* 展示模式原文区（PRD-01-006 源文可见 + 编辑原文重译）：低调呈现、限高滚动 */
+.luna-popup__source {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-1) var(--space-3);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-popup__source-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.luna-popup__source-head > span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 「编辑原文」行内幽灵钮：此前靠元素选择器兜底出形，那条选择器删除后（§3.3e）
+   在此补全自己的完整声明，形态对齐 HUD 行内轻按钮（`.luna-hud-toggle` 族）。 */
+.luna-popup__source-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.luna-popup__source-edit:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+/* 原文默认一行（译文是主体）；展开后封顶滚动。 */
+.luna-popup__source-text[data-expanded="false"] {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.luna-popup__source-toggle svg {
+  transition: transform var(--transition-fast);
+}
+
+.luna-popup__source-toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.luna-popup__source-text {
+  margin: 0;
+  max-height: 132px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  cursor: text;
+}
+
+.luna-popup__slots {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  flex: 1;
+  min-block-size: 0;
+}
+
+/* 对比 = 结果区上方的分段切换（ADR-137 H4）：一次一张，不再在窄窗里并排两张卡。 */
+.luna-popup__tabs {
+  display: flex;
+  gap: var(--space-0-5);
+  padding: var(--space-0-5);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.luna-popup__tab {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.luna-popup__tab[aria-selected="true"] {
+  color: var(--color-text-primary);
+  background: var(--color-bg-panel);
+  box-shadow: var(--shadow-sm);
+}
+
+.luna-popup__tab:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: calc(var(--border-width-thin) * -1);
+}
+
+.luna-popup-slot {
+  min-width: var(--space-0);
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  gap: var(--space-2);
+  padding: var(--space-0);
+}
+
+.luna-popup-slot__toolbar,
+.luna-result-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-popup-slot__toolbar {
+  min-block-size: var(--hud-control-size);
+}
+
+/* 状态行 + 生成中的「停止」：状态在前，停止钮靠右——它只在 running 态出现。 */
+.luna-popup-slot__status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.luna-popup-slot__stop {
+  gap: var(--space-1-5);
+  padding: var(--space-1) var(--space-2-5);
+}
+
+.luna-popup-slot__toolbar-label {
+  min-inline-size: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 外观归 `.luna-select--sm` 原语（2026-09-08 收编），这里只管它在槽位行里怎么占位。 */
+.luna-popup-slot__preset {
+  max-inline-size: var(--hud-translate-preset-max-inline-size);
+  margin-inline-start: auto;
+}
+
+/* 失败卡已收敛为 `.luna-failure-card` 原语（components/failure-card.css，ADR-111 ④
+   批 E2）：此前这里是与对话几乎逐字相同的第二张红卡。 */
+
+/* 任务状态是对当前槽位的补充说明，不应因父级列布局被拉成整条横幅。 */
+.luna-popup-slot > .luna-task-status {
+  align-self: flex-start;
+}
+
+/* 译文框按内容长（镜像格子）：`::after` 拿同一段文本占位，textarea 恰好长到内容那么高；
+   上限之后在格子里滚动，不把窗口撑出屏幕。两者必须逐字同排版（内边距 / 字号 / 行高 / 边框）。 */
+.luna-popup__output-grow {
+  display: grid;
+  max-block-size: var(--hud-output-max-block-size);
+  overflow-y: auto;
+}
+
+.luna-popup__output-grow::after {
+  content: attr(data-value) " ";
+  visibility: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.luna-popup__output-grow > .luna-popup__output,
+.luna-popup__output-grow::after {
+  grid-area: 1 / 1 / 2 / 2;
+  min-block-size: var(--hud-output-min-block-size);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid transparent;
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+}
+
+.luna-popup__output {
+  width: var(--size-full);
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+  overflow: hidden;
+  border-color: var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  /* textarea 是表单元素，不继承父级 color；缺省会回退到 UA 的 fieldtext（近黑），
+   * 在深色画布上几乎不可读——译文必须显式取主文字色。 */
+  color: var(--color-text-primary);
+  resize: none;
+}
+
+/* 运行中（只读，等待 token 流入）：弱化为次要色，与完成后的可编辑正文区分。 */
+.luna-popup__output:read-only {
+  color: var(--color-text-muted);
+}
+
+.luna-popup__output:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-border-focus);
+  outline-offset: var(--space-1);
+}
+
+.luna-result-actions__copied-icon {
+  color: var(--color-status-active);
+}
+
+.luna-result-actions {
+  flex-wrap: nowrap;
+  min-block-size: var(--hud-action-min-block-size);
+  padding-block-start: var(--space-2);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-result-actions__spacer {
+  flex: 1;
+}
+
+/* 已复制是完成回执，不再继续伪装成仍待执行的金色主动作。 */
+.luna-result-actions__primary[data-copied="true"] {
+  border-color: var(--color-status-success);
+  color: var(--color-status-success);
+  background: var(--color-status-success-surface);
+}
+
+.luna-result-actions__primary[data-copied="true"]:hover:not(:disabled) {
+  border-color: var(--color-status-success);
+  color: var(--color-status-success);
+  background: var(--color-status-success-surface);
+}
+
+/* 这里此前是一条覆盖全窗按钮的裸元素选择器五连块——在 features 层无条件压过
+   primitives 层，让 `.luna-btn` / `.luna-icon-btn` 的原语声明整层失效；下面若干
+   反向覆盖正是为了把自己赢回来而存在的。随 ADR-111 ③ / TDD-15 §3.3e 删除：
+   窗内每颗按钮都必须挂明确形态，皮归原语。 */
+
+/* 主动作皮归 `.luna-btn--primary`（组件里显式挂形态）；这里只剩 HUD 密度差异。 */
+.luna-popup__generate {
+  min-block-size: var(--hud-control-size);
+  padding: var(--space-1) var(--space-3);
+}
+
+/* ─── 截屏翻译框选层（Snipaste 式，PRD-01-007 / TDD-05 §1.5）────────────
+ * 待选态：整屏暗化蒙层 + 跟随光标的十字线 + 顶部提示条；
+ * 拖选态：选区透亮、四周由选框巨幅 box-shadow 补暗（挖洞），角点手柄 + 实际像素徽标。 */
+
+/* 框选层窗为透明窗口：body 必须透明，否则半透明蒙层叠在不透明底色上变实心灰、
+ * 挖洞处露出的是 body 底色而非屏幕内容（与 live-caption 同一模式）。 */
+html:has(.luna-shot),
+body:has(.luna-shot),
+#root:has(.luna-shot) {
+  background: transparent;
+}
+
+.luna-shot {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  cursor: crosshair;
+  user-select: none;
+  background: var(--shot-mask);
+}
+
+.luna-shot[data-selecting="true"] {
+  background: transparent;
+}
+
+.luna-shot__crosshair {
+  position: absolute;
+  pointer-events: none;
+  background: var(--shot-crosshair);
+}
+
+.luna-shot__crosshair--v {
+  inset-block: 0;
+  inset-inline-start: var(--shot-cursor-x);
+  inline-size: var(--border-width-thin);
+}
+
+.luna-shot__crosshair--h {
+  inset-inline: 0;
+  inset-block-start: var(--shot-cursor-y);
+  block-size: var(--border-width-thin);
+}
+
+.luna-shot__hint {
+  position: absolute;
+  inset-block-start: var(--space-6);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--shot-hint-bg);
+  color: var(--shot-hint-text);
+  font-size: var(--font-size-sm);
+  box-shadow: var(--shot-hint-shadow);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* 框选失败与平时的提示同一枚深色药丸、同一个位置（遮罩上的字恒为暗衬亮字，不随主题）：
+   此前失败用浅色面板 + 红字，同一处在两种状态下换了一套皮。原因多一行，故允许折行。 */
+.luna-shot__error {
+  position: fixed;
+  inset-block-start: var(--space-6);
+  inset-inline-start: 50%;
+  display: grid;
+  gap: var(--space-1);
+  max-inline-size: min(var(--shot-hint-max-inline), calc(var(--size-full) - var(--space-6) * 2));
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--shot-hint-bg);
+  color: var(--shot-hint-text);
+  box-shadow: var(--shot-hint-shadow);
+  font-size: var(--font-size-sm);
+  transform: translateX(-50%);
+}
+
+.luna-shot__selection {
+  position: absolute;
+  inset-inline-start: var(--shot-selection-x);
+  inset-block-start: var(--shot-selection-y);
+  inline-size: var(--shot-selection-width);
+  block-size: var(--shot-selection-height);
+  border: var(--border-width-thin) solid var(--shot-border);
+  /* 巨幅扩散阴影把选区外全部补暗（挖洞式蒙层，容器自身转透明） */
+  box-shadow: 0 0 0 200vmax var(--shot-mask);
+  pointer-events: none;
+}
+
+.luna-shot__badge {
+  position: absolute;
+  inset-inline-start: var(--space-0);
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-xs);
+  background: var(--shot-badge-bg);
+  color: var(--shot-badge-text);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.luna-shot__badge[data-position="above"] {
+  inset-block-start: calc(-1 * var(--space-6));
+}
+
+.luna-shot__badge[data-position="inside"] {
+  inset-block-start: var(--space-1);
+  inset-inline-start: var(--space-1);
+}
+
+/* 八个把手（四角 + 四边）。画框时只是示意；松手进入可调整态才接指针（选区本身在画框时
+   不接事件，事件全归根层）。 */
+.luna-shot__handle {
+  position: absolute;
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  margin: calc(-1 * var(--space-1));
+  background: var(--shot-handle-fill);
+  border: var(--border-width-thin) solid var(--shot-border);
+  border-radius: var(--radius-full);
+}
+
+.luna-shot[data-adjusting] .luna-shot__selection {
+  pointer-events: auto;
+  cursor: move;
+}
+
+.luna-shot__handle[data-handle="tl"] { inset-block-start: 0; inset-inline-start: 0; cursor: nwse-resize; }
+.luna-shot__handle[data-handle="t"] { inset-block-start: 0; inset-inline-start: 50%; cursor: ns-resize; }
+.luna-shot__handle[data-handle="tr"] { inset-block-start: 0; inset-inline-start: 100%; cursor: nesw-resize; }
+.luna-shot__handle[data-handle="r"] { inset-block-start: 50%; inset-inline-start: 100%; cursor: ew-resize; }
+.luna-shot__handle[data-handle="br"] { inset-block-start: 100%; inset-inline-start: 100%; cursor: nwse-resize; }
+.luna-shot__handle[data-handle="b"] { inset-block-start: 100%; inset-inline-start: 50%; cursor: ns-resize; }
+.luna-shot__handle[data-handle="bl"] { inset-block-start: 100%; inset-inline-start: 0; cursor: nesw-resize; }
+.luna-shot__handle[data-handle="l"] { inset-block-start: 50%; inset-inline-start: 0; cursor: ew-resize; }
+
+/* 迷你工具条：与提示条同一枚深色药丸（遮罩上恒为暗衬亮字，不随主题）。默认贴在选区
+   下方右对齐，下方放不下就收进框内底部。 */
+.luna-shot__toolbar {
+  position: absolute;
+  inset-inline-end: 0;
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  background: var(--shot-hint-bg);
+  box-shadow: var(--shot-hint-shadow);
+  cursor: default;
+}
+
+.luna-shot__toolbar[data-position="below"] {
+  inset-block-start: calc(100% + var(--space-2));
+}
+
+.luna-shot__toolbar[data-position="inside"] {
+  inset-block-end: var(--space-2);
+  inset-inline-end: var(--space-2);
+}
+
+.luna-shot__tool {
+  padding: var(--space-1) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--shot-hint-text);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.luna-shot__tool:hover,
+.luna-shot__tool:focus-visible {
+  background: var(--shot-crosshair);
+  outline: none;
+}
+
+.luna-shot__tool[data-variant="primary"] {
+  color: var(--shot-handle-fill);
+  background: var(--shot-border);
+  font-weight: 600;
+}
+
+/* ─── 译境（PRD-01-036）：静默框体穿透鼠标，控制条始终贴在框体上。 ─── */
+html:has(.luna-desktop-lens),
+body:has(.luna-desktop-lens),
+#root:has(.luna-desktop-lens),
+html:has(.luna-desktop-lens-trigger),
+body:has(.luna-desktop-lens-trigger),
+#root:has(.luna-desktop-lens-trigger) {
+  background: transparent;
+}
+
+.luna-desktop-lens {
+  position: fixed;
+  inset: var(--space-0);
+  box-sizing: border-box;
+  border: var(--border-width-thick) solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-accent) 1%, transparent);
+  transition: border-color var(--transition-base), background var(--transition-base), box-shadow var(--transition-base);
+}
+
+.luna-desktop-lens[data-editing="true"] {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 9%, transparent);
+  box-shadow: 0 0 0 var(--space-1) color-mix(in srgb, var(--color-accent) 14%, transparent), var(--shadow-lg);
+}
+
+.luna-desktop-lens__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-block-size: var(--space-7);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm) var(--radius-sm) var(--radius-none) var(--radius-none);
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-bg-panel) 92%, transparent);
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  user-select: none;
+  font-size: var(--font-size-xs);
+}
+
+.luna-desktop-lens__toolbar:active {
+  cursor: grabbing;
+}
+
+.luna-desktop-lens__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.luna-desktop-lens__error {
+  position: absolute;
+  inset-block-start: calc(var(--space-6) + var(--space-3));
+  inset-inline: var(--space-3);
+  margin: var(--space-0);
+  padding: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-status-warning);
+  border-radius: var(--radius-sm);
+  color: var(--color-status-warning);
+  background: var(--color-bg-panel);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--font-size-xs);
+}
+
+.luna-desktop-lens__resize {
+  position: absolute;
+  inset-inline-end: calc(-1 * var(--space-2));
+  inset-block-end: calc(-1 * var(--space-2));
+  inline-size: var(--space-4);
+  block-size: var(--space-4);
+  border: var(--border-width-thick) solid var(--color-bg-panel);
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  cursor: nwse-resize;
+}
+
+/* 承载窗口尺寸由 Rust `setup_desktop_lens_panels` 按本规则的 border-box 算出（112×38 逻辑
+ * 点）：窗口小于内容只会裁切、不会滚动，故改键数或下列尺寸 Token 时必须同步那两个数。 */
+.luna-desktop-lens-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  inline-size: var(--size-full);
+  block-size: var(--size-full);
+  box-sizing: border-box;
+  padding: var(--space-1);
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-border-default) 72%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-bg-panel) 86%, transparent);
+  box-shadow: var(--shadow-md);
+  opacity: var(--opacity-idle);
+  transition: opacity var(--transition-base), transform var(--transition-base), background var(--transition-base), border-color var(--transition-base);
+}
+
+.luna-desktop-lens-trigger:hover,
+.luna-desktop-lens-trigger:focus-within {
+  opacity: 1;
+  transform: translateY(var(--space-1));
+  background: var(--color-bg-panel);
+}
+
+/* 采集失败：控制条放不下文案，故以告警描边 + 回满不透明提示"这里出事了"，详情走 tooltip
+ * 与通知中心（失败绝不以"看起来没反应"收场）。 */
+.luna-desktop-lens-trigger[data-error="true"] {
+  border-color: var(--color-status-warning);
+  opacity: 1;
+}
+
+/* 三枚键是 `IconButton` 原语（ADR-137 H8，此前是一条 `.luna-desktop-lens-trigger button` 元素
+ * 兜底）：外壳已有描边/底色/投影，键本身是无边框图标键——原语默认正是这个样子，这里只留两枚的
+ * 语义着色。 */
+
+/* 主动作用图标着色表达优先级——而不是整块填充：常驻浮层里一块实心金会持续抢注意力。 */
+.luna-desktop-lens-trigger__capture {
+  color: var(--color-accent);
+}
+
+.luna-desktop-lens-trigger__capture:hover {
+  color: var(--color-accent-strong);
+  background: var(--color-accent-surface);
+}
+
+/* 关闭是本条里唯一有代价的动作（会话终止、需重新取景），故命中态给告警色明确警示。 */
+.luna-desktop-lens-trigger__close:hover {
+  color: var(--color-status-warning);
+  background: color-mix(in srgb, var(--color-status-warning) 12%, transparent);
+}
+
+/* 主动作与会话控制之间的分隔发丝线。 */
+.luna-desktop-lens-trigger__divider {
+  flex: none;
+  inline-size: var(--border-width-thin);
+  block-size: var(--space-4);
+  margin-inline: var(--space-0-5);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--color-border-default) 60%, transparent);
+}
+
+/* HUD 原文区操作组（朗读原文 + 编辑原文并排）。 */
+.luna-popup__source-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* 图标钮与菜单项的反向覆盖已随那条元素选择器一起删除——根因没了，解药也没有
+   存在理由（原语声明自此在本窗生效）。 */

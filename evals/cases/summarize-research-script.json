@@ -1,0 +1,50 @@
+{
+  "_comment": [
+    "从研究简报出发 creator.research.script（PRD-19-046，ADR-167 ⑥）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "summarize",
+  "template": "creator.research.script",
+  "cases": [
+    {
+      "name": "段落标题用骨架的名字",
+      "vars": {
+        "hook": "开头",
+        "beat": "节拍 1",
+        "outro": "结尾"
+      },
+      "must_contain": [
+        "## 开头",
+        "## 节拍 1",
+        "## 结尾"
+      ],
+      "why": "脚本按二级标题分段，标题和骨架不一致时检查器与提词器对不上"
+    },
+    {
+      "name": "念得出口、不编造",
+      "vars": {
+        "hook": "开头",
+        "beat": "节拍 1",
+        "outro": "结尾"
+      },
+      "must_contain": [
+        "plain spoken sentences",
+        "Use only facts from the brief",
+        "do not answer them"
+      ],
+      "why": "模型会把待查的问题当成已知事实写进口播"
+    },
+    {
+      "name": "只回 Markdown",
+      "vars": {
+        "hook": "开头",
+        "beat": "节拍 1",
+        "outro": "结尾"
+      },
+      "must_contain": [
+        "Output only the Markdown script"
+      ],
+      "why": "夹带说明会被当成脚本正文念出来"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "title": "Live captions",
+  "translationTitle": "Translation captions",
+  "status": {
+    "idle": "$t(common:hud.status.idle)",
+    "listening": "$t(common:hud.status.listening)",
+    "stopping": "Stopping…",
+    "paused": "Paused",
+    "error": "Something went wrong"
+  },
+  "panel": {
+    "idle": "Press Start to show live captions here.",
+    "waiting": "Listening — captions appear with incoming speech…",
+    "idleTranslation": "Translation appears here.",
+    "waitingTranslation": "Listening — translation appears per sentence…"
+  },
+  "option": {
+    "target": "Target language",
+    "source": "Transcription language"
+  },
+  "source": {
+    "dualAuto": "Each track detects its language independently",
+    "nextSession": "Captions are running; stop them to change the sound source"
+  },
+  "action": {
+    "start": "$t(common:hud.action.start)",
+    "stop": "$t(common:hud.action.stop)",
+    "stopping": "Stopping…",
+    "more": "More caption actions",
+    "closeTranslation": "Close translation window",
+    "saveNote": "$t(common:hud.action.save_note)",
+    "settings": "Open live caption settings",
+    "closePanel": "$t(common:hud.action.close)"
+  },
+  "save": {
+    "ok": "Saved as a note",
+    "error": "The note wasn't saved",
+    "errorDetail": "The note wasn't saved: {{detail}}",
+    "open": "Open note"
+  },
+  "aria": {
+    "subtitle": "Live captions",
+    "options": "Caption options"
+  },
+  "appearance": {
+    "background": "Background (0 = immersive)",
+    "label": "Appearance",
+    "moreSettings": "More caption settings…"
+  },
+  "display": {
+    "label": "Display",
+    "source": "Original",
+    "bilingual": "Bilingual",
+    "translation": "Translation"
+  },
+  "layout": {
+    "label": "Bilingual layout",
+    "source_first": "Original on top",
+    "translation_first": "Translation on top",
+    "separate": "Two windows"
+  },
+  "translationChip": "Translation",
+  "sourceChip": "Original"
+}

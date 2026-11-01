@@ -1,0 +1,121 @@
+{
+  "title": "Recording",
+  "status": {
+    "idle": "$t(common:hud.status.idle)",
+    "recording": "Recording",
+    "recognizing": "Recognizing",
+    "paused": "Paused",
+    "stopping": "Saving…",
+    "error": "Error",
+    "saved": "Recording saved"
+  },
+  "degraded": {
+    "yellow": "High load — live captions trimmed to stay smooth; full text after stop",
+    "orange": "High load — live captions trimmed to stay smooth; full text after stop",
+    "red": "Load too high — recording only for now; realtime resumes as load eases, full transcript after stop",
+    "window_drop": "Some live text skipped under load — audio fully saved, auto-completed after stop",
+    "admission_wait": "Live transcription is still waiting for a local slot — recording and audio saving are unaffected; a second pass can fill in the text"
+  },
+  "transcribe_reconnecting": "Connection unstable — reconnecting to the server; recording and local audio are unaffected",
+  "transcribe_stopped": {
+    "generic": "Live captions stopped; recording continues — audio is saved in full and will be transcribed again after you stop",
+    "quota_exhausted": "Server transcription quota is used up; live captions stopped. Recording continues and will be transcribed after you stop",
+    "account_frozen": "Your account is read-only, so server transcription stopped. Recording continues and will be transcribed after you stop",
+    "spend_cap_reached": "You've reached the monthly prepaid spending cap you set, so server transcription stopped. Recording continues and will be transcribed after you stop",
+    "rate_limited": "The transcription service is temporarily rate-limiting requests; live captions stopped. Recording continues and will be transcribed after you stop",
+    "sign_in_required": "Your session expired, so server transcription stopped. Recording continues and will be transcribed after you stop",
+    "strict_local_blocked": "Switched to local-only, so server transcription stopped. Recording continues and will be transcribed locally after you stop",
+    "provider_unavailable": "Can't reach the transcription service; live captions stopped. Recording continues and will be transcribed after you stop",
+    "model_missing": "The transcription model isn't available; live captions stopped. Recording continues and will be transcribed after you stop",
+    "timeout": "Transcription timed out; live captions stopped. Recording continues and will be transcribed after you stop",
+    "local_session_busy": "The local realtime session slots are busy, so live captions never started. Recording continues — a second pass will transcribe it after you stop.",
+    "free_quota_withheld": "This account can't receive free quota right now, so server transcription stopped. Recording continues and will be transcribed after you stop"
+  },
+  "translate_stopped": {
+    "generic": "Live translation stopped; transcription and recording continue — the second pass after you stop will fill in the full bilingual text",
+    "model_missing": "The translation model isn't available, so live translation stopped. Transcription continues and the second pass will fill in the bilingual text",
+    "sign_in_required": "Your session expired, so live translation stopped. Transcription continues and the second pass will fill in the bilingual text",
+    "quota_exhausted": "Server translation quota is used up, so live translation stopped. Transcription continues and the second pass will fill in the bilingual text",
+    "account_frozen": "Your account is read-only, so server translation and live translation stopped. Transcription continues and the second pass will fill in the bilingual text",
+    "spend_cap_reached": "You've reached the monthly prepaid spending cap you set, so live translation stopped. Transcription continues and the second pass will fill in the bilingual text",
+    "capability_not_allowed": "Your organization hasn't enabled translation on the server and no on-device translation model is available, so live translation stopped. Transcription and recording continue",
+    "permission_denied": "A required permission is missing, so live translation stopped. Transcription continues and the second pass will fill in the bilingual text",
+    "strict_local_blocked": "Switched to local-only with no local translation model available, so live translation stopped. Transcription continues",
+    "route_lane_empty": "The server has no realtime translation configured, so live translation stopped. Transcription continues and the second pass will fill in the bilingual text",
+    "server_misconfigured": "This server deployment is misconfigured, so live translation stopped. Transcription continues and the second pass will fill in the bilingual text",
+    "free_quota_withheld": "This account can't receive free quota right now, so live translation stopped. Transcription continues and the second pass will fill in the bilingual text"
+  },
+  "action": {
+    "start": "$t(common:hud.action.start) recording",
+    "stop": "$t(common:hud.action.stop)",
+    "pause": "Pause",
+    "resume": "Resume",
+    "bookmark": "Bookmark",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "closePanel": "$t(common:hud.action.close)",
+    "more": "More",
+    "settings": "Recording settings",
+    "openRecording": "Open"
+  },
+  "bookmark": {
+    "added": "Bookmarked at {{time}}",
+    "failed": "Bookmark wasn't saved",
+    "notePlaceholder": "Add a note, Enter to save",
+    "noteLabel": "Bookmark note",
+    "dismiss": "Dismiss bookmark note"
+  },
+  "option": {
+    "device": "Microphone",
+    "deviceDefault": "System default",
+    "transcribe": "Live transcript",
+    "translate": "Live translation",
+    "translateTarget": "Target language",
+    "translateNeedsTranscribe": "Enable live transcription first",
+    "separateTranslation": "Translation window",
+    "separateTranslationHint": "Show translation in a separate large-type window; this panel shows the source only",
+    "language": "Language",
+    "transcribeLang": "Transcription language",
+    "dualAuto": "Each track detects its language independently",
+    "captureSource": "Source"
+  },
+  "settings": {
+    "title": "Recording settings",
+    "show": "Settings",
+    "hide": "Hide settings",
+    "summary": "{{source}} · {{processing}}",
+    "recordOnly": "Recording only",
+    "transcribeAndTranslate": "Live transcript and translation"
+  },
+  "label": {
+    "source": "Transcript",
+    "translation": "Translation",
+    "translationDetached": "Translation · window",
+    "translationDetachedHint": "Translation is shown in a separate window"
+  },
+  "panel": {
+    "transcriptEmpty": "Start recording and captions appear here.",
+    "waitingForSpeech": "Waiting for speech…"
+  },
+  "aria": {
+    "status": "Status: {{status}}",
+    "elapsed": "Elapsed: {{time}}",
+    "controls": "Recording controls",
+    "options": "Recording options",
+    "settings": "Recording settings",
+    "transcript": "Live captions",
+    "uplink": "Audio is leaving this device for transcription",
+    "uplink_named": "Audio is leaving this device; transcribed by “{{name}}”",
+    "uplink_idle": "Audio will leave this device for transcription when you speak",
+    "uplink_idle_named": "When you speak, audio will be transcribed by “{{name}}”"
+  },
+  "error": {
+    "note_create_failed": "Failed to create note",
+    "start_failed": "Failed to start recording",
+    "stop_failed": "Failed to stop recording",
+    "capture_failed": "Capture failed, check microphone",
+    "archive_failed": "Archive failed, audio preserved",
+    "state_lock": "Recording state unavailable",
+    "control_failed": "The change didn't take effect"
+  }
+}

@@ -1,0 +1,1662 @@
+{
+  "title": "设置",
+  "sectionNavigation": "本页设置分节",
+  "preview": {
+    "appearance": {
+      "title": "查看当前外观示例",
+      "hint": "示例使用当前主题、字号与密度。",
+      "sampleTitle": "今天的笔记",
+      "sampleBody": "把想法写下来，让下一步更清楚。",
+      "sampleTag": "计划",
+      "sampleStatus": "正文示例"
+    },
+    "layout": {
+      "title": "查看活动栏顺序",
+      "hint": "按已保存的顺序展示可见工作区。"
+    },
+    "caption": {
+      "title": "查看字幕外观示例",
+      "hint": "离线单句示例，不会启动采集或翻译；实际字幕会随窗口大小换行。",
+      "source": "A clear idea starts with a few words.",
+      "translation": "清晰的想法，始于几句文字。",
+      "sourceWindow": "原文窗口",
+      "translationWindow": "译文窗口"
+    }
+  },
+  "search": {
+    "placeholder": "搜索设置…",
+    "empty": "没有匹配「{{query}}」的设置",
+    "results_title": "搜索结果",
+    "results_desc": "「{{query}}」匹配到 {{count}} 项设置",
+    "clear": "清除搜索",
+    "clear_filters": "清除筛选",
+    "show_advanced": "在完整设置中显示 {{count}} 个结果",
+    "open_panel": "去设置该项",
+    "open_page": "去这一页",
+    "modified_only": "仅显示已修改",
+    "modified_empty": "当前范围没有已修改的设置。",
+    "modified_title": "已修改的设置",
+    "modified_desc": "当前显示范围内 {{count}} 项。"
+  },
+  "nav": "设置分组",
+  "autosave_hint": "改动即时保存",
+  "onboarding_rerun": {
+    "label": "首启引导",
+    "desc": "重新打开引导向导；已完成的步骤不会重复强制。",
+    "action": "重新运行引导"
+  },
+  "group": {
+    "account": "账户",
+    "general": "通用",
+    "appearance": "外观",
+    "shortcuts": "快捷键",
+    "ai_services": "AI 服务",
+    "local_models": "本地模型",
+    "voice_input": "语音输入",
+    "recording": "录音与转写",
+    "translate": "翻译与字幕",
+    "notes": "笔记库",
+    "glossary": "个人词典",
+    "privacy": "隐私"
+  },
+  "group_description": {
+    "account": "本地功能无需登录。",
+    "general": "语言、启动、通知和工作区选项。",
+    "appearance": "主题、文字显示和辅助功能。",
+    "shortcuts": "随时可唤起的操作及其按键。",
+    "ai_services": "AI 在哪里运行，以及如何连接服务端。",
+    "local_models": "这台设备上的模型、存储位置和运行能力。",
+    "voice_input": "说话如何变成文字、落在哪里，以及朗读方式。",
+    "recording": "录音采集、录制中实时转写与回放，以及导入音视频的离线转写。",
+    "translate": "弹窗翻译的语言与预设，实时字幕的声音来源与显示方式。",
+    "notes": "笔记编辑、AI 对话，以及知识库的自动维护。",
+    "glossary": "统一人名与专业术语的识别和译名。",
+    "privacy": "管理本机记录与联网权限。"
+  },
+  "section": {
+    "general": {
+      "interface": "界面",
+      "a11y": "辅助功能",
+      "launch_notify": "启动与通知",
+      "workspace": "工作区",
+      "playback": "回放",
+      "export": "导出",
+      "labs": "实验室",
+      "diagnostics": "诊断"
+    },
+    "appearance": {
+      "interface": "界面",
+      "a11y": "辅助功能"
+    },
+    "voice_input": {
+      "input": "语音输入",
+      "speech": "文本朗读"
+    },
+    "recording": {
+      "capture": "采集与录制",
+      "realtime": "录制中实时转写",
+      "playback": "回放",
+      "after": "录音完成后",
+      "media": "媒体转写",
+      "export": "导出"
+    },
+    "translate": {
+      "popup": "弹窗翻译",
+      "caption_source": "字幕声音与翻译",
+      "caption_appearance": "字幕外观"
+    },
+    "notes": {
+      "editor": "编辑器",
+      "chat": "AI 对话",
+      "knowledge": "知识库",
+      "vault": "笔记库",
+      "dirs": "库内目录",
+      "attachments": "附件"
+    },
+    "privacy": {
+      "privacy": "隐私"
+    }
+  },
+  "scope": {
+    "device": "此设备",
+    "vault": "随 Vault",
+    "account": "账户",
+    "vault_hint": "该项随 Vault 走：换一个库即用那个库的设置。"
+  },
+  "privacy": {
+    "strict_local": "严格本地模式",
+    "web_clip": "网页剪藏",
+    "strict_local_aliases": "断网 离线 不联网 隐私",
+    "strict_local_desc": "阻止所有出站联网，联网功能将不可用。",
+    "web_clip_desc": "在项目概览里「剪藏网页…」时联网抓取这个网页及其中的图片。关掉后剪藏入口照常显示，但不会联网。",
+    "local_knowledge_metrics": "本机知识统计",
+    "local_knowledge_metrics_desc": "仅在本机汇总，不含内容或路径，不上传。",
+    "local_workspace_metrics_desc": "仅在本机汇总，不含内容、路径或身份，不上传。"
+  },
+  "knowledge_metrics": {
+    "title": "知识库改进情况",
+    "description": "查看整理建议的采用情况与来源定位结果。",
+    "suggestions": "建议被采用",
+    "linked": "24 小时内归入主题页",
+    "supplement": "回答含模型补充",
+    "topic_time": "形成主题页所需时间",
+    "citations": "出处仍可定位",
+    "ratio_value": "{{rate}}（{{numerator}} / {{denominator}}）",
+    "suggestion_detail": "忽略 {{dismissed}} 个 · 精确撤销 {{rolledBack}} 个",
+    "topic_value": "中位数 {{minutes}} 分钟（已完成 {{completed}} 个）",
+    "sample_detail": "截尾 {{censored}} 个 · 观察中 {{open}} 个",
+    "window_detail": "截尾 {{censored}} 篇 · 时窗中 {{open}} 篇",
+    "link_origin_detail": "自动 {{automatic}} 篇 · 确认 {{confirmed}} 篇 · 手工 {{manual}} 篇",
+    "citation_value": "{{succeeded}} / {{attempts}} 次成功定位",
+    "citation_detail": "锚点失效 {{stale}} 次 · 来源不存在 {{missing}} 次",
+    "insufficient": "数据还不够",
+    "no_samples": "样本不足，暂不显示指标。",
+    "show_metrics": "查看各项指标",
+    "range": "汇总范围：{{start}} 至 {{end}}（不提供活动时间线）",
+    "trend": "最近 30 天趋势",
+    "trend_day": "日期",
+    "trend_metric": "指标",
+    "trend_value": "聚合值",
+    "trend_count": "完成 {{numerator}} · 截尾 {{censored}}",
+    "metric": {
+      "suggestions": "建议采用",
+      "topic_time": "主题页形成",
+      "linked_within24_hours": "24 小时归入",
+      "citations": "出处定位",
+      "model_supplement": "模型补充"
+    },
+    "loading": "正在读取本机汇总…",
+    "retry": "重试本机隐私存储",
+    "export_range": "导出范围",
+    "start_day": "开始日期",
+    "end_day": "结束日期",
+    "export_format": "文件格式",
+    "export_format_json": "JSON",
+    "export_format_csv": "CSV",
+    "export": "导出聚合数据…",
+    "exported": "聚合数据已导出。",
+    "export_failed": "暂时无法导出，请检查保存位置后重试。",
+    "clear_subject": "本机统计数据",
+    "clear": "清除本机统计",
+    "clear_confirm_title": "彻底清除本机知识统计？",
+    "clear_confirm": "将彻底删除这台设备上的知识改进统计，重启应用后也无法恢复。知识库、笔记、版本历史、设置和模型不会受到影响。",
+    "clear_confirm_action": "彻底清除",
+    "cancel": "取消",
+    "cleared": "这台设备上的知识改进统计已彻底清除。",
+    "clear_failed": "未能完整清除本机统计；现有知识库和设置未受影响，请重试。",
+    "clear_hint": "只删除本机汇总，不会删除知识库、笔记、版本历史、设置或模型。",
+    "status": {
+      "ready": "本机隐私存储已就绪。",
+      "cleared": "本机统计已清除；下次允许记录时会开始一个全新周期。",
+      "vault_unavailable": "打开一个笔记库后即可查看对应汇总。",
+      "keychain_unavailable": "系统钥匙串当前不可用，因此没有记录任何新统计。",
+      "key_missing": "旧统计仍在，但已无法安全读取。请清除旧统计后重新开始。",
+      "invalid_key": "本机统计的保护信息无效，因此已停止记录。",
+      "database_unavailable": "本机统计当前不可用，因此没有记录任何新数据。"
+    }
+  },
+  "compute_card": {
+    "title": "AI 在哪运行",
+    "strict_local": "全部在这台设备上运行",
+    "strict_local_body": "「严格本地」已开启，任何内容都不会离开本设备。",
+    "on_device": "AI 正在这台设备上运行",
+    "on_device_body": "AI 请求在本机处理；云同步另行设置。",
+    "official_cloud": "AI 请求发往 Lunarca 云",
+    "official_cloud_body": "AI 请求正文不留存、不用于训练；云同步另行设置。",
+    "organization": "AI 请求发往你的组织服务端",
+    "organization_body": "AI 请求由组织处理，留存规则由组织决定。",
+    "routes_title": "逐项查看",
+    "route": {
+      "chat": "对话与翻译",
+      "embedding": "语义索引",
+      "transcription": "录音转写",
+      "local": "这台设备",
+      "server_cloud": "Lunarca 云",
+      "server_organization": "组织服务端",
+      "inline": {
+        "chat": "对话、翻译",
+        "embedding": "语义索引",
+        "transcription": "录音转写"
+      }
+    },
+    "local_candidate": {
+      "title": "本机备用",
+      "active_title": "正在使用",
+      "policy": {
+        "unreachable_before_visible_output": "服务端连不上时自动改用本机；服务端报错时不改用。",
+        "explicit_only": "服务端连不上时语义索引会暂停，不会改用本机——两边的向量不能混进同一份索引。"
+      },
+      "readiness": {
+        "ready": "已就绪：{{model}}",
+        "model_missing": "尚未安装可用的本机模型。",
+        "runtime_unavailable": "本地推理引擎反复启动失败，可在「本地模型」页查看原因并重启。",
+        "not_applicable": "不参与自动切换。"
+      },
+      "no_model": "未选择模型"
+    },
+    "minimal_model_hint": "内置最小转写模型，准确度有限；可启用服务端转写，或在「本地模型」下载更大的模型。",
+    "strategy_strict_local": "严格本地开启时不起作用。",
+    "local_only": "已登录服务器，但 AI 只在这台设备上运行",
+    "local_only_body": "AI 请求不发往服务端；云同步另行设置。",
+    "setup_incomplete": "已登录服务器，但它尚未配置算力",
+    "setup_incomplete_body": "AI 请求在这台设备上处理，服务端配好之前不会发往它；云同步另行设置。",
+    "transcription_local_only": "「AI 运行偏好」设为仅本机时，录音转写不会交给服务端。",
+    "action": {
+      "strict_local": "打开隐私设置",
+      "sign_in": "去账户登录",
+      "local_models": "前往本地模型"
+    },
+    "reason": {
+      "strict_local": "「严格本地」已开启，服务端不参与",
+      "explicit_device": "你为这一项指定了本机模型",
+      "explicit_server": "你为这一项指定了服务端",
+      "server_default": "已登录服务器，默认由它执行",
+      "device_policy": "未连接服务端，按本机策略执行",
+      "needs_consent": "在下方开启后才会交给服务端",
+      "server_unavailable": "服务端不提供这一项，已改用本机",
+      "server_not_configured": "服务端尚未配置这一项，在本机运行",
+      "server_not_allowed": "组织未开放这一项在服务端运行，在本机运行",
+      "strategy_local": "「AI 运行偏好」设为本机优先，先在本机执行",
+      "strategy_local_only": "「AI 运行偏好」设为仅本机，不发往服务端",
+      "strategy_local_unavailable": "本机模型不可用，暂由服务端执行。"
+    },
+    "switch": "更改",
+    "handover": {
+      "title": "有 {{count}} 项仍在这台设备上运行",
+      "body": "这些能力仍使用你指定的本机模型。是否改由服务端执行？",
+      "accept": "交给服务端",
+      "keep": "保持不变"
+    },
+    "summary": {
+      "server": "{{where}}：{{names}}",
+      "local": "这台设备：{{names}}",
+      "local_only": "这台设备：{{names}}，不发往服务端",
+      "unready_model_missing": "还不能用：{{names}}——这台设备上还没有可用的本地模型。",
+      "unready_runtime_unavailable": "暂时不能用：{{names}}——本地推理引擎启动失败。"
+    },
+    "minimal_model_hint_local": "内置最小转写模型，准确度有限；可在「本地模型」下载更大的模型。"
+  },
+  "provider": {
+    "asr_cost_per_min": "转写参考单价",
+    "llm_cost_per_million_tokens": "LLM 参考单价",
+    "asr_cost_per_min_desc": "仅估算，不产生计费或联网。",
+    "llm_cost_per_million_tokens_desc": "仅估算，与实际账单无关。",
+    "remote_asr_enabled": "服务端转写",
+    "remote_asr_enabled_aliases": "上传 联网 云端转写",
+    "remote_asr_enabled_desc": "允许上传音频进行转写；关闭后音频仅在本机处理。"
+  },
+  "ai": {
+    "route_strategy": "AI 运行偏好",
+    "route_strategy_aliases": "算力 算力落点 在哪跑 上云 联网 离线",
+    "route_strategy_desc": "设置本机与服务端均可用时的优先执行位置。",
+    "assignment": {
+      "default_llm": "默认对话模型",
+      "realtime_llm": "翻译与实时模型",
+      "realtime_asr": "实时转写模型",
+      "batch_asr": "离线转写模型",
+      "default_embedding": "默认嵌入模型",
+      "default_llm_desc": "设置对话、翻译与文本生成使用的模型。",
+      "realtime_llm_desc": "用于全部翻译（弹窗、笔记、实时字幕）；未指定时优先用已安装的专用翻译模型，否则继承默认对话模型。",
+      "realtime_asr_desc": "用于录音过程中的实时语音识别；必须分配已确认具备转写能力的模型。",
+      "batch_asr_desc": "用于导入媒体和录音结束后的完整转写；未指定时继承实时转写模型。",
+      "default_embedding_desc": "设置知识库索引与语义检索使用的模型。"
+    }
+  },
+  "storage": {
+    "vault_root": "笔记库位置",
+    "vault_root_aliases": "笔记库 资料库 库位置 存放位置 文件夹 目录",
+    "vault_root_desc": "打开所选笔记库，不移动原目录内容。",
+    "models_root": "模型存储目录",
+    "models_root_desc": "Lunarca 受管模型的落盘根目录；只能经「本地模型」页的「搬移到…」改动，搬移会先拷贝校验再切换。"
+  },
+  "voice_input": {
+    "auto_refine": "自动润色",
+    "translate_enabled": "翻译输出",
+    "translate_target_lang": "翻译目标语言",
+    "landing_mode": "输出位置",
+    "input_mode": "录入模式",
+    "lang_hint": "识别语言",
+    "auto_refine_desc": "移除口癖并补全标点；关闭后保留原始转写文字。",
+    "translate_enabled_desc": "输出译文，同时预览原文。",
+    "translate_target_lang_desc": "设置启用翻译输出后使用的目标语言。",
+    "landing_mode_desc": "输入当前应用、复制到剪贴板，或存为速记。",
+    "input_mode_desc": "按住快捷键说话，或按一次开始、再按一次结束。",
+    "lang_hint_desc": "指定口述语言以提高识别准确度，多语言输入可使用自动检测。",
+    "quick_note_refine": "速记 AI 提炼",
+    "quick_note_refine_desc": "自动补充速记标题、待办与日期；模型不可用或正文已修改时保留原稿。",
+    "keep_audio": "保留速记录音",
+    "keep_audio_desc": "将速记录音保存为附件，可回放或重新转写。"
+  },
+  "popup_translate": {
+    "native_lang": "母语",
+    "default_foreign": "默认外语",
+    "default_preset": "默认预设",
+    "auto_copy": "自动复制译文",
+    "desktop_lens": "译境取景几何",
+    "native_lang_desc": "母语译为默认外语，其他语言译回母语。",
+    "default_foreign_desc": "设置智能双向翻译中与母语配对的外语。",
+    "default_preset_desc": "弹窗翻译打开时默认使用的语气模板。",
+    "auto_copy_desc": "翻译完成后覆盖剪贴板。",
+    "direction_preview": "{{native}} → {{foreign}}；其他语言 → {{native}}"
+  },
+  "onboarding": {
+    "completed": "已完成首启引导",
+    "completed_steps": "已到访的引导步骤",
+    "first_task_done": "首个 AI 任务已完成",
+    "setup_reminder_dismissed": "已关闭「完成设置」提醒"
+  },
+  "build_info": {
+    "title": "构建身份",
+    "description": "报告桌面端构建或核对服务端兼容性时，请使用这里的完整字段。",
+    "version": "应用版本",
+    "git_sha": "Git SHA",
+    "protocol_version": "服务协议",
+    "build_time": "构建时间（UTC）",
+    "startup_previous": "上一次启动（距进程起点）",
+    "startup_ms": "{{value}} ms",
+    "startup_milestone": {
+      "shortcuts_registered": "可响应全局快捷键",
+      "setup_end": "后端装配完成",
+      "first_frame": "主窗首帧",
+      "workspace_ready": "工作区就绪",
+      "engine_ready": "本机文本引擎就绪"
+    }
+  },
+  "advanced_mode": "显示完整设置",
+  "advanced_mode_desc": "显示技术和维护设置；关闭后不会改动已有设置。",
+  "advanced_target": "“{{item}}”位于“{{page}}”的完整设置中。开启“显示完整设置”后可查看并修改。",
+  "notifications": {
+    "completed_enabled": "任务完成通知",
+    "completed_enabled_desc": "长任务完成时显示提醒；关闭后通知历史仍保留记录。",
+    "system_enabled": "系统通知",
+    "system_enabled_desc": "在后台发送系统通知，需系统授权。",
+    "suppress_while_recording": "录音免打扰",
+    "suppress_while_recording_desc": "录音结束后补发普通通知；高危提醒照常显示。"
+  },
+  "appearance": {
+    "theme": "明暗模式",
+    "theme_aliases": "深色 暗色 夜间 浅色 亮色",
+    "theme_family": "配色主题",
+    "language": "界面语言",
+    "language_aliases": "中文 英文 English 语言",
+    "reduce_motion": "减少动效",
+    "high_contrast": "高对比度",
+    "font_scale": "界面字号",
+    "font_scale_aliases": "字体 字体大小 放大 缩小",
+    "theme_desc": "设定界面明暗，或跟随系统设置。",
+    "theme_family_desc": "仅更改配色。",
+    "language_desc": "应用界面文案的语言，切换即时生效。",
+    "reduce_motion_desc": "减弱界面动画；系统已开启「减弱动态效果」时自动生效。",
+    "high_contrast_desc": "提高文字与背景的对比，改善强光环境下的可读性。",
+    "font_scale_desc": "整体缩放界面文字大小。",
+    "density": "信息密度",
+    "density_desc": "调整行距与留白，以选择更多内容或更宽松的阅读空间。",
+    "launch_overview": "启动概览",
+    "launch_overview_desc": "启动时显示任务与待完成设置。"
+  },
+  "theme_library": {
+    "title": "配色主题",
+    "hint": "选择用哪一套配色；预览、从文件安装与卸载在「应用 › 主题」。浅色和深色由上方「明暗模式」控制。",
+    "builtin": {
+      "luna": {
+        "name": "Lunarca",
+        "desc": "暖调中性色与月光金强调。"
+      },
+      "nebula": {
+        "name": "星云",
+        "desc": "低彩度灰阶与紫色强调。"
+      }
+    },
+    "installed_meta": "{{author}} · {{license}}",
+    "update_meta": "{{author}} · {{license}} · 可更新到 {{version}}，在「应用 › 主题」里更新",
+    "selected": "当前",
+    "browse": "浏览与管理主题"
+  },
+  "shortcuts": {
+    "popup_translate": "弹窗翻译",
+    "double_tap_window_ms": "双击间隔上限",
+    "voice_input": "语音输入",
+    "text_quick_note": "文字速记",
+    "quick_chat": "AI 对话",
+    "quick_switcher": "快速切换器",
+    "command_palette": "命令面板",
+    "vault_search": "全库搜索",
+    "toggle_sidebar": "收起 / 展开侧栏",
+    "open_settings": "前往设置",
+    "reopen_closed_tab": "重新打开关闭的标签页",
+    "toggle_reading_view": "编辑 / 阅读切换",
+    "ai_composer": "AI 操作",
+    "recording_toggle": "录音控制",
+    "recording_bookmark": "录音打点",
+    "live_caption": "实时字幕",
+    "trigger_mode": "触发方式",
+    "existing_conflict": "与「{{other}}」冲突。",
+    "mode_single": "按一次",
+    "mode_double": "双击",
+    "mode_double_hint": "快速连按两次同一组合才触发；单独按一次不受影响",
+    "recording_tip": "按下新的组合；Esc 取消，Delete 清除",
+    "press_keys": "请按下快捷键…",
+    "click_to_record": "点击录制快捷键",
+    "unbound": "未绑定",
+    "double_tap_locked": "⌘C 这类系统编辑键只能双击触发，否则会抢走复制粘贴",
+    "screenshot_translate": "截屏翻译",
+    "desktop_lens": "译境开关",
+    "desktop_lens_capture": "译境捕捉",
+    "popup_translate_desc": "翻译选中文字；未选中文字时打开输入框。",
+    "screenshot_translate_desc": "框选屏幕区域，识别其中文字并翻译。",
+    "desktop_lens_desc": "开启 / 关闭译境取景会话（实验室能力）。",
+    "desktop_lens_capture_desc": "译境会话进行中按需捕捉当前画面；仅会话运行时有效。",
+    "double_tap_window_ms_desc": "两次按键相隔多久之内算一次双击，所有设为「双击」的快捷键共用：调大更容错，调小更灵敏。",
+    "voice_input_desc": "使用快捷键开始语音输入；按住说话模式下松开即结束。",
+    "text_quick_note_desc": "在任意应用中呼出速记面板，写完回车即存入笔记库。",
+    "quick_chat_desc": "随时唤起快捷对话面板。",
+    "quick_switcher_desc": "按名称打开笔记。",
+    "command_palette_desc": "按名称执行命令。",
+    "vault_search_desc": "搜索整个笔记库。",
+    "toggle_sidebar_desc": "收起或展开左侧的列表侧栏（应用内快捷键）。",
+    "open_settings_desc": "打开设置（应用内快捷键）。",
+    "reopen_closed_tab_desc": "按关闭的逆序重开刚关掉的标签页（应用内快捷键）。",
+    "toggle_reading_view_desc": "在编辑与阅读模式之间切换（应用内快捷键，作用于当前笔记）。",
+    "ai_composer_desc": "打开或关闭笔记里的 AI 操作面板（应用内快捷键）。",
+    "recording_toggle_desc": "使用快捷键开始或暂停录音。",
+    "recording_bookmark_desc": "录音中标记当前时刻，回放时可直接跳转；提词器跟读时则在念到的那一行标记「重来」。默认未绑定。",
+    "live_caption_desc": "显示 / 隐藏悬浮实时字幕面板。",
+    "diagnostic_unavailable": "系统拒绝注册该组合（多半已被其它应用占用），请换一个。",
+    "diagnostic_invalid": "当前绑定无法注册，请重新录制。",
+    "diagnostic_reserved_system": "这是系统常用组合，绑定后可能被系统抢先响应。",
+    "diagnostic_accessibility_required": "双击触发需要辅助功能权限。",
+    "diagnostic_tap_failed": "按键观测未能启动，双击暂时无法触发；重启应用后仍无效请反馈。",
+    "diagnostic_double_tap_unsupported": "当前系统尚不支持双击触发，请改用按一次的组合。",
+    "diagnostic_unknown": "该快捷键当前未生效。",
+    "grant_accessibility": "打开系统设置",
+    "unsupported_key": "这个键录不了，换一个组合。",
+    "scope_global": "全局",
+    "scope_in_app": "应用内",
+    "view_conflict": "查看冲突项"
+  },
+  "vault": {
+    "templates_dir": "模板目录",
+    "delete_mode": "删除方式",
+    "delete_mode_aliases": "删除 废纸篓 垃圾桶 回收站",
+    "snapshot_max_versions": "版本快照保留份数",
+    "show_hidden_files": "显示隐藏文件",
+    "ai_artifacts_dir": "AI 产物目录",
+    "notes_dir": "笔记归档目录",
+    "quick_notes_dir": "速记归档目录",
+    "recordings_dir": "录音归档目录",
+    "transcripts_dir": "转写归档目录",
+    "documents_dir": "文档归档目录",
+    "chats_dir": "对话存档目录",
+    "creator_dir": "创作目录",
+    "translate_space_dir": "译境笔记目录",
+    "knowledge_dir": "知识产物目录",
+    "attachment_location": "附件默认存放位置",
+    "attachment_folder": "附件文件夹",
+    "graph_ai_tags": "AI 关系标签",
+    "templates_dir_desc": "新建笔记时可选用的模板所在目录（库内相对路径）。",
+    "delete_mode_desc": "删除笔记时移入系统废纸篓、库内回收站，还是直接永久删除。",
+    "trash_retention_days": "回收站保留期",
+    "trash_retention_days_desc": "到期永久删除；到期前可还原。",
+    "snapshot_max_versions_desc": "每篇笔记保留的历史版本上限，超出后自动清理最旧的一份。",
+    "show_hidden_files_desc": "在文件树中列出以「.」开头的文件；它们不参与搜索、图谱和链接。Lunarca 自己的数据与 .git 始终不列。",
+    "ai_artifacts_dir_desc": "AI 生成的总结、翻译等产物的归档目录（库内相对路径）。",
+    "notes_dir_desc": "新建普通笔记的默认落盘目录。",
+    "quick_notes_dir_desc": "语音输入选择「存为速记」时的落盘目录。",
+    "recordings_dir_desc": "录音笔记与其音频文件的落盘目录。",
+    "transcripts_dir_desc": "导入音视频后生成的转写笔记的落盘目录。",
+    "documents_dir_desc": "导入的文档（Word、文本、表格等）转成的笔记与原文件的落盘目录。",
+    "chats_dir_desc": "保存到历史的 AI 对话的落盘目录。",
+    "creator_dir_desc": "视频项目文件夹与灵感条目的落盘目录。",
+    "translate_space_dir_desc": "译境中确认保存的原文与译文写入此目录。",
+    "knowledge_dir_desc": "仅新建主题页与知识地图使用，已有页面不移动。",
+    "attachment_location_desc": "粘贴的图片与文件放到库根、笔记同级、笔记同级子目录，还是某个指定目录。",
+    "attachment_folder_desc": "设置笔记同级子目录的名称，或指定库内相对路径。",
+    "graph_ai_tags_desc": "保存或转写后自动提炼关系标签，保留手写标签并遵守文件夹的生成设置。",
+    "delete_mode_desc_trash": "删除时移入系统废纸篓，可从系统恢复。",
+    "delete_mode_desc_vault_trash": "删除时移入库内回收站；超过保留期会永久删除。",
+    "delete_mode_desc_permanent": "直接永久删除，无法从回收站恢复。"
+  },
+  "editor": {
+    "preview_tabs": "启用预览标签",
+    "preview_tabs_desc": "单击打开的笔记先作为预览标签（斜体），双击或开始编辑后保留。关闭后打开笔记总是替换当前标签。",
+    "autosave_enabled": "自动保存",
+    "autosave_debounce_ms": "自动保存延迟",
+    "floating_summary_lang": "AI 总结语言",
+    "floating_context": "选区改写上下文",
+    "floating_summary_style": "AI 总结默认风格",
+    "localize_remote_images": "远程图片本地化",
+    "typewriter_mode": "打字机模式",
+    "focus_mode": "专注模式",
+    "show_format_toolbar": "格式工具栏",
+    "autosave_enabled_desc": "停止输入后自动保存编辑内容。",
+    "autosave_debounce_ms_desc": "停止输入多久后触发保存；调大可减少磁盘写入。",
+    "localize_remote_images_desc": "粘贴时下载远程图片为库内附件，便于离线访问；严格本地模式下不下载。",
+    "typewriter_mode_desc": "编辑时保持当前行位于编辑区中央。",
+    "focus_mode_desc": "淡化当前段落之外的内容。",
+    "spellcheck": "西文拼写检查",
+    "spellcheck_desc": "在正文里标出拼错的英文等西文单词，右键可选更正；代码、网址和中文不检查。",
+    "body_width": "正文宽度",
+    "body_width_desc": "笔记正文每行的最大宽度；编辑、阅读与知识库阅读一致。",
+    "show_format_toolbar_desc": "在编辑器标题下方显示格式按钮。",
+    "floating_summary_lang_desc": "笔记里 AI 悬浮菜单生成总结时使用的语言。",
+    "floating_context_desc": "前后各一段随选区发送，服务端执行时一并上传；仅修改选区。",
+    "floating_summary_style_desc": "笔记里 AI 总结默认按要点、段落还是一句话产出；面板里的「总结」子菜单可按次改。"
+  },
+  "labs": {
+    "translate_space_enabled": "实验性译境",
+    "translate_space_enabled_desc": "显示译境入口并启用其快捷键，关闭后结束会话并注销快捷键。"
+  },
+  "action": {
+    "reset": "恢复默认",
+    "restart_required": "需重启生效",
+    "reset_hint": "把这一项恢复为出厂默认值",
+    "reset_group": "恢复本页默认",
+    "reset_group_confirm": "确认恢复 {{count}} 项？",
+    "reset_group_standard": "恢复本页常用设置",
+    "reset_group_standard_confirm": "确认恢复 {{count}} 项常用设置？",
+    "reset_group_all": "恢复本页设置",
+    "reset_group_all_confirm": "确认恢复 {{count}} 项设置？",
+    "saved": "已保存",
+    "copy_key": "复制设置键",
+    "copy_value": "复制当前值",
+    "about_setting": "关于「{{name}}」",
+    "saving": "保存中…",
+    "details": "查看详情",
+    "close": "关闭",
+    "value_enabled": "开启",
+    "value_disabled": "关闭",
+    "value_empty": "未设置",
+    "reset_preview_unavailable": "恢复默认预览",
+    "reset_preview_failed": "无法读取改动范围，请关闭后重试。",
+    "reset_scope": "{{page}} · {{scope}}",
+    "reset_scope_all": "完整设置",
+    "reset_scope_standard": "常用设置",
+    "reset_effects": "默认值可能改变联网权限、录音保存或删除方式。恢复设置不会删除现有文件。"
+  },
+  "option": {
+    "ai": {
+      "route_strategy": {
+        "cloud_first": "服务端优先",
+        "local_first": "本机优先（本机跑不了就停下）",
+        "local_first_fallback": "本机优先，必要时用服务端",
+        "local_only": "仅本机（绝不发往服务端）"
+      }
+    },
+    "popup_translate": {
+      "default_preset": {
+        "general": "通用",
+        "slack": "Slack",
+        "email": "邮件",
+        "polish_en": "英文润色"
+      }
+    },
+    "editor": {
+      "floating_summary_lang": {
+        "native": "母语",
+        "default_foreign": "默认外语",
+        "zh": "中文",
+        "en": "英文"
+      },
+      "body_width": {
+        "narrow": "窄",
+        "medium": "中",
+        "wide": "宽"
+      },
+      "floating_summary_style": {
+        "bullets": "要点",
+        "paragraph": "段落",
+        "one_line": "一句话"
+      }
+    },
+    "appearance": {
+      "theme": {
+        "system": "跟随系统",
+        "light": "浅色",
+        "dark": "深色"
+      },
+      "theme_family": {
+        "luna": "Lunarca",
+        "nebula": "星云",
+        "installed": "已安装主题"
+      },
+      "density": {
+        "compact": "紧凑",
+        "comfortable": "舒适"
+      },
+      "language": {
+        "system": "跟随系统",
+        "zh-CN": "中文",
+        "en-US": "英文"
+      }
+    },
+    "voice_input": {
+      "landing_mode": {
+        "inject": "直接键入当前软件",
+        "clipboard": "仅复制到剪贴板",
+        "quick_note": "保存为速记"
+      },
+      "input_mode": {
+        "hold": "按住说话",
+        "toggle": "按一下开始/结束"
+      }
+    },
+    "vault": {
+      "delete_mode": {
+        "trash": "系统废纸篓",
+        "vault_trash": "Vault 回收站",
+        "permanent": "永久删除"
+      },
+      "attachment_location": {
+        "vault_root": "仓库根目录",
+        "note_folder": "笔记所在文件夹",
+        "note_subfolder": "笔记所在文件夹的子目录",
+        "specified_folder": "指定的库内文件夹"
+      },
+      "trash_retention_days": {
+        "7": "7 天",
+        "30": "30 天",
+        "90": "90 天",
+        "never": "永不自动删除"
+      }
+    },
+    "transcribe": {
+      "fetch_media": {
+        "audio": "仅音频（节省空间）",
+        "video": "视频（可对着画面校对）",
+        "link_only": "仅保留文稿与链接"
+      },
+      "distill_mode": {
+        "off": "关闭",
+        "prompt": "完成后提示",
+        "auto": "自动生成"
+      }
+    },
+    "recording": {
+      "capture_source": {
+        "input_device": "麦克风",
+        "system_loopback": "系统音频（录对方/系统声音）",
+        "both": "双轨（麦克风 + 系统音频）"
+      },
+      "vad_sensitivity": {
+        "low": "低",
+        "normal": "标准",
+        "high": "高"
+      },
+      "vad_engine": {
+        "energy": "能量",
+        "silero": "Silero"
+      },
+      "distill_mode": {
+        "off": "关闭",
+        "prompt": "完成后提示",
+        "auto": "自动生成"
+      }
+    },
+    "caption": {
+      "capture_source": {
+        "input_device": "麦克风",
+        "system_loopback": "系统声音",
+        "both": "麦克风 + 系统声音"
+      },
+      "font_size": {
+        "small": "小",
+        "medium": "中",
+        "large": "大",
+        "xlarge": "特大"
+      },
+      "text_color": {
+        "white": "白色",
+        "yellow": "黄色",
+        "cyan": "青色",
+        "green": "绿色"
+      }
+    },
+    "playback": {
+      "video_layout": {
+        "split": "分屏（转写 + 画面并排）",
+        "theater": "剧场（画面占满）",
+        "float": "悬浮小窗",
+        "audio_only": "仅音频（隐藏画面）"
+      },
+      "subtitle_size": {
+        "small": "小",
+        "medium": "中",
+        "large": "大",
+        "xlarge": "特大"
+      },
+      "background_video": {
+        "audio_only": "只留声音",
+        "float": "悬浮小窗"
+      }
+    },
+    "chat": {
+      "distill_mode": {
+        "off": "关闭",
+        "prompt": "完成后提示",
+        "auto": "自动生成"
+      }
+    },
+    "knowledge": {
+      "ingest_mode": {
+        "off": "关闭",
+        "suggest": "建议",
+        "auto": "自动归入"
+      }
+    },
+    "models": {
+      "download_source": {
+        "auto": "自动",
+        "huggingface": "Hugging Face",
+        "modelscope": "ModelScope"
+      }
+    },
+    "sync": {
+      "recordings_mode": {
+        "on_demand": "按需下载（打开时再下）",
+        "full": "全部下载到这台设备",
+        "off": "不同步录音"
+      }
+    },
+    "creator": {
+      "board_view": {
+        "board": "看板",
+        "list": "列表",
+        "table": "表格",
+        "calendar": "日历"
+      }
+    },
+    "update": {
+      "policy": {
+        "check_and_confirm": "启动时检查，由我确认安装",
+        "automatic": "自动下载并安装",
+        "manual": "仅在我点「检查更新」时"
+      }
+    }
+  },
+  "models": {
+    "title": "模型库",
+    "storage_root": "模型存储位置",
+    "relocate": {
+      "hint": "移动前校验，完成前保留原目录。",
+      "action": "移动模型…",
+      "cancel": "取消",
+      "confirm_title": "搬移模型存储？",
+      "confirm": "从 {{from}} 搬到 {{to}}：共 {{bytes}}，目标卷剩余 {{available}}。搬移期间不能安装模型；完成前旧目录一直有效。",
+      "confirm_action": "开始搬移",
+      "done": "已搬到 {{path}}，旧目录已删除。",
+      "done_old_kept": "已搬到 {{path}} 并切换生效，但旧目录没能删除，可手动清理。",
+      "failed": "搬移失败：{{reason}} 旧目录未受影响。",
+      "cancelled": "已取消，旧目录未受影响。",
+      "phase": {
+        "copying": "正在拷贝 {{copied}} / {{total}}",
+        "verifying": "正在逐件校验…",
+        "switching": "正在切换存储位置…",
+        "cleaning": "正在删除旧目录…"
+      },
+      "reason": {
+        "same_dir": "目标就是当前目录。",
+        "nested": "目标与当前目录互相包含。",
+        "not_dir": "目标不是文件夹。",
+        "not_empty": "目标文件夹不是空的，请选一个空文件夹。",
+        "not_writable": "目标文件夹不可写。",
+        "not_absolute": "目标必须是绝对路径。",
+        "insufficient_disk": "目标卷空间不足（需要模型总占用再加 512 MiB 余量）。",
+        "install_in_progress": "有模型正在下载，等它完成或暂停后再搬。",
+        "already_running": "已有一次搬移在进行中。",
+        "source_unreadable": "读不到当前模型目录。"
+      }
+    },
+    "delete": "删除",
+    "install": "安装",
+    "installing": "安装中",
+    "empty": "暂无可显示模型",
+    "source": "为什么是它",
+    "on_disk": "占用",
+    "estimated_on_disk": "安装后预计占用",
+    "progress": "进度",
+    "status": {
+      "bundled": "内置",
+      "installed": "已安装",
+      "unavailable": "未随应用提供",
+      "downloadable": "可下载"
+    },
+    "view": {
+      "assignments": "模型分配",
+      "local": "本机模型",
+      "services": "运行位置",
+      "usage": "执行记录"
+    },
+    "assignment_intro": "自动选择会跟随服务端策略与设备能力。",
+    "local_intro_primary": "在此安装与管理本机模型。",
+    "local_intro_fallback": "本机备用方式因能力而异，见「AI 服务」。",
+    "effective": "当前生效",
+    "selected_inactive": "已选，当前未生效",
+    "assigned": "正在用于",
+    "unresolved": "尚未就绪",
+    "follow_policy": "自动选择（推荐）",
+    "location": {
+      "device": "这台设备",
+      "server": "服务端"
+    },
+    "capability": {
+      "chat": "对话",
+      "transcribe": "转写",
+      "embed": "嵌入",
+      "diarize": "说话人区分",
+      "vad": "语音检测",
+      "translate": "翻译",
+      "summarize": "摘要",
+      "refine": "文本优化"
+    },
+    "readiness": {
+      "ready": "可用",
+      "missing": "需安装",
+      "incompatible": "能力不匹配",
+      "profile_unverified": "稳定向量档尚未验证",
+      "unresolved": "未解析"
+    },
+    "source_kind": {
+      "explicit": "你在这里选的",
+      "inherited": "跟随上一级",
+      "device_policy": "按这台设备的情况自动选"
+    },
+    "slot": {
+      "default_llm": "默认对话模型",
+      "realtime_llm": "翻译与实时模型",
+      "realtime_asr": "实时转写模型",
+      "batch_asr": "离线转写模型",
+      "default_embedding": "默认嵌入模型"
+    },
+    "slot_desc": {
+      "default_llm": "用于 AI 对话、翻译和需要生成文本的工作。",
+      "realtime_llm": "用于全部翻译（弹窗、笔记、低延迟的实时字幕）；未指定时优先用已安装的专用翻译模型，否则继承默认对话模型。",
+      "realtime_asr": "用于录音过程中的实时语音识别。",
+      "batch_asr": "用于导入媒体和录音结束后的完整转写；未指定时继承实时转写模型。",
+      "default_embedding": "用于知识库索引、检索和相似内容判断。"
+    },
+    "device_fit_label": "设备适配",
+    "manager_label": "管理方",
+    "manager": {
+      "LunaManaged": "Lunarca 管理",
+      "LocalRuntime": "本机运行时",
+      "InProcess": "Lunarca 进程内引擎"
+    },
+    "origin_label": "来源",
+    "origin": {
+      "bundled": "随应用提供",
+      "downloaded": "Lunarca 已下载",
+      "remote": "Lunarca 模型目录",
+      "imported": "手动导入"
+    },
+    "device_fit": {
+      "recommended": "推荐",
+      "supported": "可运行",
+      "insufficient": "内存不足",
+      "unknown": "待确认"
+    },
+    "quantization": "量化",
+    "digest": "运行时摘要",
+    "memory_estimate": "预计运行内存",
+    "service": {
+      "local_asr_body": "转写在 Lunarca 进程内运行；权重就绪但尚未加载时保持待命，首次使用再加载。",
+      "status": {
+        "ready": "可用",
+        "standby": "待命",
+        "unavailable": "不可用"
+      },
+      "endpoint": "端点",
+      "in_process": "进程内运行，无网络端点",
+      "model_count": "已发现 {{count}} 个模型",
+      "latency": "响应 {{value}} 毫秒",
+      "refresh": "重新探测"
+    },
+    "plan": {
+      "install_title": "安装前确认",
+      "delete_title": "永久删除前确认",
+      "download": "下载：{{value}}",
+      "download_resumed": "还需下载：{{value}}（已下 {{done}}）",
+      "on_disk": "预计装机占用：{{value}}",
+      "remaining": "完成后磁盘剩余：{{value}}",
+      "license": "权重许可：{{value}}",
+      "release": "预计释放：{{value}}",
+      "permanent": "模型文件将永久删除，不进入系统废纸篓。",
+      "blocking_slots": "需先解除分配：{{value}}",
+      "confirm": "确认执行",
+      "cancel": "取消",
+      "reason": {
+        "MODEL_BUNDLED_NOT_DELETABLE": "内置模型不能删除。",
+        "MODEL_NOT_INSTALLED": "模型当前未安装。",
+        "MODEL_DELETE_BLOCKED_ASSIGNMENT": "该模型仍承担工作，请先解除上述分配。",
+        "MODEL_ALREADY_INSTALLED": "模型已经安装。",
+        "STRICT_LOCAL_BLOCKED": "严格本地模式已阻止联网下载。",
+        "MODEL_DISK_SPACE_INSUFFICIENT": "目标磁盘空间不足。",
+        "MODEL_INSTALL_UNAVAILABLE": "当前没有可用安装来源。"
+      },
+      "update_title": "更新前确认",
+      "update_note": "下载并通过校验后替换已装的版本；更新失败时旧版本照常可用。",
+      "reindex_note": "这是嵌入模型：换了权重，库内索引需要全量重建一次，期间检索结果可能不全。",
+      "install_confirm": "安装模型",
+      "update_confirm": "更新模型",
+      "delete_confirm": "永久删除模型"
+    },
+    "notice": {
+      "MODEL_INSTALLED": "已安装：{{detail}}",
+      "MODEL_DOWNLOAD_PAUSED": "已暂停下载：{{detail}}。已下载的部分保留在断点上，点「继续下载」即续。",
+      "COREML_ENABLED": "CoreML 加速已启用：{{detail}}",
+      "MODEL_IMPORTED": "已导入：{{detail}}（识别为{{role}}，已通过校验）",
+      "MODEL_IMPORTED_AS_CATALOG": "这个文件就是模型目录里的「{{detail}}」（{{role}}），已按目录条目安装",
+      "MODEL_IMPORT_NOT_GGUF": "不是可用的 GGUF 文件（{{detail}}）",
+      "MODEL_IMPORT_UNSUPPORTED_ROLE": "这个模型既不是对话模型也不是嵌入模型，无法使用",
+      "MODEL_IMPORT_ENGINE_REJECTED": "本地推理引擎读不了这个文件（{{detail}}）",
+      "MODEL_IMPORT_DUPLICATE": "这个文件已经导入过了（{{detail}}）",
+      "MODEL_IMPORT_FAILED": "导入失败：{{detail}}",
+      "MODEL_IMPORT_UNAVAILABLE": "本构建不支持本地推理引擎",
+      "MODEL_IMPORT_NOT_FOUND": "找不到这个模型文件（{{detail}}）",
+      "MODEL_IMPORT_HF_INVALID": "仓库 id 要写成 owner/name",
+      "MODEL_IMPORT_HF_NOT_FOUND": "找不到这个仓库，或它不公开",
+      "MODEL_IMPORT_HF_GATED": "这个仓库需要登录或申请授权，目前不支持",
+      "MODEL_IMPORT_HF_NETWORK": "连不上 Hugging Face（{{detail}}）"
+    },
+    "import_role": {
+      "chat": "对话模型",
+      "embedding": "嵌入模型"
+    },
+    "managed": {
+      "name": "服务端托管",
+      "note": {
+        "managed": "由服务端选择；实际模型见执行记录。",
+        "profile": "仅使用已验证的嵌入配置。",
+        "channel": "音频经服务端转写通道处理；服务端连不上时自动改用本机 Whisper。"
+      },
+      "title": "服务端托管",
+      "mode": "自动选择",
+      "intro": "服务端自动选择文本模型；实际模型见执行记录。语义索引仅使用已验证的嵌入配置。",
+      "local_available": "本机另有 {{count}} 个已安装模型，默认不显示。打开「显示完整设置」可以查看，并逐项指定用哪一个。"
+    },
+    "diarize_auto": "自动使用（按会议语言选档，不用分配）",
+    "pause": "暂停",
+    "resume_from": "继续下载（已下 {{value}}）",
+    "coreml": {
+      "label": "CoreML 加速",
+      "not_installed": "未启用 · 需下载编码器 {{size}}",
+      "needs_weights": "先安装这一档的权重，再启用加速",
+      "hint": "首次启用需要为这台设备准备几分钟，期间照常转写；失败会自动改用原方式。",
+      "downloading": "正在下载编码器 {{done}} / {{total}}",
+      "extracting": "正在解压…",
+      "compiling": "正在为神经引擎编译（首次，通常 1–3 分钟）… 已 {{seconds}} 秒",
+      "installed": "已启用（编码器由神经引擎执行）",
+      "failed": "这台设备上启用失败，已自动回落到 Metal / CPU。",
+      "enable": "启用",
+      "retry": "重试",
+      "disable": "停用"
+    },
+    "library": {
+      "summary": "已装 {{count}} 个 · 占用 {{size}}",
+      "hint": "下载和删除本机模型，查看模型目录与存放位置。",
+      "usage_hint": "执行位置、用量与估算，仅保存在本机。"
+    },
+    "pricing_title": "估算参考单价",
+    "pricing_hint": "仅用于估算，不是账单；留空不估算。",
+    "local_engine": {
+      "title": "本地推理引擎",
+      "state_label": "状态",
+      "build_label": "引擎版本",
+      "failure_label": "最近一次问题",
+      "state": {
+        "stopped": "未运行",
+        "starting": "正在启动",
+        "ready": "就绪",
+        "restarting": "意外退出，正在重启（已连续失败 {{count}} 次）",
+        "tripped": "连续启动失败，已停止自动重启"
+      },
+      "failure": {
+        "spawn": "引擎无法启动",
+        "start_timeout": "启动超时",
+        "exited": "引擎进程意外退出",
+        "unresponsive": "引擎无响应",
+        "compute_error": "计算出错（GPU）",
+        "corrupt_model": "模型文件损坏，请删除后重新下载",
+        "bad_arguments": "引擎拒绝了启动参数"
+      },
+      "loaded_label": "已加载",
+      "loaded": "{{name}} · 上下文 {{tokens}}",
+      "loaded_degraded": "{{name}} · 上下文 {{tokens}}（内存不足，已缩减）",
+      "refused_label": "内存不足，未加载",
+      "refused": "{{name}}：至少需要约 {{need}}，当前只能给 {{budget}}",
+      "refused_unknown": "{{name}}：无法估算所需内存，为安全起见未加载",
+      "restart": "重新启动",
+      "idle_hint": "安装或导入本地文本模型后自动启动。",
+      "import_file": "导入 .gguf 文件…",
+      "importing": "正在导入…",
+      "import_hint": "选择本地 GGUF 模型文件；导入后显示识别结果。",
+      "row_catalog_match": "{{size}} · 即目录里的「{{name}}」",
+      "import_installed": "已装"
+    },
+    "update_available": "有更新",
+    "update": "更新（{{value}}）",
+    "hf_import": {
+      "title": "从 Hugging Face 添加",
+      "hint": "输入模型仓库，如 owner/name。",
+      "placeholder": "owner/name",
+      "list": "查看文件",
+      "revision_label": "版本",
+      "revision": "{{revision}} · 许可：{{license}}",
+      "license_unknown": "未登记",
+      "empty": "这个仓库里没有可用的 GGUF 文件。",
+      "download": "下载并导入",
+      "downloading": "下载中 {{percent}}%"
+    },
+    "download_source": "模型下载来源",
+    "download_source_desc": "下载本机模型时先试哪一家。首选那家连不上会自动换另一家；在中国大陆选 ModelScope 通常更快。",
+    "technical_details": "技术详情",
+    "technical_details_for": "{{name}} · 技术详情",
+    "execution_policy": "查看执行策略",
+    "copy_digest": "复制摘要"
+  },
+  "recording": {
+    "input_device": "音频输入设备",
+    "input_device_aliases": "麦克风 话筒 声卡 输入设备",
+    "input_device_default": "跟随系统默认",
+    "capture_source": "声音来源",
+    "separate_translation": "独立译文窗口",
+    "vad_sensitivity": "语音检测灵敏度",
+    "waveform_fps": "波形刷新帧率",
+    "input_device_desc": "“系统默认”跟随系统麦克风设置。",
+    "capture_source_desc": "同时采集时，麦克风与系统声音分轨保存。",
+    "separate_translation_desc": "在单独的可移动窗口中显示录音译文。",
+    "vad_sensitivity_desc": "越高越少漏检，也更易误判噪声；下一次音频会话生效。",
+    "vad_engine": "语音检测引擎",
+    "vad_engine_desc": "缺少 Silero 时使用能量检测；下一次音频会话生效。",
+    "disk_warn_gib": "磁盘预警阈值",
+    "disk_warn_gib_desc": "剩余空间低于阈值时提醒，进一步不足时停止录音以保留已录内容。",
+    "rolling_split_gib": "自动切分上限",
+    "rolling_split_gib_desc": "单个录音文件达到此大小就自动切成下一段，长时间录音更安全。",
+    "waveform_fps_desc": "录音波形每秒重绘的次数；调低更省电。",
+    "distill_mode": "录音知识笔记",
+    "distill_mode_desc": "录音转写完成后，是否把它整理成一篇知识笔记存入笔记库。"
+  },
+  "realtime": {
+    "transcribe_enabled": "实时转写",
+    "translate_enabled": "实时转译",
+    "transcribe_lang": "实时识别语言",
+    "translate_target_lang": "转译目标语言",
+    "transcribe_enabled_desc": "录音时显示转写；关闭后仍在录音结束时转写。",
+    "translate_enabled_desc": "录音过程中把转写结果同步翻译。",
+    "transcribe_lang_desc": "设置录音与实时字幕的识别语言，多语言场景可使用自动检测。",
+    "translate_target_lang_desc": "与母语配对的外语：源语言是母语就译成它，否则译回母语。"
+  },
+  "transcribe": {
+    "lang": "转写语种",
+    "diarize_auto": "自动说话人区分",
+    "fetch_media": "链接导入媒体",
+    "fetch_tool_path": "yt-dlp 路径",
+    "fetch_proxy": "下载代理",
+    "lang_desc": "导入媒体的识别语种；与录音的实时设置各自独立。",
+    "diarize_auto_desc": "转写完成后自动区分说话人，缺少所需模型时跳过。",
+    "fetch_media_desc": "设置链接导入默认保留音频或视频，每次导入仍可单独选择。",
+    "fetch_tool_path_desc": "留空则自动查找（Homebrew / pipx / MacPorts / PATH）。装在别处时在此指定可执行文件。",
+    "fetch_proxy_desc": "下载网络视频时使用的代理，如 http://127.0.0.1:7890 或 socks5://127.0.0.1:1080；留空则不使用代理。",
+    "distill_mode": "转写知识笔记",
+    "distill_mode_desc": "媒体转写完成后，是否把它整理成一篇知识笔记存入笔记库。"
+  },
+  "caption": {
+    "capture_source": "声音来源",
+    "translation_enabled": "实时翻译",
+    "font_size": "字幕字号",
+    "text_color": "字幕文字颜色",
+    "max_lines": "同屏行数",
+    "separate_translation": "独立译文窗口",
+    "text_opacity": "文字衬底不透明度",
+    "frame_opacity": "背景浓淡",
+    "capture_source_desc": "设置实时字幕使用的麦克风、系统声音或两者，下一次会话生效。",
+    "translation_enabled_desc": "字幕在原文下方同步显示译文。",
+    "font_size_desc": "悬浮字幕的文字大小。",
+    "max_lines_desc": "限制字幕窗口同时显示的行数，超过时自动滚动。",
+    "text_opacity_desc": "文字背景深浅，0 为无背景。",
+    "frame_opacity_desc": "字幕面板背景；0 为只显示最新一句的透明模式。",
+    "text_color_desc": "设置沉浸或透明模式下的字幕文字颜色。",
+    "separate_translation_desc": "在单独的可移动窗口显示译文，原文窗口仅显示原文。",
+    "show_source": "翻译时也显示原文",
+    "show_source_desc": "关掉即只看译文（看外语影片时的电影字幕式）。字幕浮层工具条里的「原文 / 双语 / 译文」是同一个值。",
+    "translation_first": "译文在上",
+    "translation_first_desc": "双语时译文在上、原文在下且小一号，与电影双语字幕的排法相同。"
+  },
+  "glossary": {
+    "indexedColumn": "{{column}}{{index}}",
+    "title": "个人词典",
+    "loading": "加载中…",
+    "saving": "已保存",
+    "add": "新增词条",
+    "addFirst": "添加第一个术语",
+    "remove": "删除",
+    "empty": "为常被识别错的人名和术语提供推荐写法；实际效果取决于模型。",
+    "exampleLabel": "示例",
+    "example": "期望写法：「卢纳卡」改为「Lunarca」",
+    "scope_summary": "哪些功能会用到",
+    "scope": "用于语音输入、转写、字幕及翻译的识别与译名纠正，效果取决于模型。",
+    "search": "搜索词条…",
+    "searchEmpty": "没有匹配「{{query}}」的词条",
+    "import": "批量导入",
+    "importHint": "TXT / CSV / TSV；每行“原写法,正确写法”或单个词。",
+    "importResult": "已导入 {{imported}} 条，跳过 {{skipped}} 条（重复/无效）",
+    "importFailed": "导入失败：{{error}}",
+    "col": {
+      "term": "原写法",
+      "canonical": "正确写法",
+      "actions": "操作"
+    },
+    "placeholder": {
+      "term": "例: luna、王强、k8s",
+      "canonical": "例: Lunarca、王强、Kubernetes"
+    },
+    "quickAdd": {
+      "menu": "添加到个人词典：「{{term}}」",
+      "title": "添加到个人词典",
+      "desc": "用于识别与转写纠正，效果取决于模型。",
+      "save": "保存",
+      "saving": "保存中…",
+      "cancel": "取消",
+      "replaced": "已更新，原对应「{{previous}}」。"
+    }
+  },
+  "degradation": {
+    "green_max_rtf": "流畅档 RTF 上限",
+    "yellow_max_rtf": "警戒档 RTF 上限",
+    "orange_max_rtf": "降级档 RTF 上限",
+    "green_max_rtf_desc": "实时转写耗时占音频时长的比例低于此值即为流畅档；一般无需调整。",
+    "yellow_max_rtf_desc": "超过流畅档但低于此值时，降低窗口密度以保住实时性。",
+    "orange_max_rtf_desc": "超过此值改为录完后转写。"
+  },
+  "diarize": {
+    "cluster_threshold": "说话人聚类阈值",
+    "cluster_threshold_desc": "调整声音相似度门槛，较低时更易拆分同一说话人，较高时更易合并不同说话人。"
+  },
+  "chat": {
+    "capture_selection": "前台选区引用",
+    "save_history": "新对话存档",
+    "grounding": "新对话知识检索",
+    "capture_selection_desc": "唤起对话时带入其他应用的选中文字，发送前可移除。",
+    "save_history_desc": "将新对话默认保存至笔记库；关闭后默认临时对话，仍可单独保存。",
+    "grounding_desc": "新对话默认检索笔记并引用来源，每次对话仍可单独关闭。",
+    "distill_mode": "对话知识笔记",
+    "distill_mode_desc": "对话结束（开始新对话时）后，是否把它整理成一篇知识笔记存入笔记库。"
+  },
+  "speech": {
+    "rate": "朗读语速",
+    "highlight": "跟读高亮",
+    "rate_desc": "100% 为常速。",
+    "highlight_desc": "朗读时高亮当前句并跟随滚动。"
+  },
+  "playback": {
+    "video_layout": "视频画面呈现方式",
+    "video_subtitles": "视频叠加字幕",
+    "subtitle_size": "视频字幕字号",
+    "video_layout_desc": "回放导入的视频时，画面与转写的排布方式。",
+    "video_subtitles_desc": "在视频底部显示当前句字幕，内容跟随原文、译文或双语回放设置。",
+    "subtitle_size_desc": "叠加在画面上的字幕大小。",
+    "background_video": "后台视频呈现",
+    "background_video_desc": "离开回放视图后仅保留声音或显示悬浮视频，声音持续播放。"
+  },
+  "path": {
+    "unset": "未设置",
+    "browse": "浏览…",
+    "use_default": "用默认位置",
+    "auto_detect": "自动查找"
+  },
+  "unit": {
+    "percent": "%",
+    "millisecond": " ms",
+    "fps": " fps",
+    "gibibyte": " GiB",
+    "second": " 秒",
+    "version": " 个版本",
+    "line": " 行",
+    "usd_per_minute": " 美元/分钟",
+    "usd_per_million_tokens": " 美元/百万 tok"
+  },
+  "error": {
+    "type": "取值类型不符，未保存。",
+    "option": "这不是该项的合法取值，未保存。",
+    "range": "超出允许范围（{{min}}–{{max}}），未保存。",
+    "duplicate_option": "同一项不能重复出现，未保存。",
+    "required_category": "写作入口和采集入口各要保留至少一个，未保存。",
+    "decimal": "请填一个允许范围内的数字。",
+    "path": "只接受库内相对路径（不能用绝对路径或 ..）。",
+    "filename_template": "命名模板不合法：只能用 {name}、{date}、{time}、{format}、{content} 五个占位，花括号要成对，不能含 / \\ : * ? \" < > | 这些字符，也不能为空。",
+    "shortcut": "这个组合不能作为快捷键：至少需要一个修饰键（⌘/⇧/⌥）加一个主键。",
+    "shortcut_reserved": "编辑键（如 ⌘C）只能用双击触发，否则会劫持系统复制粘贴。",
+    "shortcut_editor": "这是编辑器自己的快捷键（如 ⌘B 加粗、⌘F 查找），绑给别的命令会一次按键两边都响。",
+    "shortcut_key": "这个键录不了，换一个组合。",
+    "shortcut_conflict": "{{attempted}} 已被「{{detail}}」占用，换一个组合。",
+    "persist": "没能保存：设置文件写入失败，请检查磁盘空间与文件权限（{{detail}}）",
+    "unknown": "保存失败：{{detail}}",
+    "reset_stale": "设置或当前笔记库已改变，请重新查看恢复默认的范围。",
+    "text_too_long": "太长了，请删减一些再保存。"
+  },
+  "tools": {
+    "title": "从链接导入的组件",
+    "managed_scope": "Lunarca 只管理自己安装的副本，不会改动通过 Homebrew 等包管理器安装的版本。",
+    "yt_dlp_label": "yt-dlp",
+    "ffmpeg_label": "ffmpeg",
+    "yt_dlp_desc": "用于从链接下载媒体。",
+    "ffmpeg_desc": "合并音视频。",
+    "ffmpeg_why_manual": "FFmpeg 不发布官方可执行文件与校验和，所以 Lunarca 不代为下载，请用下面的方式自行安装。",
+    "copy_command": "复制命令",
+    "uninstall": "卸载",
+    "managed": "由 Lunarca 管理",
+    "version": "版本 {{version}}",
+    "state": {
+      "ready": "可用",
+      "missing": "未安装",
+      "optional": "未安装（可选）",
+      "timeout": "检测超时",
+      "broken": "无法运行",
+      "checking": "检测中",
+      "recommended": "建议安装",
+      "unavailable": "暂不可获取"
+    },
+    "set_path": "指定路径",
+    "auto_detect": "恢复自动查找",
+    "override_path": "手动指定：{{path}}",
+    "models_elsewhere": "模型在「本地模型」页下载与删除。",
+    "js_runtime_label": "JS 运行时（Deno / Node / Bun）",
+    "js_runtime_desc": "用于 YouTube 等站点的媒体下载。",
+    "js_runtime_why_manual": "Lunarca 可代装 Deno；也可以自行安装 Deno、Node 或 Bun 中的任意一个，Lunarca 按 Deno → Node → Bun 的顺序选用。",
+    "js_runtime_in_plan": "会随上方的 yt-dlp 一起安装。",
+    "install_how": "安装方法",
+    "check_update": "检查更新",
+    "checking_update": "正在检查…",
+    "up_to_date": "已是最新（{{version}}）",
+    "update_to": "更新到 {{version}}",
+    "update_hint": "不会自动更新。下载失败时可检查工具版本。",
+    "update_available": "上游已有新版 {{version}}",
+    "recheck_all": "重新检测",
+    "more_actions": "{{tool}} 的更多操作",
+    "install_with": "用 {{manager}} 安装",
+    "open_docs": "打开官方安装说明",
+    "after_install": "安装后点击「重新检测」，无需重启。",
+    "copied": "已复制到剪贴板",
+    "js_runtime_install_failed": "yt-dlp 已装好，但 JS 运行时没能装上：{{reason}} 可稍后重试，或按下面的说明自己装一个。",
+    "manual_install": "自行安装…",
+    "install_method": "查看安装方法",
+    "ffmpeg_missing": "未安装时视频最高约 720p。",
+    "js_runtime_missing": "缺失时下载可能被站点拒绝。"
+  },
+  "excluded_paths": {
+    "label": "排除的路径",
+    "hint": "已排除的内容不参与检索与自动建议。在文件树里右键文件夹或笔记即可排除。",
+    "scope_summary": "作用范围",
+    "scope": "被排除的文件夹和笔记不出现在搜索、快速切换器、图谱、语义索引和知识库的自动候选里，其中的附件也不会被列为未被引用；链接照常维护，改名时里面的链接照样会更新。",
+    "none": "还没有排除任何路径。",
+    "remove": "取消排除",
+    "remove_label": "取消排除「{{path}}」"
+  },
+  "orphan_assets": {
+    "label": "未被引用的附件",
+    "hint": "查找未被笔记引用的附件，选择后移走。",
+    "scope_summary": "哪些不算未被引用",
+    "scope": "回收站里的笔记和历史版本引用的附件不算未被引用——还原之后图片和文件不会断。",
+    "scan": "查找",
+    "rescan": "重新查找",
+    "scanning": "正在查找…",
+    "none": "没有未被引用的附件。",
+    "summary": "共 {{n}} 个，合计 {{size}}",
+    "select_all": "全选",
+    "remove": "移走所选（{{n}} 个）",
+    "remove_confirm": "移走",
+    "confirm_title": "移走 {{n}} 个未被引用的附件？",
+    "confirm_desc": "合计 {{size}}。{{consequence}}",
+    "removed": "已移走 {{n}} 个。",
+    "kept": "{{n}} 个在列出之后被笔记引用，已保留。",
+    "failed": "{{n}} 个没能移走。"
+  },
+  "vault_index": {
+    "label": "笔记索引",
+    "hint": "更新列表与搜索索引，不修改笔记。",
+    "rebuild": "重建索引",
+    "running": "正在索引…{{indexed}} / {{total}}",
+    "done": "索引已更新，本次处理 {{count}} 篇",
+    "cancel": "取消",
+    "cancelled": "已取消。已处理的部分有效，下次打开库会接着比对。"
+  },
+  "semantic": {
+    "label": "语义索引",
+    "indexed": "已索引",
+    "pending": "待索引",
+    "memory": "常驻内存",
+    "notesChunks": "{{notes}} 篇 · {{chunks}} 段",
+    "notLoaded": "尚未载入",
+    "build": "建立索引（{{count}} 篇）",
+    "eta": "预计还要 {{eta}}",
+    "etaSeconds": "{{count}} 秒",
+    "etaMinutes": "约 {{count}} 分钟",
+    "etaHours": "约 {{count}} 小时",
+    "allFresh": "全部笔记的语义索引都已是最新。",
+    "standardReady": "语义检索已就绪。",
+    "standardPending": "检索可用，{{count}} 篇待补齐索引。",
+    "emptyNotes": "另有 {{count}} 篇没有可嵌入的内容（空笔记 / 只有标题），不参与建库。",
+    "progress": "正在建库：{{done}} / {{total}} 篇 · {{chunks}} 段",
+    "progressFailed": " · {{count}} 篇失败",
+    "cancel": "取消",
+    "disabledHint": "已关闭语义检索，仍可按关键词搜索。",
+    "noModel": "尚未选择嵌入模型",
+    "missingModel": "「{{model}}」还没下载",
+    "missingWhy": "语义检索需要一个本地嵌入模型。到「本地模型」页一键下载，下载后在本机运行，不需要另装任何东西。",
+    "recheck": "重新检查",
+    "blocked": {
+      "no_model": "尚未分配嵌入模型",
+      "no_model_hint": "到「AI 服务 › 模型分配」为「默认嵌入模型」选择一个已就绪的模型。",
+      "unsupported_model": "「{{model}}」尚未通过 Lunarca 审核",
+      "unsupported_model_hint": "语义索引只接受经过审核的嵌入 profile；请在模型分配里改选受支持的模型。",
+      "profile_unverified": "「{{model}}」的基准验收还没通过",
+      "profile_unverified_hint": "该模型的检索质量与分块策略尚未在本机基准上验证，暂不能用于生产索引；请先改用已验证的模型。",
+      "server_unavailable": "服务端嵌入此刻不可用",
+      "server_unavailable_hint": "确认账户已登录、服务端可达后点「重新检查」。"
+    },
+    "currentModel": "当前嵌入模型：{{model}}",
+    "openAssignment": "前往模型分配",
+    "openModels": "去下载"
+  },
+  "compute": {},
+  "trust": {
+    "title": "服务端身份",
+    "key_lease": "离线许可签名公钥",
+    "key_catalog": "模型目录签名公钥",
+    "deployment_id": "部署标识：{{id}}（仅供参考，不参与身份判定）",
+    "pinned_label": "已核验（{{when}}，来自{{how}}）",
+    "pinned_summary": "已核验，{{when}}（{{how}}）。",
+    "show_keys": "查看公钥",
+    "offered_label": "这台服务端此刻自报的公钥",
+    "provenance": {
+      "imported": "组织配置文件",
+      "tofu": "首次连接时确认",
+      "password": "用你的密码登录时核验",
+      "rotated": "服务端轮换密钥后自动更新"
+    },
+    "unpinned": "还没有核验过这台服务器的身份。登录时会自动核对并记下。",
+    "official": "这是 Lunarca 云：它的身份由应用内置的信任担保，不需要你核对。",
+    "bypassed": "环境变量 LUNARCA_LEASE_PUBKEY / LUNARCA_CATALOG_PUBKEY 已设置，签名校验使用它们，身份核验整体跳过。这是开发排障用法，生产环境不要设置这两个变量。",
+    "changed_title": "这台服务端的签名公钥已变更，连接已暂停",
+    "changed_body": "它自报的公钥与此前核验的不一致。这可能是管理员合法更换了密钥，也可能有人在冒充这台服务端。在你确认之前，Lunarca 仍只使用此前核验的公钥。",
+    "repin_consequences": "确认后即认定这是一台新身份的服务端：该服务端的目录缓存与防回滚记录会被清空，登录凭据会被清除，需要重新登录。合法重新部署时这些本就需要重来。",
+    "confirm_change": "我已核对新公钥，确认变更",
+    "import": "导入组织配置文件",
+    "import_hint": "管理员发了组织配置文件（.json）时用它：导入后核对并钉住这台服务器的身份，登录表单随即选中它。",
+    "import_ok": "已导入并核验 {{server}}。",
+    "import_needs_confirmation": "这份文件里的公钥与此前核验的不一致，尚未改动任何设置。请在上方核对后确认。",
+    "tls_root_pinned": "文件中的根证书已只为这台服务端启用，无需装入系统信任库。",
+    "tls_root_absent": "这份文件不包含根证书。若服务端使用自签证书，请改用管理员给的连接链接。",
+    "tls_root_invalid": "文件里的根证书无法解析，未启用。请向管理员重新导出配置文件。",
+    "import_error": {
+      "TRUST_FILE_UNREADABLE": "无法读取这个文件，请检查路径与权限。",
+      "TRUST_FILE_MALFORMED": "这份文件不完整或不是有效的 JSON，请向管理员重新索取。",
+      "TRUST_FILE_NOT_ORG_CONFIG": "这不是 Lunarca 组织配置文件，请确认选择的文件。",
+      "TRUST_FILE_UNSUPPORTED_VERSION": "这份配置文件的格式比当前版本新，请先更新 Lunarca。",
+      "TRUST_FILE_BAD_SERVER_URL": "文件中的服务端地址无效（应形如 https://主机:端口），请向管理员核对。",
+      "TRUST_FILE_BAD_PUBKEY": "文件中的签名公钥无效，请向管理员重新索取。",
+      "TRUST_CREDENTIAL_CLEAR_FAILED": "清除旧登录凭据失败。请解锁系统钥匙串后重试。",
+      "TRUST_CLOUD_UNAVAILABLE": "本版本未包含云客户端。"
+    },
+    "probe_error": {
+      "network": "上次未能取回这台服务端的公钥：连不上。",
+      "server_error": "上次未能取回这台服务端的公钥：它没有提供公钥端点（服务端版本较旧，或被反向代理拦截）。",
+      "invalid_endpoint": "上次未能取回公钥：服务端地址无效。",
+      "malformed": "上次取回的公钥无法解析，请确认客户端与服务端版本一致。",
+      "unsupported_format": "这台服务端的身份格式比当前版本新，请先更新 Lunarca。",
+      "rate_limited": "请求过于频繁，请稍后再测试连接。",
+      "strict_local": "严格本地模式下不会联网取回公钥。",
+      "unknown": "上次未能取回这台服务端的公钥。"
+    },
+    "cancel": "取消"
+  },
+  "knowledge": {
+    "ingest_mode": "主题页归入方式",
+    "ingest_mode_desc": "为相关主题准备补充建议；证据页确认后写入，旧格式主题自动补充。",
+    "semantic": "语义检索",
+    "semantic_desc": "按语义补充关键词检索，缺少本地嵌入模型时使用关键词检索。",
+    "checkup_reminder": "深度体检提醒",
+    "checkup_reminder_desc": "每两周提醒检查知识库，不自动运行 AI。"
+  },
+  "workspace.quick_start_actions": "内容入口布局",
+  "workspace.quick_start_actions_desc": "调整添加内容的顺序与快速开始快捷项，至少保留一项写作和一项导入入口，功能与权限不变。",
+  "workspace.rail_layout": "活动栏布局",
+  "workspace.rail_layout_desc": "调整空间顺序与显隐，笔记和知识库始终显示，隐藏空间仍可通过快捷键、命令和深链访问。",
+  "creator.board_stages": "创作看板的列",
+  "creator.board_stages_desc": "看板上显示哪些阶段、按什么顺序排；至少保留一列。收起的列里的项目暂时显示在它前面的列中。",
+  "creator.board_view": "创作看板的视图",
+  "creator.board_view_desc": "看板按阶段分列，列表按阶段分组，表格一行一个项目，日历按计划发布日期排。",
+  "creator.channel_voice": "我的频道风格",
+  "creator.channel_voice_desc": "用一两句话写你的频道和说话方式（比如「面向程序员，说话直接，爱用比喻」）。生成章节、发布包装、分发和脚本改稿时会作为参考带给 AI；不写就不带。存在这个库里，换设备也在。",
+  "orderedToggleList.moveUp": "把「{{label}}」上移",
+  "orderedToggleList.moveDown": "把「{{label}}」下移",
+  "orderedToggleList.toggle": "显示「{{label}}」",
+  "orderedToggleList.locked": "「{{label}}」是锚点，始终显示",
+  "orderedToggleList.moved": "「{{label}}」现在排第 {{position}} / 共 {{total}} 项",
+  "orderedToggleList.shown": "「{{label}}」已显示",
+  "orderedToggleList.hidden": "「{{label}}」已收起",
+  "orderedToggleList.atMinimum": "至少保留 {{count}} 项",
+  "orderedMultiSelect.moveUp": "把「{{label}}」上移",
+  "orderedMultiSelect.moveDown": "把「{{label}}」下移",
+  "orderedMultiSelect.toggle": "选用「{{label}}」",
+  "orderedMultiSelect.moved": "「{{label}}」现在排第 {{position}} / 共 {{total}} 项",
+  "orderedMultiSelect.added": "已添加「{{label}}」，排第 {{position}} / 共 {{total}} 项",
+  "orderedMultiSelect.removed": "已移除「{{label}}」，还剩 {{total}} 项",
+  "option.workspace.quick_start_actions.text_quick_note": "文字速记",
+  "option.workspace.quick_start_actions.voice_quick_note": "语音速记",
+  "option.workspace.quick_start_actions.new_note": "新建笔记",
+  "option.workspace.quick_start_actions.start_recording": "开始录音",
+  "option.workspace.quick_start_actions.import_material": "导入资料",
+  "privacy.local_workspace_metrics": "本机工作区统计",
+  "privacy.local_workspace_metrics_desc": "仅在本机汇总，不含内容、路径或身份，不上传。",
+  "workspace_metrics": {
+    "title": "本地工作区改进记录",
+    "window": "{{start}} 至 {{end}}（本机保留最近 {{retention}} 天）",
+    "empty": "还没有可看的记录。",
+    "disabled": "未开启本机工作区统计。",
+    "visits": "到访 {{count}} 次",
+    "times": "{{count}} 次",
+    "settled": "转为正式笔记",
+    "materialImport": "导入内容可检索",
+    "shortWithoutAction": "短停留未操作",
+    "tooFewSamples": "样本不足 {{count}} 条，暂不给比例",
+    "export": "导出…",
+    "exported": "已导出 {{count}} 行。",
+    "clear": "清除",
+    "cancel": "取消",
+    "clear_title": "清除本机的工作区记录？",
+    "clear_desc": "这台设备上记下的到访与创建汇总将被删除，此操作不可撤销。它与「本地知识库改进情况」是两份独立数据，那一份不受影响。",
+    "cleared": "本机的工作区记录已清除。",
+    "surface": {
+      "search": "搜索",
+      "notes": "笔记",
+      "knowledge_topics": "知识库 › 主题页",
+      "knowledge_tags": "知识库 › 标签",
+      "knowledge_network": "知识库 › 知识网络",
+      "quick_notes": "速记",
+      "recordings": "录音",
+      "transcripts": "转写",
+      "chat": "AI 对话",
+      "creator": "创作",
+      "apps": "应用",
+      "trash": "回收站",
+      "settings": "设置"
+    },
+    "action": {
+      "text_quick_note": "文字速记",
+      "voice_quick_note": "语音速记",
+      "new_note": "新建笔记",
+      "start_recording": "开始录音",
+      "import_material": "导入资料"
+    },
+    "entry": {
+      "add_content": "添加内容",
+      "quick_start": "快速开始",
+      "sidebar": "侧栏",
+      "status_bar": "状态栏",
+      "deep_link": "深链",
+      "shortcut": "快捷键",
+      "tray": "托盘菜单"
+    },
+    "status": {
+      "notifications": "通知抽屉",
+      "queue": "处理队列",
+      "usage": "用量与执行记录"
+    },
+    "unavailable": {
+      "storageUnavailable": "这台设备上暂时记不了也读不了这份记录。已经记下的内容没有被删除；稍后再试一次即可。",
+      "retry": "重试",
+      "schemaInvalid": "这份记录是更早或更新的版本写下的，我们不认识它的结构，因此既不读取、也不改动、更不会替你迁移。要继续记录，只能清除它并从现在重新开始——清除之后是一个新的观测周期，清除前后的数字不可以并排比较。",
+      "clearAndRebuild": "清除并重新开始"
+    },
+    "format": "导出格式",
+    "formatJson": "JSON",
+    "formatCsv": "CSV",
+    "show_setting": "查看统计开关"
+  },
+  "settings_io": {
+    "label": "设置备份与恢复",
+    "hint": "仅备份同版本设置，不含密钥。",
+    "scope_summary": "导出包含什么",
+    "scope": "导出为一份 TOML 文件，用于同版本备份或搬到另一台机器。密钥永远不导出；模型分配与内部状态也不在其中。导入只接受同版本的 Lunarca 导出文件。",
+    "preview_title": "将导入的改动",
+    "preview_summary": "将改动 {{count}} 项，{{unchanged}} 项相同；确认后写入。",
+    "preview_none": "文件里的设置与当前完全相同，无需导入。",
+    "confirm_import": "导入 {{count}} 项改动",
+    "plan_changed": "文件或当前设置刚刚变了，没有写入任何设置。请重新选择文件查看改动。",
+    "scope_device": "这台设备",
+    "scope_vault": "当前笔记库",
+    "include_vault": "包含当前笔记库设置",
+    "export": "导出…",
+    "import": "导入…",
+    "exported": "已导出到 {{path}}",
+    "imported": "已导入：设备级 {{device}} 项，库级 {{vault}} 项",
+    "rejected": "这份文件没有通过校验（版本不同、含未知键或非法取值），现有设置未改动。"
+  },
+  "footprint": {
+    "label": "数据足迹",
+    "hint": "查看本机数据位置与占用。笔记库仅展示，不在此删除。",
+    "loading": "正在统计…",
+    "refresh": "重新统计",
+    "count": "{{count}} 项",
+    "bytes_and_count": "{{bytes}} · {{count}} 项",
+    "cancel": "取消",
+    "uninstall_hint": "移除应用后，模型文件与钥匙串凭据仍保留；如需删除，可在此清理。",
+    "entry": {
+      "vault": "笔记库",
+      "vault_desc": "此处仅查看笔记、录音与附件，不提供删除。",
+      "vault_cache": "笔记库缓存",
+      "vault_cache_desc": "库内 .luna 目录里的派生索引与缓存，可随时重建；版本快照、边车与库级设置不在其中。",
+      "vault_trash": "回收站",
+      "vault_trash_desc": "从应用内删除的笔记，清空后不可恢复。",
+      "models": "本地模型",
+      "models_desc": "whisper / VAD / 说话人分离权重与 CoreML 工件。清除全部会先解除对它们的分配；捆绑模型不动。",
+      "app_config": "应用配置",
+      "app_config_desc": "设置文件、已知库清单与目录缓存。「重置应用」会先备份再恢复默认。",
+      "device_records": "本机记录",
+      "device_records_desc": "用量与通知历史、知识改进记录、工作区改进记录，各在自己的面板里清除。"
+    },
+    "action": {
+      "vault_cache": "清缓存…",
+      "vault_trash": "清空回收站…",
+      "models": "清除已下载模型…",
+      "reset": "重置应用…"
+    },
+    "confirm": {
+      "vault_cache_title": "清除笔记库缓存并重建索引？",
+      "vault_cache": "只删派生索引与缓存，随后自动重新扫描；笔记、快照与库级设置不受影响。",
+      "vault_cache_action": "清缓存",
+      "vault_trash_title": "清空回收站？",
+      "vault_trash": "回收站里的笔记与附件会被永久删除，不可恢复。",
+      "vault_trash_action": "清空",
+      "models_title": "删除已下载的本地模型？",
+      "models": "已下载模型与对应 CoreML 工件会被永久删除，内置模型保留；被分配的槽位回到设备策略。需要这些模型时须重新下载。",
+      "models_action": "全部删除",
+      "reset_title": "重置应用？",
+      "reset": "设备级设置全部恢复默认（旧配置会先备份到同目录），并清应用缓存与启动诊断；笔记库、模型、凭据与本机记录都不受影响。完成后应用会重启。",
+      "reset_action": "重置并重启"
+    },
+    "done": {
+      "vault_cache": "已清缓存，正在重建索引",
+      "vault_trash": "已清空回收站",
+      "models": "已删除 {{count}} 个模型",
+      "reset": "已重置，旧配置备份在 {{path}}；正在重启…",
+      "reset_no_backup": "已重置；正在重启…"
+    },
+    "locations": "数据位置",
+    "uninstall_title": "卸载后的数据保留",
+    "impact": {
+      "vault_cache": "清除后重建索引，笔记保留。",
+      "vault_trash": "永久删除，无法恢复。",
+      "models": "删除已下载模型，内置模型保留。"
+    }
+  },
+  "export": {
+    "utf8_bom": "字幕 UTF-8 BOM",
+    "utf8_bom_desc": "为导出的 SRT 和 VTT 写入 BOM，以支持需要该标记的旧播放器。",
+    "filename_template": "导出文件名模板",
+    "filename_template_desc": "可用 {name}、{date}、{time}、{format}、{content}；重名时追加序号，不覆盖已有文件。",
+    "preview": "示例：{{name}}",
+    "preview_sample_name": "会议记录"
+  },
+  "group_aliases": {
+    "shortcuts": "热键 按键 组合键 快捷方式",
+    "glossary": "词典 术语 专有名词 人名 缩写 纠错 glossary",
+    "privacy": "隐私 存储 磁盘 空间 数据 足迹 断网",
+    "ai_services": "算力 运行位置 云 组织 服务端 连接",
+    "local_models": "模型 引擎 下载 安装 本地模型",
+    "voice_input": "语音 口述 听写 朗读 TTS",
+    "recording": "录音 会议 转写 字幕 会议记录",
+    "translate": "翻译 字幕 划词 取词",
+    "notes": "笔记 编辑器 写作 对话 知识库",
+    "general": "语言 通知 启动 概览 备份",
+    "appearance": "外观 主题 配色 字号 辅助功能 界面",
+    "account": "登录 订阅 设备 账号"
+  },
+  "self_check": {
+    "action": "验证执行",
+    "running": "正在验证…",
+    "ok": "验证通过：{{executor}}，{{ms}} 毫秒；已保存执行记录。",
+    "failed": "验证失败：{{reason}}",
+    "unknown_executor": "当前执行位置",
+    "hint": "执行最小任务以验证当前 AI 服务。"
+  },
+  "sync": {
+    "recordings_mode": "录音同步方式",
+    "recordings_mode_desc": "别的设备录的音怎么到这台设备。笔记与转写稿不受影响，总是同步。",
+    "recordings_mode_aliases": "录音 音频 按需 仅云端 下载 占用空间",
+    "pause_large_on_metered": "按流量计费的网络上暂停大文件",
+    "pause_large_on_metered_desc": "连着手机热点等按流量计费的网络时，录音等大文件先不传，笔记照常同步。",
+    "pause_large_on_metered_aliases": "热点 流量 蜂窝 省流量",
+    "pause_large_on_battery": "电量低时暂停大文件",
+    "pause_large_on_battery_desc": "低电量模式（Windows 上是节电模式）或电量低于 20% 时，录音等大文件先不传，笔记照常同步。",
+    "pause_large_on_battery_aliases": "电池 省电 低电量"
+  },
+  "update": {
+    "policy": "应用更新",
+    "policy_desc": "「启动时检查」每次启动后联网到 lunarca.app 查一次有没有新版本；「仅手动」只在你点「检查更新」时联网。开着「严格本地」时一律不检查。"
+  },
+  "app_release": {
+    "title": "关于与更新",
+    "description": "当前版本，以及从官网获取新版本。更新包经发布者签名校验，校验不过不会安装。",
+    "version": "当前版本 {{version}}",
+    "ask_title": "要在启动时自动检查更新吗？",
+    "ask_body": "开启后，每次启动 Lunarca 会联网到 lunarca.app 查一次有没有新版本，有就提醒你，装不装由你决定；只取版本清单，不发送你的任何数据。不开启的话，只在你点「检查更新」时联网。之后可以在下面的「应用更新」里随时改。",
+    "ask_enable": "启动时检查",
+    "ask_decline": "暂不，仅手动",
+    "check": "检查更新",
+    "checking": "正在检查…",
+    "up_to_date": "已是最新版本。",
+    "available": "有新版本 {{version}}",
+    "notes": "发布说明",
+    "install": "下载并安装",
+    "installing": "正在下载并安装，完成后会自动重启…",
+    "error": {
+      "strict_local_blocked": "已开启「严格本地」，不会联网检查更新。",
+      "update_unavailable": "这个版本没有接入更新通道。",
+      "update_check_failed": "暂时连不上更新服务器，请稍后再试。",
+      "no_pending_update": "请先检查更新。",
+      "update_install_failed": "下载或校验没有通过，没有安装。当前版本照常可用。",
+      "unknown": "检查更新没有完成，请稍后再试。"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "_comment": ["语音速记提炼（quick_note 域）：只回 JSON，日期按 today 解析。"],
+  "scope": "quick_note",
+  "template": "refine",
+  "cases": [
+    {
+      "name": "JSON 形状与 today 都在场",
+      "vars": { "today": "2026-09-05" },
+      "must_contain": ["\"title\"", "\"todos\"", "\"dates\"", "today = 2026-09-05", "ONLY one JSON object"],
+      "why": "解析器按这三个键读；相对日期没有 today 就无从解析"
+    }
+  ]
+}

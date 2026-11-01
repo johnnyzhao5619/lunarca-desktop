@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-billing-checkout"
+description = "Enables the billing_checkout command without any pre-configured scope."
+commands.allow = ["billing_checkout"]
+
+[[permission]]
+identifier = "deny-billing-checkout"
+description = "Denies the billing_checkout command without any pre-configured scope."
+commands.deny = ["billing_checkout"]

@@ -1,0 +1,191 @@
+/**
+ * 账户页「云同步」一节与它的开启 / 加入向导（`SyncSection.tsx`、`SyncSetupDialog.tsx`）。
+ * 外壳一律复用 `.luna-settings-panel__*` 与 `.luna-dialog*`；这里只放这两处独有的零件。
+ */
+
+/* 向导比确认卡宽一档：说明三条与云端库清单要放得下，不挤成窄条。 */
+.cloud-sync__dialog {
+  inline-size: min(34rem, calc(100vw - var(--space-7)));
+}
+
+.cloud-sync__body {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.cloud-sync__points {
+  display: grid;
+  gap: var(--space-1-5);
+  margin: var(--space-0);
+  padding-inline-start: var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.cloud-sync__choices {
+  display: grid;
+  gap: var(--space-1-5);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  border: none;
+}
+
+
+.cloud-sync__choice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+
+.cloud-sync__label {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+
+
+
+/* 时间点恢复的落点：标签、路径（长路径可断行）、「换个位置」同处一行。 */
+.cloud-sync__destination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.cloud-sync__destination-path {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* 库名与「当前打开」徽标同处一行：徽标是名字的限定语，不该换行读作独立一项。 */
+.cloud-sync__vault-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* ── 每个库一行（ADR-151 / 152）──────────────────────────────────────────────
+   分层而不是一行堆满：第一行名字 + 当前打开 + 状态标签；第二行大小与时间；第三行路径；
+   之后才是提示与动作。开关贴着第一行，而不是在多行内容的正中间漂着。 */
+.cloud-sync__vault {
+  align-items: start;
+}
+
+.cloud-sync__meta {
+  margin: var(--space-0);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-base);
+}
+
+/* 路径单独一行、最淡、超长省略（完整路径在悬停提示里）。 */
+.cloud-sync__path {
+  margin: var(--space-0);
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 状态标签：按色调取状态 Token，与徽标同形（圆角、小号、常规字重）。 */
+.cloud-sync__status {
+  padding: var(--space-0) var(--space-1-5);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+}
+
+.cloud-sync__status[data-tone="success"] {
+  background: var(--color-status-success-surface);
+  color: var(--color-status-success);
+}
+
+.cloud-sync__status[data-tone="active"] {
+  background: var(--color-accent-surface);
+  color: var(--color-accent-strong);
+}
+
+.cloud-sync__status[data-tone="muted"] {
+  background: var(--color-status-muted-surface);
+  color: var(--color-status-muted);
+}
+
+.cloud-sync__status[data-tone="warning"] {
+  background: var(--color-status-warning-surface);
+  color: var(--color-status-warning);
+}
+
+.cloud-sync__status[data-tone="error"] {
+  background: var(--color-status-error-surface);
+  color: var(--color-status-error);
+}
+
+/* 提示：同一形状（左侧色条 + 浅底），色调同状态标签；本节与向导共用。 */
+.cloud-sync__notice {
+  margin: var(--space-0);
+  padding: var(--space-1-5) var(--space-2-5);
+  border-inline-start: var(--border-width-thick) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-base);
+}
+
+.cloud-sync__notice[data-tone="warning"] {
+  border-inline-start-color: var(--color-status-warning);
+  background: var(--color-status-warning-surface);
+  color: var(--color-text-primary);
+}
+
+.cloud-sync__notice[data-tone="error"] {
+  border-inline-start-color: var(--color-status-error);
+  background: var(--color-status-error-surface);
+  color: var(--color-text-primary);
+}
+
+/* ── 账户容量卡片（ADR-152）────────────────────────────────────────────────
+   标题与「已用 / 上限」同一行，进度条占满整行，说明在下——与系统设置的存储条同形。 */
+.cloud-sync__card {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+}
+
+.cloud-sync__card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.cloud-sync__card-title {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.cloud-sync__card-value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.cloud-sync__card-bar {
+  block-size: var(--space-2);
+}
+

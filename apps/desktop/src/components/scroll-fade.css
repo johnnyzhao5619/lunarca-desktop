@@ -1,0 +1,25 @@
+/*
+ * 滚动区两端渐隐（`.luna-scroll-fade`）：隐藏滚动条的窄区、或滚动条不显眼的空态里，「上面 /
+ * 下面还有」的唯一提示。属性由 `useScrollEdges`（`lib/scroll-edges.ts`）按「还有没有」给，
+ * 放得下时两条属性都不在、不加遮罩。
+ *
+ * 此前活动栏放不下的空间、长空态被裁在半句的说明，都既看不见也没有任何提示（真机 2026-10-06，
+ * 960×640、150% 字号）。
+ */
+.luna-scroll-fade[data-scroll-end] {
+  mask-image: linear-gradient(to bottom, black calc(var(--size-full) - var(--space-7)), transparent);
+}
+
+.luna-scroll-fade[data-scroll-start] {
+  mask-image: linear-gradient(to top, black calc(var(--size-full) - var(--space-7)), transparent);
+}
+
+.luna-scroll-fade[data-scroll-start][data-scroll-end] {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black var(--space-7),
+    black calc(var(--size-full) - var(--space-7)),
+    transparent
+  );
+}

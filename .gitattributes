@@ -1,0 +1,3 @@
+# 工作树一律 LF，与平台的 core.autocrlf 无关：Git for Windows 默认 autocrlf=true，
+# 检出成 CRLF 后，按 `\n` 读源码的门禁与测试会在 Windows 上整批误红。
+* text=auto eol=lf

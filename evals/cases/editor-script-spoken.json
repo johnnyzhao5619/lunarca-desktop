@@ -1,0 +1,37 @@
+{
+  "_comment": [
+    "视频脚本改稿动作「script.spoken」（PRD-19-013/014，ADR-162）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "editor",
+  "template": "creator.script.spoken",
+  "cases": [
+    {
+      "name": "改成口语：保留事实、改掉书面结构",
+      "vars": {
+        "language_lock": "The output must stay in Chinese.",
+        "context": ""
+      },
+      "must_contain": [
+        "sounds natural when spoken",
+        "Keep every fact",
+        "must stay in Chinese",
+        "Output only"
+      ],
+      "why": "口语化不是改内容；丢了这句模型会把段落改写成另一篇"
+    },
+    {
+      "name": "标记与 broll 块原样保留",
+      "vars": {
+        "language_lock": "The output must stay in English.",
+        "context": ""
+      },
+      "must_contain": [
+        "`broll` code blocks",
+        "[口播]",
+        "exactly as they are"
+      ],
+      "why": "改稿若吃掉 broll 块或行首标记，脚本的分段时长与画面清单就全乱了（PRD-19-010）"
+    }
+  ]
+}

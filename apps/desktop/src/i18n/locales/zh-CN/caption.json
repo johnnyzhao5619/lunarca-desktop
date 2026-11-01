@@ -1,0 +1,64 @@
+{
+  "title": "实时字幕",
+  "translationTitle": "译文字幕",
+  "status": {
+    "idle": "$t(common:hud.status.idle)",
+    "listening": "$t(common:hud.status.listening)",
+    "stopping": "正在停止…",
+    "paused": "已暂停",
+    "error": "出错了"
+  },
+  "panel": {
+    "idle": "点击「开始」，实时字幕会显示在这里。",
+    "waiting": "聆听中，字幕将随声音实时出现……",
+    "idleTranslation": "译文会显示在这里。",
+    "waitingTranslation": "聆听中，译文将随句出现……"
+  },
+  "option": {
+    "target": "目标语言",
+    "source": "转写语言"
+  },
+  "source": {
+    "dualAuto": "双路各自自动检测",
+    "nextSession": "字幕进行中，停止后才能换声音来源"
+  },
+  "action": {
+    "start": "$t(common:hud.action.start)",
+    "stop": "$t(common:hud.action.stop)",
+    "stopping": "正在停止…",
+    "more": "更多字幕操作",
+    "closeTranslation": "关闭译文窗",
+    "saveNote": "$t(common:hud.action.save_note)",
+    "settings": "打开实时字幕设置",
+    "closePanel": "$t(common:hud.action.close)"
+  },
+  "save": {
+    "ok": "已保存为笔记",
+    "error": "没有保存成功",
+    "errorDetail": "没有保存成功：{{detail}}",
+    "open": "打开笔记"
+  },
+  "aria": {
+    "subtitle": "实时字幕",
+    "options": "字幕选项"
+  },
+  "appearance": {
+    "background": "背景浓淡（0 为沉浸）",
+    "label": "外观与显示",
+    "moreSettings": "更多字幕设置…"
+  },
+  "display": {
+    "label": "显示方式",
+    "source": "原文",
+    "bilingual": "双语",
+    "translation": "译文"
+  },
+  "layout": {
+    "label": "双语排法",
+    "source_first": "原文在上",
+    "translation_first": "译文在上",
+    "separate": "分两个窗口"
+  },
+  "translationChip": "译文窗",
+  "sourceChip": "原文窗"
+}

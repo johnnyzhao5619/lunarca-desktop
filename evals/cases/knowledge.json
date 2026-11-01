@@ -1,0 +1,19 @@
+{
+  "_comment": ["库内问答检索依据前言（knowledge 域）。分隔符由代码注入，模板只能引用占位符。"],
+  "scope": "knowledge",
+  "template": "grounding",
+  "cases": [
+    {
+      "name": "引用规则与补充分隔符都在场",
+      "vars": { "supplement_marker": "<<<LUNA_MODEL_SUPPLEMENT>>>" },
+      "must_contain": ["[1]", "<<<LUNA_MODEL_SUPPLEMENT>>>", "Omit that line"],
+      "why": "`classify_grounded_answer` 按这两条规则 fail-closed 判定；模型没被告知规则就会被整段划成「模型补充」"
+    },
+    {
+      "name": "分歧加注：并列各方、不评判、不抄说明",
+      "vars": { "supplement_marker": "<<<LUNA_MODEL_SUPPLEMENT>>>" },
+      "must_contain": ["conflicting statement", "without judging which is right", "Do not copy the note"],
+      "why": "检索给分歧两边都加了〔〕说明（K5）；真机 2026-09-27 云端模型仍按「当前主流」选边、并把说明原样抄进回答。规则被删掉时这条必须变红"
+    }
+  ]
+}

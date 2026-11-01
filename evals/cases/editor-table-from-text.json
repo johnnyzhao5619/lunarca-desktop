@@ -1,0 +1,13 @@
+{
+  "_comment": ["AI「整理为表格」（对标方案 T6）：输出要能被 Rust 抽成一张合法 GFM 表，且不得编造数据。"],
+  "scope": "editor",
+  "template": "table.from_text",
+  "cases": [
+    {
+      "name": "要求表头 + 分隔行，且禁止增删数据",
+      "vars": {},
+      "must_contain": ["header row, a delimiter row", "do not invent or drop data", "Output only the table"],
+      "why": "缺分隔行的「表格」抽取会失败；模型补出原文没有的数字是最难被用户察觉的错误"
+    }
+  ]
+}

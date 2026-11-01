@@ -1,0 +1,187 @@
+# Lunarca — Rust workspace 清单。
+# 物理布局与依赖方向（单向，自上而下）见 TDD-00 §3：
+#   luna-app(= src-tauri 角色) / luna-cli → luna-jobqueue / luna-vault / luna-provider
+#     → luna-engine / luna-audio → luna-core（零 IO，不依赖任何上层）
+# 下面的 members 即当前全部成员；新增 crate 必须同时在上面的依赖方向图里有位置。
+[workspace]
+resolver = "2"
+members = [
+    "crates/luna-core",
+    "crates/luna-provider",
+    "crates/luna-jobqueue",
+    "crates/luna-config",
+    "crates/luna-engine",
+    "crates/luna-fetch",
+    "crates/luna-audio",
+    "crates/luna-vault",
+    "crates/luna-export",
+    # 文档导入（ADR-164）：文档 → Markdown 的纯函数转换，依赖 luna-vault 的 HTML 转换，与 luna-export 同层。
+    "crates/luna-docimport",
+    "crates/luna-metrics",
+    "crates/luna-cli",
+    # 本地模型目录：条目类型与随包目录的唯一定义（ADR-145），零 IO 叶子，与 luna-core 同层。
+    "crates/luna-model-catalog",
+    # 内容基座的公共契约（ADR-169 ①）：主题包与模板包的类型、校验与能力推导，零 IO 叶子，服务端共用。
+    "crates/luna-content-schema",
+    # 内容基座的 IO 层（ADR-169 ①）：内容层存储、分层查找、安装管线；只依赖 luna-content-schema。
+    "crates/luna-content",
+    # 模型工件下载与识别（多来源 / 续传 / 流式 sha256 / 跳转白名单 / GGUF 头，ADR-144），与 luna-core 同层。
+    "crates/luna-model-fetch",
+    # 云客户端（账户/会话/Lease/目录/制品下载）——ADR-037 后为普通成员，无 feature 门；
+    # 未登录且未配置计算服务时零云网络行为，由 src-tauri 的机器断言保护。
+    "crates/luna-cloud",
+    # 官方同步的客户端核心（ADR-148）：中层，网络与钥匙串经 trait 注入，不依赖 luna-cloud。
+    "crates/luna-sync",
+    "src-tauri",
+]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+repository = "https://github.com/johnnyzhao5619/lunarca-desktop"
+rust-version = "1.96"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v7", "serde"] }
+thiserror = "2"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+async-trait = "0.1"
+futures-core = "0.3"
+futures = "0.3"
+async-stream = "0.3"
+# 本地语言检测（纯 Rust、Apache-2.0，TDD-03 §3.5）。藏在 luna-core 的 LanguageDetector trait 后。
+# 选 lingua 而非 whatlang：实测 whatlang 对拉丁短文本不可靠（清晰英文曾误判丹麦语），漏掉
+# 「固定语言模板选同语言→润色」这个 P0 场景；lingua 专为短文本高准确而生。
+# per-feature 编译：default-features=false + 仅列所需语言，二进制只含这些模型（精简且更准）。
+lingua = { version = "1", default-features = false, features = [
+    "chinese", "english", "japanese", "korean", "french", "german", "spanish",
+    "italian", "portuguese", "russian", "arabic", "hindi", "thai", "vietnamese",
+    "indonesian", "dutch", "turkish",
+] }
+# native-tls（macOS Security.framework）规避 ring 许可问题；本机随包引擎走回环地址，无需 TLS。
+reqwest = { version = "0.12", features = ["json", "stream"] }
+# 钉住的服务端根证书（ADR-153）要直接构造 TLS 连接器（WebSocket 那条路 reqwest 管不到）。
+# reqwest / tokio-tungstenite 底下本就是它，不引入新依赖。
+native-tls = "0.2"
+# HTTP `Retry-After` 同时允许 delay-seconds 与 HTTP-date（RFC 9110 §10.2.3）。
+# 统一在 Provider 层解析，避免每个云通路各写一份不完整的日期处理。
+httpdate = "1"
+# 实时转写上行（ADR-038）：WebSocket 客户端。
+# TLS 后端必须与 reqwest 一致（都是 native-tls / 系统信任库）。用 webpki-roots 的话，
+# 用户装在系统钥匙串里的企业 CA 对批式通道有效、对实时通道无效——同一个服务端地址
+# 一条能连一条连不上，而错误信息只会说"证书不受信任"。
+tokio-tungstenite = { version = "0.24", default-features = false, features = [
+    "connect",
+    "native-tls",
+] }
+# 实时转写上行的 Opus 编解码（ADR-038 ③ 的「上行必须压缩」）。
+# License 核查（ADR-005）：`opusic-c` / `opusic-sys` 与 libopus 本体同为 **BSD-3-Clause**
+# ——宽松、AGPL 兼容，已在 deny.toml 的 allow 列表里，无需例外。
+# 选它而不是更常见的 `opus` / `audiopus`：后两者的 sys crate 内置的是 libopus 1.3.1，
+# 其 CMakeLists 声明 `cmake_minimum_required(VERSION 3.1)`，而 CMake 4 已移除对 < 3.5 的
+# 兼容——本机与 CI 上都是当场构建失败，只能靠 `CMAKE_POLICY_VERSION_MINIMUM` 环境变量
+# 绕过，那是一颗每个新克隆都会踩的雷。`opusic-c` 随包 libopus 1.6.1（cmake ≥ 3.16），
+# 且**构建期不联网**（不像 `shiguredo_opus` 默认下载预编译产物）、不拉 bindgen/clang。
+# 新增构建期前置：`cmake`（见 AGENTS.md §3）。
+opusic-c = "1.6.1"
+clap = { version = "4", features = ["derive"] }
+toml = "0.8"
+# 钥匙串：macOS Security.framework（apple-native）；Windows/Linux 后端后续按平台加。
+keyring = { version = "3", features = ["apple-native", "windows-native"] }
+
+# ---- 云客户端与 IPC 类型生成（ADR-037：单一构建，src-tauri 与 luna-cloud 共用同一份
+# 版本；tauri-specta 的 rc 版本必须两侧完全一致，否则生成的绑定会在类型层分叉）----
+tauri = { version = "2" }
+tauri-specta = { version = "=2.0.0-rc.25", features = ["derive", "typescript"] }
+specta = { version = "=2.0.0-rc.25", features = ["derive", "serde_json"] }
+specta-typescript = "0.0.12"
+# Lease JWT 验签（Ed25519 公钥离线验证，TDD-14 §3）。
+ed25519-dalek = "2"
+base64 = "0.22"
+# 设备名默认值（device-code 配对时展示给用户确认）。
+gethostname = "1"
+tokio = { version = "1", features = [
+    "rt",
+    "rt-multi-thread",
+    "sync",
+    "macros",
+    "time",
+    # 子进程（截屏翻译 `screencapture` 框选，PRD-01-007）+ 异步文件元数据/删除（截图即删，隐私）。
+    "process",
+    "fs",
+] }
+# 音频管线（luna-audio，TDD-02）。cpal=采集（macOS CoreAudio）、rtrb=无锁 SPSC 环形缓冲
+# （ADR-009 wait-free 回调）、rubato=抗混叠重采样（48k→16k，禁 naive 抽取，§3.1-C）。
+cpal = "0.15"
+rtrb = "0.3"
+rubato = "0.16"
+# AEC3 回声消除（TDD-02 §3.1-I 层③，BSD-3-Clause，bundled C++ 构建需 meson+ninja）：
+# Both 双轨外放场景以 system 轨为参考信号消除 mic 轨回声。16k 输入在该 crate 实测失效、
+# 32k 正常（S13 spike 记录），故 luna_audio::aec 内部以 32k 域运行。macOS 门控（构建链
+# 未在 Windows 验证，批次 6 评估）。
+webrtc-audio-processing = { version = "2.1", features = ["bundled"] }
+# WAV 编码（录音落盘，TDD-02 §3.5）：MIT 许可、增量写、自动修补头部。
+hound = "3.5"
+# 媒体解码（导入音/视频批量转写，TDD-02 §3.7）：纯 Rust、MPL-2.0（AGPL 兼容，见 deny.toml），
+# 解 mp3/aac(m4a)/alac/flac/vorbis(ogg)/wav 音频与 isomp4(mp4/mov) 容器音轨 → 归一化到 16k mono。
+symphonia = { version = "0.5", default-features = false, features = [
+    "mp3",
+    "aac",
+    "alac",
+    "flac",
+    "vorbis",
+    "pcm",
+    "isomp4",
+    "ogg",
+    "wav",
+] }
+# 磁盘剩余空间查询（录音写线程周期监测，TDD-02 §5.3）：MIT 许可、无 libc 直接依赖、跨平台。
+fs4 = "1"
+# 笔记 Vault（luna-vault，TDD-06）。
+# sha2：内容寻址哈希——自写回声抑制 last_written_hash + 快照内容寻址去重（§4/§4.7），纯 Rust、MIT/Apache。
+sha2 = "0.10"
+# 官方同步的客户端加密（ADR-148、ADR-150、TDD-12 §10.2）：RustCrypto 一系，MIT OR Apache-2.0（ADR-005 已核，
+# 与服务端 sealed-secrets 同一族实现）。
+aes-gcm = "0.10"
+hkdf = "0.12"
+hmac = "0.12"
+zeroize = { version = "1", features = ["derive"] }
+# 口令认证密钥交换（ADR-158）：OPAQUE（RFC 9807），Meta 维护、NCC Group 审计（2021），Apache-2.0 OR MIT。
+# 套件 ristretto255 + 3DH + Argon2id KSF；不开 serde（报文走它自己的 serialize / deserialize）。
+opaque-ke = { version = "4", default-features = false, features = ["ristretto255", "argon2"] }
+# 大文件内容定义分块（FastCDC 2020，纯 Rust、零依赖，MIT，ADR-005 已核）：改尾部只影响尾部的块。
+fastcdc = "3"
+# YAML：**仅用于 luna: 子块的序列化/读取**（Lunarca 私有、键序由我们定义，§2）。frontmatter 其余字节
+# 走 §4.4 字节级 round-trip，绝不全量反序列化。serde_yaml 已 archive，改用维护中的 serde_yaml_ng（MIT）。
+serde_yaml_ng = "0.10"
+# 派生索引/搜索（§3）。trigram 分词器是中文搜索命门；bundled 锁定 SQLite 版本（≥3.34 含 trigram）。
+rusqlite = { version = "0.32", features = ["bundled", "functions"] }
+# 文件监听（§4）：notify-debouncer-full 处理原子保存的 create/rename + 网盘幽灵事件。
+notify-debouncer-full = "0.3"
+# 删除入系统回收站（§4.6，macOS Trash / 平台 API），不直接 unlink。
+trash = "5"
+
+# 开发构建里给哈希库开优化：未优化的 sha2 只有约 17 MB/s，校验一个 2.7 GB 的 GGUF 要两分多钟
+# （模型下载边写边算、导入算 sha256 都走它）。只影响这一个依赖的编译，不影响调试体验。
+[profile.dev.package.sha2]
+opt-level = 3
+
+# 同理：OPAQUE 的 KSF（Argon2id，64 MiB，ADR-158）未优化时一次登录要好几秒，测试套件里每一次握手都付这笔。
+[profile.dev.package.argon2]
+opt-level = 3
+
+[profile.dev.package.blake2]
+opt-level = 3
+
+# 过程宏与构建脚本不 strip（TDD-13 §2）：Xcode 27 的 `strip` 处理过的过程宏 dylib 会被 macOS 27 的
+# dyld 以 "mis-aligned LINKEDIT string pool" 拒绝加载，rustc 报 E0463「can't find crate」。
+# 关调试信息时 cargo 默认 `strip = "debuginfo"`——release 总是如此，CI 的工具链步骤也会设
+# CARGO_PROFILE_DEV_DEBUG=0。只豁免宿主侧产物，应用本体照常 strip。
+[profile.dev.build-override]
+strip = false
+
+[profile.release.build-override]
+strip = false

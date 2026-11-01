@@ -1,0 +1,91 @@
+# 内置主题「Nebula」（ADR-169 ③）：随 Lunarca 发布的主题包，与导入、市场主题同一个类型、同一个生成器。
+# 低彩度灰阶与紫色强调；AI 语义让给青色，紫回归品牌强调。
+# 设计理由见 TDD-11 §2.1「主题族」（看着反常的取值都写了为什么，别当成 bug 改回去）。
+# 改了这里要重新生成样式：cargo run -p luna-app --bin export-bindings（漂移由 cargo test 判红）。
+
+schema_version = 3
+id = "nebula"
+version = "1.0.0"
+name = "Nebula"
+author = "Lunarca"
+license = "AGPL-3.0-only"
+
+[light]
+canvas = "#f6f6f6"
+surface = "#fcfcfc"
+panel = "#ffffff"
+text_primary = "#222222"
+text_secondary = "#5a5a5a"
+text_muted = "#626262"
+border_subtle = "#e0e0e0"
+border_default = "#d4d4d4"
+border_strong = "#bdbdbd"
+accent = "#683dec"
+accent_strong = "#5b34d4"
+accent_text = "#ffffff"
+ai = "#006e6c"
+attention = "#7b5e00"
+success = "#057231"
+warning = "#9c4c00"
+error = "#c3152a"
+
+# 细调：不填时由上面的颜色推导，这几项与推导值不同
+hover = "#e3e3e3"
+disabled = "#fafafa"
+border_control = "#747474"
+focus = "#7852ee"
+action = "#7852ee"
+status_muted = "#707070"
+
+[light.code]
+surface = "#f6f6f6"
+header = "#e3e3e3"
+text = "#222222"
+hover = "#e0e0e0"
+
+[light.syntax]
+keyword = "#d53984"
+string = "#08b94e"
+number = "#ec7500"
+func = "#086ddd"
+type = "#00bfbc"
+prop = "#5a5a5a"
+op = "#707070"
+
+[dark]
+canvas = "#1e1e1e"
+surface = "#242424"
+panel = "#2a2a2a"
+text_primary = "#dadada"
+text_secondary = "#bababa"
+text_muted = "#a2a2a2"
+border_subtle = "#363636"
+border_default = "#3f3f3f"
+border_strong = "#555555"
+accent = "#b18eff"
+accent_strong = "#c4aaff"
+accent_text = "#1e1e1e"
+ai = "#53dfdd"
+attention = "#e0de71"
+success = "#44cf6e"
+warning = "#e9973f"
+error = "#fc797d"
+
+# 细调：不填时由上面的颜色推导，这几项与推导值不同
+hover = "#363636"
+disabled = "#212121"
+muted = "#262626"
+border_control = "#8d8d8d"
+focus = "#a882ff"
+action = "#a882ff"
+status_muted = "#999999"
+scrim = "#141414"
+
+[dark.syntax]
+keyword = "#fa99cd"
+string = "#44cf6e"
+number = "#e9973f"
+func = "#027aff"
+type = "#53dfdd"
+prop = "#bababa"
+op = "#999999"

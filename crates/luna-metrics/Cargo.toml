@@ -1,0 +1,18 @@
+[package]
+name = "luna-metrics"
+description = "Lunarca 本地知识闭环度量：设备私有、不可还原内容的聚合事实（Phase 11）"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+sha2.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

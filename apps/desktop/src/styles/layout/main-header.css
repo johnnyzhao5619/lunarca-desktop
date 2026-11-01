@@ -1,0 +1,57 @@
+/*
+ * 主区页头（`.luna-main-header`）——「这一格是什么 + 能对它做什么」的那一行（PRD-07-071）。
+ *
+ * **收编前每个空间各写一份**：对话页头有分隔线与下内距、回放页头两者都没有、其余各有
+ * 各的字号与对齐。这一行是用户在每个空间落地时第一眼看到的东西，它的高度与基线不一致，
+ * 整套界面就"每页都不太一样"——真机 2026-09-08 上报的那句"页面风格与其他页面不统一"，
+ * 一半是纸张（`.luna-paper`）的事，另一半是这一行的事。
+ *
+ * 按 TDD-15 §3.3a：被第三处需要的外壳不归任何 feature，且名字要说它**真正的身份**——它是
+ * 主区的页头，与侧栏页头（`.luna-sidebar-header__*`）是对称的两件东西。
+ *
+ * 本原语只管这一行的几何与分隔线。标题里塞什么徽标、动作区放几颗键，各空间自己决定。
+ *
+ * **消费者不限于活动栏那七个空间**：回收站与通知抽屉的历史面板也是同一件东西——「这一格
+ * 是什么 + 能对它做什么」的那一行。它们此前各自写了一份，于是一进这两处就"和别处不像"
+ * （真机 2026-09-09）。
+ */
+
+/* `flex-shrink: 0`：页头多半是整页纵向 flex 的第一格，而显式的 `min-block-size` 会顶掉
+ * flex 子项「按内容」的最小高度——正文一长，页头就被压扁，按钮越过分隔线叠到下面那行上
+ * （真机 2026-10-18，项目概览）。页头的高度只由它自己的内容决定。 */
+.luna-main-header {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-block-size: var(--control-height-md);
+  padding-block-end: var(--space-3);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* 标题区：标题 + 随身徽标（临时对话 / 预设 / 时长）。窄下来时它先换行，动作区不换。 */
+.luna-main-header__title {
+  display: flex;
+  flex: 1 1 12rem;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: var(--space-0);
+}
+
+/* 标题字号在这里定义**一次**：此前对话用 h1 默认值、回放另写一份 `--font-size-lg`。 */
+.luna-main-header__title > h1,
+.luna-main-header__title > h2 {
+  margin: var(--space-0);
+  font-size: var(--font-size-lg);
+  overflow-wrap: anywhere;
+}
+
+.luna-main-header__actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}

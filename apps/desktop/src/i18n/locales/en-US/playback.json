@@ -1,0 +1,215 @@
+{
+  "title": "Playback",
+  "openFromEditorHint": "Open this one in synced playback: follow along as it plays, and click any line to jump to that moment.",
+  "queued": "Queued",
+  "queuedHint": "Added to the processing queue — waiting…",
+  "processFailed": "Processing failed",
+  "action": {
+    "play": "Play",
+    "pause": "Pause",
+    "returnToCurrent": "Jump to current",
+    "retry": "Retry",
+    "back10": "Back 10 seconds",
+    "forward10": "Forward 10 seconds",
+    "back10Short": "−10s",
+    "forward10Short": "+10s"
+  },
+  "speed": {
+    "label": "Playback speed",
+    "option": "{{rate}}×",
+    "cycle": "Speed {{rate}}×, click for the next step"
+  },
+  "bookmarks": {
+    "label": "Bookmarks",
+    "jump": "Jump to bookmark at {{time}}",
+    "jumpNoted": "Jump to the bookmark at {{time}}: {{note}}"
+  },
+  "bilingual": {
+    "label": "Display mode",
+    "source": "Source",
+    "translation": "Translation",
+    "both": "Both",
+    "needTranslation": "Run “Translate” first to generate a translation"
+  },
+  "translate": {
+    "label": "Translate",
+    "targetLabel": "Target language",
+    "smart": "Smart bidirectional",
+    "run": "Translate",
+    "rerun": "Re-translate",
+    "running": "Translating…",
+    "targetPrefix": "Translate to"
+  },
+  "fullEdit": {
+    "title": "Full-transcript editing",
+    "dirty": "{{count}} unsaved",
+    "clean": "No unsaved changes",
+    "saving": "Saving…",
+    "done": "Done",
+    "discard": "Discard changes",
+    "saved": "Transcript saved",
+    "failed": "Save failed: {{error}}",
+    "empty": "Cue text cannot be empty (use the row Delete action to drop it)",
+    "hint": "Proofread the whole transcript line by line; double-click a single cue to edit after exiting"
+  },
+  "aria": {
+    "position": "Current position",
+    "controls": "Playback controls",
+    "cueList": "Transcript cues",
+    "scrubber": "Playback progress",
+    "seekTo": "Jump to {{time}}"
+  },
+  "secondPass": {
+    "run": "Re-transcribe",
+    "running": "Re-transcribing…"
+  },
+  "edit": {
+    "label": "Edit cue at {{time}}",
+    "hint": "Cmd/Ctrl + Enter saves, Esc cancels",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "empty": "Cue text cannot be empty (use Delete to drop the whole cue)",
+    "failed": "Save failed",
+    "saved": "Cue saved",
+    "modeToggle": "Proofread",
+    "doubleClickHint": "Click to seek, double-click to edit",
+    "delete": "Delete",
+    "deleteHint": "Delete this cue entirely (sponsor reads, filler, hallucinated silence)",
+    "deleteTitle": "Delete this cue?",
+    "deleteDesc": "This cue's text is removed from the transcript; the audio is untouched.",
+    "deleteConfirm": "Confirm delete",
+    "deleteConfirmHint": "Click once more to delete this cue; press Esc to cancel",
+    "deleted": "Cue deleted"
+  },
+  "diarize": {
+    "run": "Identify speakers",
+    "running": "Identifying speakers…"
+  },
+  "speaker": {
+    "renameHint": "Click to rename this speaker",
+    "editLabel": "Rename {{label}}",
+    "placeholder": "Display name (empty restores default)",
+    "saved": "Speaker renamed",
+    "failed": "Rename failed: {{error}}",
+    "renameSave": "Save name",
+    "renameAction": "Rename “{{name}}”…",
+    "rosterLabel": "Speakers",
+    "segmentCount": "{{count}} lines",
+    "menuTitle": "Assign speaker",
+    "assignHint": "Click to assign a speaker (this line / this turn / all)",
+    "unassigned": "Unassigned",
+    "newSpeaker": "New speaker ({{name}})",
+    "scopeTitle": "Apply to",
+    "scope": {
+      "single": "This line",
+      "following": "This turn",
+      "all": "All"
+    },
+    "scopeHint": {
+      "single": "Reassign only the current line",
+      "following": "Reassign this line and the following lines by the same speaker (one turn)",
+      "all": "Reassign every line of this speaker (i.e. merge two speakers)"
+    },
+    "assigned": {
+      "single": "Line reassigned",
+      "following": "Turn reassigned",
+      "all": "All lines of that speaker reassigned"
+    },
+    "split": "Split — now assign a speaker to the second line",
+    "splitTip": "Two speakers in one line? Switch to “Edit text”, put the cursor at the boundary and choose “Split at cursor”.",
+    "splitHint": "Split into two lines at the cursor and assign the second half to a new speaker (its translation must be redone)",
+    "merge": "Merge into previous",
+    "mergeHint": "Merge this line back into the previous one (inverse of split)",
+    "merged": "Merged into previous line",
+    "editFailed": "Speaker edit failed: {{error}}",
+    "splitAction": "Split at cursor"
+  },
+  "export": {
+    "label": "Export",
+    "running": "Exporting…",
+    "done": "Exported to {{path}}",
+    "failed": "Export failed: {{error}}"
+  },
+  "status": {
+    "loading": "Loading cues…",
+    "error": "Error",
+    "noCues": "No transcript available",
+    "cueCount": "{{count}} cues",
+    "downloading": "Downloading the recording from the cloud {{pct}}%…"
+  },
+  "video": {
+    "title": "Video playback",
+    "toolbar": "Video controls",
+    "layoutLabel": "Video layout",
+    "layout": {
+      "split": "Split: transcript beside video",
+      "theater": "Theater: video fills the view",
+      "float": "Floating: draggable mini player",
+      "audio_only": "Audio only: hide video"
+    },
+    "layoutShort": {
+      "split": "Split",
+      "theater": "Theater",
+      "float": "Mini",
+      "audio_only": "Audio"
+    },
+    "hiddenHint": "Picture hidden, audio only. Choose Split or Theater to bring it back.",
+    "dragHint": "Drag to move the mini player",
+    "subtitlesOn": "Show subtitles on video",
+    "subtitlesOff": "Hide subtitles on video",
+    "subtitleSize": "Subtitle size",
+    "size": {
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large",
+      "xlarge": "Extra large"
+    }
+  },
+  "quality": {
+    "badge": "Check",
+    "cpsBadge": "{{cps}} cps",
+    "cps": "Too fast to read — trim this line, or merge it with a neighbour so it stays longer",
+    "too-long": "On screen too long — split it at a sentence boundary",
+    "summary": "{{flagged}} of {{total}} cues are unreadable or linger too long (line length and wrapping are handled on export)",
+    "show": "Show subtitle checks ({{count}})",
+    "hide": "Hide subtitle checks"
+  },
+  "meta": {
+    "speakers": "{{count}} speakers"
+  },
+  "find": {
+    "label": "Find in transcript",
+    "placeholder": "Find in transcript…",
+    "count": "{{index}} / {{total}}",
+    "none": "No matches",
+    "prev": "Previous match",
+    "next": "Next match"
+  },
+  "nowPlaying": {
+    "label": "Now playing: {{title}}",
+    "reopen": "Back to playback",
+    "close": "Stop playback",
+    "follow": "Follow",
+    "followHint": "Scroll the editor to the line being played",
+    "pictureShow": "Show video",
+    "pictureHide": "Audio only",
+    "pictureHint": "Whether video follows you as a floating window, or only audio keeps playing"
+  },
+  "playHere": "Play here",
+  "playHereHint": "Listen inside the note; click a timestamped line to jump",
+  "openView": "Open playback",
+  "knowledge": {
+    "previewOnly": "This recording only has the live text captured while recording, so it can't back a topic page yet. Transcribe it again to fix that.",
+    "askTitle": "Can future recordings and transcripts be used for your topics?",
+    "askBody": "If you allow it, finished recordings and transcripts that match a topic's scope are processed by {{where}} to prepare cited suggestions for topic pages; nothing is written until you confirm. This applies to this device and this vault only, and you can turn it off on a topic page.",
+    "allow": "Allow",
+    "notNow": "Not now",
+    "where": {
+      "strict_local": "on-device AI",
+      "on_device": "on-device AI",
+      "official_cloud": "Lunarca Cloud",
+      "organization": "your organization's server"
+    }
+  }
+}

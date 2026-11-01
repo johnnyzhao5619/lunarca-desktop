@@ -1,0 +1,85 @@
+/*
+ * Lunarca 唯一样式入口。
+ *
+ * 所有项目 CSS 都由这里按确定顺序纳入 Cascade Layer：物理文件可与 feature 就近放置，
+ * 运行时层叠只由本图决定，不受组件挂载或目录遍历顺序影响。
+ */
+@layer reset, tokens, base, primitives, layout, integrations, features;
+@layer tokens.primitive, tokens.base, tokens.family, tokens.accessibility;
+
+@import "./reset.css" layer(reset);
+@import "./tokens/primitive.css" layer(tokens.primitive);
+@import "./tokens/base.css" layer(tokens.base);
+/* 内置主题（主题包生成物，ADR-169 ③）；导入的主题在运行时注入同一层。 */
+@import "./tokens/themes.generated.css" layer(tokens.family);
+@import "./tokens/density.css" layer(tokens.base);
+@import "./tokens/accessibility.css" layer(tokens.accessibility);
+@import "./base.css" layer(base);
+@import "../components/button.css" layer(primitives);
+@import "../components/icon-button.css" layer(primitives);
+@import "../components/input.css" layer(primitives);
+@import "../components/query-box.css" layer(primitives);
+@import "../components/select.css" layer(primitives);
+@import "../components/range.css" layer(primitives);
+@import "../components/pill-toggle.css" layer(primitives);
+@import "../components/segmented-control.css" layer(primitives);
+@import "../components/count-badge.css" layer(primitives);
+@import "../components/theme-swatch.css" layer(primitives);
+@import "../components/pager.css" layer(primitives);
+@import "../components/indexing-notice.css" layer(primitives);
+@import "../components/hud.css" layer(primitives);
+@import "../components/task-status.css" layer(primitives);
+@import "../components/markdown.css" layer(primitives);
+@import "../components/progress.css" layer(primitives);
+@import "../components/error-text.css" layer(primitives);
+@import "../components/failure-card.css" layer(primitives);
+@import "../components/notice-card.css" layer(primitives);
+@import "../components/scroll-fade.css" layer(primitives);
+@import "../components/empty-state.css" layer(primitives);
+@import "../components/install-guide.css" layer(primitives);
+@import "../components/fact-list.css" layer(primitives);
+@import "../components/help-details.css" layer(primitives);
+@import "../components/inline-details.css" layer(primitives);
+@import "../components/dialog.css" layer(primitives);
+@import "../components/app-error-boundary.css" layer(primitives);
+@import "./layout/workspace-shell.css" layer(layout);
+@import "./layout/sidebar-header.css" layer(layout);
+@import "./layout/surfaces.css" layer(layout);
+@import "./layout/main-header.css" layer(layout);
+@import "./layout/next-action-row.css" layer(layout);
+@import "./integrations/codemirror.css" layer(integrations);
+
+@import "../features/transcribe/transcribe.css" layer(features);
+@import "../features/settings/external-tools.css" layer(features);
+@import "../features/distill/distill.css" layer(features);
+@import "../features/processing/processing.css" layer(features);
+@import "./layout/workspace-navigation.css" layer(layout);
+@import "../features/command/command.css" layer(features);
+@import "../features/notifications/notifications.css" layer(features);
+@import "../features/editor/editor-core.css" layer(features);
+@import "../features/editor/tidy-list.css" layer(features);
+@import "../features/usage/usage.css" layer(features);
+@import "../features/notifications/notification-detail.css" layer(features);
+@import "../features/chat/chat.css" layer(features);
+@import "./layout/workspace-responsive.css" layer(layout);
+@import "../features/popup-translate/popup-translate.css" layer(features);
+@import "../features/voice-input/voice-input.css" layer(features);
+@import "../features/caption/caption.css" layer(features);
+@import "../features/recording/recording.css" layer(features);
+@import "../features/playback/playback.css" layer(features);
+@import "../features/settings/settings.css" layer(features);
+@import "../features/onboarding/onboarding.css" layer(features);
+@import "../features/settings/compute-card.css" layer(features);
+@import "../features/dashboard/dashboard.css" layer(features);
+@import "../features/workspace/workspace.css" layer(features);
+@import "../features/capture/capture.css" layer(features);
+@import "../features/capture/text-quick-note.css" layer(features);
+@import "../features/capture/desktop-note.css" layer(features);
+@import "../features/graph/graph.css" layer(features);
+@import "../features/creator/creator.css" layer(features);
+@import "../features/apps/apps.css" layer(features);
+@import "../features/vault/vault.css" layer(features);
+@import "../features/search/search.css" layer(features);
+@import "../features/knowledge/knowledge.css" layer(features);
+@import "../features/account/account.css" layer(features);
+@import "../features/account/sync.css" layer(features);

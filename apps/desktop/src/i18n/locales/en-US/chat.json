@@ -1,0 +1,113 @@
+{
+  "title": "AI Chat",
+  "model_selector_label": "Current AI execution route",
+  "route": {
+    "loading": "Checking execution route",
+    "unavailable": "Execution route unavailable",
+    "managed_service": "Server-managed",
+    "local_unconfigured": "No on-device model configured"
+  },
+  "empty": {
+    "title": "Ask anything",
+    "hint": "Type a question to start.",
+    "hint_panel": "Press {{shortcut}} anytime to open this.",
+    "presets_label": "Pick a chat role",
+    "hint_temporary": "Temporary chats are gone once closed."
+  },
+  "preset": {
+    "chat_general": "General assistant",
+    "chat_translator": "Translation helper",
+    "chat_coder": "Code explainer",
+    "chat_summarizer": "Summarizer"
+  },
+  "action": {
+    "copy": "$t(common:hud.action.copy)",
+    "close": "$t(common:hud.action.close)",
+    "new": "New chat",
+    "regenerate": "$t(common:hud.action.regenerate)",
+    "save_note": "Save chat to note",
+    "save_message": "Save message to note",
+    "send": "Send",
+    "stop": "$t(common:hud.action.stop) generating",
+    "retry": "$t(common:hud.action.retry)",
+    "retry_in": "Retry in {{seconds}}s",
+    "jump_latest": "Jump to latest",
+    "open_in_notes": "Open in notes",
+    "continue_workspace": "Continue in workspace",
+    "more": "More chat actions",
+    "copy_message": "Copy message",
+    "quote": "Quote in composer",
+    "save_knowledge": "Save as knowledge note (with sources)"
+  },
+  "input": {
+    "placeholder": "Ask a question…",
+    "hint": "Enter to send · Shift+Enter for newline"
+  },
+  "context": {
+    "label": "Quoted selection",
+    "remove": "Remove quote"
+  },
+  "flag": {
+    "truncated": "Context was too long; earlier messages were truncated",
+    "stopped": "Stopped — partial reply kept"
+  },
+  "notice": {
+    "copied": "Copied",
+    "copy_failed": "Copy failed",
+    "saved": "Saved to note",
+    "save_failed": "Failed to save note",
+    "continue_failed": "Couldn’t move this chat to the workspace. It is still available here.",
+    "saved_knowledge": "Saved as “{{title}}”"
+  },
+  "history": {
+    "title": "History",
+    "emptyTitle": "No chats yet",
+    "empty": "Chats are saved here automatically (except temporary ones).",
+    "open_in_notes": "Open in notes",
+    "delete": "Delete chat",
+    "delete_title": "Delete this chat?",
+    "deleted": "Chat deleted",
+    "delete_failed": "Failed to delete",
+    "open_failed": "Failed to load chat",
+    "listLabel": "Chat history"
+  },
+  "temporary": {
+    "badge": "Temporary · not saved",
+    "toggle": "Temporary chat (not saved to history)"
+  },
+  "grounding": {
+    "label": "Knowledge base",
+    "on_hint": "Answers consult your notes and cite them (click to turn off)",
+    "off_hint": "Answering from model knowledge only (click to turn on)"
+  },
+  "sources": {
+    "summary": "Searched {{scanned}} → cited {{cited}}",
+    "none": "Searched {{scanned}}, nothing relevant found",
+    "emptyHint": "Nothing in your vault matches this question; the answer below comes from the model's own knowledge.",
+    "truncated": "Too many candidates — results may be incomplete",
+    "label": "Sources",
+    "open": "Open source {{index}}: {{title}}",
+    "material": "Material",
+    "drop": "Leave this one out",
+    "dropOne": "Leave out “{{title}}” and answer again",
+    "includeChat": "Count AI chat transcripts as sources",
+    "includeChatHint": "Chat transcripts are written by the AI itself, so they are not treated as facts by default. To make one count for good, distill it into a knowledge note.",
+    "draft": "Unsorted",
+    "draftSnippet": "Unsorted · {{snippet}}",
+    "marker": "Source {{index}}: {{title}}",
+    "markerDraft": "Source {{index}}: {{title}}, unsorted",
+    "excludeDrafts": "Use finalized notes only this time",
+    "excludeDraftsHint": "Applies to this question only; no settings change.",
+    "openOutcome": {
+      "moved": "The quoted sentence in “{{title}}” moved; Lunarca opened its new exact location.",
+      "heading_only": "The quote in “{{title}}” changed; Lunarca opened the section where it originally appeared.",
+      "lost": "“{{title}}” changed; the note is open, but the original sentence could not be located.",
+      "source_missing": "The source “{{title}}” could not be found; it may have been moved or deleted.",
+      "error": "The source “{{title}}” could not be opened. Please try again."
+    },
+    "model_supplement": "Model supplement · not supported by your knowledge base",
+    "model_supplement_section": "\n\n{{label}}\n\n{{content}}",
+    "dismissOutcome": "Dismiss"
+  },
+  "model_selector_open_assignment": "Open model assignment"
+}

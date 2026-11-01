@@ -1,0 +1,22 @@
+[package]
+name = "luna-model-fetch"
+description = "模型工件的下载与识别（ADR-144）：多来源、断点续传、流式 sha256、跳转白名单、限流退避、GGUF 文件头；按服务端钉住的 TLS 根证书（ADR-153）；客户端与服务端运维工具共用"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+reqwest.workspace = true
+native-tls.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tokio = { workspace = true, features = ["fs", "io-util", "time"] }
+
+[dev-dependencies]
+# 实网测试取目录里的真实来源与 sha256。
+luna-model-catalog = { path = "../luna-model-catalog" }
+tempfile = "3"
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

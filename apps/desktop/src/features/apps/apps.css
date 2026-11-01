@@ -1,0 +1,400 @@
+/*
+ * 「应用」目的地（ADR-165 ⑤）：一方应用的列表与详情。
+ *
+ * 主区是画布（`surface: canvas`）：限宽一列，不画自己的纸张底。页头用共享原语
+ * `.luna-main-header`，状态徽标用 `.luna-task-status`，空态用 `.luna-empty-state`——
+ * 本文件只管页签、列表行与详情各节的排布。
+ */
+
+.luna-apps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  inline-size: var(--size-full);
+  max-inline-size: var(--editor-content-max-inline);
+  margin-inline: auto;
+}
+
+.luna-apps__lede {
+  margin: var(--space-0);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.luna-apps__list {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+/* 页签（ADR-168 ⑦）：应用 · 已安装；主题、模板随内容加入。 */
+.luna-apps__tabs {
+  display: flex;
+  gap: var(--space-2);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-apps__tab {
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-block-end: var(--border-width-thick) solid transparent;
+  background: none;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.luna-apps__tab:hover,
+.luna-apps__tab:focus-visible {
+  color: var(--color-text-primary);
+  outline: none;
+}
+
+.luna-apps__tab[aria-selected="true"] {
+  border-block-end-color: var(--color-accent);
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.luna-apps__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* 一行一个应用（商店的写法）：左边点进详情，右边是这一态的主按钮；结果提示占满下一行。 */
+.luna-apps__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.luna-apps__row:hover,
+.luna-apps__row:focus-within {
+  border-color: var(--color-border-strong);
+}
+
+.luna-apps__row > .luna-apps__note,
+.luna-apps__row > .luna-apps__error {
+  grid-column: 1 / -1;
+}
+
+/* 行首不可点的那一组（主题卡：色块 + 名字与出处），占网格的第一列。 */
+.luna-apps__row-lead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: var(--space-0);
+}
+
+.luna-apps__row-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: var(--space-0);
+  padding: var(--space-0);
+  border: none;
+  background: none;
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-apps__row-main:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-accent);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.luna-apps__row-side {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.luna-apps__meta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-apps__card-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: var(--space-0);
+}
+
+.luna-apps__card-name {
+  font-weight: 600;
+}
+
+.luna-apps__card-summary {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.luna-apps__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--control-height-md);
+  block-size: var(--control-height-md);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-selected);
+  color: var(--color-text-primary);
+}
+
+.luna-apps__icon--large {
+  inline-size: calc(var(--control-height-md) * 1.5);
+  block-size: calc(var(--control-height-md) * 1.5);
+}
+
+/* 面包屑：「应用 ›」在标题前；返回只在这里，不占动作区的按钮位（ADR-165 ⑨）。 */
+.luna-apps__crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-secondary);
+}
+
+.luna-apps__crumb-link {
+  padding: var(--space-0);
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+}
+
+.luna-apps__crumb-link:hover,
+.luna-apps__crumb-link:focus-visible {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+}
+
+.luna-apps__detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.luna-apps__hero {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.luna-apps__hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: var(--space-0);
+}
+
+/* 页头下的出处一行：「Lunarca 官方 · 开源（AGPL-3.0-only）」。 */
+.luna-apps__byline {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* 正文 + 信息栏；正文窄于下限时信息栏落到下面。 */
+.luna-apps__layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+
+.luna-apps__main {
+  display: flex;
+  flex: 1 1 var(--apps-main-min-inline);
+  flex-direction: column;
+  gap: var(--space-5);
+  min-inline-size: var(--space-0);
+}
+
+.luna-apps__info {
+  display: flex;
+  flex: 0 1 var(--apps-info-inline);
+  flex-direction: column;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  overflow: hidden;
+}
+
+/* 信息栏里的第一行不要顶边线（行自带的分隔线只用在行与行之间）。 */
+.luna-apps__info > :first-child {
+  border-block-start: none;
+}
+
+.luna-apps__info-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+  background: none;
+  color: var(--color-accent);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-apps__info-link:hover,
+.luna-apps__info-link:focus-visible {
+  background: var(--color-bg-hover);
+  outline: none;
+}
+
+/* 亮点（ADR-168 ⑥）：两到四张小卡，写「能做成什么」。 */
+.luna-apps__highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--query-box-min-inline-size), 1fr));
+  gap: var(--space-2);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-apps__highlight {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+}
+
+.luna-apps__highlight-title {
+  font-weight: 600;
+}
+
+.luna-apps__highlight-body {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* 组件页的一件组件：名称一行，下面是许可证、来源、在用的那一份、版本与位置。 */
+.luna-apps__component {
+  display: flex;
+  flex-direction: column;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  overflow: hidden;
+}
+
+.luna-apps__component > .luna-apps__card-name {
+  margin: var(--space-0);
+  padding: var(--space-3) var(--space-4);
+}
+
+.luna-apps__summary {
+  margin: var(--space-0);
+  font-weight: 600;
+}
+
+.luna-apps__description {
+  margin: var(--space-0);
+  color: var(--color-text-secondary);
+}
+
+.luna-apps__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.luna-apps__section h2 {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.luna-apps__facts {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-0);
+  padding: var(--space-3) var(--space-4);
+  padding-inline-start: var(--space-6);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+}
+
+.luna-apps__note {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.luna-apps__error {
+  margin: var(--space-0);
+  color: var(--color-status-error);
+  font-size: var(--font-size-sm);
+}
+
+/* 安装 / 修复确认框的正文（ADR-168 ③）：「它可以：」一组，下面是下载与已有的说明。 */
+.luna-apps__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.luna-apps__confirm p {
+  margin: var(--space-0);
+}
+
+.luna-apps__confirm-lead {
+  font-weight: 600;
+}
+
+.luna-apps__confirm-list {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding-inline-start: var(--space-5);
+}
+
+/* 一节的标题行：左边标题或一句话，右边一颗按钮（如「从文件安装…」）。 */
+.luna-apps__updates {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* 正在预览一套主题（ADR-168 ⑦）：一条带「结束预览」「使用」的提示，离开这一页就换回原来的。 */
+.luna-apps__preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-thin) solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-surface);
+  font-size: var(--font-size-sm);
+}

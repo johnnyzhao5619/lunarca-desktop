@@ -1,0 +1,32 @@
+/*
+ * 计数徽标（`.luna-count-badge`）——紧跟在标题后面那个"这里有几条"的小胶囊。
+ *
+ * **同一件事此前有五种长相**：侧栏页头的 `.luna-sidebar-header__count`（等宽字体胶囊）、
+ * 搜索命中数 `.luna-search__note-count`（小圆角 + tabular-nums）、标签计数
+ * `.luna-tags-list__item-count`（全圆角、无 tabular-nums）、回收站 `.luna-trash__count`
+ * （带描边、另一种底色）、图谱 CTA 上的 `.luna-graph-side__cta-badge`（又一套字色内距）。
+ * 五处答的是同一个问题，摆在一起像五个不同的控件。
+ *
+ * **数字用等宽字形（`tabular-nums`）而不是等宽字体**：`font-family: mono` 是原先
+ * 页头徽标的做法，可它承载的不一定只有数字（图谱页头放的是「N 节点 · M 连接」这样的
+ * 短句），中文在等宽字体里没有字形、会回退成另一款字——同一枚徽标于是中英文各长一个样。
+ * `font-variant-numeric` 只把数字对齐，不动其余字符，正是这里要的东西。
+ */
+
+.luna-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 计数被截断就是谎报，因此绝不参与压缩。 */
+  flex-shrink: 0;
+  min-inline-size: var(--space-5);
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-hover);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+}

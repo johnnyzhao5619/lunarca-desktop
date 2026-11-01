@@ -1,0 +1,21 @@
+{
+  "scope": "refine",
+  "template": "system",
+  "cases": [
+    {
+      "name": "默认规则：不得改变含义或增删信息",
+      "vars": {
+        "rule": "Polish the text to be clearer and more natural without changing its meaning or adding/removing information.",
+        "structure": "Preserve the original line breaks."
+      },
+      "must_contain": ["without changing its meaning", "Preserve the original line breaks"],
+      "why": "润色一旦允许增删信息，用户拿到的是一段被改写过事实的文本，而他以为只是措辞变好了"
+    },
+    {
+      "name": "只输出结果，不带解释",
+      "vars": { "rule": "R", "structure": "S" },
+      "must_contain": ["Output only the result"],
+      "why": "丢了它，模型会在结果前后附一段「我做了哪些修改」，而这段会被直接注入光标处"
+    }
+  ]
+}

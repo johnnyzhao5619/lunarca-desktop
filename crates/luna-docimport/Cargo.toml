@@ -1,0 +1,35 @@
+[package]
+name = "luna-docimport"
+description = "Lunarca 文档导入：txt / md / CSV / TSV / HTML / docx → Markdown 的纯函数转换，不碰库、不联网（ADR-164）"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+# 网页与 Word（经 HTML）共用粘贴网页那一套 HTML → Markdown（ADR-164 ①）。
+luna-vault = { path = "../luna-vault" }
+thiserror.workspace = true
+# 文本编码：解码用 encoding_rs（已在锁里，MIT/Apache + BSD-3），猜测用 chardetng（MIT/Apache，
+# Firefox 同款）；chardetng 不管 UTF-16，那一层自己按 BOM 与零字节判断（ADR-164 ⑤）。
+encoding_rs = "0.8"
+chardetng = "1"
+# CSV / TSV：引号里的换行与转义交给 csv（MIT / Unlicense），不扩写 html_paste 的单行切分（ADR-164 ⑨）。
+csv = "1"
+# Word：docx 是 zip 包里的一组 XML；两者都已在锁里（zip 9 MIT、quick-xml 0.41 MIT，ADR-164 ⑥）。
+zip = { version = "9", default-features = false, features = ["deflate"] }
+quick-xml = "0.41"
+# 网页标题（<title>）；与 luna-vault 同一份钉住的版本，MIT。
+dom_query = "=0.27.0"
+# Excel（.xlsx / .xls）与 OpenDocument 表格（.ods）：calamine（MIT，纯 Rust），只读保存时的值、
+# 不重算公式（ADR-164 ⑨）。
+calamine = "0.37"
+# PDF（有文字层）：pdf-extract（MIT，基于 lopdf），依赖闭包约 70 个 crate；比 pdf_oxide 轻一半有余，
+# 且保留中文与数字之间的空格（ADR-164 ⑧ 的样本比对）。康熙部首 / 连字的逐字 NFKC 用
+# unicode-normalization（MIT / Apache，已随 pdf-extract 入锁）。
+pdf-extract = "0.12"
+unicode-normalization = "0.1"
+# 网页剪藏的正文抽取（ADR-164 ⑦）：dom_smoothie（MIT，Readability.js 移植）。钉 0.17.0——它依赖的
+# dom_query 正是上面钉住的 0.27，不另起第二套 HTML 解析。
+dom_smoothie = "=0.17.0"
