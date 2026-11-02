@@ -53,14 +53,6 @@ ignore = [
     "RUSTSEC-2026-0370",
     "RUSTSEC-2026-0371",
     "RUSTSEC-2026-0372",
-    # zip 4.6.1（RUSTSEC-2026-0367/0368/0369，解压时保留 SUID 位、符号链接指向目标目录外）：只经
-    # tauri-plugin-updater 2.12.0 进来，且只在 Windows 目标编译（macOS 发行物不含）。updater 先在
-    # download() 里用编进应用的 minisign 公钥验签、验过才解压，被解压的只可能是我们自己签的更新包。
-    # 修复在 zip 9，要 updater 2.14.1，而它要求 tauri ≥ 2.12（wry/tao 一起换代，碰 nspanel，单独一批真机验）。
-    # 去掉条件：tauri 升到 2.12 时一并升 updater ≥ 2.14.1；最迟在发 Windows 安装包之前。
-    "RUSTSEC-2026-0367",
-    "RUSTSEC-2026-0368",
-    "RUSTSEC-2026-0369",
     # unsafe-libyaml（luna-vault 解析 frontmatter：serde_yaml_ng 的后端）2026-10 被标 unmaintained，
     # 无已知漏洞。换维护中的 YAML 库是单独一批（解析行为要逐条对齐），在那之前显式登记。
     "RUSTSEC-2024-0449",

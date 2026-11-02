@@ -1368,14 +1368,14 @@ pub(crate) async fn run_note_ai(
 // ── 自定义指令预设（PRD-06-024）：随库存于 `.luna/ai_presets.json` ─────────────
 
 /// 预设数量上限：预设是「常用的几条」，不是第二个笔记库。
-const FLOATING_PRESETS_MAX: usize = 50;
+pub(crate) const FLOATING_PRESETS_MAX: usize = 50;
 
 /// 浮动菜单的预设清单：库里的与装上的模板包带来的（同名时库里的优先，ADR-169 ⑤）。
 fn presets_dto(
     app: &tauri::AppHandle,
     presets: Vec<luna_vault::AiPreset>,
 ) -> Vec<FloatingPresetDto> {
-    ai_preset_registry(&installed_template_packs(app), presets)
+    ai_preset_registry(&usable_template_packs(app), presets)
 }
 
 #[tauri::command]

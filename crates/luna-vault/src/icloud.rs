@@ -5,10 +5,103 @@
 //! 指向它的链接被判成断链。这里认出占位：树上显示成「未下载」，链接解析把它当作在，打开它时
 //! 说清楚并请系统下载。
 //!
-//! macOS 14 起 iCloud 不再生成占位：未下载的文件保留原名，读取时由系统自动下载，无需处理。
-//! 最低支持 10.15，所以这条仍要做。
+//! macOS 14 起 iCloud 不再生成占位：未下载的文件保留原名、只打 `SF_DATALESS` 标记，读取时由
+//! 系统现场取回。笔记正文按需读、慢一点无妨；但打开库要读 `.luna/` 里的设置与索引，取回一旦
+//! 卡住（磁盘紧张时 iCloud 会把整个库移出本机、下载进度停在 0%），读就一直不返回——这一段见
+//! [`wait_until_local`]。最低支持 10.15，所以旧式占位仍要认。
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::time::{Duration, Instant};
+
+/// 文件被 iCloud「移到云端」（macOS 14 起保留原名、只打 `SF_DATALESS` 标记）。只看元数据，
+/// 不读内容，所以本身不会触发下载、也不会卡住。
+#[must_use]
+pub fn is_dataless(path: &Path) -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        use std::os::macos::fs::MetadataExt;
+        /// `<sys/stat.h>`：内容不在本机，读取时由文件提供者取回。
+        const SF_DATALESS: u32 = 0x4000_0000;
+        std::fs::symlink_metadata(path).is_ok_and(|meta| meta.st_flags() & SF_DATALESS != 0)
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = path;
+        false
+    }
+}
+
+/// 等目录第一层的文件都回到本机，最多等 `timeout`；超时返回 `false`，调用方这一次就不该去读它们。
+///
+/// 打开库（启动装载与切库）在主线程上同步读 `.luna/` 里的设置、索引与续跑档：文件在云端时读会
+/// 一直阻塞到 iCloud 取回为止，取回卡住窗口就永远出不来。这里先只看标记；在云端的文件交给后台
+/// 线程去读（读一个字节就会让系统取回整个文件，线程卡住也只卡它自己），主线程只轮询标记。
+/// 同一个文件已在取回中就不再另起线程，「重试」不会越点越多。
+#[must_use]
+pub fn wait_until_local(dir: &Path, timeout: Duration) -> bool {
+    wait_until_local_with(dir, timeout, is_dataless, fetch_in_background)
+}
+
+fn wait_until_local_with(
+    dir: &Path,
+    timeout: Duration,
+    in_cloud: impl Fn(&Path) -> bool,
+    fetch: impl Fn(PathBuf),
+) -> bool {
+    let pending = || -> Vec<PathBuf> {
+        std::fs::read_dir(dir)
+            .map(|entries| {
+                entries
+                    .filter_map(Result::ok)
+                    .filter(|entry| entry.file_type().is_ok_and(|t| t.is_file()))
+                    .map(|entry| entry.path())
+                    .filter(|path| in_cloud(path))
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+    let first = pending();
+    if first.is_empty() {
+        return true;
+    }
+    first.into_iter().for_each(&fetch);
+    let deadline = Instant::now() + timeout;
+    loop {
+        if pending().is_empty() {
+            return true;
+        }
+        if Instant::now() >= deadline {
+            return false;
+        }
+        std::thread::sleep(Duration::from_millis(100));
+    }
+}
+
+fn fetch_in_background(path: PathBuf) {
+    use std::io::Read;
+    static IN_FLIGHT: std::sync::Mutex<Vec<PathBuf>> = std::sync::Mutex::new(Vec::new());
+    let Ok(mut in_flight) = IN_FLIGHT.lock() else {
+        return;
+    };
+    if in_flight.contains(&path) {
+        return;
+    }
+    in_flight.push(path.clone());
+    drop(in_flight);
+    let spawned = std::thread::Builder::new()
+        .name("icloud-fetch".to_owned())
+        .spawn(move || {
+            if let Ok(mut file) = std::fs::File::open(&path) {
+                let _ = file.read(&mut [0_u8; 1]);
+            }
+            if let Ok(mut in_flight) = IN_FLIGHT.lock() {
+                in_flight.retain(|p| p != &path);
+            }
+        });
+    if spawned.is_err() {
+        eprintln!("[vault] 起 iCloud 取回线程失败");
+    }
+}
 
 /// `.名字.icloud` → `名字`（不是占位返回 `None`）。
 #[must_use]
@@ -178,6 +271,63 @@ mod tests {
         let assets = rec.children.iter().find(|c| c.name == "assets").unwrap();
         assert_eq!(assets.children.len(), 1);
         assert!(!assets.children[0].sync_cloud_only);
+    }
+
+    /// 在云端的文件交出去取回、取回到了就放行；没有在云端的文件时不等、也不取。
+    #[test]
+    fn waits_for_cloud_files_until_they_are_fetched() {
+        use std::sync::Mutex;
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("settings.toml"), "").unwrap();
+        std::fs::write(dir.path().join("index.sqlite"), "").unwrap();
+        std::fs::create_dir(dir.path().join("sidecars")).unwrap();
+        let in_cloud = Mutex::new(vec![dir.path().join("settings.toml")]);
+        let fetched = Mutex::new(Vec::new());
+        let local = wait_until_local_with(
+            dir.path(),
+            Duration::from_secs(5),
+            |p| in_cloud.lock().unwrap().contains(&p.to_path_buf()),
+            |p| {
+                fetched.lock().unwrap().push(p.clone());
+                in_cloud.lock().unwrap().retain(|c| c != &p);
+            },
+        );
+        assert!(local);
+        assert_eq!(
+            *fetched.lock().unwrap(),
+            vec![dir.path().join("settings.toml")]
+        );
+
+        let untouched = Mutex::new(0);
+        assert!(wait_until_local_with(
+            dir.path(),
+            Duration::from_secs(5),
+            |_| false,
+            |_| *untouched.lock().unwrap() += 1,
+        ));
+        assert_eq!(*untouched.lock().unwrap(), 0);
+    }
+
+    /// 取回一直不来（iCloud 下载停在 0%）：到点就返回「还在云端」，不无限等。
+    #[test]
+    fn gives_up_after_the_timeout_when_the_fetch_never_lands() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("settings.toml"), "").unwrap();
+        let started = Instant::now();
+        let local = wait_until_local_with(dir.path(), Duration::from_millis(300), |_| true, |_| {});
+        assert!(!local);
+        assert!(started.elapsed() < Duration::from_secs(3));
+    }
+
+    /// 普通文件不是「移到云端」的文件；不存在的路径也不是。
+    #[test]
+    fn a_plain_local_file_is_not_dataless() {
+        let dir = tempfile::tempdir().unwrap();
+        let file = dir.path().join("a.md");
+        std::fs::write(&file, "x").unwrap();
+        assert!(!is_dataless(&file));
+        assert!(!is_dataless(&dir.path().join("missing.md")));
+        assert!(wait_until_local(dir.path(), Duration::from_millis(10)));
     }
 
     #[test]

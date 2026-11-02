@@ -66,32 +66,18 @@ pub(crate) fn theme_registry(installed: Vec<ThemePackage>) -> Vec<Layered<ThemeP
     )
 }
 
-/// 这台服务端封禁的主题 id 与原因（ADR-159 ⑦；零网络、**不随目录过期失效**，见
-/// `CatalogClient::revoked`）。id 写法不合规的那条跳过——它对不上任何已装的主题。
+/// 这台服务端封禁的主题 id 与原因（见 `content_market::catalog_bans`）。
 fn theme_bans(app: &tauri::AppHandle) -> Vec<(ContentId, String)> {
-    app.try_state::<luna_cloud::commands::Catalogs>()
-        .map(|catalogs| catalogs.themes.revoked())
-        .unwrap_or_default()
-        .into_iter()
-        .filter_map(|ban| Some((ContentId::parse(&ban.id).ok()?, ban.reason)))
-        .collect()
+    super::content_market::catalog_bans(app, |catalogs| catalogs.themes.revoked())
 }
 
-/// 已装的主题按封禁分成「可用」与「已停用（连同原因）」两份（**纯函数**）。停用只是不进注册表：文件不动，
-/// 设置里选的 id 也不动——`resolve_theme` 找不到它就回落 `luna`，解除封禁后它自动回来（PRD-18-012）。
+/// 已装的主题按封禁分成「可用」与「已停用（连同原因）」两份。停用只是不进注册表：设置里选的 id 也不动——
+/// `resolve_theme` 找不到它就回落 `luna`，解除封禁后它自动回来（PRD-18-012）。
 fn split_banned(
     installed: Vec<ThemePackage>,
     bans: &[(ContentId, String)],
 ) -> (Vec<ThemePackage>, Vec<(ThemePackage, String)>) {
-    let mut usable = Vec::new();
-    let mut disabled = Vec::new();
-    for package in installed {
-        match bans.iter().find(|(id, _)| *id == package.id) {
-            Some((_, reason)) => disabled.push((package, reason.clone())),
-            None => usable.push(package),
-        }
-    }
-    (usable, disabled)
+    super::content_market::split_banned(installed, bans, |package| &package.id)
 }
 
 /// 读内容层、去掉被封禁的、组好注册表。首帧外观、稳态外观、两个主题面板与设置校验都问它，封禁因此只在

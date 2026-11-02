@@ -655,6 +655,8 @@ describe("「已安装」里的模板包（纵切 7b B2，PRD-18-011 / 016）", 
     recipes: [],
     capabilities: CAPS,
     update_to: null,
+    disabled_reason: null,
+    recipes_runnable: false,
     ...over,
   });
   const listed = {
@@ -680,6 +682,18 @@ describe("「已安装」里的模板包（纵切 7b B2，PRD-18-011 / 016）", 
     }));
     await confirmWith(t("workspace:apps.templates.market.update"));
     await waitFor(() => expect(commandMock("installMarketTemplate")).toHaveBeenCalledWith("com.example.studio", false));
+  });
+
+  it("被封禁的包写原因、不给「更新」，检查更新的已停用计数算上它（纵切 7b B3）", async () => {
+    setCommandReply("templatePacks", [pack({ disabled_reason: "提示词误导" })]);
+    setCommandReply("templateMarket", { packs: [] });
+    show("installed");
+    expect(await screen.findByText(t("workspace:apps.templates.packs.disabled", { reason: "提示词误导" }))).toBeTruthy();
+    expect(
+      screen.queryByRole("button", {
+        name: t("workspace:apps.rowAction", { action: t("workspace:apps.templates.market.update"), name: "工作室包" }),
+      }),
+    ).toBeNull();
   });
 
   it("「检查更新」问整个「应用」：不看装没装，主题与模板两份目录一次问完、只刷新一次", async () => {

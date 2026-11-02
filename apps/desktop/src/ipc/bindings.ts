@@ -924,7 +924,10 @@ export const commands = {
 	 *  `TEMPLATE_PACK_WRITE_FAILED`。
 	 */
 	installTemplatePack: (path: string, sha256: string) => typedError<TemplatePackDto, string>(__TAURI_INVOKE("install_template_pack", { path, sha256 })),
-	/**  装上的模板包（「应用 › 模板」的「模板包」一节与「已安装」页签），连同在线目录里有没有更新的版本。 */
+	/**
+	 *  装上的模板包（「应用 › 模板」的「模板包」一节与「已安装」页签），连同在线目录里有没有更新的版本；被封禁的
+	 *  排在后面、带上原因（PRD-18-012）。
+	 */
 	templatePacks: () => __TAURI_INVOKE<TemplatePackDto[]>("template_packs"),
 	/**
 	 *  卸载一个模板包：它带来的模板、预设与整理模板从各自的选择面消失；库里的内容不受影响
@@ -934,6 +937,31 @@ export const commands = {
 	 *  id 不合规或删除失败时 `TEMPLATE_PACK_UNINSTALL_FAILED`。
 	 */
 	uninstallTemplatePack: (id: string) => typedError<null, string>(__TAURI_INVOKE("uninstall_template_pack", { id })),
+	/**
+	 *  把装上的模板包里的一项复制成库里你自己的一份（PRD-18-009）：笔记模板 → 设置里的模板目录，AI 预设 →
+	 *  `.luna/ai_presets.json`，整理模板 → `.luna/distill_templates.json`。副本从此归库管理、随库同步，与原包解耦——
+	 *  卸载或封禁原包都不影响它（PRD-18-013）；同名时库里的一份优先，于是复制之后选择面里用的就是你的这份。
+	 *  库里已有同名的不覆盖，往后加序号。被封禁的包不能复制（它的内容已从各处隐藏）。
+	 *
+	 *  # Errors
+	 *  包或这一项不存在（含已被封禁）`TEMPLATE_NOT_FOUND`；库未打开；预设满 `PRESETS_FULL`；整理模板满
+	 *  `DISTILL_TEMPLATE_LIMIT`；写盘失败。
+	 */
+	copyPackItemToVault: (pack: string, kind: PackItemKindDto, name: string) => typedError<CopiedToVaultDto, string>(__TAURI_INVOKE("copy_pack_item_to_vault", { pack, kind, name })),
+	/**  此刻能运行的配方（零网络）。本地导入的包与被封禁的包不在其中。 */
+	runnableRecipes: () => __TAURI_INVOKE<RecipeDto[]>("runnable_recipes"),
+	/**
+	 *  在一篇笔记（或录音）上运行一份配方（PRD-18-003 / 010）。
+	 *
+	 *  `confirmed`：用户在确认框里看过的能力（`RecipeDto.capabilities` 原样交回）。
+	 *
+	 *  # Errors
+	 *  `RECIPE_NOT_FOUND` / `RECIPE_NOT_RUNNABLE`（本地导入或已被封禁）/ `RECIPE_CONFIRM_AGAIN`（包变了）/
+	 *  `RECIPE_WRONG_INPUT`（录音配方用在了普通笔记上）/ `RECIPE_NO_TRANSCRIPT` / `RECIPE_EMPTY_INPUT` /
+	 *  `RECIPE_INPUT_TOO_LONG` / `RECIPE_STEP_FAILED` / `RECIPE_UNKNOWN_FORMAT` / `RECIPE_EXPORT_NEEDS_TIMING`，
+	 *  库未打开与写盘失败。前面的步骤已经写下的笔记不会被撤回（它是一篇普通笔记，可以直接删）。
+	 */
+	runRecipe: (noteRel: string, pack: string, recipe: string, confirmed: PackCapabilitiesDto) => typedError<RecipeRunDto, string>(__TAURI_INVOKE("run_recipe", { noteRel, pack, recipe, confirmed })),
 	/**
 	 *  从 Vault 内 `.trash/` 还原条目；返回**实际**落点（副本形态下与原路径不同）。
 	 *
@@ -3914,6 +3942,11 @@ export type ConflictKindDto = "syncthing" | "dropbox" | "icloud" | "git_markers"
 /**  「检查更新」问的是哪一份目录。 */
 export type ContentCatalogDto = "themes" | "templates";
 
+/**  复制好的那一份在库里叫什么（同名时加了序号，界面据此说「已复制为 …」）。 */
+export type CopiedToVaultDto = {
+	name: string,
+};
+
 /**
  *  CoreML 编码器的安装阶段（`model://coreml-phase`，ADR-115 / PRD-14-020「转换带进度」）。
  *
@@ -6315,7 +6348,7 @@ export type OverviewItemDto = {
 	in_folder: boolean,
 };
 
-/**  由包内容推导出的能力（确认框与已装清单写「它会做的事」）。 */
+/**  由包内容推导出的能力（确认框与已装清单写「它会做的事」；运行配方时原样交回比对）。 */
 export type PackCapabilitiesDto = {
 	uses_ai: boolean,
 	transcribes: boolean,
@@ -6324,6 +6357,9 @@ export type PackCapabilitiesDto = {
 	creates_notes_in: string[],
 	exports: boolean,
 };
+
+/**  「复制到库」能复制的三类内容（提示词与配方不单独复制：它们只在包里才有意义）。 */
+export type PackItemKindDto = "note_template" | "ai_preset" | "distill_template";
 
 /**  一个渠道包装的草稿（五块都可直接改）+ 检查结果。 */
 export type PackageDraftDto = {
@@ -6931,6 +6967,37 @@ export type ReadOnlyGraceDto = {
 };
 
 export type ReceiptOutcome = "saved" | "queued" | "updated" | "degraded" | "failed";
+
+/**  一份能运行的配方（笔记 / 录音右键菜单的「运行配方」）。 */
+export type RecipeDto = {
+	pack: string,
+	pack_name: string,
+	pack_version: string,
+	id: string,
+	title: string,
+	input: RecipeInputDto,
+	steps: RecipeStepDto[],
+	/**  只这份配方会做的事（运行前确认，运行时原样交回比对）。 */
+	capabilities: PackCapabilitiesDto,
+};
+
+/**  配方接在哪一类东西上（由第一步推导，见 `luna_content_schema::RecipeInput`）。 */
+export type RecipeInputDto =
+/**  录音 / 转写笔记的转写稿。 */
+"recording" |
+/**  任意一篇笔记的正文。 */
+"note";
+
+/**  一次运行的结果：新建的笔记（库相对路径）与导出的文件（绝对路径）；没有这一步或用户在保存对话框里取消为 `None`。 */
+export type RecipeRunDto = {
+	created: string | null,
+	exported: string | null,
+};
+
+/**  一步（确认框逐条写「它会做的事」）。 */
+export type RecipeStepDto = { type: "transcribe" } | { type: "translate"; to: string } |
+/**  `prompt`：包里那份提示词的文件名（不含目录与扩展名）。 */
+{ type: "llm"; prompt: string } | { type: "vault_create_note"; dir: string } | { type: "export"; format: string };
 
 /**
  *  录制前检查（ADR-165 ⑧ / PRD-19-039）：跟读要的麦克风与实时转写，各一条状态；缺什么
@@ -8423,11 +8490,18 @@ export type TemplatePackDto = {
 	ai_presets: string[],
 	distill_templates: string[],
 	prompts: number,
-	/**  工作流配方的标题（导入后只展示、不执行，执行随在线模板包）。 */
+	/**  工作流配方的标题。 */
 	recipes: string[],
+	/**  这些配方能运行：只有从在线目录装的包才能（ADR-161 ②）；本地导入的、还在预览里的都是 `false`。 */
+	recipes_runnable: boolean,
 	capabilities: PackCapabilitiesDto,
 	/**  在线模板目录里有更新的版本（纵切 7b B2，与「获取更多模板」同一份状态）；没有或目录不可用为 `None`。 */
 	update_to: string | null,
+	/**
+	 *  服务端因安全原因封禁了这个包（纵切 7b B3）：它带来的东西已从所有选择面消失，这里是给用户看的原因；
+	 *  停用的包只给卸载。没被封禁为 `None`。
+	 */
+	disabled_reason: string | null,
 };
 
 /**  导入前的预览：确认之后凭 `path` 与 `sha256` 安装。 */
@@ -9564,6 +9638,8 @@ export type VaultStatusDto = {
 	root: string | null,
 	/**  未打开时：启动配置指着、却找不到的库根（PRD-14-062）。`None` = 从未选过库。 */
 	missing_root: string | null,
+	/**  `missing_root` 不是找不到了，是库的 `.luna/` 还在 iCloud 上没取回：空状态说「还在下载」、给「重试」。 */
+	missing_in_cloud: boolean,
 };
 
 /**  切库前的预检：**代价与阻断都在点之前给**（与批量整理确认卡同一心智）。 */

@@ -87,7 +87,13 @@ fn available_catalog_templates(app: &tauri::AppHandle) -> Option<Vec<TemplateCat
         return None;
     }
     let catalogs = app.try_state::<luna_cloud::commands::Catalogs>()?;
-    let entries = catalog_templates(catalogs.templates.current()?.entries);
+    // 同一版目录不会既上架又封禁同一个 id（服务端校验），但封禁取的是最近一次验签过的信封、条目取的是生效的那一版，
+    // 两者可以不是同一版：被封的 id 一律不列（ADR-159 ⑦）。
+    let bans = super::content_market::catalog_bans(app, |catalogs| catalogs.templates.revoked());
+    let entries: Vec<_> = catalog_templates(catalogs.templates.current()?.entries)
+        .into_iter()
+        .filter(|entry| bans.iter().all(|(id, _)| *id != entry.id))
+        .collect();
     (!entries.is_empty()).then_some(entries)
 }
 
@@ -261,7 +267,7 @@ pub(crate) async fn install_market_template(
             error => format!("TEMPLATE_MARKET_DOWNLOAD_FAILED: {error}"),
         })?;
     verify_against_catalog(&bytes, &entry)?;
-    let (_, contents) = luna_content::install(
+    let (installed, contents) = luna_content::install(
         &template_pack_store(&app)?,
         ContentDomain::TemplatePacks,
         Source::Downloaded {
@@ -272,6 +278,9 @@ pub(crate) async fn install_market_template(
         prepare_template_pack,
     )
     .map_err(|error| install_error_code(&error))?;
+    if let Err(error) = super::template_library::mark_from_catalog(&installed.dir, &entry.sha256) {
+        eprintln!("[template-market] could not mark the pack as from the catalog: {error}");
+    }
     let _ = tauri_specta::Event::emit(&super::template_library::TemplateLibraryChanged, &app);
     Ok((&contents).into())
 }

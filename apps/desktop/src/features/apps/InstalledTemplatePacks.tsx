@@ -2,7 +2,7 @@
  * 「应用 › 已安装」里的模板包（纵切 7b B2，PRD-18-011 / 016）：装上的模板包——从文件导入的与从在线目录获取的同一种行——
  * 列在已装应用与主题下面。「可更新到哪一版」是 `template_packs` 的 `update_to`，由 Rust 用与「获取更多模板」同一份市场
  * 状态算出（零网络，目录不可用时一条也不标），前端不比版本；可更新的给「更新」（与「获取更多模板」同一个确认框），
- * 都能卸载。
+ * 都能卸载。被服务端封禁的（`disabled_reason`，纵切 7b B3）写原因、只给卸载——它在目录里已不存在，没有「更新」可给。
  */
 
 import { useState } from "react";
@@ -60,7 +60,9 @@ export function InstalledTemplatePacks({
               <span className="luna-apps__card-text">
                 <span className="luna-apps__card-name">{pack.name}</span>
                 <span className="luna-apps__meta">
-                  {pack.update_to !== null
+                  {pack.disabled_reason !== null
+                    ? t("apps.templates.packs.disabled", { reason: pack.disabled_reason })
+                    : pack.update_to !== null
                     ? t("apps.templates.market.updateMeta", {
                         publisher: pack.publisher,
                         license: pack.license,

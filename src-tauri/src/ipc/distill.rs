@@ -530,7 +530,7 @@ fn distill_templates(app: &tauri::AppHandle, state: &AppState) -> DistillTemplat
                 .and_then(|vault| vault.distill_templates().ok())
         })
         .unwrap_or_default();
-    let (packs, pack_names) = pack_distill_templates(&installed_template_packs(app))
+    let (packs, pack_names) = pack_distill_templates(&usable_template_packs(app))
         .into_iter()
         .unzip();
     DistillTemplates {
@@ -2036,7 +2036,7 @@ pub(crate) fn delete_distill_template(
 }
 
 /// 生成一个模板 id（时间无关的随机短串——它只需唯一且稳定，不承载语义）。
-fn new_template_id() -> String {
+pub(crate) fn new_template_id() -> String {
     // 复用 UUIDv7 的实现（仓库已有依赖）：取其去连字符形式的前 12 位足够唯一，
     // 短一点是为了让 frontmatter 里的 `user:xxxx` 仍然可读。
     luna_core::JobId::new()

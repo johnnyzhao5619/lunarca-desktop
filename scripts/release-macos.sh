@@ -123,6 +123,9 @@ python3 "$ROOT_DIR/scripts/fetch-llama-runtime.py"
 
 BUILT_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_BUNDLE/Contents/Info.plist")"
 [[ "$BUILT_VERSION" == "$VERSION" ]] || { echo "打出来的包版本是 $BUILT_VERSION，不是 $VERSION" >&2; exit 1; }
+# 1.0.0 首发的包没带图标（`bundle.icon` 从没配过），访达、程序坞与「仍要打开」里都是空白图标。
+/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$APP_BUNDLE/Contents/Info.plist" >/dev/null 2>&1 \
+  || { echo "打出来的包没有应用图标：检查 tauri.conf.json 的 bundle.icon" >&2; exit 1; }
 
 sign_app_bundle "$SIGN_IDENTITY" "$APP_BUNDLE"
 /usr/bin/codesign --verify --deep --strict "$APP_BUNDLE"
@@ -143,7 +146,18 @@ STAGING="$(mktemp -d)"
 trap 'rm -rf "$STAGING"' EXIT
 /usr/bin/ditto "$APP_BUNDLE" "$STAGING/$APP_NAME.app"
 ln -s /Applications "$STAGING/Applications"
-/usr/bin/hdiutil create -quiet -volname "$APP_NAME" -srcfolder "$STAGING" -fs HFS+ -format UDZO -ov "$DMG"
+# 卷图标：挂载后的磁盘与访达窗口标题显示应用图标，而不是通用磁盘。自定义图标标记要打在
+# 卷根上，`-srcfolder` 带不过去，所以先出可写镜像、挂上去打标记，再压成只读的 UDZO。
+RW_DMG="$STAGING.rw.dmg"
+MOUNT="$(mktemp -d)"
+trap 'rm -rf "$STAGING" "$RW_DMG" "$MOUNT"' EXIT
+/usr/bin/hdiutil create -quiet -volname "$APP_NAME" -srcfolder "$STAGING" -fs HFS+ -format UDRW -ov "$RW_DMG"
+/usr/bin/hdiutil attach -quiet -nobrowse -noautoopen -mountpoint "$MOUNT" "$RW_DMG"
+cp "$ROOT_DIR/src-tauri/icons/icon.icns" "$MOUNT/.VolumeIcon.icns"
+/usr/bin/SetFile -c icnC "$MOUNT/.VolumeIcon.icns"
+/usr/bin/SetFile -a C "$MOUNT"
+/usr/bin/hdiutil detach -quiet "$MOUNT"
+/usr/bin/hdiutil convert -quiet "$RW_DMG" -format UDZO -o "$DMG" -ov
 /usr/bin/codesign --force --sign "$SIGN_IDENTITY" "$DMG"
 
 MANIFEST_ARGS=(--archive "$ARCHIVE" --sig "$ARCHIVE.sig" --version "$VERSION" --notes "$NOTES_FILE"

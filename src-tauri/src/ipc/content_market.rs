@@ -12,6 +12,43 @@ pub(crate) fn online_catalog_usable(app: &tauri::AppHandle) -> bool {
         && app.try_state::<luna_cloud::commands::Catalogs>().is_some()
 }
 
+/// 这台服务端在某一份目录里封禁的 id 与原因（ADR-159 ⑦；零网络、**不随目录过期失效**，见
+/// `CatalogClient::revoked`）。id 写法不合规的那条跳过——它对不上任何已装的内容。主题与模板包各取各的那一份目录。
+pub(crate) fn catalog_bans(
+    app: &tauri::AppHandle,
+    pick: impl FnOnce(&luna_cloud::commands::Catalogs) -> Vec<luna_cloud::catalog::CatalogRevocation>,
+) -> Vec<(luna_content_schema::ContentId, String)> {
+    app.try_state::<luna_cloud::commands::Catalogs>()
+        .map(|catalogs| pick(&catalogs))
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|ban| {
+            Some((
+                luna_content_schema::ContentId::parse(&ban.id).ok()?,
+                ban.reason,
+            ))
+        })
+        .collect()
+}
+
+/// 已装的内容按封禁分成「可用」与「已停用（连同原因）」两份（**纯函数**，PRD-18-012）。停用只是不进选择面：文件不动，
+/// 解除封禁后它自动回来。
+pub(crate) fn split_banned<T>(
+    installed: Vec<T>,
+    bans: &[(luna_content_schema::ContentId, String)],
+    id_of: impl Fn(&T) -> &luna_content_schema::ContentId,
+) -> (Vec<T>, Vec<(T, String)>) {
+    let mut usable = Vec::new();
+    let mut disabled = Vec::new();
+    for item in installed {
+        match bans.iter().find(|(id, _)| id == id_of(&item)) {
+            Some((_, reason)) => disabled.push((item, reason.clone())),
+            None => usable.push(item),
+        }
+    }
+    (usable, disabled)
+}
+
 /// 「检查更新」问的是哪一份目录。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "snake_case")]

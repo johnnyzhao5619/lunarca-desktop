@@ -10,7 +10,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 
 vi.mock("../../ipc/bindings", () => import("../../ipc/bindings-test-double"));
 
-import { commandMock, resetBindingsDouble, setCommandReply } from "../../ipc/bindings-test-double";
+import { commandMock, emitEvent, resetBindingsDouble, setCommandReply } from "../../ipc/bindings-test-double";
 import { ConfirmHost } from "../../components/ConfirmHost";
 import { t, withI18n } from "../../i18n/i18n-test-fixture";
 import { NAVIGATE_EVENT } from "../../lib/navigate";
@@ -66,6 +66,9 @@ const PACK = {
   prompts: 1,
   recipes: ["发布包"],
   capabilities: { uses_ai: true, transcribes: false, translates: false, creates_notes_in: ["Projects"], exports: false },
+  update_to: null,
+  disabled_reason: null,
+  recipes_runnable: false,
 };
 
 function show() {
@@ -210,6 +213,48 @@ describe("「应用 › 模板」", () => {
     const dialog = await screen.findByRole("alertdialog");
     fireEvent.click(within(dialog).getByRole("button", { name: t("workspace:apps.templates.packs.uninstall.confirm") }));
     await waitFor(() => expect(commandMock("uninstallTemplatePack")).toHaveBeenCalledWith("com.example.kit"));
+  });
+
+  it("复制到库：包里每一项各一个按钮，按包 id、种类与名字交给 Rust，复制好就说新名字并重读（纵切 7b B4）", async () => {
+    setCommandReply("templatePacks", [PACK]);
+    setCommandReply("copyPackItemToVault", { status: "ok", data: { name: "收紧-1" } });
+    show();
+    const before = commandMock("noteTemplates").mock.calls.length;
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: t("workspace:apps.rowAction", { action: t("workspace:apps.templates.packs.copy.action"), name: "收紧" }),
+      }),
+    );
+    await waitFor(() => expect(commandMock("copyPackItemToVault")).toHaveBeenCalledWith("com.example.kit", "ai_preset", "收紧"));
+    expect(await screen.findByText(t("workspace:apps.templates.packs.copy.done", { name: "收紧-1" }))).toBeTruthy();
+    await waitFor(() => expect(commandMock("noteTemplates").mock.calls.length).toBeGreaterThan(before));
+  });
+
+  it("预设满了就地说清楚，不跳走", async () => {
+    setCommandReply("templatePacks", [PACK]);
+    setCommandReply("copyPackItemToVault", { status: "error", error: "PRESETS_FULL" });
+    show();
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: t("workspace:apps.rowAction", { action: t("workspace:apps.templates.packs.copy.action"), name: "收紧" }),
+      }),
+    );
+    expect(await screen.findByText(t("workspace:apps.templates.packs.copy.presetsFull"))).toBeTruthy();
+  });
+
+  it("被封禁的包写明原因、只给卸载；模板目录一换（封禁 / 解除）整页重读（纵切 7b B3）", async () => {
+    setCommandReply("templatePacks", [{ ...PACK, disabled_reason: "提示词误导" }]);
+    show();
+    expect(await screen.findByText(t("workspace:apps.templates.packs.disabled", { reason: "提示词误导" }))).toBeTruthy();
+    expect(
+      screen.getByRole("button", {
+        name: t("workspace:apps.rowAction", { action: t("workspace:apps.templates.packs.uninstall.action"), name: "起步包" }),
+      }),
+    ).toBeTruthy();
+    expect(screen.queryByText(t("workspace:apps.templates.packs.copy.summary"))).toBeNull();
+    const before = commandMock("noteTemplates").mock.calls.length;
+    emitEvent("templatesChanged", null);
+    await waitFor(() => expect(commandMock("noteTemplates").mock.calls.length).toBeGreaterThan(before));
   });
 });
 

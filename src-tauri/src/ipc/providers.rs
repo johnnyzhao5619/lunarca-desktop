@@ -712,6 +712,23 @@ pub fn build_state_with_settings_persistence(
     // Vault 级设置、续跑档之前定下来（它们都按这个根取）。
     let (explicit_root, hidden_at_startup) =
         crate::vault_lists::startup_root(&vault_registry, explicit_root);
+    // 库的 `.luna/` 被 iCloud 移到了云端（磁盘紧张时「优化 Mac 储存空间」会整片移走）：下面读
+    // Vault 级设置、开索引都在主线程上同步进行，取回一卡住窗口就永远出不来。只等几秒，还没回来
+    // 就这次先不开它，空状态说「还在下载」并给「重试」（后台取回照常进行）。
+    let startup_vault_in_cloud = explicit_root.as_ref().is_some_and(|root| {
+        let local = luna_vault::icloud::wait_until_local(
+            &root.join(super::LUNA_VAULT_PRIVATE_DIR),
+            super::VAULT_CLOUD_FETCH_WAIT,
+        );
+        if !local {
+            eprintln!(
+                "[vault] 库的私有目录还在 iCloud 上没取回，这次启动先不打开（path={}）",
+                root.display()
+            );
+        }
+        !local
+    });
+    let explicit_root = explicit_root.filter(|_| !startup_vault_in_cloud);
     // 续跑档随库（ADR-025）：启动时按当前库定落点；无库（首启未绑定）则不持久化，
     // 绑定库后由 `open_vault_path` / 切库编排经 `ProcessingQueue::rebind` 接上。
     let queue_state_path = explicit_root
@@ -838,6 +855,7 @@ pub fn build_state_with_settings_persistence(
         device_usage,
         vault,
         startup_vault_missing,
+        startup_vault_in_cloud,
         vault_watcher: Mutex::new(None),
         chat: Arc::new(Mutex::new(ChatSessionStore::default())),
         media_server,

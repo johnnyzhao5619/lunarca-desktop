@@ -30,8 +30,8 @@ pub use template_catalog::{
     PackContentCounts, TemplateCatalogEntry, TemplateRelease,
 };
 pub use template_pack::{
-    Capabilities, ContentApiRange, PackAsset, PackAssetKind, Recipe, RecipeStep, TemplatePackError,
-    TemplatePackManifest, HOST_CONTENT_API, MAX_PACK_BYTES, MAX_PACK_FILES,
+    Capabilities, ContentApiRange, PackAsset, PackAssetKind, Recipe, RecipeInput, RecipeStep,
+    TemplatePackError, TemplatePackManifest, HOST_CONTENT_API, MAX_PACK_BYTES, MAX_PACK_FILES,
     TEMPLATE_PACK_SCHEMA_VERSION,
 };
 pub use theme::{

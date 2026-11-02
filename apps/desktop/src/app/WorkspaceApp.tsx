@@ -145,6 +145,7 @@ import { AddContentPopover } from "../features/capture/AddContentPopover";
 import type { CreateActionContext } from "../features/capture/create-actions";
 import { useSurfaceMetrics } from "../features/workspace/use-workspace-metrics";
 import {
+  ArrowClockwiseIcon,
   CameraIcon,
   CaptionsIcon,
   ChevronRightIcon,
@@ -442,6 +443,8 @@ export function WorkspaceApp({
   const [missingRoot, setMissingRoot] = useState<string | null>(
     initialVault?.missing_root ?? null,
   );
+  /** 那个库不是找不到了，是 `.luna/` 还在 iCloud 上没取回：空态说「还在下载」、给「重试」。 */
+  const [missingInCloud, setMissingInCloud] = useState(initialVault?.missing_in_cloud ?? false);
 
   /**
    * 库快照的版本号：任何"库变了"的信号都把它 +1。
@@ -1115,6 +1118,16 @@ export function WorkspaceApp({
   }, [tree]);
 
   /** 「上次的库找不到了」→ 让用户指回它现在的位置（PRD-14-062）。 */
+  /** 库还在 iCloud 上时的「重试」：照原路径再开一次；Rust 侧还没取回就再说一遍「还在下载」。 */
+  async function retryVaultInCloud(root: string) {
+    const result = await commands.selectVault(root);
+    if (result.status === "ok") {
+      onVaultSwitched?.();
+    } else {
+      setStatus(vaultErrorText(result.error));
+    }
+  }
+
   async function relocateVault() {
     const picked = await commands.pickFolder(null);
     if (picked.status !== "ok" || !picked.data) {
@@ -1179,6 +1192,7 @@ export function WorkspaceApp({
       }
       setVaultOpen(vaultStatus.open);
       setMissingRoot(vaultStatus.missing_root);
+      setMissingInCloud(vaultStatus.missing_in_cloud);
       if (vaultStatus.open) {
         void refreshVault();
       }
@@ -2933,16 +2947,38 @@ export function WorkspaceApp({
              折叠成一句「尚未选择」。 */
             <EmptyState
               icon={<HardDriveIcon size={24} />}
-              title={missingRoot ? t("main.vaultMissingTitle") : t("nav.vault")}
+              title={
+                missingRoot
+                  ? t(missingInCloud ? "main.vaultInCloudTitle" : "main.vaultMissingTitle")
+                  : t("nav.vault")
+              }
               description={
-                missingRoot ? t("main.vaultMissing", { path: missingRoot }) : t("main.noVault")
+                missingRoot
+                  ? t(missingInCloud ? "main.vaultInCloud" : "main.vaultMissing", {
+                      path: missingRoot,
+                    })
+                  : t("main.noVault")
               }
               action={
                 missingRoot ? (
                   <>
+                    {missingInCloud && (
+                      <button
+                        type="button"
+                        className="luna-btn luna-btn--primary"
+                        onClick={() => {
+                          void retryVaultInCloud(missingRoot);
+                        }}
+                      >
+                        <ArrowClockwiseIcon size={14} />
+                        <span>{t("main.retryVaultInCloud")}</span>
+                      </button>
+                    )}
                     <button
                       type="button"
-                      className="luna-btn luna-btn--primary"
+                      className={
+                        missingInCloud ? "luna-btn luna-btn--secondary" : "luna-btn luna-btn--primary"
+                      }
                       onClick={() => {
                         void relocateVault();
                       }}

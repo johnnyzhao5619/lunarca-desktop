@@ -85,9 +85,10 @@ pub unsafe fn convert_to_nonactivating_panel(ns_window: *mut std::ffi::c_void) {
 
     let window: &NSWindow = &*(obj.cast());
 
-    // 2. 注入 NonactivatingPanel 掩码（防夺焦）。
+    // 2. 注入 NonactivatingPanel 掩码（防夺焦），并让 WindowServer 也按非激活处理（见 prevent_activation）。
     let mask = window.styleMask() | NSWindowStyleMask::NonactivatingPanel;
     window.setStyleMask(mask);
+    prevent_activation(window);
 
     // 3. collectionBehavior：跨全部 Space + 全屏辅助（Spaces 漂移抑制，PRD-01-025）。
     let behavior = NSWindowCollectionBehavior::CanJoinAllSpaces
@@ -101,6 +102,56 @@ pub unsafe fn convert_to_nonactivating_panel(ns_window: *mut std::ffi::c_void) {
     // WebView 内的控件级过滤仍由前端控制，避免按钮/输入框被当作拖拽区。
     window.setMovable(true);
     window.setMovableByWindowBackground(true);
+}
+
+/// WindowServer 窗口标签里的「禁止激活」位（`kCGSPreventsActivationTagBit`）。
+const CGS_PREVENTS_ACTIVATION_TAG: u64 = 1 << 16;
+
+/// 让 WindowServer 也认这扇面板「点了不激活 App」（ADR-015，TDD-05 §5.1.1）。
+///
+/// `NonactivatingPanel` 掩码只有在 `NSPanel` **初始化时**就带上，才会同步成 WindowServer 的窗口
+/// 标签；这里是窗口建好之后才换类、补掩码（Tauri 不给面板构造入口），AppKit 一侧看着都对，
+/// WindowServer 仍按普通窗口处理：鼠标一按就把整个 App 激活，源应用退到后台，Esc 收起面板后
+/// 系统再把主窗口提到前面。真机 2026-10-30（macOS 27）：初始化即带掩码的面板点击不激活，建后补
+/// 掩码的会激活，补上本标签后不再激活，输入框照常收键入。
+///
+/// 两处都是私有接口：`-_setPreventsActivation:` 让 AppKit 自己的记录与之一致，`CGSSetWindowTags`
+/// 让 WindowServer 当场生效。哪一个不在（系统改了）就跳过并打一行日志，退回点击即激活的旧行为。
+///
+/// # Safety
+/// 同 [`convert_to_nonactivating_panel`]：主线程、存活的窗口。
+unsafe fn prevent_activation(window: &NSWindow) {
+    let responds: bool = msg_send![window, respondsToSelector: sel!(_setPreventsActivation:)];
+    if responds {
+        let _: () = msg_send![window, _setPreventsActivation: true];
+    } else {
+        eprintln!("[ADR-015] 没有 -_setPreventsActivation:，只设 WindowServer 标签");
+    }
+
+    type MainConnectionId = unsafe extern "C" fn() -> i32;
+    type SetWindowTags = unsafe extern "C" fn(i32, i32, *const u64, i32) -> i32;
+    let connection = libc::dlsym(libc::RTLD_DEFAULT, c"CGSMainConnectionID".as_ptr());
+    let set_tags = libc::dlsym(libc::RTLD_DEFAULT, c"CGSSetWindowTags".as_ptr());
+    if connection.is_null() || set_tags.is_null() {
+        eprintln!("[ADR-015] 找不到 CGSSetWindowTags，面板被点击时仍会激活 App");
+        return;
+    }
+    // SAFETY: 两个符号都来自 CoreGraphics，签名是它们一直以来的 C 声明
+    // （`CGSConnectionID CGSMainConnectionID(void)`；`CGError CGSSetWindowTags(cid, wid, const
+    // CGSWindowTagBit *tags, int maxTagSize)`，tags 指向 64 位、maxTagSize 以位计）。
+    let connection = std::mem::transmute::<*mut libc::c_void, MainConnectionId>(connection);
+    let set_tags = std::mem::transmute::<*mut libc::c_void, SetWindowTags>(set_tags);
+    // tao 建窗用 `defer: false`，转换时窗口号已经存在；万一没有就没法打标签。
+    let number = window.windowNumber();
+    if number <= 0 {
+        eprintln!("[ADR-015] 面板还没有 WindowServer 窗口号，跳过禁止激活标签");
+        return;
+    }
+    let tags = CGS_PREVENTS_ACTIVATION_TAG;
+    let error = set_tags(connection(), number as i32, &tags, 64);
+    if error != 0 {
+        eprintln!("[ADR-015] CGSSetWindowTags 失败（{error}），面板被点击时仍会激活 App");
+    }
 }
 
 /// 让面板上的文本框**按需成为 key responder** 接收键入，但**不 activate 整个 App**（输入模式，

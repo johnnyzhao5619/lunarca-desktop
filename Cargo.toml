@@ -94,7 +94,7 @@ keyring = { version = "3", features = ["apple-native", "windows-native"] }
 
 # ---- 云客户端与 IPC 类型生成（ADR-037：单一构建，src-tauri 与 luna-cloud 共用同一份
 # 版本；tauri-specta 的 rc 版本必须两侧完全一致，否则生成的绑定会在类型层分叉）----
-tauri = { version = "2" }
+tauri = { version = "2.12" }
 tauri-specta = { version = "=2.0.0-rc.25", features = ["derive", "typescript"] }
 specta = { version = "=2.0.0-rc.25", features = ["derive", "serde_json"] }
 specta-typescript = "0.0.12"

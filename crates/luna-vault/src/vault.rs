@@ -1211,6 +1211,39 @@ impl Vault {
         std::fs::read_to_string(candidate).map_err(Into::into)
     }
 
+    /// 往用户模板目录里加一份模板（「复制到库」，PRD-18-009）：`name.md` 被占就 `name-1.md`、`name-2.md`……
+    /// **从不覆盖**已有文件；目录不存在时先建。返回相对模板根的路径（与 [`Self::list_user_templates`] 同一口径）。
+    ///
+    /// # Errors
+    /// 名字带路径分隔符或为空、模板目录逃出 Vault、写盘失败时。
+    pub fn add_user_template(
+        &self,
+        template_dir: &str,
+        name: &str,
+        content: &str,
+    ) -> Result<String> {
+        let name = name.trim();
+        if name.is_empty() || name.contains(['/', '\\']) || name.starts_with('.') {
+            return Err(VaultError::PathEscape(PathBuf::from(name)));
+        }
+        std::fs::create_dir_all(self.resolve(template_dir)?)?;
+        let root = self
+            .user_template_root(template_dir)?
+            .ok_or_else(|| VaultError::NotFound(self.root.join(template_dir)))?;
+        let file = (0..)
+            .map(|index| {
+                if index == 0 {
+                    format!("{name}.md")
+                } else {
+                    format!("{name}-{index}.md")
+                }
+            })
+            .find(|file| !root.join(file).exists())
+            .expect("总能找到空位");
+        crate::atomic::write_atomic(&root.join(&file), content.as_bytes())?;
+        Ok(file)
+    }
+
     /// 返回经真实路径校验的模板根。配置值在词法上已经是 Vault 相对路径仍不足以防住
     /// 「目录本身是指向库外的符号链接」；故这里再校验 canonical root 仍位于 Vault 内。
     fn user_template_root(&self, template_dir: &str) -> Result<Option<PathBuf>> {
@@ -11208,6 +11241,28 @@ luna:
         assert!(v
             .read_user_template(".luna/templates", "../outside.md")
             .is_err());
+    }
+
+    /// 「复制到库」：目录不存在先建，同名不覆盖、往后加序号，名字里不许带路径。
+    #[test]
+    fn adding_a_user_template_never_overwrites_and_never_leaves_the_template_root() {
+        let (dir, v) = open_vault();
+        assert_eq!(
+            v.add_user_template("Templates", "周报", "# 一").unwrap(),
+            "周报.md"
+        );
+        assert_eq!(
+            v.add_user_template("Templates", "周报", "# 二").unwrap(),
+            "周报-1.md"
+        );
+        assert_eq!(
+            std::fs::read_to_string(dir.path().join("Templates/周报.md")).unwrap(),
+            "# 一"
+        );
+        for bad in ["", "a/b", "..", ".hidden", "a\\b"] {
+            assert!(v.add_user_template("Templates", bad, "x").is_err(), "{bad}");
+        }
+        assert!(v.add_user_template("../outside", "周报", "x").is_err());
     }
 
     #[test]

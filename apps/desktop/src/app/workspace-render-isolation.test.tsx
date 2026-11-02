@@ -201,7 +201,7 @@ async function mountWorkspace(enter: () => void) {
             PromptHost,
             null,
             createElement(WorkspaceApp, {
-              initialVault: { open: true, root: "/v", missing_root: null },
+              initialVault: { open: true, root: "/v", missing_root: null, missing_in_cloud: false },
               launchOverview: false,
             }),
           ),

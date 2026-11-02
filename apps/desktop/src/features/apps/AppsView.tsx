@@ -244,7 +244,8 @@ function AppsHome({ tab, apps }: { tab: AppsTab; apps: readonly AppDto[] }) {
   // 在不在：目录条目全被封禁时那一块消失，而查一遍正是得知解除封禁的途径（2026-10-23 Windows 真机）。页头的入口问的是
   // 整个「应用」，所以两份目录一起问，不看装没装。
   const checkCatalogs: ContentCatalogDto[] = library.canCheckUpdates ? ["themes", "templates"] : [];
-  const updates = useUpdatesCheck({ updatable, disabled: library.disabled.length, apps: checkApps, catalogs: checkCatalogs });
+  const disabled = library.disabled.length + packs.filter((pack) => pack.disabled_reason !== null).length;
+  const updates = useUpdatesCheck({ updatable, disabled, apps: checkApps, catalogs: checkCatalogs });
   const canCheck = checkApps || checkCatalogs.length > 0;
   // 打开即重验（ADR-170 ②）：先用缓存渲染，Rust 判过新鲜度（5 分钟）需要时在后台拉一遍；交付一变由
   // `themes://changed` / `templates://changed` 带出新内容。门控不放行时 Rust 什么都不发。

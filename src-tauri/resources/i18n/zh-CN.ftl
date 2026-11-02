@@ -239,6 +239,7 @@ empty-result-note = 结果为空，没有可存入笔记的内容。
 empty-result-lens-note = 结果为空，没有可存入译境笔记的内容。
 vault-missing-path-gone = 笔记库路径已不存在：{ $path }
 vault-missing-open-failed = 无法打开笔记库：{ $error }
+vault-in-cloud = 笔记库 { $path } 的文件还在 iCloud 上，正在下载到这台 Mac。稍等片刻再试；也可以在访达里右键这个文件夹选「保持下载」。
 vault-switch-busy = 有任务未能及时暂停，本次切换已中止，请稍后重试。
 vault-queue-save-failed = 待办任务未能保存到笔记库，本次切换已中止。请检查磁盘空间和目录权限后重试。
 vault-switch-recording = 录音进行中。请先停止录音，再切换笔记库。

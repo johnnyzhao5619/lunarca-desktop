@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 
 import {
   commands,
+  events,
   type DistillTemplateChoiceDto,
   type NoteTemplateEntryDto,
   type TemplateFileDto,
@@ -56,7 +57,14 @@ export function TemplatesTab() {
     });
   }, []);
 
-  useEffect(() => reload(), [reload]);
+  useEffect(() => {
+    reload();
+    // 模板目录换了一份（封禁 / 解除封禁，纵切 7b B3）：被封的包带来的条目在运行中就要消失。
+    const unlisten = events.templatesChanged.listen(() => reload());
+    return () => {
+      void unlisten.then((dispose) => dispose());
+    };
+  }, [reload]);
 
   const builtin = notes.flatMap((entry) => (entry.note_type !== null ? [entry.note_type] : []));
   const fromPacks = notes.filter((entry) => entry.layer === "content");

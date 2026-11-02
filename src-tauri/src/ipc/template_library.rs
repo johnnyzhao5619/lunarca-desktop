@@ -85,6 +85,51 @@ pub(crate) struct InstalledPack {
     dir: PathBuf,
 }
 
+/// 「这一版是从在线目录装的」记在哪（纵切 7b B5，ADR-161 ② 用户裁决：只有这样的包能运行配方）：版本目录**旁边**的
+/// `<版本>.origin`，内容是目录里那份包体的 sha256。包里的文件只能落在版本目录之内（`RelPath`），所以本地导入的包
+/// 伪造不了它；内容层的列举只认目录，这个文件不会被当成一个版本。
+fn origin_marker(dir: &Path) -> Option<PathBuf> {
+    let version = dir.file_name()?.to_str()?;
+    Some(dir.parent()?.join(format!("{version}.origin")))
+}
+
+/// 记下这一版来自在线目录（装好之后写；写不成只是配方不能运行，不影响包本身）。同一 id 旧版本的记号一并清掉。
+pub(crate) fn mark_from_catalog(dir: &Path, sha256: &str) -> std::io::Result<()> {
+    let marker = origin_marker(dir).ok_or_else(|| std::io::Error::other("no version dir"))?;
+    if let Some(parent) = marker.parent() {
+        for entry in std::fs::read_dir(parent)?.flatten() {
+            let path = entry.path();
+            if path != marker && path.extension().is_some_and(|ext| ext == "origin") {
+                let _ = std::fs::remove_file(path);
+            }
+        }
+    }
+    std::fs::write(marker, sha256)
+}
+
+impl InstalledPack {
+    /// 这一版是从在线目录装的（服务端审核过、目录签了名）：只有这样的包里的配方能运行（ADR-161 ②）。
+    pub(crate) fn installed_from_catalog(&self) -> bool {
+        origin_marker(&self.dir).is_some_and(|marker| marker.is_file())
+    }
+
+    #[cfg(test)]
+    pub(crate) fn dir(&self) -> &Path {
+        &self.dir
+    }
+
+    /// 读包里登记过的一份资源的原文（只认清单里的路径）。
+    pub(crate) fn read_asset(&self, path: &RelPath) -> Option<String> {
+        self.contents
+            .manifest
+            .assets
+            .iter()
+            .any(|asset| asset.path == *path)
+            .then(|| std::fs::read_to_string(self.dir.join(path.as_str())).ok())
+            .flatten()
+    }
+}
+
 fn asset_error(asset: &PackAsset, reason: impl Into<String>) -> PackArchiveError {
     PackArchiveError::Asset {
         path: asset.path.as_str().to_owned(),
@@ -202,6 +247,25 @@ pub(crate) fn installed_template_packs(app: &tauri::AppHandle) -> Vec<InstalledP
         .into_iter()
         .filter_map(|item| read_installed(&item.dir, &item.id))
         .collect()
+}
+
+/// 这台服务端封禁的模板包 id 与原因（见 `content_market::catalog_bans`）。
+fn template_bans(app: &tauri::AppHandle) -> Vec<(ContentId, String)> {
+    super::content_market::catalog_bans(app, |catalogs| catalogs.templates.revoked())
+}
+
+/// 已装的包按封禁分成「可用」与「已停用（连同原因）」（ADR-159 ⑦，PRD-18-012）。
+fn split_banned_packs(
+    packs: Vec<InstalledPack>,
+    bans: &[(ContentId, String)],
+) -> (Vec<InstalledPack>, Vec<(InstalledPack, String)>) {
+    super::content_market::split_banned(packs, bans, |pack| &pack.contents.manifest.id)
+}
+
+/// 此刻能用的模板包：被封禁的不在其中。笔记模板、插入模板、AI 预设、整理模板与配方都只问它，封禁因此只在这一处
+/// 生效——被封的包带来的东西从所有选择面消失，文件不动，解除封禁后自动回来。
+pub(crate) fn usable_template_packs(app: &tauri::AppHandle) -> Vec<InstalledPack> {
+    split_banned_packs(installed_template_packs(app), &template_bans(app)).0
 }
 
 // ── 三个域的投影 ─────────────────────────────────────────────────────────────
@@ -351,7 +415,7 @@ pub(crate) fn note_templates(
         .into_iter()
         .map(Into::into)
         .collect();
-    note_template_registry(builtin, &installed_template_packs(&app), vault)
+    note_template_registry(builtin, &usable_template_packs(&app), vault)
 }
 
 /// 读一份笔记模板的原文（库里的经 Vault 的路径校验，包里的只认清单登记过的笔记模板）。
@@ -368,7 +432,7 @@ pub(crate) fn read_template_file(
             vault.read_user_template(&dir, path).map_err(vault_err)
         }
         TemplateFileDto::Content { pack, path } => {
-            let packs = installed_template_packs(app);
+            let packs = usable_template_packs(app);
             let pack = packs
                 .iter()
                 .find(|installed| installed.contents.manifest.id.as_str() == pack)
@@ -439,8 +503,8 @@ pub(crate) fn pack_distill_templates(
 
 // ── 模板包的导入与卸载 ───────────────────────────────────────────────────────
 
-/// 由包内容推导出的能力（确认框与已装清单写「它会做的事」）。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+/// 由包内容推导出的能力（确认框与已装清单写「它会做的事」；运行配方时原样交回比对）。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct PackCapabilitiesDto {
     pub uses_ai: bool,
     pub transcribes: bool,
@@ -474,11 +538,16 @@ pub struct TemplatePackDto {
     pub ai_presets: Vec<String>,
     pub distill_templates: Vec<String>,
     pub prompts: u32,
-    /// 工作流配方的标题（导入后只展示、不执行，执行随在线模板包）。
+    /// 工作流配方的标题。
     pub recipes: Vec<String>,
+    /// 这些配方能运行：只有从在线目录装的包才能（ADR-161 ②）；本地导入的、还在预览里的都是 `false`。
+    pub recipes_runnable: bool,
     pub capabilities: PackCapabilitiesDto,
     /// 在线模板目录里有更新的版本（纵切 7b B2，与「获取更多模板」同一份状态）；没有或目录不可用为 `None`。
     pub update_to: Option<String>,
+    /// 服务端因安全原因封禁了这个包（纵切 7b B3）：它带来的东西已从所有选择面消失，这里是给用户看的原因；
+    /// 停用的包只给卸载。没被封禁为 `None`。
+    pub disabled_reason: Option<String>,
 }
 
 impl From<&PackContents> for TemplatePackDto {
@@ -513,6 +582,8 @@ impl From<&PackContents> for TemplatePackDto {
                 .collect(),
             capabilities: contents.capabilities().into(),
             update_to: None,
+            disabled_reason: None,
+            recipes_runnable: false,
         }
     }
 }
@@ -664,22 +735,28 @@ pub(crate) fn install_template_pack(
     Ok((&contents).into())
 }
 
-/// 装上的模板包（「应用 › 模板」的「模板包」一节与「已安装」页签），连同在线目录里有没有更新的版本。
+/// 装上的模板包（「应用 › 模板」的「模板包」一节与「已安装」页签），连同在线目录里有没有更新的版本；被封禁的
+/// 排在后面、带上原因（PRD-18-012）。
 #[tauri::command]
 #[specta::specta]
 pub(crate) fn template_packs(app: tauri::AppHandle) -> Vec<TemplatePackDto> {
     let updates = super::template_market::update_versions(&app);
-    installed_template_packs(&app)
-        .iter()
-        .map(|pack| {
-            let mut dto: TemplatePackDto = (&pack.contents).into();
-            dto.update_to = updates
-                .iter()
-                .find(|(id, _)| *id == dto.id)
-                .map(|(_, version)| version.clone());
-            dto
-        })
-        .collect()
+    let (usable, disabled) =
+        split_banned_packs(installed_template_packs(&app), &template_bans(&app));
+    let usable = usable.iter().map(|pack| {
+        let mut dto: TemplatePackDto = (&pack.contents).into();
+        dto.recipes_runnable = !pack.contents.recipes.is_empty() && pack.installed_from_catalog();
+        dto.update_to = updates
+            .iter()
+            .find(|(id, _)| *id == dto.id)
+            .map(|(_, version)| version.clone());
+        dto
+    });
+    let disabled = disabled.into_iter().map(|(pack, reason)| TemplatePackDto {
+        disabled_reason: Some(reason),
+        ..(&pack.contents).into()
+    });
+    usable.chain(disabled).collect()
 }
 
 /// 卸载一个模板包：它带来的模板、预设与整理模板从各自的选择面消失；库里的内容不受影响
@@ -695,6 +772,135 @@ pub(crate) fn uninstall_template_pack(app: tauri::AppHandle, id: String) -> Resu
     template_pack_store(&app)?
         .remove(ContentDomain::TemplatePacks, &id)
         .map_err(|error| format!("TEMPLATE_PACK_UNINSTALL_FAILED: {error}"))
+}
+
+// ── 复制到库（纵切 7b B4，PRD-18-009 / 013）──────────────────────────────────
+
+/// 「复制到库」能复制的三类内容（提示词与配方不单独复制：它们只在包里才有意义）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "snake_case")]
+pub enum PackItemKindDto {
+    NoteTemplate,
+    AiPreset,
+    DistillTemplate,
+}
+
+/// 复制好的那一份在库里叫什么（同名时加了序号，界面据此说「已复制为 …」）。
+#[derive(Debug, Clone, Serialize, Type)]
+pub struct CopiedToVaultDto {
+    pub name: String,
+}
+
+/// `base` 没被占就用它，否则 `base-1`、`base-2`……（与新建笔记、模板文件同一种序号，**纯函数**）。
+fn free_name(base: &str, taken: &[String]) -> String {
+    (0..)
+        .map(|index| {
+            if index == 0 {
+                base.to_owned()
+            } else {
+                format!("{base}-{index}")
+            }
+        })
+        .find(|name| !taken.contains(name))
+        .expect("总能找到空位")
+}
+
+/// 把装上的模板包里的一项复制成库里你自己的一份（PRD-18-009）：笔记模板 → 设置里的模板目录，AI 预设 →
+/// `.luna/ai_presets.json`，整理模板 → `.luna/distill_templates.json`。副本从此归库管理、随库同步，与原包解耦——
+/// 卸载或封禁原包都不影响它（PRD-18-013）；同名时库里的一份优先，于是复制之后选择面里用的就是你的这份。
+/// 库里已有同名的不覆盖，往后加序号。被封禁的包不能复制（它的内容已从各处隐藏）。
+///
+/// # Errors
+/// 包或这一项不存在（含已被封禁）`TEMPLATE_NOT_FOUND`；库未打开；预设满 `PRESETS_FULL`；整理模板满
+/// `DISTILL_TEMPLATE_LIMIT`；写盘失败。
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn copy_pack_item_to_vault(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, AppState>,
+    pack: String,
+    kind: PackItemKindDto,
+    name: String,
+) -> Result<CopiedToVaultDto, String> {
+    let not_found = || "TEMPLATE_NOT_FOUND".to_owned();
+    let packs = usable_template_packs(&app);
+    let pack = packs
+        .iter()
+        .find(|installed| installed.contents.manifest.id.as_str() == pack)
+        .ok_or_else(not_found)?;
+    let guard = state.vault.lock().map_err(|_| "Vault 锁中毒".to_string())?;
+    let vault = guard.as_ref().ok_or_else(|| state.vault_not_open())?;
+    match kind {
+        PackItemKindDto::NoteTemplate => {
+            let (stem, path) = pack
+                .contents
+                .note_templates
+                .iter()
+                .find(|(stem, _)| *stem == name)
+                .ok_or_else(not_found)?;
+            let source =
+                std::fs::read_to_string(pack.dir.join(path.as_str())).map_err(|_| not_found())?;
+            let dir = user_templates_dir(&state.settings_snapshot());
+            let file = vault
+                .add_user_template(&dir, stem, &source)
+                .map_err(vault_err)?;
+            emit_vault_changed(&app, &format!("{dir}/{file}"), false);
+            Ok(CopiedToVaultDto {
+                name: file.trim_end_matches(".md").to_owned(),
+            })
+        }
+        PackItemKindDto::AiPreset => {
+            let preset = pack
+                .contents
+                .ai_presets
+                .iter()
+                .find(|preset| preset.name == name)
+                .ok_or_else(not_found)?;
+            let mut presets = vault.ai_presets().map_err(vault_err)?;
+            if presets.len() >= FLOATING_PRESETS_MAX {
+                return Err("PRESETS_FULL".to_owned());
+            }
+            let taken: Vec<String> = presets.iter().map(|item| item.name.clone()).collect();
+            let copied = free_name(&preset.name, &taken);
+            presets.push(luna_vault::AiPreset {
+                id: luna_core::JobId::new().to_string(),
+                name: copied.clone(),
+                instruction: preset.instruction.clone(),
+            });
+            vault.set_ai_presets(&presets).map_err(vault_err)?;
+            emit_vault_changed(&app, ".luna/ai_presets.json", false);
+            Ok(CopiedToVaultDto { name: copied })
+        }
+        PackItemKindDto::DistillTemplate => {
+            let template = pack
+                .contents
+                .distill_templates
+                .iter()
+                .find(|template| template.name == name)
+                .ok_or_else(not_found)?;
+            let mut templates = vault.distill_templates().map_err(vault_err)?;
+            if templates.len() >= luna_core::MAX_USER_TEMPLATES {
+                return Err(coded_error(
+                    &app,
+                    "DISTILL_TEMPLATE_LIMIT",
+                    "distill-template-limit",
+                ));
+            }
+            let taken: Vec<String> = templates.iter().map(|item| item.name.clone()).collect();
+            let copied = luna_core::UserTemplate {
+                id: new_template_id(),
+                name: free_name(&template.name, &taken),
+                ..template.clone()
+            };
+            luna_core::validate_distill_template(&copied)
+                .map_err(|err| format!("DISTILL_TEMPLATE_INVALID: {}", err.key()))?;
+            let name = copied.name.clone();
+            templates.push(copied);
+            vault.set_distill_templates(&templates).map_err(vault_err)?;
+            emit_vault_changed(&app, ".luna/distill_templates.json", false);
+            Ok(CopiedToVaultDto { name })
+        }
+    }
 }
 
 #[cfg(test)]
@@ -907,7 +1113,7 @@ pub(crate) mod tests {
         assert!(read_installed(&item.dir, &item.id).is_none());
     }
 
-    fn installed_full_pack() -> (tempfile::TempDir, InstalledPack) {
+    pub(crate) fn installed_full_pack() -> (tempfile::TempDir, InstalledPack) {
         let root = tempfile::tempdir().expect("tempdir");
         let store = ContentStore::new(root.path());
         let bytes = full_pack("1.0.0");
@@ -993,5 +1199,41 @@ pub(crate) mod tests {
         let presets = ai_preset_registry(std::slice::from_ref(&pack), Vec::new());
         assert_eq!(presets[0].id, "com.example.kit/tighten");
         assert_eq!(presets[0].pack_name.as_deref(), Some("起步包"));
+    }
+
+    #[test]
+    fn copies_take_the_first_free_name() {
+        assert_eq!(free_name("收紧", &[]), "收紧");
+        let taken = vec!["收紧".to_owned(), "收紧-1".to_owned()];
+        assert_eq!(free_name("收紧", &taken), "收紧-2");
+    }
+
+    /// 被封禁的包（纵切 7b B3，PRD-18-012）：它的笔记模板、预设与整理模板从各个选择面消失，原因跟着它走；
+    /// 别的包与库里的照常。解除封禁（列表里没有它了）即回来——文件从头到尾没动过。
+    #[test]
+    fn a_banned_pack_leaves_every_picker_and_comes_back_when_the_ban_is_lifted() {
+        let (_root, pack) = installed_full_pack();
+        let bans = vec![(
+            ContentId::parse("com.example.kit").unwrap(),
+            "misleading prompt".to_owned(),
+        )];
+        let (usable, disabled) = split_banned_packs(vec![pack.clone()], &bans);
+        assert!(usable.is_empty());
+        assert_eq!(disabled.len(), 1);
+        assert_eq!(disabled[0].1, "misleading prompt");
+        assert!(note_template_registry(Vec::new(), &usable, Vec::new()).is_empty());
+        assert!(ai_preset_registry(&usable, Vec::new()).is_empty());
+        assert!(pack_distill_templates(&usable).is_empty());
+
+        let other = vec![(
+            ContentId::parse("com.example.other").unwrap(),
+            "x".to_owned(),
+        )];
+        let (usable, disabled) = split_banned_packs(vec![pack], &other);
+        assert!(disabled.is_empty());
+        assert_eq!(
+            note_template_registry(Vec::new(), &usable, Vec::new()).len(),
+            1
+        );
     }
 }

@@ -110,7 +110,7 @@ function workspace(key: number) {
           null,
           createElement(WorkspaceApp, {
             key,
-            initialVault: { open: true, root: "/v", missing_root: null },
+            initialVault: { open: true, root: "/v", missing_root: null, missing_in_cloud: false },
             launchOverview: false,
           }),
         ),

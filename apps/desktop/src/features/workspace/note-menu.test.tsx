@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { noteMenuItems, type NoteMenuOptions } from "./note-menu";
 import type { ContextMenuAction, ContextMenuItem } from "../../lib/context-menu";
+import type { RecipeDto } from "../../ipc/bindings";
 
 /** 桩 t：直接回显 key，断言里就能看出取的是哪条文案。 */
 const t = (key: string) => key;
@@ -24,7 +25,7 @@ const ask = vi.fn(async () => askResult);
 /** 注入的输入卡：默认"用户取消了"（重命名的默认呈现面，见 `PromptHost`）。 */
 const prompt = vi.fn(async () => null);
 
-function menu(overrides: Partial<NoteMenuOptions> = {}) {
+function menu(overrides: Partial<NoteMenuOptions> = {}, recipes: readonly RecipeDto[] = []) {
   return noteMenuItems(
     { path: "Notes/a.md", onStatus: () => {}, ...overrides },
     t,
@@ -32,8 +33,20 @@ function menu(overrides: Partial<NoteMenuOptions> = {}) {
     ask,
     prompt,
     "可从回收站还原。",
+    recipes,
   );
 }
+
+const recipe = (id: string, input: RecipeDto["input"]): RecipeDto => ({
+  pack: "app.lunarca.creator-starter",
+  pack_name: "创作者起步包",
+  pack_version: "1.1.0",
+  id,
+  title: id,
+  input,
+  steps: [{ type: "vault_create_note", dir: "Projects" }],
+  capabilities: { uses_ai: false, transcribes: false, translates: false, creates_notes_in: ["Projects"], exports: false },
+});
 
 describe("noteMenuItems", () => {
   it("最小形态：给对象**恒有**的那几个动作，不凭空长出打开方式与删除", () => {
@@ -202,6 +215,34 @@ describe("noteMenuItems", () => {
     }
     await vi.waitFor(() => expect(ask).toHaveBeenCalledWith(confirmOptions));
     expect(onDeleted).not.toHaveBeenCalled();
+  });
+
+  it("「运行工作流」：接在录音上的只给录音 / 转写笔记，其余给有正文的笔记；没有可运行的就没有这一项（纵切 7b B5）", () => {
+    const recipes = [recipe("from-recording", "recording"), recipe("from-note", "note")];
+    const titles = (items: ContextMenuItem[]) => {
+      const found = items.find((item) => item.id === "recipes");
+      return found?.kind === "submenu" ? found.items.map((item) => item.id) : null;
+    };
+    expect(titles(menu({}, recipes))).toEqual(["recipe-app.lunarca.creator-starter-from-note"]);
+    expect(titles(menu({ transcript: { busy: false } }, recipes))).toEqual([
+      "recipe-app.lunarca.creator-starter-from-recording",
+      "recipe-app.lunarca.creator-starter-from-note",
+    ]);
+    expect(titles(menu({ exportText: false }, recipes))).toBeNull();
+    expect(titles(menu({ paths: ["Notes/a.md", "Notes/b.md"] }, recipes))).toBeNull();
+    expect(titles(menu())).toBeNull();
+  });
+
+  it("运行前先确认；取消就什么都不发", async () => {
+    askResult = false;
+    ask.mockClear();
+    const items = menu({}, [recipe("from-note", "note")]);
+    const found = items.find((item) => item.id === "recipes");
+    if (found?.kind !== "submenu") throw new Error("没有「运行工作流」");
+    const run = found.items[0];
+    if (run?.kind !== "action") throw new Error("不是可执行项");
+    run.onSelect();
+    await vi.waitFor(() => expect(ask).toHaveBeenCalledTimes(1));
   });
 
   it("视图特有项置顶，并与通用项之间自带分隔（不留裸分隔线）", () => {

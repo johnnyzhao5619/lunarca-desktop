@@ -218,7 +218,9 @@ mod duplicate;
 mod exclusions;
 mod file_import;
 mod interop;
+mod recipes;
 mod template_insert;
+use recipes::*;
 pub(crate) mod template_library;
 pub(crate) mod template_market;
 mod vault_links;
@@ -286,6 +288,9 @@ pub use providers::{build_state_with_settings_persistence, models_root_from_sett
 const DRAFT_STEM_MAX_CHARS: usize = 48;
 const LUNA_VAULT_ROOT_ENV: &str = "LUNA_VAULT_ROOT";
 const LUNA_VAULT_PRIVATE_DIR: &str = ".luna";
+/// 打开库前等 iCloud 把 `.luna/` 取回本机的上限（启动装载与切库同一个值）：正常取回一个小文件
+/// 不到一秒；超过这个时间多半是取回卡住了，再等下去窗口就一直出不来。
+const VAULT_CLOUD_FETCH_WAIT: std::time::Duration = std::time::Duration::from_secs(5);
 /// 时间戳式默认文件名中的内容摘要长度上限（字符，语音速记与对话归档共用）。
 /// 时间戳承担主要辨识职责，摘要只做"这条说了什么"的提示，取短防止文件名爆长。
 pub(crate) const NOTE_STEM_EXCERPT_CHARS: usize = 16;
@@ -2603,6 +2608,9 @@ pub struct AppState {
     /// 启动时配置指着、却打不开的库根（PRD-14-062）。库一旦被绑定它就不再有意义，
     /// `vault_status` 只在未打开时下发它。
     startup_vault_missing: Option<PathBuf>,
+    /// 上面那个库根不是找不到，是 `.luna/` 还在 iCloud 上没取回（启动只等几秒，见
+    /// `luna_vault::icloud::wait_until_local`）：空状态要说「还在下载」并给「重试」，不是「找不到了」。
+    startup_vault_in_cloud: bool,
     /// **库代际号**（ADR-025 / TDD-06 §12）：每次切库自增，异步写回在提交点据此失效。
     ///
     /// 这是跨库误写的**通用护栏**。切库瞬间总有一个 LLM 回调正要写盘（单篇蒸馏、
@@ -3526,6 +3534,12 @@ impl AppState {
         self.startup_vault_missing.as_deref()
     }
 
+    /// 启动时没打开那个库，是因为它的 `.luna/` 还在 iCloud 上（见字段注释）。
+    #[must_use]
+    pub(crate) fn startup_vault_in_cloud(&self) -> bool {
+        self.startup_vault_in_cloud
+    }
+
     pub(crate) fn settings_snapshot(&self) -> Settings {
         self.settings
             .lock()
@@ -4177,6 +4191,9 @@ pub fn builder() -> Builder<tauri::Wry> {
             install_template_pack,
             template_packs,
             uninstall_template_pack,
+            copy_pack_item_to_vault,
+            runnable_recipes,
+            run_recipe,
             restore,
             purge,
             read_vault_meta,

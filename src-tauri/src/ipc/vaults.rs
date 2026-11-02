@@ -62,6 +62,8 @@ pub struct VaultStatusDto {
     pub root: Option<String>,
     /// 未打开时：启动配置指着、却找不到的库根（PRD-14-062）。`None` = 从未选过库。
     pub missing_root: Option<String>,
+    /// `missing_root` 不是找不到了，是库的 `.luna/` 还在 iCloud 上没取回：空状态说「还在下载」、给「重试」。
+    pub missing_in_cloud: bool,
 }
 
 /// 后台扫描进度（`scan://progress`）。高频但低体量；done=true 为终态一帧。
@@ -141,6 +143,7 @@ pub(crate) fn vault_status_of(state: &AppState) -> VaultStatusDto {
                 open: true,
                 root: Some(vault.root().to_string_lossy().into_owned()),
                 missing_root: None,
+                missing_in_cloud: false,
             },
             None => VaultStatusDto {
                 open: false,
@@ -156,12 +159,14 @@ pub(crate) fn vault_status_of(state: &AppState) -> VaultStatusDto {
                             .is_some_and(|root| !root.trim().is_empty())
                     })
                     .map(|p| p.to_string_lossy().into_owned()),
+                missing_in_cloud: state.startup_vault_in_cloud(),
             },
         },
         Err(_) => VaultStatusDto {
             open: false,
             root: None,
             missing_root: None,
+            missing_in_cloud: false,
         },
     }
 }
@@ -232,6 +237,21 @@ fn handover_and_bind(
         std::fs::canonicalize(&root)
             .map_err(|error| vault_missing_open_failed(state.copy(), &error.to_string()))?
     };
+    // 先于交出当前库判：目标库的 `.luna/` 还在 iCloud 上没取回时，下面在主线程上读设置、开索引会
+    // 一直卡到取回为止。等几秒（后台照常取回），还没回来就让用户稍后重试，当前库不动。
+    if !create
+        && !luna_vault::icloud::wait_until_local(
+            &root.join(super::LUNA_VAULT_PRIVATE_DIR),
+            super::VAULT_CLOUD_FETCH_WAIT,
+        )
+    {
+        return Err(coded_error_args_with(
+            state.copy(),
+            "VAULT_IN_CLOUD",
+            "vault-in-cloud",
+            &[("path", root.to_string_lossy().into_owned())],
+        ));
+    }
     let previous = current_vault_root(state)?.filter(|current| current.as_path() != root);
     if previous.is_some() {
         // 录音进行中一律阻止（数据事故，不是可确认的代价）。

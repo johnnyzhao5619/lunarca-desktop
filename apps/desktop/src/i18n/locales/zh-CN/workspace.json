@@ -83,6 +83,9 @@
     "noVault": "还没有打开的库。新建一个、把已有文件夹打开为库，或把云端库下载到本机。",
     "vaultMissingTitle": "上次的库找不到了",
     "vaultMissing": "上次打开的库在 {{path}}，现在找不到它——可能在外置盘上，或者被移动、删除了。指回它现在的位置，或换一个库。",
+    "vaultInCloudTitle": "库还在从 iCloud 下载",
+    "vaultInCloud": "{{path}} 里的库文件被 iCloud 移到了云端，正在下载到这台 Mac。下载好后点「重试」；想以后不再出现，在访达里右键这个文件夹，选「保持下载」。",
+    "retryVaultInCloud": "重试",
     "relocateVault": "重新定位…",
     "chooseAnotherVault": "换一个库",
     "scanning": "正在后台扫描索引",
@@ -2297,8 +2300,8 @@
       "checking": "正在检查…",
       "upToDate": "都是最新版本。",
       "available": "{{count}} 项可更新。",
-      "upToDateWithDisabled": "没有可更新的；{{disabled}} 项已停用，原因见「主题」页签。",
-      "availableWithDisabled": "{{count}} 项可更新；{{disabled}} 项已停用，原因见「主题」页签。",
+      "upToDateWithDisabled": "没有可更新的；{{disabled}} 项已停用，原因见「已安装」页签。",
+      "availableWithDisabled": "{{count}} 项可更新；{{disabled}} 项已停用，原因见「已安装」页签。",
       "failed": "没能检查更新，请稍后再试。",
       "strictLocal": "严格本地模式下不联网，没法检查更新。",
       "trustChanged": "服务器的身份和上次不一样了，这次没有采用它发来的内容。请到「设置 › 账户」核对连接的服务器。"
@@ -2397,6 +2400,21 @@
         "importing": "正在读取…",
         "empty": "还没有装模板包。",
         "meta": "{{publisher}} · {{license}} · 版本 {{version}}",
+        "copy": {
+          "summary": "包里的内容 · 复制到库",
+          "action": "复制到库",
+          "done": "已复制为「{{name}}」：这一份归你的库，随库同步，卸载或停用这个包都不影响它。",
+          "presetsFull": "AI 预设已经满了，先删掉几条再复制。",
+          "distillFull": "整理模板已经满了，先删掉几份再复制。",
+          "noVault": "先打开一个库，才能复制到库里。",
+          "failed": "没能复制到库，库里的内容保持不变。",
+          "kind": {
+            "note_template": "笔记模板（复制进模板目录）",
+            "ai_preset": "AI 预设",
+            "distill_template": "整理模板"
+          }
+        },
+        "disabled": "已停用：{{reason}}。它带来的模板、预设与工作流已从各处隐藏，文件没有删除，解除封禁后自动恢复；复制进库的副本不受影响。",
         "unreviewed": "这个模板包没有经过 Lunarca 审核。只导入你信任的来源。",
         "confirmTitle": "导入模板包「{{name}}」？",
         "confirm": "导入",
@@ -2417,8 +2435,8 @@
           "recipes": "{{count}} 个工作流",
           "separator": " · "
         },
-        "recipesLater": "包里的工作流导入后先列出来，暂时不能运行；在线模板包上线后才能用。",
-        "recipes": "工作流（暂不能运行）：{{titles}}",
+        "recipesLater": "从文件导入的包里的工作流只列出来、不会运行；只有从「获取更多模板」装的包才能运行工作流。",
+        "recipes": "工作流（只展示，不会运行）：{{titles}}",
         "installed": "已导入「{{name}}」：它带来的模板出现在各自的列表里。",
         "rejected": "这个文件不是可用的模板包，或者包里有内容没通过校验，什么都没装。",
         "incompatible": "这个模板包需要更新版本的 Lunarca，什么都没装。",
@@ -2430,7 +2448,8 @@
           "title": "卸载模板包「{{name}}」？",
           "description": "它带来的模板、预设与整理模板会从各自的列表里消失。用它新建的笔记和库里的内容不受影响。",
           "confirm": "卸载"
-        }
+        },
+        "recipesRunnable": "工作流：{{titles}}——在笔记或录音的右键菜单「运行工作流」里使用"
       }
     },
     "uninstall": {
@@ -2439,6 +2458,33 @@
       "description": "它的入口会全部收起。库里的内容一字不动，在「笔记」「搜索」「知识库」里照常可见。",
       "descriptionWithComponents": "它的入口会全部收起，Lunarca 下载的组件（约 {{size}}）会被删除；你自己安装的程序不受影响。库里的内容一字不动。",
       "confirm": "卸载"
+    }
+  },
+  "recipes": {
+    "run": "运行工作流",
+    "confirmTitle": "运行「{{title}}」？",
+    "confirm": "运行",
+    "from": "来自模板包「{{pack}}」{{version}}，经服务端审核与签名。",
+    "stepsLead": "它会依次：",
+    "note": "只做上面这几步：不联网下载别的东西、不执行命令、不改动别的笔记。新建的笔记是一篇普通笔记，不想要可以直接删。",
+    "running": "正在运行「{{title}}」…",
+    "done": "「{{title}}」已完成。",
+    "step": {
+      "transcribe": "取这条录音的转写稿",
+      "translate": "翻译成{{lang}}",
+      "llm": "用 AI 按包里的提示词「{{prompt}}」处理",
+      "createNote": "在库里的 {{dir}}/ 下新建一篇笔记（不覆盖已有的）",
+      "export": "导出为 {{format}} 文件（存到哪里由你选）"
+    },
+    "error": {
+      "noTranscript": "这条录音还没有转写稿，转写完成后再运行。",
+      "wrongInput": "这个工作流要从录音出发，这篇笔记没有录音。",
+      "empty": "这篇笔记是空的，没有可处理的内容。",
+      "tooLong": "内容太长，超过了这一步一次能处理的长度；没有截断，也没有生成任何东西。",
+      "confirmAgain": "这个模板包刚刚更新过，它会做的事变了。请重新运行并确认一次。",
+      "gone": "这个工作流已经不能运行了（模板包被卸载或停用）。",
+      "export": "这一步的导出格式用不了：字幕格式只能在还没被翻译或改写的转写稿上导出。",
+      "failed": "工作流没跑完。已经新建的笔记会留着，可以直接删。"
     }
   }
 }

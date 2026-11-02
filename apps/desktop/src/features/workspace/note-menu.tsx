@@ -15,7 +15,9 @@ import { useDeleteConsequence } from "../../hooks/use-delete-mode";
 import { usePrompt, type PromptFn } from "../../components/PromptHost";
 import { TRANSCRIPT_EXPORT_FORMATS, currentExportOptions } from "../transcribe/export-options";
 import { requestExportOptions } from "../../lib/app-events";
-import { commands } from "../../ipc/bindings";
+import { commands, type RecipeDto } from "../../ipc/bindings";
+import { useRunnableRecipes } from "../../hooks/use-runnable-recipes";
+import { runRecipe } from "./recipe-run";
 import {
   buildMenu,
   separator,
@@ -309,6 +311,8 @@ export function noteMenuItems(
    * 上必须**逐字相同**；措辞由 `delete-mode.ts` 单点决定，这里只是把它摆上去。
    */
   deleteConsequence: string,
+  /** 此刻能运行的工作流配方（`useRunnableRecipes` 注入；接在录音上的只给录音 / 转写笔记，其余给有正文的笔记）。 */
+  recipes: readonly RecipeDto[] = [],
 ): ContextMenuItem[] {
   const { path } = options;
   const report = () => options.onStatus(t("common:status.error"));
@@ -318,6 +322,8 @@ export function noteMenuItems(
   const count = targets.length;
   /** 多选中——**只有对整批有定义的动作**才留下来（见 `paths` 的说明）。 */
   const batch = count > 1;
+  const isNote = options.exportText !== false && path.toLowerCase().endsWith(".md");
+  const runnable = recipes.filter((recipe) => (recipe.input === "recording" ? options.transcript !== undefined : isNote));
 
   async function enqueue(run: Promise<{ status: "ok" } | { status: "error"; error: string }>) {
     const result = await run;
@@ -498,6 +504,19 @@ export function noteMenuItems(
         // 结果（进了几件、哪些没进、为什么）由唯一那张结果卡呈现——这里只说要整理谁。
         requestDistillNotes(targets);
       },
+    },
+    // 「运行配方」（纵切 7b B5，PRD-18-010）：从在线目录装的模板包带来的工作流配方，出现在对应对象的动作菜单里。
+    !batch && runnable.length > 0 && {
+      kind: "submenu" as const,
+      id: "recipes",
+      label: t("workspace:recipes.run"),
+      icon: <SparklesIcon size={13} />,
+      items: runnable.map((recipe) => ({
+        kind: "action" as const,
+        id: `recipe-${recipe.pack}-${recipe.id}`,
+        label: recipe.title,
+        onSelect: () => void runRecipe(path, recipe, t, ask, options.onStatus),
+      })),
     },
     // 「汇总成一篇」（PRD-06-047）：多条 → 一篇，与上一项刻意分开——那是"逐篇各出一篇"，
     // 这是"一堆合成一篇"，产物形态不同，共用一个标签会让用户预期错位。原笔记留在原地。
@@ -828,9 +847,10 @@ export function useNoteMenu(): (options: NoteMenuOptions) => ContextMenuItem[] {
   const ask = useConfirm();
   const prompt = usePrompt();
   const deleteConsequence = useDeleteConsequence();
+  const recipes = useRunnableRecipes();
   return useCallback(
     (options: NoteMenuOptions) =>
-      noteMenuItems(options, t, translateLangs, ask, prompt, deleteConsequence),
-    [ask, deleteConsequence, prompt, t, translateLangs],
+      noteMenuItems(options, t, translateLangs, ask, prompt, deleteConsequence, recipes),
+    [ask, deleteConsequence, prompt, recipes, t, translateLangs],
   );
 }

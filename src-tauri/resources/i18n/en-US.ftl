@@ -248,6 +248,7 @@ empty-result-note = The result is empty; there is nothing to save into a note.
 empty-result-lens-note = The result is empty; there is nothing to save into a Lens note.
 vault-missing-path-gone = The vault path no longer exists: { $path }
 vault-missing-open-failed = The vault could not be opened: { $error }
+vault-in-cloud = The files of the vault at { $path } are still in iCloud and are downloading to this Mac. Try again in a moment, or right-click the folder in Finder and choose “Keep Downloaded”.
 vault-switch-busy = Some tasks could not be paused in time, so the switch was cancelled. Try again shortly.
 vault-queue-save-failed = Pending tasks could not be saved to the vault, so the switch was cancelled. Check disk space and folder permissions, then try again.
 vault-switch-recording = A recording is in progress. Stop it before switching vaults.

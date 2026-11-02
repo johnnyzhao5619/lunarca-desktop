@@ -4,14 +4,15 @@
  *
  * 判定都在 Rust：选文件并预览（`pick_template_pack`：解析、逐项校验、推导能力，不写任何东西），
  * 确认后安装（`install_template_pack`：再读一次同一个文件，sha256 对得上才装）。确认框写明「未经
- * 审核」与推导出的能力；包里的工作流配方只列出来，不执行（执行随在线模板包）。
+ * 审核」与推导出的能力；从文件导入的包里的工作流配方只列出来、不执行——只有从在线目录装的包能运行（ADR-161 ②，
+ * 是否能运行由 Rust 给 `recipes_runnable`）。
  */
 
 import { createElement, useState } from "react";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 
-import { commands, type PackCapabilitiesDto, type TemplatePackDto } from "../../ipc/bindings";
+import { commands, type PackCapabilitiesDto, type PackItemKindDto, type TemplatePackDto } from "../../ipc/bindings";
 import { useConfirm } from "../../components/ConfirmHost";
 
 /** 页上一句结果提示（文案键）。 */
@@ -86,6 +87,96 @@ function PackConfirmContent({ pack, updatingFrom }: { pack: TemplatePackDto; upd
       <p>{contentsLine(pack, t)}</p>
       {pack.recipes.length > 0 ? <p className="luna-apps__note">{t("apps.templates.packs.recipesLater")}</p> : null}
     </div>
+  );
+}
+
+/** 包里能复制到库的一项。 */
+interface PackItem {
+  kind: PackItemKindDto;
+  name: string;
+}
+
+function packItems(pack: TemplatePackDto): PackItem[] {
+  return [
+    ...pack.note_templates.map((name) => ({ kind: "note_template" as const, name })),
+    ...pack.ai_presets.map((name) => ({ kind: "ai_preset" as const, name })),
+    ...pack.distill_templates.map((name) => ({ kind: "distill_template" as const, name })),
+  ];
+}
+
+type CopyFailure = Exclude<CopyNotice, { key: "apps.templates.packs.copy.done" }>["key"];
+
+/** 复制失败的稳定错误码 → 页上那句话。 */
+function copyFailure(error: string): CopyFailure {
+  if (error.startsWith("PRESETS_FULL")) return "apps.templates.packs.copy.presetsFull";
+  if (error.startsWith("DISTILL_TEMPLATE_LIMIT")) return "apps.templates.packs.copy.distillFull";
+  if (error.startsWith("VAULT_NOT_OPEN")) return "apps.templates.packs.copy.noVault";
+  return "apps.templates.packs.copy.failed";
+}
+
+type CopyNotice =
+  | { key: "apps.templates.packs.copy.done"; name: string }
+  | {
+      key:
+        | "apps.templates.packs.copy.presetsFull"
+        | "apps.templates.packs.copy.distillFull"
+        | "apps.templates.packs.copy.noVault"
+        | "apps.templates.packs.copy.failed";
+    };
+
+/**
+ * 包里的笔记模板、AI 预设与整理模板，各给一个「复制到库」（纵切 7b B4，PRD-18-009）：副本归库、随库同步，与原包
+ * 解耦；同名时库里的那份优先，所以复制之后各选择面用的就是你的这一份。命名（同名加序号）与写到哪里都在 Rust。
+ */
+function PackItems({ pack, onCopied }: { pack: TemplatePackDto; onCopied: () => void }) {
+  const { t } = useTranslation("workspace");
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<CopyNotice | null>(null);
+  const items = packItems(pack);
+  if (items.length === 0) return null;
+  const copy = async (item: PackItem) => {
+    setBusy(true);
+    setNotice(null);
+    const result = await commands.copyPackItemToVault(pack.id, item.kind, item.name);
+    setBusy(false);
+    if (result.status === "ok") {
+      setNotice({ key: "apps.templates.packs.copy.done", name: result.data.name });
+      onCopied();
+    } else {
+      setNotice({ key: copyFailure(result.error) });
+    }
+  };
+  const done = notice?.key === "apps.templates.packs.copy.done";
+  return (
+    <details className="luna-apps__pack-items">
+      <summary>{t("apps.templates.packs.copy.summary")}</summary>
+      {notice !== null ? (
+        <p className={done ? "luna-apps__note" : "luna-apps__error"} role={done ? "status" : "alert"}>
+          {notice.key === "apps.templates.packs.copy.done" ? t(notice.key, { name: notice.name }) : t(notice.key)}
+        </p>
+      ) : null}
+      <ul className="luna-apps__list">
+        {items.map((item) => (
+          <li key={`${item.kind}:${item.name}`} className="luna-apps__row">
+            <span className="luna-apps__card-text">
+              <span className="luna-apps__card-name">{item.name}</span>
+              <span className="luna-apps__meta">{t(`apps.templates.packs.copy.kind.${item.kind}`)}</span>
+            </span>
+            <span className="luna-apps__row-side">
+              <button
+                type="button"
+                className="luna-btn luna-btn--secondary"
+                disabled={busy}
+                aria-label={t("apps.rowAction", { action: t("apps.templates.packs.copy.action"), name: item.name })}
+                onClick={() => void copy(item)}
+              >
+                {t("apps.templates.packs.copy.action")}
+              </button>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }
 
@@ -187,13 +278,18 @@ export function TemplatePacksSection({
                       version: pack.version,
                     })}
                   </span>
+                  {pack.disabled_reason !== null ? (
+                    <span className="luna-apps__meta">{t("apps.templates.packs.disabled", { reason: pack.disabled_reason })}</span>
+                  ) : null}
                   <span className="luna-apps__card-summary">{contentsLine(pack, t)}</span>
                   {can.length > 0 ? (
                     <span className="luna-apps__meta">{can.join(t("apps.templates.packs.has.separator"))}</span>
                   ) : null}
                   {pack.recipes.length > 0 ? (
                     <span className="luna-apps__meta">
-                      {t("apps.templates.packs.recipes", { titles: pack.recipes.join(t("apps.templates.packs.has.separator")) })}
+                      {t(pack.recipes_runnable ? "apps.templates.packs.recipesRunnable" : "apps.templates.packs.recipes", {
+                        titles: pack.recipes.join(t("apps.templates.packs.has.separator")),
+                      })}
                     </span>
                   ) : null}
                 </span>
@@ -207,6 +303,7 @@ export function TemplatePacksSection({
                     {t("apps.templates.packs.uninstall.action")}
                   </button>
                 </span>
+                {pack.disabled_reason === null ? <PackItems pack={pack} onCopied={onChanged} /> : null}
               </li>
             );
           })}

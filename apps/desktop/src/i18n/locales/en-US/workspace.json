@@ -83,6 +83,9 @@
     "noVault": "No vault is open. Create one, open an existing folder as a vault, or download a cloud vault to this device.",
     "vaultMissingTitle": "The last vault can't be found",
     "vaultMissing": "The vault you last opened was at {{path}} and isn't there now — it may be on an external drive, or was moved or deleted. Point to where it is now, or pick another vault.",
+    "vaultInCloudTitle": "The vault is still downloading from iCloud",
+    "vaultInCloud": "iCloud moved the vault files in {{path}} to the cloud and is downloading them to this Mac. Click Retry once they are back. To keep this from happening again, right-click the folder in Finder and choose “Keep Downloaded”.",
+    "retryVaultInCloud": "Retry",
     "relocateVault": "Locate it…",
     "chooseAnotherVault": "Pick another vault",
     "scanning": "Indexing in the background",
@@ -2360,8 +2363,8 @@
       "checking": "Checking…",
       "upToDate": "Everything is up to date.",
       "available": "Updates available: {{count}}.",
-      "upToDateWithDisabled": "Nothing to update. Disabled: {{disabled}} (see the Themes tab for why).",
-      "availableWithDisabled": "Updates available: {{count}}. Disabled: {{disabled}} (see the Themes tab for why).",
+      "upToDateWithDisabled": "Nothing to update. Disabled: {{disabled}} (see the Installed tab for why).",
+      "availableWithDisabled": "Updates available: {{count}}. Disabled: {{disabled}} (see the Installed tab for why).",
       "failed": "Couldn't check for updates. Try again later.",
       "strictLocal": "Strict local mode keeps Lunarca offline, so it can't check for updates.",
       "trustChanged": "The server's identity has changed since last time, so its content wasn't used. Check the connected server in Settings › Account."
@@ -2460,6 +2463,21 @@
         "importing": "Reading…",
         "empty": "No template packs installed.",
         "meta": "{{publisher}} · {{license}} · Version {{version}}",
+        "copy": {
+          "summary": "What's inside · Copy to vault",
+          "action": "Copy to vault",
+          "done": "Copied as \"{{name}}\". This copy belongs to your vault and syncs with it; uninstalling or disabling the pack does not affect it.",
+          "presetsFull": "Your AI presets are full. Delete a few, then copy again.",
+          "distillFull": "Your distill templates are full. Delete a few, then copy again.",
+          "noVault": "Open a vault first to copy into it.",
+          "failed": "Could not copy to your vault. Nothing in your vault changed.",
+          "kind": {
+            "note_template": "Note template (copied into your templates folder)",
+            "ai_preset": "AI preset",
+            "distill_template": "Distill template"
+          }
+        },
+        "disabled": "Disabled: {{reason}}. Its templates, presets and recipes are hidden everywhere. Nothing was deleted, and it comes back on its own if the ban is lifted; copies you made in your vault are not affected.",
         "unreviewed": "This template pack has not been reviewed by Lunarca. Only import packs from sources you trust.",
         "confirmTitle": "Import the template pack “{{name}}”?",
         "confirm": "Import",
@@ -2480,8 +2498,8 @@
           "recipes": "Workflows: {{count}}",
           "separator": " · "
         },
-        "recipesLater": "Workflows in the pack are listed after import but can’t run yet. They will work once online template packs are available.",
-        "recipes": "Workflows (can’t run yet): {{titles}}",
+        "recipesLater": "Workflows in a pack imported from a file are only listed and never run. Only packs installed from \"Get more templates\" can run workflows.",
+        "recipes": "Workflows (listed only, won’t run): {{titles}}",
         "installed": "Imported “{{name}}”. Its templates now appear in their lists.",
         "rejected": "This file isn’t a usable template pack, or something in it didn’t pass the checks. Nothing was installed.",
         "incompatible": "This template pack needs a newer version of Lunarca. Nothing was installed.",
@@ -2493,7 +2511,8 @@
           "title": "Uninstall the template pack “{{name}}”?",
           "description": "Its templates, presets and distill templates disappear from their lists. Notes you created with it and the rest of your vault are not affected.",
           "confirm": "Uninstall"
-        }
+        },
+        "recipesRunnable": "Workflows: {{titles}} — run them from “Run workflow” in a note’s or recording’s right-click menu"
       }
     },
     "uninstall": {
@@ -2502,6 +2521,33 @@
       "description": "All of its entries are removed. Everything in your vault stays exactly as it is and remains visible in Notes, Search and Knowledge.",
       "descriptionWithComponents": "All of its entries are removed, and the components Lunarca downloaded (about {{size}}) are deleted. Programs you installed yourself aren't touched. Everything in your vault stays as it is.",
       "confirm": "Uninstall"
+    }
+  },
+  "recipes": {
+    "run": "Run workflow",
+    "confirmTitle": "Run \"{{title}}\"?",
+    "confirm": "Run",
+    "from": "From the template pack \"{{pack}}\" {{version}}, reviewed and signed by the server.",
+    "stepsLead": "It will, in order:",
+    "note": "It does only these steps: it downloads nothing else, runs no commands and changes no other notes. Any note it creates is an ordinary note you can simply delete.",
+    "running": "Running \"{{title}}\"…",
+    "done": "\"{{title}}\" finished.",
+    "step": {
+      "transcribe": "Take this recording's transcript",
+      "translate": "Translate it into {{lang}}",
+      "llm": "Process it with AI using the pack's prompt \"{{prompt}}\"",
+      "createNote": "Create a new note in {{dir}}/ in your vault (never overwriting one)",
+      "export": "Export a {{format}} file (you choose where to save it)"
+    },
+    "error": {
+      "noTranscript": "This recording has no transcript yet. Run it again once transcription is done.",
+      "wrongInput": "This workflow starts from a recording, and this note has none.",
+      "empty": "This note is empty, so there is nothing to process.",
+      "tooLong": "The content is longer than this step can handle at once. Nothing was cut and nothing was created.",
+      "confirmAgain": "This template pack was just updated and what it does has changed. Run it again and confirm once more.",
+      "gone": "This workflow can no longer run (its template pack was uninstalled or disabled).",
+      "export": "This step's export format can't be used: subtitle formats need a transcript that hasn't been translated or rewritten.",
+      "failed": "The workflow did not finish. Any note it already created is kept; you can delete it."
     }
   }
 }

@@ -145,6 +145,40 @@ pub struct Recipe {
     pub steps: Vec<RecipeStep>,
 }
 
+/// 配方接在哪一类东西上（纵切 7b B5，PRD-18-010「配方出现在对应空间的动作菜单」）。**由步骤推导、不另设字段**
+/// （同能力，ADR-161 ③）：第一步是 `transcribe` 的接在录音上，其余接在笔记上——`transcribe` 只能是第一步
+/// （[`TemplatePackManifest::parse_recipe`] 守着），于是这条判据不会两可。
+/// > 假设：不在清单里加 `input` 字段（理由：加字段会让 1.0.0 客户端按 `deny_unknown_fields` 拒掉整个包，要抬
+/// > `content_api`，而「从录音出发」本来就写在第一步里）。
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RecipeInput {
+    /// 录音 / 转写笔记：从它的转写稿出发。
+    Recording,
+    /// 任意一篇笔记：从它的正文出发。
+    Note,
+}
+
+impl Recipe {
+    /// 这份配方接在哪一类东西上（见 [`RecipeInput`]）。
+    #[must_use]
+    pub fn input(&self) -> RecipeInput {
+        match self.steps.first() {
+            Some(RecipeStep::Transcribe) => RecipeInput::Recording,
+            _ => RecipeInput::Note,
+        }
+    }
+
+    /// 只这一份配方会做的事（运行前的确认框写它，与整包的 [`Capabilities::of`] 分开：包里的预设会调用 AI，
+    /// 不等于这份配方会）。
+    #[must_use]
+    pub fn capabilities(&self) -> Capabilities {
+        let mut capabilities = Capabilities::default();
+        capabilities.add_steps(&self.steps);
+        capabilities
+    }
+}
+
 /// 配方步骤白名单（v1）。不能联网、不能执行命令、不能写声明以外的目录（ADR-161 否决项）。
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
@@ -191,20 +225,24 @@ impl Capabilities {
             }),
             ..Self::default()
         };
-        for step in recipes.iter().flat_map(|recipe| &recipe.steps) {
-            match step {
-                RecipeStep::Transcribe => capabilities.transcribes = true,
-                RecipeStep::Translate { .. } => capabilities.translates = true,
-                RecipeStep::Llm { .. } => capabilities.uses_ai = true,
-                RecipeStep::VaultCreateNote { dir } => {
-                    capabilities
-                        .creates_notes_in
-                        .insert(dir.as_str().to_owned());
-                }
-                RecipeStep::Export { .. } => capabilities.exports = true,
-            }
+        for recipe in recipes {
+            capabilities.add_steps(&recipe.steps);
         }
         capabilities
+    }
+
+    fn add_steps(&mut self, steps: &[RecipeStep]) {
+        for step in steps {
+            match step {
+                RecipeStep::Transcribe => self.transcribes = true,
+                RecipeStep::Translate { .. } => self.translates = true,
+                RecipeStep::Llm { .. } => self.uses_ai = true,
+                RecipeStep::VaultCreateNote { dir } => {
+                    self.creates_notes_in.insert(dir.as_str().to_owned());
+                }
+                RecipeStep::Export { .. } => self.exports = true,
+            }
+        }
     }
 
     /// 这一份比 `previous` 多出了能力吗（更新时据此决定要不要重新确认，ADR-159 ⑦）。
@@ -345,6 +383,17 @@ impl TemplatePackManifest {
         if recipe.steps.is_empty() || recipe.steps.len() > MAX_RECIPE_STEPS {
             return Err(TemplatePackError::RecipeLength(
                 recipe.id.as_str().to_owned(),
+            ));
+        }
+        // `transcribe` 转写的是配方的输入（录音），它前面不能有别的步骤：那时手里已经是文字了。
+        if recipe
+            .steps
+            .iter()
+            .skip(1)
+            .any(|step| matches!(step, RecipeStep::Transcribe))
+        {
+            return Err(TemplatePackError::Metadata(
+                "transcribe can only be the first recipe step",
             ));
         }
         for step in &recipe.steps {
@@ -497,6 +546,29 @@ format = "srt"
             more_dirs.exceeds(&capabilities),
             "多一个能写的目录也算能力变多"
         );
+    }
+
+    /// 配方接在哪：第一步是转写的接录音，其余接笔记；转写只能是第一步（纵切 7b B5）。只这份配方的能力不含
+    /// 包里预设带来的「调用 AI」。
+    #[test]
+    fn a_recipe_input_follows_its_first_step_and_transcribe_only_comes_first() {
+        let manifest = TemplatePackManifest::parse(&manifest_source()).expect("valid");
+        let recording = manifest.parse_recipe(RECIPE).expect("recipe");
+        assert_eq!(recording.input(), RecipeInput::Recording);
+        let note = manifest
+            .parse_recipe("id = \"com.example.tidy\"\ntitle = \"Tidy\"\nsteps = [{ type = \"vault_create_note\", dir = \"Inbox\" }]\n")
+            .expect("recipe");
+        assert_eq!(note.input(), RecipeInput::Note);
+        assert_eq!(
+            note.capabilities()
+                .creates_notes_in
+                .iter()
+                .collect::<Vec<_>>(),
+            ["Inbox"]
+        );
+        assert!(!note.capabilities().uses_ai);
+        let late = "id = \"com.example.late\"\ntitle = \"Late\"\nsteps = [{ type = \"translate\", to = \"en\" }, { type = \"transcribe\" }]\n";
+        assert!(manifest.parse_recipe(late).is_err());
     }
 
     #[test]

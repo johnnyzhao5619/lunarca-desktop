@@ -398,3 +398,19 @@
   background: var(--color-accent-surface);
   font-size: var(--font-size-sm);
 }
+
+/* 模板包里的各项与「复制到库」（纵切 7b B4）：在包那一行下面展开，占满整行。 */
+.luna-apps__pack-items {
+  grid-column: 1 / -1;
+}
+
+.luna-apps__pack-items > summary {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.luna-apps__pack-items > .luna-apps__list,
+.luna-apps__pack-items > p {
+  margin-block-start: var(--space-2);
+}
