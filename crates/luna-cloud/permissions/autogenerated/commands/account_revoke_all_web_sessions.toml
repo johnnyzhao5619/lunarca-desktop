@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-account-revoke-all-web-sessions"
+description = "Enables the account_revoke_all_web_sessions command without any pre-configured scope."
+commands.allow = ["account_revoke_all_web_sessions"]
+
+[[permission]]
+identifier = "deny-account-revoke-all-web-sessions"
+description = "Denies the account_revoke_all_web_sessions command without any pre-configured scope."
+commands.deny = ["account_revoke_all_web_sessions"]

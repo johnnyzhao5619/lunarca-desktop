@@ -5,7 +5,7 @@
 //!
 //! 用法：`cargo run --release -p luna-vault --example vault_bench -- <N> <工作目录>`
 
-use luna_vault::search::SearchQuery;
+use luna_sync_core::search::SearchQuery;
 use luna_vault::Vault;
 use std::path::Path;
 use std::time::Instant;

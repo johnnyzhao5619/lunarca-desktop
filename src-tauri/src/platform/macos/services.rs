@@ -15,8 +15,17 @@ use objc2::{class, define_class, msg_send, AnyThread, DefinedClass};
 use objc2_app_kit::{NSPasteboard, NSPasteboardTypeString};
 use objc2_foundation::NSString;
 
+/// 用户点的是哪一项服务（选择子与 `Info.plist` 的 `NSMessage` 一一对应）。
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ServiceKind {
+    /// 「用 Lunarca 存为速记」（`saveAsQuickNote`）。
+    QuickNote,
+    /// 「在 Lunarca 提词器中显示」（`showInTeleprompter`，ADR-176 ⑨）。
+    Teleprompter,
+}
+
 /// 收到一段文字（粘贴板上没有文字时为 `None`）。
-pub type ServiceCallback = Box<dyn Fn(Option<String>) + Send + 'static>;
+pub type ServiceCallback = Box<dyn Fn(ServiceKind, Option<String>) + Send + 'static>;
 
 struct ProviderIvars {
     callback: ServiceCallback,
@@ -40,7 +49,19 @@ define_class!(
         ) {
             // SAFETY: NSPasteboardTypeString 是 AppKit 导出的常量，进程生命周期内有效。
             let text = unsafe { pboard.stringForType(NSPasteboardTypeString) };
-            (self.ivars().callback)(text.map(|text| text.to_string()));
+            (self.ivars().callback)(ServiceKind::QuickNote, text.map(|text| text.to_string()));
+        }
+
+        #[unsafe(method(showInTeleprompter:userData:error:))]
+        fn show_in_teleprompter(
+            &self,
+            pboard: &NSPasteboard,
+            _user_data: *mut NSString,
+            _error: *mut *mut NSString,
+        ) {
+            // SAFETY: 同上。
+            let text = unsafe { pboard.stringForType(NSPasteboardTypeString) };
+            (self.ivars().callback)(ServiceKind::Teleprompter, text.map(|text| text.to_string()));
         }
     }
 );

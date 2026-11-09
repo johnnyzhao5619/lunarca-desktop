@@ -14,9 +14,9 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::hashing::ContentHash;
 use crate::pathutil::markdown_link;
 use crate::vault::Vault;
+use luna_sync_core::hashing::ContentHash;
 
 /// 来源指南的缓存（库元数据名）。
 pub(crate) const GUIDES_META: &str = "creator_source_guides";

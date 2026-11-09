@@ -4,15 +4,11 @@ import { useVaultReload } from "../../hooks/use-vault-reload";
 import { useAppEnabled, useNoteTypeToolsAvailable } from "../../hooks/use-apps";
 import { scriptSectionRangeAt } from "./script-section-range";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { defaultKeymap, history, historyKeymap, undo } from "@codemirror/commands";
-import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
-import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+import { history, undo } from "@codemirror/commands";
 import { noteStem } from "../../lib/note-path";
-import { EDITOR_MARKDOWN_EXTENSIONS } from "../../lib/markdown-dialect";
 import { foldEffect, syntaxTree } from "@codemirror/language";
 import { Compartment, EditorState, Text, Transaction, type Extension } from "@codemirror/state";
-import { EditorView, drawSelection, highlightActiveLine, keymap, placeholder, tooltips } from "@codemirror/view";
-import { search, searchKeymap } from "@codemirror/search";
+import { EditorView, placeholder } from "@codemirror/view";
 import { useTranslation } from "react-i18next";
 import {
   commands,
@@ -35,29 +31,23 @@ import {
   type EditorCommandDetail,
   announceRelocation,
 } from "../../lib/app-events";
-import { applyIncrementalText, insertLink, toggleBold, toggleItalic } from "./markdown-format";
+import { applyIncrementalText } from "@lunarca/editor-core/markdown-format";
 import {
   cueLineHighlightExtension,
   timecodeGutterExtension,
   timecodeLinesExtension,
   setTimecodeLinesEffect,
-  editorProductivityExtensions,
   highlightCueLineEffect,
-  markdownCloseBracketsData,
-  selectionWordCount,
-  noteWordCount,
-  frontmatterFoldingExtension,
-  frontmatterLinesExtension,
-  lunaScaffoldHidingExtension,
-  getFrontmatterRange,
-  resetEditorHistory,
-  saveEditorHistory,
-  EditorHistoryCache,
-} from "./editor-extensions";
-import { resetWikiResolutions, wikiLinkClickHandler, wikiLinkExtension, wikiTargetAtElement } from "./wiki-link";
-import { openWikiLink, resolveWikiTargets } from "./wiki-link-open";
-import { mdLinkClickHandler, mdLinkTargetAtElement } from "./md-link";
-import { isSafeExternalUrl } from "../../lib/markdown";
+} from "./timecode-gutter";
+import { selectionWordCount, noteWordCount } from "@lunarca/editor-core/editor-extensions";
+import { getFrontmatterRange } from "@lunarca/editor-core/frontmatter";
+import { editorPhrases, livePreviewExtensions, markdownEditorExtensions } from "@lunarca/editor-core/markdown-editor";
+import { EditorHistoryCache, resetEditorHistory, saveEditorHistory } from "@lunarca/editor-core/editor-history";
+import { desktopEditorHost } from "./editor-host";
+import { resetWikiResolutions, wikiTargetAtElement } from "@lunarca/editor-core/wiki-link";
+import { openWikiLink } from "./wiki-link-open";
+import { mdLinkTargetAtElement } from "@lunarca/editor-core/md-link";
+import { isSafeExternalUrl } from "@lunarca/editor-core/markdown";
 import { DistillBadge } from "../distill/DistillBadge";
 import { PlaybackEntryBadge, type PlaybackSection } from "../playback/PlaybackEntryBadge";
 import { usePlaybackHostOptional } from "../playback/playback-host";
@@ -65,49 +55,28 @@ import { activeTimecodeIndex, useTimecodeLines } from "../playback/use-timecode-
 import { QuickNoteProductBar } from "./QuickNoteProductBar";
 import { DraftBadge } from "../knowledge/DraftBadge";
 import { useNoteDraftState } from "../knowledge/use-note-draft-state";
-import { lunaSyntaxHighlighting } from "../../lib/markdown-highlight";
-import { inlineTagExtension, taskCheckboxExtension } from "./markdown-decorations";
-import { livePreviewExtension } from "./live-preview";
-import { codeBlockLinesExtension } from "./code-block-lines";
-import { blockSpacingExtension } from "./block-spacing";
-import { listIndentExtension } from "./list-indent";
-import { listEditingKeymap } from "./list-editing";
-import { selectionLayerExtension } from "./selection-layer";
-import { multiCursorExtension } from "./multi-cursor";
-import { unresolvedLinkExtension } from "./reference-links";
-import { codeFenceEditingKeymap } from "./code-fence-editing";
-import { codeLanguageForFence } from "../../lib/code-highlight";
-import { tableCellTargetOf, tablePreviewExtension, type TableMenuTarget } from "./table-preview";
+import { tableCellTargetOf, type TableMenuTarget } from "@lunarca/editor-core/table-preview";
 import { tableMenuItems, tableMenuLabels } from "./table-menu";
-import { tableAt } from "./table-model";
+import { tableAt } from "@lunarca/editor-core/table-model";
 import type { TableAiTask } from "./FloatingMenu";
 import { copyTableAs } from "./table-clipboard";
-import { tableEditingKeymap } from "./table-edit";
-import { tablePickerExtension } from "./table-picker";
-import { blockMoveKeymap } from "./block-move";
-import { headingFoldExtension } from "./heading-fold";
-import { richPreviewExtension } from "./rich-preview";
-import type { TablePastePreview } from "./table-edit";
+import type { TablePastePreview } from "@lunarca/editor-core/table-edit";
 import { pasteTableCell } from "./table-paste";
-import { rebaseCreatedDraft, serializedSave } from "./save-session";
+import { editorDocumentText, rebaseCreatedDraft, serializedSave } from "@lunarca/editor-core/save-session";
 import { ChangeSet } from "@codemirror/state";
 import { subscribeTabFocusMode, tabFocusModeEnabled, toggleTabFocusMode } from "../../lib/tab-focus-mode";
-import { formatStateAt, setHeading, type FormatState, type HeadingLevel } from "./format-commands";
-import { typewriterScrolling } from "./writing-modes";
+import { formatStateAt, type FormatState } from "@lunarca/editor-core/format-commands";
+import { typewriterScrolling } from "@lunarca/editor-core/writing-modes";
 import { recheckSpelling, spellcheckExtension, spellingTargetAt } from "./spellcheck";
-import type { SpellingMenu } from "./editor-actions";
-import {
-  editorContextMenuItems,
-  runEditorFormatAction,
-  type EditorFormatAction,
-} from "./editor-actions";
+import { editorContextMenuItems, type SpellingMenu } from "./editor-context-menu";
+import { runEditorFormatAction, type EditorFormatAction } from "@lunarca/editor-core/editor-actions";
 import { useContextMenu } from "../../components/ContextMenuHost";
 import { glossaryTermFromSelection } from "../settings/glossary-term";
 import { requestGlossaryAdd } from "../settings/GlossaryQuickAdd";
-import { FormatToolbar } from "./FormatToolbar";
+import { FormatToolbar } from "@lunarca/editor-core/FormatToolbar";
+import { desktopEditorUi } from "./editor-ui";
 import { SelectionBubble } from "./SelectionBubble";
 import { AiLandedToast } from "./AiLandedToast";
-import { completionsExtension } from "./completions";
 import { VersionHistoryPanel } from "./VersionHistoryPanel";
 import { TidyListDialog } from "./TidyListDialog";
 import { FloatingMenu, type FloatingMenuControls } from "./FloatingMenu";
@@ -126,9 +95,7 @@ import { ReadingView } from "./ReadingView";
 import { respondsToEditorShortcuts, toggledViewMode } from "./view-mode";
 import {
   EDITOR_KEYED_SETTING_KEYS,
-  codeMirrorKey,
   editorCommandForKey,
-  editorShortcut,
   isEditorSaveShortcut,
 } from "../command/command-registry";
 import { useShortcutBindings } from "../../hooks/use-shortcut-bindings";
@@ -141,7 +108,7 @@ import { EDITOR_FILE_DROP_EVENT, type EditorFileDrop } from "../../lib/editor-fi
 import type { HtmlPasteDto, LineDiffDto, NoteTypeDto, ScriptOutlineDto, TemplateFileDto } from "../../ipc/bindings";
 import { TemplateInsertDialog } from "./TemplateInsertDialog";
 import { PastePreviewDialog } from "./PastePreviewDialog";
-import { DiffView } from "../../components/ui/DiffView";
+import { DiffView } from "@lunarca/editor-core/DiffView";
 import { ConflictCopyBanner } from "./ConflictCopyBanner";
 import { outlineFromState, type OutlineHeading } from "./outline";
 import { afterEditorsSaved, registerEditorSave, withEditorSaveGuard } from "./editor-save-guard";
@@ -157,14 +124,14 @@ import {
   SparklesIcon,
   SpeakIcon,
   SpeakingIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { buildMenu, separator } from "../../lib/context-menu";
-import { formatShortcut } from "../../lib/shortcut-display";
+import { formatShortcut } from "@lunarca/editor-core/shortcut-display";
 import { useBoxSize, useInlineSize } from "../../hooks/use-resize-observer";
 import { EDITOR_TIER_WIDE_MIN, editorTierFor } from "./editor-tier";
 import { vaultErrorText } from "../../lib/vault-error";
 import { goTo, openNote } from "../../lib/navigate";
-import { readingHeadings } from "./reading-view";
+import { readingHeadings } from "@lunarca/editor-core/reading-view";
 import { LinkPreviewPopover, linkRefFromDataset, useLinkPreview, type LinkRef } from "./LinkPreview";
 import { isImeKeyEvent } from "../../lib/ime-key-event";
 import { isMetadataOnlyWrite } from "./metadata-write";
@@ -637,7 +604,7 @@ export function VaultEditor({
 
   /** 编辑器里此刻的正文（编辑器在就以它为准；`documentContentRef` 只是没有编辑器时的兜底）。 */
   function currentDocumentText(): string {
-    return viewRef.current?.state.doc.toString() ?? documentContentRef.current;
+    return viewRef.current ? editorDocumentText(viewRef.current.state) : documentContentRef.current;
   }
 
   /** 视频脚本：按此刻的全文重算分段时长（不是脚本就清空）。 */
@@ -716,7 +683,7 @@ export function VaultEditor({
       return;
     }
     void runEditorFormatAction(view, action, {
-      linkPlaceholder: t("linkPlaceholder"),
+      linkPlaceholder: t("editor-core:editor.linkPlaceholder"),
       // 「插入图片 / 附件」：对话框与复制落盘都在 Rust；失败走状态栏通道（过程消息，不灌稳态）。
       pickAttachments: async () => {
         const notePath = pathRef.current;
@@ -1474,25 +1441,25 @@ export function VaultEditor({
 
   /**
    * Live Preview 装饰组（就地渲染 + 可点交互）：仅 live 模式启用；源码模式呈现
-   * 原始 Markdown（语法高亮保留），事实源不变（PRD-06-010/011/017）。
+   * 原始 Markdown（语法高亮保留），事实源不变（PRD-06-010/011/017）。组装与网页同一份
+   * （`@lunarca/editor-core/markdown-editor`），桌面只给表格的三个宿主动作。
    */
   function buildPresentationExtensions(): Extension {
-    const wikiCtx = {
+    return livePreviewExtensions(desktopEditorHost, {
+      t,
       notePath: () => pathRef.current,
-      resolve: resolveWikiTargets,
-      onActivate: activateWikiLink,
-    };
-    return [
-      livePreviewExtension(() => pathRef.current, {
-        view: t("image.view"),
-        resize: t("image.resize"),
-        lightbox: { dialog: t("image.lightbox"), close: t("image.close"), previous: t("image.previous"), next: t("image.next") },
-      }),
-      // 表格块就地渲染（选区触及即还原源码；PRD-06-011 P1）。
-      tablePreviewExtension({ cell: (row, column) => t("tableEditing.cell", { row, column }),
-        rowHandle: (row) => t("tableEditing.rowHandle", { row }),
-        columnHandle: (column) => t("tableEditing.columnHandle", { column }),
-        appendRow: t("tableEditing.appendRow"), appendColumn: t("tableEditing.appendColumn"),
+      onOpenPath: (target) => onOpenPath?.(target),
+      onActivateWikiLink: activateWikiLink,
+      onOpenTag: (tag) => {
+        onOpenTag?.(tag);
+      },
+      onEditSource: (view, line) => {
+        changeModeRef.current("source");
+        const at = view.state.doc.line(Math.min(line, view.state.doc.lines)).from;
+        view.dispatch({ selection: { anchor: at }, scrollIntoView: true });
+        view.focus();
+      },
+      table: {
         openMenu: (event, target) => openTableMenu(event, target),
         copyRange: (markdown) => {
           const notePath = pathRef.current;
@@ -1501,73 +1468,13 @@ export function VaultEditor({
             if (!ok) onStatus(t("error"));
           });
         },
-        pasteCell: (view, input, model, row, column, text, html) => pasteTableCell(view, input, model, row, column, text, html, pasteContext()) }),
-      // 公式（`$…$` / `$$…$$`）与 Mermaid 图表：光标不在里面时显示渲染结果（对标方案 D1 / D2）。
-      richPreviewExtension({
-        diagramError: (message) => tMenu("common:markdown.diagramError", { message }),
-        // 嵌入 `![[…]]`（D5）：独占一行的在光标外换成渲染结果，打开与跳转同点击链接一个动作。
-        embed: {
-          notePath: () => pathRef.current,
-          onOpenPath: (target) => onOpenPath?.(target),
-          onActivateWikiLink: activateWikiLink,
-        },
-      }),
-      taskCheckboxExtension(),
-      inlineTagExtension((tag) => {
-        onOpenTag?.(tag);
-      }),
-      wikiLinkExtension(wikiCtx),
-      wikiLinkClickHandler(wikiCtx),
-      // 标准 md 链接（自动生成的「来源」区逐条如此）：与阅读面同一条解析命令。
-      mdLinkClickHandler({
-        notePath: () => pathRef.current,
-        onOpenPath: (relPath) => onOpenPath?.(relPath),
-      }),
-      // 机器脚手架注释（转写块哨兵、对话笔记的出处标记）在预览面让位：它们是 Rust 的定界符，
-      // 不是任何人写下的内容。与 frontmatter 折叠同处本函数 = 同样只作用于实时预览。
-      lunaScaffoldHidingExtension(),
-      frontmatterFoldingExtension({
-        label: (count) =>
-          count > 0 ? t("frontmatter.labelCount", { count }) : t("frontmatter.label"),
-        expandTitle: t("frontmatter.expandTitle"),
-        collapseTitle: t("frontmatter.collapseTitle"),
-        expandAction: t("frontmatter.expandAction"),
-        collapseAction: t("frontmatter.collapseAction"),
-      }, {
-        // 属性面板里认不出的写法：切到源码模式、光标落到那一行（ADR-139 ①）。
-        onEditSource: (view, line) => {
-          changeModeRef.current("source");
-          const at = view.state.doc.line(Math.min(line, view.state.doc.lines)).from;
-          view.dispatch({ selection: { anchor: at }, scrollIntoView: true });
-          view.focus();
-        },
-      }),
-    ];
+        pasteCell: (view, input, model, row, column, text, html) => pasteTableCell(view, input, model, row, column, text, html, pasteContext()),
+      },
+    });
   }
 
   function buildLocaleExtensions(): Extension {
-    return [
-      EditorState.phrases.of({
-        Find: t("search.find"),
-        Replace: t("search.replace"),
-        next: t("search.next"),
-        previous: t("search.previous"),
-        all: t("search.all"),
-        "match case": t("search.matchCase"),
-        regexp: t("search.regexp"),
-        "by word": t("search.byWord"),
-        replace: t("search.replaceOne"),
-        "replace all": t("search.replaceAll"),
-        close: t("search.close"),
-        "current match": t("search.currentMatch"),
-        "on line": t("search.onLine"),
-        "Go to line": t("search.goToLine"),
-        go: t("search.go"),
-        "replaced $ matches": t("search.replacedMatches"),
-        "replaced match on line $": t("search.replacedOnLine"),
-      }),
-      placeholder(t(`canvas.${canvasDestination}.placeholder`)),
-    ];
+    return [editorPhrases(t), placeholder(t(`canvas.${canvasDestination}.placeholder`))];
   }
 
   useEffect(() => {
@@ -1579,157 +1486,78 @@ export function VaultEditor({
       parent: hostRef.current,
       state: EditorState.create({
         doc: "",
-        extensions: [
+        extensions: markdownEditorExtensions(desktopEditorHost, {
+          t,
+          notePath: () => pathRef.current,
           // 撤销历史住在 Compartment 里：切换笔记时整个重建（`resetEditorHistory`）。
-          historyCompartmentRef.current.of(history()),
-          loadGateCompartmentRef.current.of(EditorState.readOnly.of(false)),
-          // GFM 基线方言（表格/任务列表/删除线/自动链接，PRD-06-016）；
-          // 围栏代码块按 CodeInfo 惰性加载语言解析器（Typora 对标，PRD-06-011）。
-          // `addKeymap: false`：语言包自带的 Enter / Backspace 键位挂在 Prec.high，压过
-          // 本仓库的全部绑定，且它的退格会把列表标记换成等宽空格、把任务项变成缩进代码块
-          // （真机 2026-09-04）。列表 / 引用块的键位由 list-editing.ts + editor-extensions.ts
-          // 单一来源承担。
-          markdown({
-            base: markdownLanguage,
-            // 与阅读视图、大纲同一方言（`lib/markdown-dialect.ts`：CJK 友好强调）。
-            extensions: EDITOR_MARKDOWN_EXTENSIONS,
-            codeLanguages: codeLanguageForFence,
-            addKeymap: false,
-          }),
-          // 括号/引号智能配对（Typora 对标；退格删对、选区包裹）。
-          closeBrackets(),
-          // markdown 语言级配对集（补反引号；引号在字词后不配对为 CM 既定防误配策略）。
-          markdownCloseBracketsData(),
-          search({ top: false }),
-          // 查找文案与正文提示随界面语言热重配，不重建正文或撤销栈。
-          localeCompartmentRef.current.of(buildLocaleExtensions()),
-          // 打字机模式插槽（设置驱动热切换，PRD-06-014）。
-          typewriterCompartmentRef.current.of([]),
-          // 西文拼写检查插槽（设置驱动热切换，W6a）。
-          spellcheckCompartmentRef.current.of([]),
-          // 使用浏览器原生选区/光标：代码行有实体底色时仍可稳定拖选、复制与输入。
-          highlightActiveLine(),
-          // CM 自绘光标与选区（`drawSelection`）：原生光标贴着块级部件（折叠的 frontmatter
-          // 胶囊）时，WebKit 会画一根与部件同高的粗光标（真机 2026-09-02，颜色修对了形状还在）；
-          // CM 按文本坐标画的光标永远是一根细线。颜色归 `styles/integrations/codemirror.css`。
-          drawSelection(),
-          // 选区矩形改由自绘层画（左界夹到正文列、换行残块不画）；CM 自带的选区层由
-          // `integrations/codemirror.css` 藏起来，理由见 selection-layer.ts 抬头。
-          selectionLayerExtension(),
-          // 浮层（补全、斜杠菜单、表格尺寸选择器）的可用空间按正文可见区算，而不是整个窗口：
-          // 否则光标贴近底部时 CM 以为下方还放得下，浮层落到状态栏后面被裁掉（真机 2026-10-04
-          // 两条 `[[` 补全只露出一半）。可见区放不下就翻到光标上方。
-          tooltips({ tooltipSpace: (view) => view.scrollDOM.getBoundingClientRect() }),
-          // 多光标（B5）：⌥ 点击加光标、⌥ 拖动列选；只看主光标的自定义按键在多光标下放行。
-          multiCursorExtension(),
-          // AI 会话：冻结范围随变更映射 + 落地渐隐高亮；键位（⌘J / Esc / ⌘↩）置于
-          // 其它 Esc 绑定之前，无会话时放行给它们。
-          aiSessionExtension(),
-          aiSessionKeymap({
-            escape: () => aiKeyHandlersRef.current.escape(),
-            accept: () => aiKeyHandlersRef.current.accept(),
-          }),
-          // 围栏的自动闭合与空行退出；置于列表续写/默认 Enter 之前。
-          codeFenceEditingKeymap(),
-          // 表格内 Tab/Shift-Tab 跳单元格（先于缩进 keymap 消费；表外落回缩进）。
-          tableEditingKeymap(),
-          tablePickerExtension({
-            title: t("tableEditing.picker.title"),
-            size: (columns, rows) => t("tableEditing.picker.size", { columns, rows }),
-          }),
-          // 列表编辑手感：项首退格 / Shift+Enter 软换行 / 按列表结构的 Tab、Shift-Tab；
-          // 表外、列表外一律放行给下面的通用缩进与默认退格。
-          listEditingKeymap(),
-          editorProductivityExtensions(),
-          // ⌥↑↓ 先按块移动（列表项连子项、表格、引用、代码块围栏），不归它管再逐行移动。
-          blockMoveKeymap(),
-          // 标题按章节、列表项连子项折叠（B3）：悬停出三角，⌘⌥[ / ⌘⌥]。
-          headingFoldExtension({ fold: t("fold.fold"), unfold: t("fold.unfold") }),
-          presentationCompartmentRef.current.of(
+          history: historyCompartmentRef.current.of(history()),
+          readOnly: loadGateCompartmentRef.current.of(EditorState.readOnly.of(false)),
+          locale: localeCompartmentRef.current.of(buildLocaleExtensions()),
+          presentation: presentationCompartmentRef.current.of(
             modeRef.current === "live" ? buildPresentationExtensions() : [],
           ),
-          cueLineHighlightExtension(),
-          // 时间戳行的就地起播（PRD-04-066）：装订线播放键 + ⌘/Ctrl 点击；普通单击仍是放
-          // 光标——转写正文可编辑，裸单击改成 seek 会让"点进去改个错别字"变成"音频跳走"。
-          // 装在隔间里：这一篇没有时间戳行时整个摘掉，不留一条空装订线（见 ref 处注释）。
-          timecodeLinesExtension(),
-          timecodeCompartmentRef.current.of([]),
-          // 全文朗读的「当前句」高亮（TTS，TDD-05 §9）；由 setTtsReadingRange 效果驱动。
-          ttsReadingHighlight(),
-          completionsExtension({
-            notePath: () => pathRef.current,
-            slash: {
-              label: (key) => t(key),
-              run: (_view, command) => {
-                if (command.action.kind === "ai") openAiComposerFromMenu();
-                else runFormatAction(command.action);
-              },
-              hidden: (command) =>
-                (command.action.kind === "ai" || command.action.kind === "template") && restricted,
+          slash: {
+            label: (key) => t(`editor-core:${key}`),
+            run: (_view, command) => {
+              if (command.action.kind === "ai") openAiComposerFromMenu();
+              else runFormatAction(command.action);
             },
-          }),
-          // 粘贴图片/附件 → 存 assets/ 回填相对链接；远程图片链接 → 下载本地化；选区 + URL → 包成链接（PRD-06-012）。
-          pasteAssetsExtension(pasteContext()),
-          lunaSyntaxHighlighting(),
-          // 代码块整块底色容器（Typora 对标；Live/源码两模式共用）。
-          codeBlockLinesExtension(),
-          // 列表行悬挂缩进（同为两模式共用：源码里标记可见，宽度同样成立）。
-          listIndentExtension(),
-          // 文首 frontmatter 按 YAML 原文显示（源码模式；实时预览里整段是胶囊 / 属性面板）。
-          frontmatterLinesExtension(),
-          // 块间距（同为两模式共用：间距不替换任何标记，源码模式照样是长文）。
-          blockSpacingExtension(),
-          // 未解析引用式链接去链接色（同为两模式共用：`[名字]` 是不是链接取决于文档里
-          // 有没有对应定义，与用哪个视图看无关）。
-          unresolvedLinkExtension(),
-          EditorView.lineWrapping,
-          EditorView.domEventHandlers({
-            blur: () => {
-              void flushRef.current();
-            },
-          }),
-          EditorView.updateListener.of((update) => {
-            if (update.docChanged) {
-              if (draftEditsRef.current) draftEditsRef.current = draftEditsRef.current.compose(update.changes);
-              // 脏判定不把整篇转成字符串：长度 / 行数不同即脏，相同才逐块比较（`Text.eq`）。
-              markDirty(!update.state.doc.eq(savedTextOf(savedContentRef.current)));
-              setDocVersion((version) => version + 1);
-            }
-            // 字数与大纲要扫全文：每次按键都做，长文档的输入延迟就随篇幅涨（对标方案 A5）。
-            // 停手一拍再算，期间的改动合成一次。
-            if (update.docChanged || syntaxTree(update.state) !== syntaxTree(update.startState)) {
-              scheduleDocumentFacts(update.view);
-            }
-            if (update.selectionSet || update.docChanged) {
-              updateSelectionState(update.view);
-            }
-          }),
-          // 键位一律从命令注册表派生（TDD-07 §4.2）：右键菜单与格式工具栏的提示取
-          // 同一张表，于是"提示写着 ⌘K、按下去没反应"这类漂移没有发生的空间。
-          keymap.of([
-            {
-              key: codeMirrorKey(editorShortcut("bold")),
-              run: toggleBold,
-            },
-            {
-              key: codeMirrorKey(editorShortcut("italic")),
-              run: toggleItalic,
-            },
-            {
-              key: codeMirrorKey(editorShortcut("insert_link")),
-              run: (viewInstance) => insertLink(viewInstance, t("linkPlaceholder")),
-            },
-            // Typora 风格段落快捷键：⌘0 正文、⌘1–⌘6 标题（PRD-06-014）。
-            ...([0, 1, 2, 3, 4, 5, 6] as const).map((level) => ({
-              key: codeMirrorKey(editorShortcut(`heading_${level}`)),
-              run: (viewInstance: EditorView) => setHeading(viewInstance, level as HeadingLevel),
-            })),
-            ...closeBracketsKeymap,
-            ...searchKeymap,
-            ...defaultKeymap,
-            ...historyKeymap,
-          ]),
-        ],
+            hidden: (command) =>
+              (command.action.kind === "ai" || command.action.kind === "template") && restricted,
+          },
+          slots: {
+            afterLocale: [
+              // 打字机模式插槽（设置驱动热切换，PRD-06-014）。
+              typewriterCompartmentRef.current.of([]),
+              // 西文拼写检查插槽（设置驱动热切换，W6a）。
+              spellcheckCompartmentRef.current.of([]),
+            ],
+            beforeEditingKeymaps: [
+              // AI 会话：冻结范围随变更映射 + 落地渐隐高亮；键位（⌘J / Esc / ⌘↩）置于
+              // 其它 Esc 绑定之前，无会话时放行给它们。
+              aiSessionExtension(),
+              aiSessionKeymap({
+                escape: () => aiKeyHandlersRef.current.escape(),
+                accept: () => aiKeyHandlersRef.current.accept(),
+              }),
+            ],
+            afterPresentation: [
+              cueLineHighlightExtension(),
+              // 时间戳行的就地起播（PRD-04-066）：装订线播放键 + ⌘/Ctrl 点击；普通单击仍是放
+              // 光标——转写正文可编辑，裸单击改成 seek 会让"点进去改个错别字"变成"音频跳走"。
+              // 装在隔间里：这一篇没有时间戳行时整个摘掉，不留一条空装订线（见 ref 处注释）。
+              timecodeLinesExtension(),
+              timecodeCompartmentRef.current.of([]),
+              // 全文朗读的「当前句」高亮（TTS，TDD-05 §9）；由 setTtsReadingRange 效果驱动。
+              ttsReadingHighlight(),
+            ],
+            // 粘贴图片/附件 → 存 assets/ 回填相对链接；远程图片链接 → 下载本地化；选区 + URL → 包成链接（PRD-06-012）。
+            afterCompletions: pasteAssetsExtension(pasteContext()),
+            beforeBaseKeymap: [
+              EditorView.domEventHandlers({
+                blur: () => {
+                  void flushRef.current();
+                },
+              }),
+              EditorView.updateListener.of((update) => {
+                if (update.docChanged) {
+                  if (draftEditsRef.current) draftEditsRef.current = draftEditsRef.current.compose(update.changes);
+                  // 脏判定不把整篇转成字符串：长度 / 行数不同即脏，相同才逐块比较（`Text.eq`）。
+                  markDirty(!update.state.doc.eq(savedTextOf(savedContentRef.current)));
+                  setDocVersion((version) => version + 1);
+                }
+                // 字数与大纲要扫全文：每次按键都做，长文档的输入延迟就随篇幅涨（对标方案 A5）。
+                // 停手一拍再算，期间的改动合成一次。
+                if (update.docChanged || syntaxTree(update.state) !== syntaxTree(update.startState)) {
+                  scheduleDocumentFacts(update.view);
+                }
+                if (update.selectionSet || update.docChanged) {
+                  updateSelectionState(update.view);
+                }
+              }),
+            ],
+          },
+        }),
       }),
     });
 
@@ -2026,7 +1854,7 @@ export function VaultEditor({
       if (loadFailedRef.current) return true;
       if (externalPendingRef.current) return false;
 
-      const content = view?.state.doc.toString() ?? documentContentRef.current;
+      const content = view ? editorDocumentText(view.state) : documentContentRef.current;
       // 还没落盘的画布里只有空白（例如键盘用户 Tab 进编辑区敲出的缩进）：没有可存的东西，不去建
       // 一篇只有空白的笔记——Rust 会拒，此前状态栏就挂着一句「错误」（E4 键盘可达真机 2026-10-06）。
       if (!currentPath && content.trim() === "") {
@@ -2526,7 +2354,7 @@ export function VaultEditor({
 
   async function saveConflictCopy() {
     if (conflictCopyBusyRef.current) return;
-    const content = viewRef.current?.state.doc.toString();
+    const content = viewRef.current ? editorDocumentText(viewRef.current.state) : undefined;
     if (content === undefined) return;
     const previousPath = pathRef.current;
     conflictCopyBusyRef.current = true;
@@ -3002,8 +2830,6 @@ export function VaultEditor({
       ref={sectionRef}
       className="luna-paper luna-editor"
       data-empty={path === null}
-      /* 悬挂缩进按模式选量纲（editor-core.css `--md-hang-source` 选择器）。 */
-      data-view-mode={mode}
       data-tier={tier}
     >
       <header className="luna-main-header luna-editor__header">
@@ -3092,16 +2918,16 @@ export function VaultEditor({
                   也各穿一副同样的段控皮肤并排在旁边——三组长得一样、语义三种，用户分不清
                   哪组是互斥单选、哪组是开关。前者收进「更多」菜单（勾选项，文字自带解释），
                   后者同去（低频入口不占页头黄金位）。阅读模式的快捷键提示从注册表派生。 */}
-              <div className="luna-editor__mode-toggle" role="group" aria-label={t("mode.label")}>
+              <div className="luna-editor__mode-toggle" role="group" aria-label={t("editor-core:editor.mode.label")}>
                 <IconButton
                   aria-pressed={mode === "live"}
-                  label={t("mode.live")}
+                  label={t("editor-core:editor.mode.live")}
                   icon={<PencilIcon size={13} />}
                   onClick={() => changeMode("live")}
                 />
                 <IconButton
                   aria-pressed={mode === "source"}
-                  label={t("mode.source")}
+                  label={t("editor-core:editor.mode.source")}
                   icon={<CodeIcon size={13} />}
                   onClick={() => changeMode("source")}
                 />
@@ -3109,11 +2935,11 @@ export function VaultEditor({
                   aria-pressed={mode === "reading"}
                   label={
                     readingShortcut
-                      ? t("toolbar.labelShortcut", {
-                          label: t("mode.reading"),
+                      ? t("editor-core:editor.toolbar.labelShortcut", {
+                          label: t("editor-core:editor.mode.reading"),
                           shortcut: formatShortcut(readingShortcut),
                         })
-                      : t("mode.reading")
+                      : t("editor-core:editor.mode.reading")
                   }
                   icon={<BookOpenIcon size={13} />}
                   onClick={() => changeMode("reading")}
@@ -3218,7 +3044,7 @@ export function VaultEditor({
         </div>
       </header>
       {path && !isFolder && mode !== "reading" && showFormatToolbar ? (
-        <FormatToolbar formatState={formatState} onAction={runFormatAction} tier={tier} />
+        <FormatToolbar formatState={formatState} onAction={runFormatAction} ui={desktopEditorUi} wide={tier === "wide"} attachments />
       ) : null}
       {renameError ? (
         <div className="luna-editor__conflict" role="status">
@@ -3309,7 +3135,7 @@ export function VaultEditor({
           aiTitle={
             aiShortcut
               ? t("floating.bubble.ai_title", { shortcut: formatShortcut(aiShortcut) })
-              : t("menu.aiActions")
+              : t("editor-core:editor.menu.aiActions")
           }
           onAi={() => {
             if (selectionState) {
@@ -3385,11 +3211,14 @@ export function VaultEditor({
       ) : null}
       {/* 速记产物条（PRD-02-033）：只在语音速记上出现，由 Rust 判定类型；副库窗口不给。 */}
       {path && !isFolder && !restricted ? <QuickNoteProductBar notePath={path} /> : null}
-      {/* CM 宿主常驻挂载（EditorView 只建一次）：文件夹/阅读态/没装载成功仅视觉隐藏。 */}
+      {/* CM 宿主常驻挂载（EditorView 只建一次）：文件夹/阅读态/没装载成功仅视觉隐藏。
+          `luna-md-surface` 是共享编辑面样式（`@lunarca/styles/editor.css`）的作用域；悬挂缩进按模式选量纲
+          （源码模式 `--md-hang-source`），专注模式淡化非活动行，两者都读这个元素上的属性。 */}
       <div
         ref={hostRef}
-        className="luna-editor__surface"
+        className="luna-editor__surface luna-md-surface"
         data-hidden={isFolder || mode === "reading" || (loadError !== null && path !== null) || undefined}
+        data-view-mode={mode}
         data-focus={(focusMode && mode !== "reading") || undefined}
         onContextMenu={openEditorContextMenu}
       />

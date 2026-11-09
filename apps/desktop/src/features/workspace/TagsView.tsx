@@ -29,7 +29,7 @@ import {
   SearchIcon,
   SparklesIcon,
   TagsIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { useContextMenu } from "../../components/ContextMenuHost";
 import { buildMenu, separator } from "../../lib/context-menu";
 import { FilteredNoteList } from "./FilteredNoteList";

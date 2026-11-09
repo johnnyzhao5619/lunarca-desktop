@@ -1,5 +1,5 @@
 // 笔记路径的纯展示计算（跨 feature 共用，故放 lib/ 而不是任一 feature 内——
-// 与 `shortcut-display.ts` 同一先例：多处需要的纯函数上提，不各写一份）。
+// 与 `shortcut-keys.ts` 同一先例：多处需要的纯函数上提，不各写一份）。
 
 /** 路径的文件名段（无目录时即整段）。`noteStem` 与回收站排序、附件视图共用。 */
 export function fileNameOf(path: string): string {

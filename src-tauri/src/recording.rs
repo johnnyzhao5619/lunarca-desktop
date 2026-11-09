@@ -117,7 +117,7 @@ pub struct RecordingState {
 
 impl RecordingState {
     /// 会话仍占用控制权（活动态或已接受停止、尚未收尾）。与前端 `isRecordingSessionOpen` 同义。
-    fn session_open(&self) -> bool {
+    pub(crate) fn session_open(&self) -> bool {
         matches!(
             self.status,
             RecordingStatus::Recording | RecordingStatus::Paused | RecordingStatus::Stopping
@@ -1689,11 +1689,14 @@ impl RecordingController {
                                     let _ = on_event.send(RecordingEvent::State(state));
                                 }
                             }
-                            CaptureEvent::Window(SpeechEvent::Window { samples, abs_start, speech_len, speech_delta, is_snapshot }) => {
-                                // 喂窗给流式 whisper；RTF T_audio = 本窗**新增**语音时长（speech_delta，
-                                // 非 padding 后长度）——增长快照重复携带的旧语音不得重复计入。
+                            CaptureEvent::Window(SpeechEvent::Window { samples, abs_start, speech_len, elapsed_samples, is_snapshot }) => {
+                                // 喂窗给流式 whisper；RTF 的分母 = 自上一窗以来流过的**会话时长**
+                                // （elapsed_samples，含静音），不是窗里的语音时长——底噪切出的短窗
+                                // 每个都付整窗解码，按语音算会把一成多的负载算成 RTF 1–2.6（TDD-02 §5.1）。
                                 // 计时不在此更新（由 Level 连续驱动），本臂仅喂 whisper + 聚合降级。
-                                let audio_ms = (speech_delta as u64 * 1000) / TARGET_SAMPLE_RATE as u64;
+                                let elapsed_ms = (elapsed_samples as u64 * 1000) / TARGET_SAMPLE_RATE as u64;
+                                // Both 时探针挂副轨，主轨不聚合（infer/elapsed 必须同流配对）。
+                                let rtf_probe_here = sys_asr_handle.is_none();
                                 // 转写闸门（PRD-04-012）：关 = 不喂窗、不聚合 RTF；录音/落盘照常。
                                 // 有 ASR（window_tx 与 rt_session 同生），据当前档位自适应卸载负载（问题1根治）。
                                 if transcribe_gate {
@@ -1710,6 +1713,11 @@ impl RecordingController {
                                         let tier = session.realtime_decode_tier();
                                         if !probe.admit(tier, is_snapshot, std::time::Instant::now())
                                         {
+                                            // 跳过的窗时间照样流过：记进下一个喂解码窗的分母，
+                                            // 否则降档后 RTF 只剩终窗/探测窗自己那一小段，永远降不回来。
+                                            if rtf_probe_here {
+                                                session.on_skipped_window(elapsed_ms as f32);
+                                            }
                                             window_skips += 1;
                                             if last_skip_report.elapsed() >= SKIP_REPORT_INTERVAL {
                                                 last_skip_report = std::time::Instant::now();
@@ -1731,6 +1739,9 @@ impl RecordingController {
                                             }))
                                             .is_err()
                                         {
+                                            if rtf_probe_here {
+                                                session.on_skipped_window(elapsed_ms as f32);
+                                            }
                                             window_drops += 1;
                                             eprintln!("[F4] ASR 窗通道满，丢弃 1 窗（abs_start={abs_start}；音频已落盘可二次转写）。");
                                             if window_drops == 1 {
@@ -1747,12 +1758,11 @@ impl RecordingController {
                                             continue;
                                         } else if asr_debug {
                                             // 脱敏诊断（仅计数/采样位移，无正文）：确认实时窗确有产出并喂入 whisper。
-                                            eprintln!("[F4] 喂入 ASR 窗 abs_start={abs_start} speech_len={speech_len}（≈{audio_ms}ms 语音）。");
+                                            eprintln!("[F4] 喂入 ASR 窗 abs_start={abs_start} speech_len={speech_len}（距上一窗 ≈{elapsed_ms}ms）。");
                                         }
-                                        // 仅对**真正喂入解码**的窗聚合 RTF（跳过窗无推理，不计入）；
-                                        // Both 时探针挂副轨，主轨不聚合（infer/audio 必须同流配对）。
-                                        if sys_asr_handle.is_none() {
-                                            if let Some(deg) = session.on_audio_window(audio_ms as f32) {
+                                        // 真正喂入解码的窗驱动 RTF（跳过窗的时长已由 on_skipped_window 记下）。
+                                        if rtf_probe_here {
+                                            if let Some(deg) = session.on_audio_window(elapsed_ms as f32) {
                                                 let tier = format!("{:?}", deg.tier).to_lowercase();
                                                 if last_tier.as_deref() != Some(tier.as_str()) {
                                                     last_tier = Some(tier.clone());
@@ -1817,8 +1827,8 @@ impl RecordingController {
                                     }
                                 }
                             }
-                            CaptureEvent::Window(SpeechEvent::Window { samples, abs_start, speech_len, speech_delta, is_snapshot }) => {
-                                let audio_ms = (speech_delta as u64 * 1000) / TARGET_SAMPLE_RATE as u64;
+                            CaptureEvent::Window(SpeechEvent::Window { samples, abs_start, speech_len, elapsed_samples, is_snapshot }) => {
+                                let elapsed_ms = (elapsed_samples as u64 * 1000) / TARGET_SAMPLE_RATE as u64;
                                 if transcribe_gate {
                                     if let (Some(tx), Some(session)) = (&sys_window_tx, &mut rt_session) {
                                         // 副轨自持配额：本轨是 RTF 探针所在轨，其探测窗是 Red 档
@@ -1830,6 +1840,7 @@ impl RecordingController {
                                             is_snapshot,
                                             std::time::Instant::now(),
                                         ) {
+                                            session.on_skipped_window(elapsed_ms as f32);
                                             window_skips += 1;
                                             if last_skip_report.elapsed() >= SKIP_REPORT_INTERVAL {
                                                 last_skip_report = std::time::Instant::now();
@@ -1847,6 +1858,7 @@ impl RecordingController {
                                             }))
                                             .is_err()
                                         {
+                                            session.on_skipped_window(elapsed_ms as f32);
                                             window_drops += 1;
                                             eprintln!("[F4] 副轨 ASR 窗通道满，丢弃 1 窗（abs_start={abs_start}；音频已落盘可二次转写）。");
                                             if window_drops == 1 {
@@ -1862,8 +1874,8 @@ impl RecordingController {
                                             }
                                             continue;
                                         }
-                                        // RTF 探针在副轨：聚合本流 audio 时长（与其 infer 同流配对）。
-                                        if let Some(deg) = session.on_audio_window(audio_ms as f32) {
+                                        // RTF 探针在副轨：聚合本流流过的会话时长（与其 infer 同流配对）。
+                                        if let Some(deg) = session.on_audio_window(elapsed_ms as f32) {
                                             let tier = format!("{:?}", deg.tier).to_lowercase();
                                             if last_tier.as_deref() != Some(tier.as_str()) {
                                                 last_tier = Some(tier.clone());

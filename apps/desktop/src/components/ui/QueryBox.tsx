@@ -1,6 +1,6 @@
 import type { KeyboardEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { CloseIcon, SearchIcon } from "./Icon";
+import { CloseIcon, SearchIcon } from "@lunarca/editor-core/Icon";
 import { isImeKeyEvent } from "../../lib/ime-key-event";
 
 export interface QueryBoxProps {

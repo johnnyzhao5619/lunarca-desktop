@@ -11,8 +11,10 @@
 
 use crate::error::{Result, VaultError};
 use crate::frontmatter::{read_luna, NoteStage, NoteType};
-use crate::hashing::ContentHash;
-use crate::parse::{clean_for_fts, extract_links, extract_tags, title_of, TagSource};
+use crate::parse::{clean_for_fts, extract_links};
+use luna_sync_core::hashing::ContentHash;
+use luna_sync_core::links::title_of;
+use luna_sync_core::tags::{extract_tags, TagSource};
 use rusqlite::{
     functions::FunctionFlags, params, params_from_iter, Connection, OpenFlags,
     OptionalExtension as _,
@@ -1119,7 +1121,7 @@ impl Index {
     pub fn index_note(&self, rel_path: &str, content: &str, modified_ms: i64) -> Result<()> {
         // 隐藏路径不进索引（唯一一处判定，所有写入路径都经过这里）：「显示隐藏文件」下打开
         // 编辑一篇点文件时，它若进了索引就会出现在搜索里，而下次启动扫描又会把它当成已删除。
-        if crate::pathutil::is_hidden_rel(rel_path) {
+        if luna_sync_core::links::is_hidden_rel(rel_path) {
             return Ok(());
         }
         if !self.conn.is_autocommit() {
@@ -1176,7 +1178,7 @@ impl Index {
         for term in extract_tags(content) {
             // 全库忽略的 AI 标签进压下表；用户自己写的同名标签在 `extract_tags` 里已优先，
             // 不会走到这里被压下。
-            let suppressed = term.source == crate::parse::TagSource::Ai
+            let suppressed = term.source == TagSource::Ai
                 && self
                     .conn
                     .query_row(
@@ -1218,7 +1220,7 @@ impl Index {
         // 换算只有一处口径（`canonical_link_target`），故不会再出现"某个面把它当路径用、
         // 另一个面把它当链接用"。
         for dst in extract_links(content) {
-            let dst = crate::pathutil::canonical_link_target(rel_path, &dst);
+            let dst = luna_sync_core::links::canonical_link_target(rel_path, &dst);
             self.conn
                 .execute(
                     "INSERT INTO links(src_path, dst_path) VALUES (?1, ?2)",
@@ -1996,12 +1998,12 @@ impl Index {
     /// 搜索视图的**候选集**（PRD-06-031）：结构化过滤 + 内容粗筛，按修改时间倒序。
     ///
     /// 返回的是**超集**——精确的「每个词都在 / 排除词不在 / 命中在第几行」由读文件那一遍
-    /// 决定（[`crate::search`] 模块文档口径 3）。粗筛只取一个最长正向词：正向词是 AND
+    /// 决定（[`luna_sync_core::search`] 模块文档口径 3）。粗筛只取一个最长正向词：正向词是 AND
     /// 关系，任取其一都不会漏掉真命中，而多词 MATCH 表达式在 trigram 分词器下反而容易
     /// 因短词失配而**漏掉**结果。
     pub fn search_candidates(
         &self,
-        query: &crate::search::SearchQuery,
+        query: &luna_sync_core::search::SearchQuery,
         limit: usize,
     ) -> Result<Vec<NoteListEntry>> {
         let mut binds: Vec<String> = Vec::new();
@@ -2765,7 +2767,7 @@ impl Index {
         Ok(out)
     }
 
-    /// 全部笔记的「(路径, 标题)」，路径升序——[`crate::graph::LinkIndex`] 的输入。
+    /// 全部笔记的「(路径, 标题)」，路径升序——[`luna_sync_core::links::LinkIndex`] 的输入。
     pub fn note_identities(&self) -> Result<Vec<(String, String)>> {
         let mut stmt = self
             .conn
@@ -2782,7 +2784,7 @@ impl Index {
     }
 
     /// 全部笔记的「(路径, 别名)」，按路径、书写顺序——与 [`Self::note_identities`] 一起是
-    /// [`crate::graph::LinkIndex`] 的输入（对标方案 C2）。
+    /// [`luna_sync_core::links::LinkIndex`] 的输入（对标方案 C2）。
     pub fn note_aliases(&self) -> Result<Vec<(String, String)>> {
         let mut stmt = self
             .conn
@@ -2838,7 +2840,10 @@ impl Index {
     /// 敲的 NFC（ADR-148 ⑥）。两种形态都是索引查找，不扫全表。
     pub fn backlinks(&self, rel_path: &str) -> Result<Vec<String>> {
         let title = title_of(rel_path);
-        let (path_nfc, title_nfc) = (crate::pathutil::nfc(rel_path), crate::pathutil::nfc(&title));
+        let (path_nfc, title_nfc) = (
+            luna_sync_core::path::nfc(rel_path),
+            luna_sync_core::path::nfc(&title),
+        );
         let mut stmt = self
             .conn
             .prepare(
@@ -3137,12 +3142,16 @@ impl Index {
     }
 }
 
-/// 把一条搜索过滤器（[`crate::search::Filter`]）落成 SQL 子句。
+/// 把一条搜索过滤器（[`luna_sync_core::search::Filter`]）落成 SQL 子句。
 ///
 /// 取反一律写成 `NOT (…)` 包住肯定式，而不是各写一版否定 SQL——`tag:` 的嵌套语义
 /// （命中 `a` 与 `a/b`）取反后是「既不是 a 也不是 a 的子孙」，分写两版必然漂移。
-fn append_search_filter(sql: &mut String, binds: &mut Vec<String>, filter: &crate::search::Filter) {
-    use crate::search::FilterField;
+fn append_search_filter(
+    sql: &mut String,
+    binds: &mut Vec<String>,
+    filter: &luna_sync_core::search::Filter,
+) {
+    use luna_sync_core::search::FilterField;
     let clause = match filter.field {
         FilterField::Type => {
             // 未知类型串不该退化成「无过滤」（那是静默扩大范围），故绑一个不存在的类型。
@@ -3241,9 +3250,9 @@ fn map_sqlite(e: rusqlite::Error) -> VaultError {
 /// 一条链接目标（或一个文件路径）的末段名字键：去 `.md`、百分号解码、小写。
 #[must_use]
 pub(crate) fn link_name_key(target: &str) -> String {
-    let decoded = crate::pathutil::percent_decode(target.trim());
+    let decoded = luna_sync_core::links::percent_decode(target.trim());
     let last = decoded.rsplit('/').next().unwrap_or(&decoded);
-    let lower = crate::pathutil::name_key(last);
+    let lower = luna_sync_core::path::name_key(last);
     lower
         .strip_suffix(".md")
         .map_or(lower.clone(), str::to_owned)

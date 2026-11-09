@@ -6,8 +6,8 @@ import {
   canDropSelection,
   isValidDropTarget,
   parentPathOf,
-  sortTreeChildren,
 } from "./NoteTree";
+import { sortTreeChildren } from "@lunarca/editor-core/tree-sort";
 
 function node(partial: Partial<NoteTreeDto> & { name: string }): NoteTreeDto {
   return {

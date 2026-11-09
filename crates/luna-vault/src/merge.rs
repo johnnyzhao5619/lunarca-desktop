@@ -11,8 +11,9 @@
 
 use crate::frontmatter::body_of;
 use crate::frontmatter::{NoteStage, NoteType};
-use crate::hashing::ContentHash;
-use crate::parse::{clean_for_fts, title_of};
+use crate::parse::clean_for_fts;
+use luna_sync_core::hashing::ContentHash;
+use luna_sync_core::links::title_of;
 
 /// 「多条 → 一篇」被挡住的原因——`None` = 这一篇可以作为汇总的源。
 ///

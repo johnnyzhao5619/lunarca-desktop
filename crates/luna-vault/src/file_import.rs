@@ -87,7 +87,7 @@ impl Vault {
         if std::fs::canonicalize(source).is_ok_and(|real| real.starts_with(self.root())) {
             return Err(ImportSkip::InsideVault);
         }
-        let wanted = crate::pathutil::join_vault_rel(folder, name);
+        let wanted = luna_sync_core::attachment::join_vault_rel(folder, name);
         if is_markdown(name) {
             let content = std::fs::read(source).map_err(|_| ImportSkip::Failed)?;
             let content = String::from_utf8(content).map_err(|_| ImportSkip::NotUtf8)?;
@@ -159,7 +159,10 @@ mod tests {
         );
         // 笔记进了索引，搜得到；原文件还在。
         let hits = vault
-            .search_matches(&crate::SearchQuery::parse("季度复盘", false))
+            .search_matches(&luna_sync_core::search::SearchQuery::parse(
+                "季度复盘",
+                false,
+            ))
             .unwrap();
         assert_eq!(hits.notes[0].path, "项目/计划-1.md");
         assert!(note.exists());

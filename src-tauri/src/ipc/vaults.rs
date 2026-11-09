@@ -316,8 +316,39 @@ pub(crate) fn open_for_account(
     root: PathBuf,
 ) -> Result<(), String> {
     handover_and_bind(app, state, root, false)?;
-    let _ = crate::vault_lists::VaultFollowedAccount {}.emit(app);
+    let _ = crate::vault_lists::VaultSwitchedByApp {}.emit(app);
     Ok(())
+}
+
+/// 启动时库的 `.luna/` 还在 iCloud 上、这次没开（[`AppState::startup_vault_in_cloud`]）：后台等它
+/// 取回，回来时仍没有打开的库就走切换器同一条交接 + 装载打开它，并让主窗口工作区整体重挂载——
+/// 空状态「还在从 iCloud 下载」不用用户估时机反复点「重试」。等的期间用户已开了别的库就不动。
+pub(crate) fn open_startup_vault_when_local(app: &tauri::AppHandle) {
+    let state = app.state::<AppState>();
+    let Some(root) = state
+        .startup_vault_missing()
+        .filter(|_| state.startup_vault_in_cloud())
+        .map(Path::to_path_buf)
+    else {
+        return;
+    };
+    let app = app.clone();
+    luna_vault::icloud::notify_when_local(
+        root.join(super::LUNA_VAULT_PRIVATE_DIR),
+        super::VAULT_CLOUD_POLL,
+        move || {
+            let state = app.state::<AppState>();
+            if !matches!(current_vault_root(&state), Ok(None)) {
+                return;
+            }
+            match handover_and_bind(&app, &state, root, false) {
+                Ok(()) => {
+                    let _ = crate::vault_lists::VaultSwitchedByApp {}.emit(&app);
+                }
+                Err(error) => eprintln!("[vault] iCloud 取回后自动打开库失败：{error}"),
+            }
+        },
+    );
 }
 
 /// 换了账户、此刻打开的库新账户看不见、它也没有可去的库：交出当前库，回到空状态（新建 / 打开
@@ -347,7 +378,7 @@ pub(crate) fn close_for_account(app: &tauri::AppHandle, state: &AppState) -> Res
     )?;
     super::create_actions::publish_create_action_states(app);
     let _ = (VaultSwitched {}).emit(app);
-    let _ = crate::vault_lists::VaultFollowedAccount {}.emit(app);
+    let _ = crate::vault_lists::VaultSwitchedByApp {}.emit(app);
     Ok(())
 }
 
@@ -1198,7 +1229,7 @@ fn spawn_background_scan(app: tauri::AppHandle, force: bool) {
                         if !known.contains_key(path) {
                             appeared.push((
                                 path.clone(),
-                                luna_vault::ContentHash::of(content.as_bytes())
+                                luna_sync_core::hashing::ContentHash::of(content.as_bytes())
                                     .as_str()
                                     .to_owned(),
                             ));

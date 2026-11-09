@@ -9,7 +9,7 @@
 //! 侧消费，监听线程不直接持有它。这样监听层无状态、可独立替换。
 
 use crate::error::{Result, VaultError};
-use crate::hashing::ContentHash;
+use luna_sync_core::hashing::ContentHash;
 use notify_debouncer_full::notify::{RecursiveMode, Watcher as _};
 use notify_debouncer_full::{new_debouncer, DebounceEventResult};
 use std::path::Path;

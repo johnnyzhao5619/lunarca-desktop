@@ -75,6 +75,75 @@ fn signed_in(base: &str) -> CloudClient {
     client
 }
 
+#[tokio::test]
+async fn web_access_reads_and_updates_from_server_receipts() {
+    let (base, hits) = serve(json_reply(200, r#"{"enabled":true}"#));
+    let client = signed_in(&base);
+    assert!(client.request_web_access(None).await.unwrap());
+    assert!(client.request_web_access(Some(true)).await.unwrap());
+    assert_eq!(hits.load(Ordering::SeqCst), 2);
+
+    let (base, _) = serve(json_reply(200, r#"{"enabled":false,"revoked_sessions":2}"#));
+    assert!(!signed_in(&base)
+        .request_web_access(Some(false))
+        .await
+        .unwrap());
+}
+
+#[tokio::test]
+async fn web_sessions_list_and_revoke() {
+    let (base, _) = serve(json_reply(
+        200,
+        r#"{"sessions":[{"id":"s1","browser":"Chrome","os":null,"keep_signed_in":false,"created_at":"2026-11-08T00:00:00Z","last_seen_at":null,"current":false}],"max":5}"#,
+    ));
+    let sessions = signed_in(&base).request_web_sessions().await.unwrap();
+    assert_eq!(sessions.len(), 1);
+    assert_eq!(sessions[0].browser.as_deref(), Some("Chrome"));
+
+    // 单个会话已经不在 = 用户要的结果已经成立；「全部退出」的 404 才是这台服务端没开网页版。
+    let (base, _) = serve(json_reply(404, "{}"));
+    let client = signed_in(&base);
+    client
+        .request_revoke_web_sessions(Some("s1"))
+        .await
+        .unwrap();
+    assert!(matches!(
+        client.request_revoke_web_sessions(None).await,
+        Err(CloudError::WebAccessUnavailable)
+    ));
+}
+
+#[tokio::test]
+async fn web_sessions_never_contact_organization_servers() {
+    let (base, hits) = serve(json_reply(200, "{}"));
+    let client = signed_in(&base);
+    assert!(matches!(
+        client.web_sessions().await,
+        Err(CloudError::WebAccessUnavailable)
+    ));
+    assert!(matches!(
+        client.revoke_web_sessions(None).await,
+        Err(CloudError::WebAccessUnavailable)
+    ));
+    assert_eq!(hits.load(Ordering::SeqCst), 0);
+}
+
+#[tokio::test]
+async fn web_access_maps_failure_and_never_contacts_organization_servers() {
+    let (base, hits) = serve(json_reply(404, "{}"));
+    let client = signed_in(&base);
+    assert!(matches!(
+        client.web_access(None).await,
+        Err(CloudError::WebAccessUnavailable)
+    ));
+    assert_eq!(hits.load(Ordering::SeqCst), 0);
+    assert!(matches!(
+        client.request_web_access(Some(false)).await,
+        Err(CloudError::WebAccessUnavailable)
+    ));
+    assert_eq!(hits.load(Ordering::SeqCst), 1);
+}
+
 /// 记下被要求的默认文件名，并交回给定的路径（`None` = 用户取消）。
 fn picker(answer: Option<PathBuf>) -> (ExportDestinationPicker, Arc<Mutex<Vec<String>>>) {
     let asked = Arc::new(Mutex::new(Vec::new()));

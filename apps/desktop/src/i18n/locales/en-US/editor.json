@@ -42,13 +42,7 @@
   "keepLocal": "Overwrite with local edits",
   "error": "Error",
   "words": "Words",
-  "linkPlaceholder": "url",
   "tableEditing": {
-    "cell": "Table row {{row}}, column {{column}}",
-    "rowHandle": "Row {{row}} actions",
-    "columnHandle": "Column {{column}} actions",
-    "appendRow": "Add a row at the end",
-    "appendColumn": "Add a column at the right",
     "menu": {
       "insert": "Insert",
       "rowAbove": "Row above",
@@ -79,53 +73,7 @@
       "toText": "Convert table to text (tab-separated)",
       "aiSummarize": "Summarize this table with AI",
       "aiFillColumn": "Fill this column with AI…"
-    },
-    "picker": {
-      "title": "Insert table: choose a size",
-      "size": "{{columns}} × {{rows}} table"
     }
-  },
-  "properties": {
-    "label": "Properties",
-    "empty": "No properties yet",
-    "add": "Add property",
-    "newKeyPlaceholder": "Property name",
-    "addItem": "Add item",
-    "addItemTo": "Add an item to {{key}}",
-    "remove": "Remove property {{key}}",
-    "removeItem": "Remove {{item}}",
-    "keyLabel": "Property name {{key}}",
-    "valueLabel": "Value of {{key}}",
-    "typeLabel": "Type of {{key}}",
-    "editSource": "Edit in source",
-    "kind": {
-      "text": "Text",
-      "number": "Number",
-      "checkbox": "Checkbox",
-      "date": "Date",
-      "date_time": "Date & time",
-      "list": "List"
-    },
-    "skip": {
-      "unsupported_form": "This form can't be edited in the panel",
-      "inline_comment": "The value has a comment that editing here would lose",
-      "multi_line": "Multi-line values can't be edited here",
-      "nested": "Nested structures can't be edited here",
-      "duplicate_key": "This property name appears more than once",
-      "unclosed": "The opening --- isn't closed; fix it in source first",
-      "key_exists": "A property with this name already exists",
-      "invalid_key": "Names can't be empty, contain a colon or #, or be luna",
-      "not_found": "This property is gone; it may have just changed",
-      "invalid_value": "That value doesn't fit the type: numbers like 12 or 1.5, dates like 2026-10-04"
-    }
-  },
-  "frontmatter": {
-    "label": "Metadata (YAML)",
-    "labelCount": "Metadata ({{count}} properties)",
-    "expandTitle": "Click to expand metadata",
-    "collapseTitle": "Click to collapse metadata",
-    "expandAction": "Expand",
-    "collapseAction": "Collapse"
   },
   "floating": {
     "title": "AI actions",
@@ -179,7 +127,8 @@
       "background": "Run in background",
       "background_title": "Hand it to the processing queue and close the panel; you get a notification when it finishes",
       "table_from_text": "Turn into a table",
-      "script": "Script"
+      "script": "Script",
+      "prompter": "Teleprompter"
     },
     "route": {
       "local": "On this Mac · offline",
@@ -280,6 +229,13 @@
       "hook": "Rewrite the hook",
       "spoken": "Make it conversational",
       "dictation": "Clean up dictation"
+    },
+    "prompter": {
+      "spoken": "Turn into a spoken script",
+      "fit": "Fit to {{seconds}} seconds",
+      "cues": "Mark pauses and emphasis",
+      "fit_ok": "About {{secs}} s, within {{target}} s",
+      "fit_over": "About {{secs}} s, {{over}} s over {{target}} s. Nothing was cut for you: run it again or trim a few lines yourself"
     }
   },
   "version": {
@@ -300,29 +256,14 @@
     "restoreConfirmYes": "Restore",
     "restoreConfirmNo": "Cancel"
   },
-  "mode": {
-    "label": "View mode",
-    "live": "Live preview",
-    "source": "Source mode",
-    "reading": "Reading view"
-  },
   "more": {
-    "label": "More actions",
-    "formats": "More formatting"
-  },
-  "embed": {
-    "open": "Open",
-    "missing": "The embedded note or file can't be found"
+    "label": "More actions"
   },
   "linkPreview": {
     "label": "Link preview",
     "open": "Open",
     "loading": "Loading…",
     "missing": "This note doesn't exist yet"
-  },
-  "reading": {
-    "properties": "Properties",
-    "openTag": "Open tag #{{tag}}"
   },
   "paste": {
     "asMarkdown": "Paste as Markdown",
@@ -381,42 +322,18 @@
     "binaryHint": "This file type has no inline preview — open it with an external app."
   },
   "table": {
-    "insert": "Insert table",
     "noColumns": "Couldn't find columns in the selection. Separate them with tabs, commas or two or more spaces."
   },
   "menu": {
-    "insertLink": "Add link",
-    "insertWikiLink": "Add wiki link",
     "textFormat": "Text format",
     "paragraph": "Paragraph",
     "insert": "Insert",
-    "bold": "Bold",
-    "italic": "Italic",
-    "strike": "Strikethrough",
-    "inlineCode": "Inline code",
-    "paragraphText": "Body",
-    "h1": "Heading 1",
-    "h2": "Heading 2",
-    "h3": "Heading 3",
-    "quote": "Quote",
-    "bulletList": "Bulleted list",
-    "orderedList": "Numbered list",
-    "taskList": "Task list",
-    "codeBlock": "Code block",
-    "callout": "Callout",
-    "hr": "Divider",
     "tidyListLevels": "Tidy list levels…",
-    "insertAttachment": "Insert image / attachment…",
-    "insertTemplate": "Insert template…",
-    "aiActions": "AI actions…",
     "textToTable": "Convert selection to table",
     "noSpellingGuesses": "No Guesses Found",
     "learnSpelling": "Learn Spelling"
   },
   "toolbar": {
-    "label": "Formatting toolbar",
-    "headingTitle": "Paragraph style",
-    "labelShortcut": "{{label}} ({{shortcut}})",
     "show": "Show formatting toolbar"
   },
   "writing": {
@@ -459,39 +376,8 @@
     "speed": "Speed"
   },
   "empty": "Pick something on the left to write up, or just start writing — turn it into a proper note once it is ready",
-  "search": {
-    "find": "Find",
-    "replace": "Replace",
-    "next": "next",
-    "previous": "previous",
-    "all": "all",
-    "matchCase": "match case",
-    "regexp": "regexp",
-    "byWord": "by word",
-    "replaceOne": "replace",
-    "replaceAll": "replace all",
-    "close": "close",
-    "currentMatch": "current match",
-    "onLine": "on line",
-    "goToLine": "Go to line",
-    "go": "go",
-    "replacedMatches": "replaced $ matches",
-    "replacedOnLine": "replaced match on line $"
-  },
   "timecode": {
     "playFromHere": "Play from this line (⌘/Ctrl-click the line does the same)"
-  },
-  "image": {
-    "view": "View larger",
-    "resize": "Drag to resize, double-click to reset",
-    "lightbox": "Image viewer",
-    "close": "Close",
-    "previous": "Previous image",
-    "next": "Next image"
-  },
-  "fold": {
-    "fold": "Fold",
-    "unfold": "Unfold"
   },
   "conflictCopy": {
     "copyOf": "This is a conflicted copy of “{{name}}” ({{source}}): the note was changed in two places at once and the sync could not merge them.",

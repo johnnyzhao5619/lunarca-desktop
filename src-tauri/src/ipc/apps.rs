@@ -488,6 +488,9 @@ fn write_bit(state: &AppState, key: &str, value: Vec<String>) -> Result<(), Stri
 
 /// 三条写入命令的收尾：重算依赖设置的快照，并以 `apps.enabled` 广播一次「应用变了」。
 fn announce(app: &tauri::AppHandle, state: &AppState) {
+    // 应用的全局快捷键随生效状态注册 / 解绑；面板的扩展（如内容保护）随之重算（ADR-176 ③ ⑤）。
+    crate::reregister_global_shortcuts(app);
+    crate::apply_teleprompter_capture(app);
     apply_setting_side_effects(app, state, APPS_INSTALLED_KEY);
     apply_setting_side_effects(app, state, APPS_ENABLED_KEY);
     let _ = SettingsChanged {
@@ -498,8 +501,15 @@ fn announce(app: &tauri::AppHandle, state: &AppState) {
 
 /// 收起这个应用的窗口（暂时停用与卸载共用；窗口由清单声明，ADR-169 ⑧）。有自己收尾的窗口走它
 /// 自己的收起路径，其余直接隐藏。
-fn retract_windows(app: &tauri::AppHandle, manifest: &AppManifest) {
+///
+/// 共用的窗口（提词器面板归创作与提词器，ADR-176 ③）只在**再没有一个主人生效**时才收起：
+/// 调用方先写完开关位再调这里，所以按写后的快照判。
+fn retract_windows(app: &tauri::AppHandle, state: &AppState, manifest: &AppManifest) {
+    let settings = state.settings_snapshot();
     for label in manifest.windows {
+        if luna_config::apps::window_available(&settings, label) {
+            continue;
+        }
         retract_window(app, label);
     }
 }
@@ -514,15 +524,17 @@ fn retract_window(app: &tauri::AppHandle, label: &str) {
     }
 }
 
-/// 打开应用窗口的护栏：拥有它的应用没启用就拒绝（与 [`require_app`] 同一个错误码）。
+/// 打开应用窗口的护栏：声明它的应用一个都没生效就拒绝（与 [`require_app`] 同一个错误码）。
+/// 共用的窗口任一主人生效即可（ADR-176 ③）。
 pub(crate) fn require_window(
     app: &tauri::AppHandle,
     state: &AppState,
     label: &str,
 ) -> Result<(), String> {
-    match luna_config::apps::window_owner(label) {
-        Some(owner) => require_app(app, state, owner.id),
-        None => Ok(()),
+    if luna_config::apps::window_available(&state.settings_snapshot(), label) {
+        Ok(())
+    } else {
+        Err(coded_error(app, "APP_DISABLED", "app-disabled"))
     }
 }
 
@@ -681,7 +693,7 @@ pub(crate) fn app_set_enabled(
         with_enabled(&settings, manifest.id, enabled),
     )?;
     if !enabled {
-        retract_windows(&app, manifest);
+        retract_windows(&app, &state, manifest);
     }
     announce(&app, &state);
     Ok(())
@@ -712,7 +724,7 @@ pub(crate) fn app_uninstall(
         APPS_INSTALLED_KEY,
         with_installed(&settings, manifest.id, false),
     )?;
-    retract_windows(&app, manifest);
+    retract_windows(&app, &state, manifest);
     announce(&app, &state);
     let models_root = state.models_root(&app);
     for declared in manifest.components {

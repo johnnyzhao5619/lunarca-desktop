@@ -10,12 +10,12 @@ use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
 use crate::core::LocalFile;
-use crate::manifest::content_hash;
 use crate::ports::{
-    Expect, LocalError, LocalVault, Remote, RemoteChange, RemoteChanges, RemoteCommitItem,
-    RemoteCommitReply, RemoteEntry, RemoteError, RemoteItemResult, RemoteManifest, Staged,
-    WriteOutcome,
+    Expect, LocalError, LocalVault, Remote, RemoteChanges, RemoteEntry, RemoteError,
+    RemoteManifest, Staged, WriteOutcome,
 };
+use luna_sync_core::commit::{CommitChange, CommitItem, CommitReply, CommitResult};
+use luna_sync_core::manifest::content_hash;
 
 #[derive(Default)]
 struct ServerState {
@@ -24,7 +24,7 @@ struct ServerState {
     entries: Vec<RemoteEntry>,
     heads: HashMap<Uuid, i64>,
     blobs: HashMap<String, Vec<u8>>,
-    idempotency: HashMap<String, RemoteCommitReply>,
+    idempotency: HashMap<String, CommitReply>,
     /// 下一次调用直接失败（模拟断网）。
     fail_next: Option<RemoteError>,
     /// 再放行这么多次调用之后失败一次（模拟做到一半断网）。
@@ -286,8 +286,8 @@ impl Remote for FakeServer {
         &self,
         _vault_id: Uuid,
         key: &str,
-        items: Vec<RemoteCommitItem>,
-    ) -> Result<RemoteCommitReply, RemoteError> {
+        items: Vec<CommitItem>,
+    ) -> Result<CommitReply, RemoteError> {
         self.with(|s| {
             if let Some(reply) = s.idempotency.get(key) {
                 return Ok(reply.clone());
@@ -298,7 +298,7 @@ impl Remote for FakeServer {
             if s.full
                 && items
                     .iter()
-                    .any(|item| !matches!(item.change, RemoteChange::Delete))
+                    .any(|item| !matches!(item.change, CommitChange::Delete))
             {
                 return Err(RemoteError::QuotaExceeded);
             }
@@ -306,14 +306,14 @@ impl Remote for FakeServer {
             for item in items {
                 let current = s.heads.get(&item.file_id).copied();
                 if current != item.base_rev {
-                    results.push(RemoteItemResult::StaleBase {
+                    results.push(CommitResult::StaleBase {
                         file_id: item.file_id,
                         current_rev: current,
                     });
                     continue;
                 }
                 let (deleted, entry_ct) = match item.change {
-                    RemoteChange::Put {
+                    CommitChange::Put {
                         entry_ct,
                         chunk_ids,
                         ..
@@ -324,7 +324,7 @@ impl Remote for FakeServer {
                             .cloned()
                             .collect();
                         if !missing.is_empty() {
-                            results.push(RemoteItemResult::MissingBlobs {
+                            results.push(CommitResult::MissingBlobs {
                                 file_id: item.file_id,
                                 chunk_ids: missing,
                             });
@@ -332,7 +332,7 @@ impl Remote for FakeServer {
                         }
                         (false, Some(entry_ct))
                     }
-                    RemoteChange::Delete => (true, None),
+                    CommitChange::Delete => (true, None),
                 };
                 s.head_seq += 1;
                 let rev = current.unwrap_or(0) + 1;
@@ -344,13 +344,13 @@ impl Remote for FakeServer {
                     deleted,
                     entry_ct,
                 });
-                results.push(RemoteItemResult::Committed {
+                results.push(CommitResult::Committed {
                     file_id: item.file_id,
                     rev,
                     seq: s.head_seq,
                 });
             }
-            let reply = RemoteCommitReply {
+            let reply = CommitReply {
                 head_seq: s.head_seq,
                 results,
             };

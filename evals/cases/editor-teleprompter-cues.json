@@ -1,0 +1,26 @@
+{
+  "_comment": [
+    "提词器标注停顿与强调「teleprompter.cues」（PRD-20-014/016，ADR-176 ⑦⑧）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "editor",
+  "template": "teleprompter.cues",
+  "cases": [
+    {
+      "name": "只加记号，一个字不改",
+      "vars": {
+        "language_lock": "The output must stay in Chinese.",
+        "context": ""
+      },
+      "must_contain": [
+        "without changing a single word",
+        "` // `",
+        "**double asterisks**",
+        "Do not reword",
+        "must stay in Chinese",
+        "Output only"
+      ],
+      "why": "标注动作一旦顺手润色，差异里满屏改动，用户就没法只收记号"
+    }
+  ]
+}

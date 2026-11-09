@@ -7,10 +7,11 @@ import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 vi.mock("../../ipc/bindings", () => import("../../ipc/bindings-test-double"));
 
 import { resetBindingsDouble, setCommandReply } from "../../ipc/bindings-test-double";
-import { LUNA_MARKDOWN_EXTENSIONS } from "../../lib/markdown-dialect";
-import { richPreviewExtension } from "./rich-preview";
-import { wikiLinkExtension } from "./wiki-link";
-import { livePreviewExtension } from "./live-preview";
+import { LUNA_MARKDOWN_EXTENSIONS } from "@lunarca/editor-core/markdown-dialect";
+import { richPreviewExtension } from "@lunarca/editor-core/rich-preview";
+import { wikiLinkExtension } from "@lunarca/editor-core/wiki-link";
+import { livePreviewExtension } from "@lunarca/editor-core/live-preview";
+import { desktopEditorHost } from "./editor-host";
 
 const views: EditorView[] = [];
 beforeEach(() => {
@@ -32,12 +33,11 @@ function mount(doc: string, cursor: number) {
       selection: { anchor: cursor },
       extensions: [
         markdown({ base: markdownLanguage, extensions: LUNA_MARKDOWN_EXTENSIONS }),
-        richPreviewExtension({
-          diagramError: (m) => m,
+        richPreviewExtension(desktopEditorHost, {
           embed: { notePath: () => "日记.md", onOpenPath: vi.fn(), onActivateWikiLink: vi.fn() },
         }),
-        wikiLinkExtension({ notePath: () => "日记.md", resolve: async () => null, onActivate: vi.fn() }),
-        livePreviewExtension(() => "日记.md"),
+        wikiLinkExtension(desktopEditorHost, { notePath: () => "日记.md", onActivate: vi.fn() }),
+        livePreviewExtension(desktopEditorHost, () => "日记.md"),
       ],
     }),
   });

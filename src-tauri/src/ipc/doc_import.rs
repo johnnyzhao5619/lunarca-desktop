@@ -266,10 +266,9 @@ async fn fill_document_note(
         let root = root.clone();
         let note_stem = note_stem.clone();
         let source = source.to_path_buf();
-        let original_link = luna_vault::encode_link_target(&luna_vault::relative_link_path(
-            &note_rel,
-            &original_rel,
-        ));
+        let original_link = luna_vault::encode_link_target(
+            &luna_sync_core::links::relative_link_path(&note_rel, &original_rel),
+        );
         let i18n = backend_copy_arc(app);
         tokio::task::spawn_blocking(move || {
             let mut host = NoteHost {
@@ -377,7 +376,10 @@ const SYSTEM_HTML_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(
 /// 超时或任务被取消就杀掉它。错误为稳定码：`DOC_NEEDS_MACOS`（别的平台）/ `DOC_CORRUPT`
 /// （转换失败）/ `DOC_CONVERT_TIMEOUT` / [`luna_core::CANCELLED_CODE`]。
 #[cfg(target_os = "macos")]
-fn system_html(path: &Path, cancel: &luna_core::CancelToken) -> Result<Vec<u8>, &'static str> {
+pub(crate) fn system_html(
+    path: &Path,
+    cancel: &luna_core::CancelToken,
+) -> Result<Vec<u8>, &'static str> {
     use std::io::Read as _;
     use std::process::{Command, Stdio};
     let mut child = Command::new("/usr/bin/textutil")
@@ -419,7 +421,10 @@ fn system_html(path: &Path, cancel: &luna_core::CancelToken) -> Result<Vec<u8>, 
 }
 
 #[cfg(not(target_os = "macos"))]
-fn system_html(_path: &Path, _cancel: &luna_core::CancelToken) -> Result<Vec<u8>, &'static str> {
+pub(crate) fn system_html(
+    _path: &Path,
+    _cancel: &luna_core::CancelToken,
+) -> Result<Vec<u8>, &'static str> {
     Err("DOC_NEEDS_MACOS")
 }
 
@@ -444,8 +449,10 @@ impl luna_docimport::ConvertHost for NoteHost<'_> {
             &format!("{}-{}", self.note_stem, index + 1),
             ext,
         );
-        let link =
-            luna_vault::encode_link_target(&luna_vault::relative_link_path(self.note_rel, &rel));
+        let link = luna_vault::encode_link_target(&luna_sync_core::links::relative_link_path(
+            self.note_rel,
+            &rel,
+        ));
         self.image_rels.push(rel);
         link
     }
@@ -468,7 +475,7 @@ pub(crate) fn unique_asset(root: &Path, asset_dir: &str, stem: &str, ext: &str) 
         } else {
             format!("{stem}-{index}.{ext}")
         };
-        let rel = luna_vault::join_vault_rel(asset_dir, &name);
+        let rel = luna_sync_core::attachment::join_vault_rel(asset_dir, &name);
         if !root.join(&rel).exists() || index > 999 {
             return rel;
         }

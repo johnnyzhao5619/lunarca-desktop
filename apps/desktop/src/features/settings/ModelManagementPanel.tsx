@@ -12,6 +12,7 @@ import { InlineDetails } from "../../components/ui/InlineDetails";
 import { CopyValueButton } from "../../components/ui/CopyValueButton";
 import { goTo } from "../../lib/navigate";
 import type {
+  AsrServerGate,
   ModelAssignmentDto,
   ModelDeletePlanDto,
   ModelEntryDto,
@@ -20,11 +21,12 @@ import type {
   RemoteComputeDto,
 } from "../../ipc/bindings";
 import { cssVariables } from "../../lib/css-variables";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { ModelInstallPlanCard } from "./ModelInstallPlanCard";
 import { CoremlEncoderRow, coremlProgressId } from "./CoremlEncoderRow";
 import { LocalEngineSection } from "./LocalEngineSection";
 import { noticeText } from "./model-notice";
+import { BLOCKER_COPY, TRANSCRIPTION_CONSENT_KEY } from "./TranscriptionConsentRow";
 import { ModelCatalogSection } from "./ModelCatalogSection";
 import { ModelStorageRelocation } from "./ModelStorageRelocation";
 import type { ModelsController } from "./use-settings";
@@ -104,6 +106,7 @@ export function SlotRow({
   const serverCandidates = candidates.filter((candidate) => candidate.location === "server");
   const label = t(`models.slot.${assignment.slot}`);
   const detail = t(`models.slot_desc.${assignment.slot}`);
+  const gate = assignment.server_gate;
 
   return (
     // `data-setting-key` 是深链的落点：搜索命中「默认对话模型」时用户被带到这一行，
@@ -131,6 +134,7 @@ export function SlotRow({
             {managedNote}
           </p>
         ) : null}
+        {gate ? <ServerGateNote gate={gate} /> : null}
         <div className="luna-settings-model__meta-info">
           <span className="luna-settings-model__meta-item">
             <span className="luna-settings-model__meta-label">
@@ -180,7 +184,9 @@ export function SlotRow({
           {selected && !candidates.some((candidate) => candidate.target_id === selected) ? (
             <option value={selected}>{effectiveName ?? t("models.unresolved")}</option>
           ) : null}
-          {/* 服务端候选**没有模型名**：具体模型由服务端选（ADR-048），客户端不列云端目录。 */}
+          {/* 服务端候选**没有模型名**：具体模型由服务端选（ADR-048），客户端不列云端目录。
+              选不到时留一个灰掉的同名项：用户找的就是这个下拉，原因要在这里看得见，
+              而不是只写在上方算力卡里（真机 2026-11-03）。 */}
           {serverCandidates.length > 0 ? (
             <optgroup label={t("models.location.server")}>
               {serverCandidates.map((candidate) => (
@@ -188,6 +194,12 @@ export function SlotRow({
                   {t("models.managed.name")}
                 </option>
               ))}
+            </optgroup>
+          ) : gate ? (
+            <optgroup label={t("models.location.server")}>
+              <option value={SERVER_GATE_OPTION} disabled>
+                {t(gate.kind === "consent_off" ? "models.managed.gate.consent_option" : "models.managed.gate.blocked_option")}
+              </option>
             </optgroup>
           ) : null}
           {deviceCandidates.length > 0 ? (
@@ -202,6 +214,33 @@ export function SlotRow({
         </SelectBox>
       </div>
     </li>
+  );
+}
+
+/** 灰掉的「服务端托管」占位项的值：禁用项不会触发 onChange，它只负责被看见。 */
+const SERVER_GATE_OPTION = "server-gate";
+
+/**
+ * 转写槽位选不到服务端时的那一句，外加去改那道闸的入口。同意只在开关那里给（ADR-038 ④），
+ * 这里只带路、不代勾；勾不动的原因与算力卡同一份文案（`BLOCKER_COPY`）。
+ */
+function ServerGateNote({ gate }: { gate: AsrServerGate }) {
+  const { t } = useTranslation("settings");
+  const route = gate.kind === "consent_off"
+    ? `settings://ai_services/${TRANSCRIPTION_CONSENT_KEY}`
+    : gate.blocker === "local_only_strategy" ? "settings://ai_services/ai.route_strategy" : null;
+  return (
+    <p className="luna-settings-model__description" role="note">
+      {gate.kind === "consent_off" ? t("models.managed.gate.consent_off") : t(BLOCKER_COPY[gate.blocker])}
+      {route ? (
+        <>
+          {" "}
+          <button type="button" className="luna-btn luna-btn--secondary luna-btn--sm" onClick={() => goTo(route)}>
+            {t(gate.kind === "consent_off" ? "models.managed.gate.open_consent" : "models.managed.gate.change_strategy")}
+          </button>
+        </>
+      ) : null}
+    </p>
   );
 }
 

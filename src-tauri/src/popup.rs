@@ -394,6 +394,41 @@ pub fn clamp_saved_position(
     clamp_to_monitor(saved, panel, saved, monitors)
 }
 
+/// 提词器「贴近镜头」的窄条（ADR-176 ⑤，PRD-20-008）：在一块显示器的**工作区**（物理像素，已扣掉
+/// 菜单栏——带刘海的内建屏，工作区上沿就是刘海下沿）上沿居中，宽取工作区一半、夹在
+/// [`CAMERA_STRIP_MIN_WIDTH`, `CAMERA_STRIP_MAX_WIDTH`] 逻辑点之间，高为 [`CAMERA_STRIP_HEIGHT`]。
+/// 窄条让读的那几行贴着镜头、眼球横移小。`scale` 为显示器缩放（逻辑点 → 物理像素）。
+#[must_use]
+pub fn camera_strip_rect(work: ScreenRect, scale: f64) -> ScreenRect {
+    let scale = if scale.is_finite() && scale > 0.0 {
+        scale
+    } else {
+        1.0
+    };
+    let width = (work.width / 2.0)
+        .clamp(
+            CAMERA_STRIP_MIN_WIDTH * scale,
+            CAMERA_STRIP_MAX_WIDTH * scale,
+        )
+        .min(work.width);
+    let height = (CAMERA_STRIP_HEIGHT * scale).min(work.height);
+    ScreenRect::new(
+        work.x + (work.width - width) / 2.0,
+        work.y + CAMERA_STRIP_GAP * scale,
+        width,
+        height,
+    )
+}
+
+/// 贴近镜头窄条的尺寸（逻辑点）：最窄与提词器面板的最小宽一致。
+pub const CAMERA_STRIP_MIN_WIDTH: f64 = 420.0;
+/// 贴近镜头窄条最宽（逻辑点）：再宽眼球横移就明显了。
+pub const CAMERA_STRIP_MAX_WIDTH: f64 = 760.0;
+/// 贴近镜头窄条的高（逻辑点）：控制条 + 三到四行大字。
+pub const CAMERA_STRIP_HEIGHT: f64 = 260.0;
+/// 窄条与工作区上沿的间隙（逻辑点）。
+const CAMERA_STRIP_GAP: f64 = 4.0;
+
 /// 记忆的窗口几何（位置 + 尺寸）在显示前校正（字幕窗记住上一次，PRD-04-040）：先按窗心所在
 /// 屏（不在任何屏则首屏）把尺寸收进该屏——换到一块更小的屏时整窗仍放得下——再夹位置。
 /// 无显示器信息时原样返回。
@@ -932,5 +967,45 @@ mod caption_window_geometry_tests {
         let back = clamp_saved_rect(saved, &[SCREEN]);
         assert_eq!(back.width, 1440.0);
         assert_eq!((back.x, back.y), (0.0, 25.0 + 875.0 - 400.0));
+    }
+}
+
+#[cfg(test)]
+mod camera_strip_tests {
+    use super::*;
+
+    #[test]
+    fn the_strip_sits_centered_on_the_top_of_the_work_area() {
+        // 14 寸 MacBook（2x）：工作区 3024×1890 物理像素、上沿已扣掉刘海那条菜单栏（y = 74）。
+        let work = ScreenRect::new(0.0, 74.0, 3024.0, 1890.0);
+        let rect = camera_strip_rect(work, 2.0);
+        assert!((rect.width - 1512.0).abs() < 1e-9, "一半宽，未超上限 760×2");
+        assert!(
+            (rect.x + rect.width / 2.0 - 1512.0).abs() < 1e-9,
+            "水平居中"
+        );
+        assert!((rect.y - (74.0 + 8.0)).abs() < 1e-9, "贴着工作区上沿");
+        assert!((rect.height - 520.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn the_strip_width_is_clamped_and_never_exceeds_the_screen() {
+        let wide = camera_strip_rect(ScreenRect::new(-2560.0, 25.0, 5120.0, 1415.0), 1.0);
+        assert!(
+            (wide.width - CAMERA_STRIP_MAX_WIDTH).abs() < 1e-9,
+            "宽屏夹到上限"
+        );
+        assert!(
+            (wide.x + wide.width / 2.0).abs() < 1e-9,
+            "副屏（负坐标）同样居中"
+        );
+        let narrow = camera_strip_rect(ScreenRect::new(0.0, 0.0, 600.0, 200.0), 1.0);
+        assert!(
+            (narrow.width - CAMERA_STRIP_MIN_WIDTH).abs() < 1e-9,
+            "窄屏夹到下限"
+        );
+        assert!(narrow.height <= 200.0, "不比工作区还高");
+        let bad_scale = camera_strip_rect(ScreenRect::new(0.0, 0.0, 1000.0, 800.0), f64::NAN);
+        assert!(bad_scale.width.is_finite() && bad_scale.width > 0.0);
     }
 }

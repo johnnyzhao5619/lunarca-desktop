@@ -23,7 +23,7 @@ import {
   GraphIcon,
   PlusIcon,
   TagsIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { useContextMenu } from "../../components/ContextMenuHost";
 import { buildMenu, separator } from "../../lib/context-menu";

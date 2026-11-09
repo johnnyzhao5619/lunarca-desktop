@@ -24,7 +24,7 @@ import {
   PlayIcon,
   SettingsIcon,
   StopIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { HudReceipt, type HudReceiptValue } from "../../components/ui/HudReceipt";
 import { CaptionAppearancePanel, type CaptionLayout } from "./CaptionAppearancePanel";
 import { useCaptionWindowHidden } from "./use-caption-window-hidden";

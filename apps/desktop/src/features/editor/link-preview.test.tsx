@@ -12,7 +12,7 @@ vi.mock("../../ipc/bindings", () => import("../../ipc/bindings-test-double"));
 import { commandMock, resetBindingsDouble, setCommandReply } from "../../ipc/bindings-test-double";
 import { t, withI18n } from "../../i18n/i18n-test-fixture";
 import { LinkPreviewPopover, linkRefFromDataset, useLinkPreview } from "./LinkPreview";
-import { readingHeadings } from "./reading-view";
+import { readingHeadings } from "@lunarca/editor-core/reading-view";
 
 function Harness({ onOpenPath }: { onOpenPath: (path: string) => void }) {
   const hostRef = useRef<HTMLDivElement | null>(null);

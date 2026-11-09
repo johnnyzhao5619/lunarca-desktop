@@ -19,7 +19,7 @@ import { useTablistNavigation } from "../../hooks/use-tablist-navigation";
 import { PopupResultSlot } from "./PopupResultSlot";
 import { PresetSelect } from "./PresetSelect";
 import { presetLabel } from "./popup-meta-label";
-import { type CompositionState, NO_COMPOSITION } from "../../lib/ime-composition";
+import { type CompositionState, NO_COMPOSITION } from "@lunarca/editor-core/ime-composition";
 import { classifyPopupInputKey } from "./popup-keys";
 import { vaultErrorText } from "../../lib/vault-error";
 import { idlePopupVoice, isPopupVoiceActive, popupVoiceOnReopen } from "./popup-voice";
@@ -37,7 +37,7 @@ import {
   StopCircleIcon,
   StopIcon,
   SparklesIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import {
   applySlotCacheHit,
   applySlotDone,
@@ -97,7 +97,7 @@ export function PopupTranslateView({ presets }: PopupTranslateViewProps) {
   const [clipboardNotRestored, setClipboardNotRestored] = useState(false);
   const popupInputRef = useRef<HTMLTextAreaElement | null>(null);
   /**
-   * 合成边界（`popup-keys.ts` → `lib/ime-composition.ts` 的判据之一）。
+   * 合成边界（`popup-keys.ts` → `@lunarca/editor-core/ime-composition` 的判据之一）。
    *
    * **存 ref 不存 state**：它只在按键那一刻被读一次，本身不该触发任何一次渲染——而中文
    * 输入每敲一个字母都会走一遍组字事件，做成 state 就是每个字母重渲一次。

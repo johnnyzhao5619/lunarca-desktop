@@ -9,9 +9,9 @@
 import { useEffect, useState } from "react";
 import { useTablistNavigation } from "../../hooks/use-tablist-navigation";
 import { useTranslation } from "react-i18next";
-import { DiffView } from "../../components/ui/DiffView";
+import { DiffView } from "@lunarca/editor-core/DiffView";
 import { formatRelativeTime } from "../../lib/format-relative-time";
-import { ClockIcon } from "../../components/ui/Icon";
+import { ClockIcon } from "@lunarca/editor-core/Icon";
 import { useVersionHistory, VERSION_VIEW_MODES, type VersionEntry } from "./use-version-history";
 
 export interface VersionHistoryPanelProps {

@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import { commands, events, type RestorePointDto, type RestoreReportDto } from "../../ipc/bindings";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { formatDateTime } from "../../lib/format-datetime";
 import { syncErrorText } from "./sync-error";
 

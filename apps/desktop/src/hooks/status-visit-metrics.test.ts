@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 
-const ALL_SOURCES = import.meta.glob("../{app,features,components,hooks,lib}/**/*.{ts,tsx}", {
+const ALL_SOURCES = import.meta.glob(["../{app,features,components,hooks,lib}/**/*.{ts,tsx}", "../../../../packages/*/src/**/*.{ts,tsx}"], {
   eager: true,
   import: "default",
   query: "?raw",

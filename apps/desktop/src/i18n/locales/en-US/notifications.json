@@ -406,7 +406,7 @@
   },
   "signed_in": {
     "title": "Signed in",
-    "body": "The browser sign-in is complete. Server capabilities are now available.",
+    "body": "Sign-in is complete. Server capabilities are now available.",
     "action": "View connection"
   },
   "trust_rotated": {
@@ -423,6 +423,21 @@
     "title": "Couldn’t save the quick note",
     "body": "The selected text wasn’t saved. Open Lunarca, make sure a vault is open, and try again.",
     "action": "Open Lunarca"
+  },
+  "teleprompter_send_empty": {
+    "title": "Nothing to send to the teleprompter",
+    "body": "No selected text was found and the clipboard has no text. Select or copy (⌘C) some text, then press “Send to teleprompter”.",
+    "action": "Open Lunarca"
+  },
+  "teleprompter_send_failed": {
+    "title": "Couldn't send to the teleprompter",
+    "body": "The text wasn't saved as a script. Open Lunarca, make sure a vault is open, and try again.",
+    "action": "Open Lunarca"
+  },
+  "teleprompter_app_missing": {
+    "title": "Teleprompter isn't installed",
+    "body": "Install Teleprompter from Apps to send selected text to it.",
+    "action": "Install"
   },
   "app_release_ask": {
     "title": "Check for updates at launch?",

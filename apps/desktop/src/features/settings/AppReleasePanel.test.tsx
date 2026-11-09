@@ -19,6 +19,7 @@ import { t, withI18n } from "../../i18n/i18n-test-fixture";
 import en from "../../i18n/locales/en-US/settings.json";
 import zh from "../../i18n/locales/zh-CN/settings.json";
 import { AppReleasePanel, RELEASE_ERROR_CODES, releaseErrorCode } from "./AppReleasePanel";
+import { RESTART_BLOCK_CODES } from "./restart-block-codes";
 
 const release = {
   version: "1.2.0",
@@ -55,6 +56,20 @@ describe("关于与更新", () => {
     await waitFor(() => expect(commandMock("appReleaseInstall")).toHaveBeenCalled());
     expect(await screen.findByText(t("settings:app_release.error.update_install_failed"))).toBeTruthy();
   });
+
+  it.each(RESTART_BLOCK_CODES)(
+    "%s：说明原因，安装按钮留着可以再点一次",
+    async (code) => {
+      setCommandReply("appReleaseCheck", { status: "ok", data: release });
+      setCommandReply("appReleaseInstall", { status: "error", error: code });
+      mount();
+      fireEvent.click(screen.getByRole("button", { name: t("settings:app_release.check") }));
+      fireEvent.click(await screen.findByRole("button", { name: t("settings:app_release.install") }));
+      expect(await screen.findByText(t(`settings:app_release.error.${code}`))).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: t("settings:app_release.install") }));
+      await waitFor(() => expect(commandMock("appReleaseInstall")).toHaveBeenCalledTimes(2));
+    },
+  );
 
   it("严格本地拦下检查：大写错误码也认得", async () => {
     setCommandReply("appReleaseCheck", { status: "error", error: "STRICT_LOCAL_BLOCKED" });

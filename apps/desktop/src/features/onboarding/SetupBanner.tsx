@@ -10,7 +10,7 @@
 import { useTranslation } from "react-i18next";
 import { commands, type SetupStatusDto } from "../../ipc/bindings";
 import { requestOnboarding } from "../../lib/app-events";
-import { ListTodoIcon } from "../../components/ui/Icon";
+import { ListTodoIcon } from "@lunarca/editor-core/Icon";
 import { projectSetupBanner } from "./use-setup-status";
 
 export function SetupBanner({

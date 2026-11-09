@@ -1,0 +1,40 @@
+# luna-web —— 网页版笔记的 WASM 封装（ADR-177 ⑥，TDD-17 §2 / §3）：把 luna-sync-core 与 luna-opaque 原样
+# 交给浏览器里的专用 Worker，不另写任何格式或规则。原生也能编译（供 workspace 的 check / clippy），
+# 真正的产物是 wasm32-unknown-unknown 的 cdylib。
+[package]
+name = "luna-web"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+luna-sync-core = { path = "../luna-sync-core" }
+luna-opaque = { path = "../luna-opaque" }
+opaque-ke = { workspace = true }
+# OPAQUE 握手的随机数（OsRng；wasm 下经 getrandom 走 crypto.getRandomValues）。
+aes-gcm = { workspace = true }
+# 信封里的托管 CMK 与条目密文是 base64（与服务端同一口径）。
+base64 = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+zeroize = { workspace = true }
+# 读库级设置 `.luna/settings.toml` 里的附件位置（与桌面同一份文件；MIT OR Apache-2.0，已在依赖树里）。
+toml = { workspace = true }
+# JS 绑定（MIT OR Apache-2.0，ADR-005 已核）。
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+uuid = { workspace = true, features = ["js"] }
+
+[dev-dependencies]
+# 在 Node 里跑 WASM 测试（`wasm-bindgen-test-runner`，MIT OR Apache-2.0）。
+wasm-bindgen-test = "0.3"

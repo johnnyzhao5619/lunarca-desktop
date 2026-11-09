@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands, type TopicPreviewDto } from "../../ipc/bindings";
 import { IconButton } from "../../components/ui/IconButton";
-import { CloseIcon } from "../../components/ui/Icon";
+import { CloseIcon } from "@lunarca/editor-core/Icon";
 import { vaultErrorText } from "../../lib/vault-error";
 
 type Load = { kind: "loading" } | { kind: "ready"; preview: TopicPreviewDto } | { kind: "error"; message: string };

@@ -229,7 +229,7 @@ fn draft_source_fingerprint(
         return None;
     }
     sources.sort();
-    Some(luna_vault::ContentHash::of(sources.join("\n").as_bytes()).to_string())
+    Some(luna_sync_core::hashing::ContentHash::of(sources.join("\n").as_bytes()).to_string())
 }
 
 const DRAFT_PREPARED_FILE: &str = ".luna/sidecars/knowledge-draft-prepared.json";
@@ -427,7 +427,7 @@ fn ingest_prompt_revision(key: &str, zh: bool) -> String {
         .unwrap_or_default();
     format!(
         "ingest.{key}:{}",
-        luna_vault::ContentHash::of(template.as_bytes())
+        luna_sync_core::hashing::ContentHash::of(template.as_bytes())
     )
 }
 
@@ -926,7 +926,7 @@ pub(crate) async fn topic_fork_note(
         // ① 把当前内容另存为**用户的**普通笔记——去掉产物身份键，它从此是一篇完全归
         //    用户的笔记（NotebookLM「转为 Source」同构，ADR-096 ④/⑤「转为我的笔记」）。
         //    复核态下这就是「保留我的改动」；系统维护态下就是单纯的转出。
-        let stem = luna_vault::title_of(&topic_rel);
+        let stem = luna_sync_core::links::title_of(&topic_rel);
         let suffix = backend_text(&app, "review-fork-suffix", "我的笔记");
         let fork_rel =
             super::distill::unique_note_path_in(vault, &dir, &format!("{stem} · {suffix}"));

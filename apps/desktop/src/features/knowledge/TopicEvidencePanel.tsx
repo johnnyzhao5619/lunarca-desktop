@@ -39,7 +39,7 @@ import {
   rememberApplyUndo,
   type ApplyUndo,
 } from "./apply-undo-memory";
-import { SparklesIcon } from "../../components/ui/Icon";
+import { SparklesIcon } from "@lunarca/editor-core/Icon";
 import { planItemLabelKey } from "./plan-item-label";
 
 /** 自动补充已停止、但页头徽标说不清原因的维护状态（人工改正文由徽标的复核态承担）。 */

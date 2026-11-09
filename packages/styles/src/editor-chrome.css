@@ -1,0 +1,215 @@
+/*
+ * 编辑器四周的共享界面（TDD-17 §2）：格式工具条（PRD-06-014 / PRD-21-020）、属性面板（ADR-139）与统一行差异
+ * 视图（PRD-06-041 / PRD-21-030）。组件在 `@lunarca/editor-core`，桌面与网页同一份；按钮、下拉与输入框的外观
+ * 是各宿主自己的控件原语，不在这里。
+ */
+
+/* ─── 格式快捷编辑栏（FormatToolbar，PRD-06-014，Typora 对标）──────────────── */
+.luna-format-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-0-5);
+  padding: var(--space-1) var(--space-3);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-format-toolbar__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.luna-format-toolbar__btn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-format-toolbar__btn[aria-pressed="true"] {
+  background: var(--color-accent-surface);
+  color: var(--color-accent);
+}
+
+.luna-format-toolbar__divider {
+  inline-size: var(--border-width-thin);
+  block-size: var(--space-4);
+  background: var(--color-border-subtle);
+  margin-inline: var(--space-1);
+  flex-shrink: 0;
+}
+
+.luna-format-toolbar__heading-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  block-size: var(--space-6);
+  padding-inline: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.luna-format-toolbar__heading-trigger:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-format-toolbar__heading-label {
+  max-inline-size: 6em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── 统一行差异（DiffView）──────────────────────────────────────────────── */
+.luna-diff {
+  margin: var(--space-0);
+  padding: var(--space-2);
+  overflow: auto;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  line-height: 1.6;
+}
+
+.luna-diff__line {
+  display: grid;
+  grid-template-columns: 4ch 4ch 1.5ch minmax(0, 1fr);
+  gap: var(--space-1);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.luna-diff__line[data-kind="added"] {
+  background: var(--color-status-success-surface);
+}
+
+.luna-diff__line[data-kind="removed"] {
+  background: var(--color-status-error-surface);
+}
+
+.luna-diff__no {
+  color: var(--color-text-muted);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.luna-diff__sign {
+  color: var(--color-text-muted);
+  user-select: none;
+}
+
+.luna-diff__text {
+  min-width: var(--space-0);
+}
+
+/* 属性面板（ADR-139，`PropertiesPanel.tsx`）：胶囊展开态取代原始 YAML。每行「键 · 类型 · 值 · 删除」
+   四列对齐；只读行（认不出的写法）照原文等宽显示并给「在源码中编辑」。 */
+.luna-properties {
+  display: grid;
+  gap: var(--space-1);
+  margin-inline: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-muted);
+  font-size: var(--font-size-sm);
+}
+
+.luna-properties__row {
+  display: grid;
+  grid-template-columns: minmax(var(--space-0), 10rem) 7rem minmax(var(--space-0), 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-properties__row[data-locked] {
+  grid-template-columns: minmax(var(--space-0), 10rem) minmax(var(--space-0), 1fr) auto;
+}
+
+.luna-properties__key-text {
+  padding-inline: var(--space-1);
+  color: var(--color-text-secondary);
+}
+
+.luna-properties__raw {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-properties__source,
+.luna-properties__add {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-0-5) var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  background: transparent;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.luna-properties__add {
+  justify-self: start;
+}
+
+.luna-properties__source:hover,
+.luna-properties__add:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+.luna-properties__value {
+  min-inline-size: var(--space-0);
+}
+
+.luna-properties__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.luna-properties__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-0-5);
+  padding-inline-start: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-surface);
+  font-size: var(--font-size-xs);
+}
+
+.luna-properties__list-input {
+  flex: 1 1 6rem;
+  min-inline-size: 6rem;
+}
+
+.luna-properties__empty {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}

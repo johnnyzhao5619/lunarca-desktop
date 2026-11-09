@@ -16,6 +16,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { boundAccountParams } from "../../lib/bound-account";
 import { useConfirm } from "../../components/ConfirmHost";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import { commands, type VaultEntryDto, type VaultSyncLinkDto } from "../../ipc/bindings";
@@ -41,7 +42,7 @@ function forgetSyncCopy(
     case "syncing":
       return t("vault.forgetSyncing");
     case "linked":
-      return t("vault.forgetLinked", { account: link.account });
+      return t("vault.forgetLinked", boundAccountParams(link.account, t));
   }
 }
 

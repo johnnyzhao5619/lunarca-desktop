@@ -17,7 +17,7 @@
 
 import { useTranslation } from "react-i18next";
 import { goTo } from "../../../lib/navigate";
-import { HEADLINE_SHORTCUT_KEYS } from "../../../lib/shortcut-display";
+import { HEADLINE_SHORTCUT_KEYS } from "../../../lib/shortcut-keys";
 import { SettingControl } from "../../settings/SettingControls";
 import { settingErrorText } from "../../settings/settings-errors";
 import { useSettingsController } from "../../settings/use-settings-controller";

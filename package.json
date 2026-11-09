@@ -1,0 +1,10 @@
+{
+  "name": "lunarca",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "workspaces": [
+    "apps/desktop",
+    "apps/web",
+    "packages/*"
+  ]
+}

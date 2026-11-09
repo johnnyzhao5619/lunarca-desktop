@@ -25,7 +25,7 @@ import {
 import { cssVariables } from "../../lib/css-variables";
 import { formatClock } from "../../lib/format-duration";
 import { DRAG_GHOST_OFFSET_PX, usePointerDrag } from "../../lib/pointer-drag";
-import { formatShortcut } from "../../lib/shortcut-display";
+import { formatShortcut } from "@lunarca/editor-core/shortcut-display";
 import { vaultErrorText } from "../../lib/vault-error";
 
 /** 拖动落点「放到最后」的 id（其余落点 id 都是段标题的行号）。 */

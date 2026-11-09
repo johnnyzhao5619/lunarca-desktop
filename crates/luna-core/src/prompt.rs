@@ -346,6 +346,16 @@ pub const APP_TEMPLATES: &[(&str, PromptScope, &[&str])] = &[
             "creator.script.dictation",
         ],
     ),
+    // 提词器的 AI 口播动作（ADR-176 ⑧，PRD-20-016）：改成口播稿、按时长压缩、标注停顿与强调。
+    (
+        "teleprompter",
+        PromptScope::Editor,
+        &[
+            "teleprompter.spoken",
+            "teleprompter.fit",
+            "teleprompter.cues",
+        ],
+    ),
 ];
 
 /// 随包 manifest（由 `export-prompt-manifest` 生成；单测钉住与代码一致——运行期不读它，

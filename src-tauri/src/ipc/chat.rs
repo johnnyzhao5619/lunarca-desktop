@@ -20,6 +20,7 @@
 //! 其它视图仍可 attach 读历史），仅提交与落账两个瞬时点加锁。
 
 use super::*;
+use luna_sync_core::naming::sanitized_file_stem;
 use tokio::sync::Mutex as TokioMutex;
 
 /// 对话表面（会话作用域）。每个作用域一个独立内存会话（PRD-03-012）。
@@ -992,7 +993,7 @@ fn parse_source_links(block: &str, note_rel: &str) -> Vec<RetrievalSourceDto> {
                 // 旧注释没有 `index`（或注释损坏）时回落到位置编号：仍可打开，只是不承诺
                 // 与正文角标对齐——这与「v0 只能打开、不能承诺精确跳转」同一条降级纪律。
                 index: meta.index.unwrap_or(out.len() as u32 + 1),
-                path: luna_vault::canonical_link_target(note_rel, href),
+                path: luna_sync_core::links::canonical_link_target(note_rel, href),
                 title: title.to_owned(),
                 note_type: "note".to_owned(),
                 source_material: false,

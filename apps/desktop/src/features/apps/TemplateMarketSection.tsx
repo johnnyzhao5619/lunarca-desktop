@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 
 import { useConfirm } from "../../components/ConfirmHost";
 import { commands, type MarketTemplateDto, type TemplateMarketDto } from "../../ipc/bindings";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { capabilityLines } from "./TemplatePacksSection";
 
 /** 页上一句结果提示（文案键）。 */

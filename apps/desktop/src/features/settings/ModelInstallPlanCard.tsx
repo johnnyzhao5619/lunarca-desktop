@@ -7,7 +7,7 @@
 
 import { useTranslation } from "react-i18next";
 import type { ModelInstallPlanDto } from "../../ipc/bindings";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 
 export function ModelInstallPlanCard({
   plan,

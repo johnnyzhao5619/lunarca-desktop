@@ -1,5 +1,6 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import { EDITOR_CORE_LOCALES, EDITOR_CORE_NAMESPACE } from "@lunarca/editor-core/i18n";
 import { readBootAppearance } from "../lib/boot";
 import common from "./locales/zh-CN/common.json";
 import settings from "./locales/zh-CN/settings.json";
@@ -47,7 +48,7 @@ void i18n.use(initReactI18next).init({
   // 此前首帧先按系统画中文、`useAppearance` 读回设置后再切英文——闪一下。
   lng: resolveSupportedLanguage(readBootAppearance()?.language ?? "system"),
   fallbackLng: "zh-CN",
-  ns: ["common", "settings", "onboarding", "notifications", "workspace", "command", "usage", "popup", "voice-input", "chat", "editor", "recording", "caption", "playback", "transcribe"],
+  ns: ["common", "settings", "onboarding", "notifications", "workspace", "command", "usage", "popup", "voice-input", "chat", "editor", "recording", "caption", "playback", "transcribe", EDITOR_CORE_NAMESPACE],
   defaultNS: "common",
   resources: {
     "zh-CN": {
@@ -69,6 +70,8 @@ void i18n.use(initReactI18next).init({
       // 云客户端（账户/订阅/目录）——ADR-037 后为普通命名空间，不再由叠加层
       // `addResourceBundle` 运行时挂载。
       cloud,
+      // 共享渲染包自带的文案（TDD-17 §2）：资源归包，并进同一个实例。
+      [EDITOR_CORE_NAMESPACE]: EDITOR_CORE_LOCALES["zh-CN"],
     },
     "en-US": {
       common: enCommon,
@@ -87,6 +90,7 @@ void i18n.use(initReactI18next).init({
       playback: enPlayback,
       transcribe: enTranscribe,
       cloud: enCloud,
+      [EDITOR_CORE_NAMESPACE]: EDITOR_CORE_LOCALES["en-US"],
     },
   },
   interpolation: { escapeValue: false },

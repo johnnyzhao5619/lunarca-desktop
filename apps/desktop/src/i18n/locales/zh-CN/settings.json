@@ -460,6 +460,30 @@
     "ai_composer_desc": "打开或关闭笔记里的 AI 操作面板（应用内快捷键）。",
     "recording_toggle_desc": "使用快捷键开始或暂停录音。",
     "recording_bookmark_desc": "录音中标记当前时刻，回放时可直接跳转；提词器跟读时则在念到的那一行标记「重来」。默认未绑定。",
+    "teleprompter_toggle": "立即隐藏 / 显示提词器",
+    "teleprompter_toggle_desc": "提词器被录进画面时一键藏起，再按一次叫回；只在装了「提词器」应用时生效。",
+    "teleprompter_send": "送进提词器",
+    "teleprompter_send_desc": "把选中的文字送进提词器；读不到选中文字（如 Google Docs）时送剪贴板里的文字。只在装了「提词器」应用时生效。",
+    "teleprompter_play": "提词器：开始 / 暂停",
+    "teleprompter_play_desc": "浮窗显示时可用：开始或暂停匀速滚动。",
+    "teleprompter_line_up": "提词器：上一行",
+    "teleprompter_line_up_desc": "浮窗显示时可用：阅读线回到上一行；跟读时从那一行接着跟。",
+    "teleprompter_line_down": "提词器：下一行",
+    "teleprompter_line_down_desc": "浮窗显示时可用：阅读线移到下一行；跟读时从那一行接着跟。",
+    "teleprompter_block_prev": "提词器：上一段",
+    "teleprompter_block_prev_desc": "浮窗显示时可用：回到本段开头，已在开头就到上一段。",
+    "teleprompter_block_next": "提词器：下一段",
+    "teleprompter_block_next_desc": "浮窗显示时可用：跳到下一段开头。",
+    "teleprompter_faster": "提词器：加速",
+    "teleprompter_faster_desc": "浮窗显示时可用：匀速滚动加快一档。",
+    "teleprompter_slower": "提词器：减速",
+    "teleprompter_slower_desc": "浮窗显示时可用：匀速滚动放慢一档。",
+    "teleprompter_current": "提词器：跳回念到的地方",
+    "teleprompter_current_desc": "跟读时可用：把念到的那一行带回阅读线。",
+    "teleprompter_top": "提词器：回到开头",
+    "teleprompter_top_desc": "浮窗显示时可用：回到稿子开头。",
+    "teleprompter_close": "提词器：收起",
+    "teleprompter_close_desc": "浮窗显示时可用：收起提词器并停止跟读。",
     "live_caption_desc": "显示 / 隐藏悬浮实时字幕面板。",
     "diagnostic_unavailable": "系统拒绝注册该组合（多半已被其它应用占用），请换一个。",
     "diagnostic_invalid": "当前绑定无法注册，请重新录制。",
@@ -507,6 +531,8 @@
     "documents_dir_desc": "导入的文档（Word、文本、表格等）转成的笔记与原文件的落盘目录。",
     "chats_dir_desc": "保存到历史的 AI 对话的落盘目录。",
     "creator_dir_desc": "视频项目文件夹与灵感条目的落盘目录。",
+    "teleprompter_dir": "提词稿目录",
+    "teleprompter_dir_desc": "「新建提词稿」与「从剪贴板新建」的落盘目录。",
     "translate_space_dir_desc": "译境中确认保存的原文与译文写入此目录。",
     "knowledge_dir_desc": "仅新建主题页与知识地图使用，已有页面不移动。",
     "attachment_location_desc": "粘贴的图片与文件放到库根、笔记同级、笔记同级子目录，还是某个指定目录。",
@@ -971,7 +997,14 @@
       "title": "服务端托管",
       "mode": "自动选择",
       "intro": "服务端自动选择文本模型；实际模型见执行记录。语义索引仅使用已验证的嵌入配置。",
-      "local_available": "本机另有 {{count}} 个已安装模型，默认不显示。打开「显示完整设置」可以查看，并逐项指定用哪一个。"
+      "local_available": "本机另有 {{count}} 个已安装模型，默认不显示。打开「显示完整设置」可以查看，并逐项指定用哪一个。",
+      "gate": {
+        "consent_option": "服务端托管（需先开启服务端转写）",
+        "blocked_option": "服务端托管（此刻用不了）",
+        "consent_off": "录音转写还没同意交给服务端。在上方打开「服务端转写」后，这里就能选服务端托管。",
+        "open_consent": "去开启",
+        "change_strategy": "去更改"
+      }
     },
     "diarize_auto": "自动使用（按会议语言选档，不用分配）",
     "pause": "暂停",
@@ -1477,6 +1510,7 @@
       "transcripts": "转写",
       "chat": "AI 对话",
       "creator": "创作",
+      "teleprompter": "提词器",
       "apps": "应用",
       "trash": "回收站",
       "settings": "设置"
@@ -1578,9 +1612,12 @@
     "done": {
       "vault_cache": "已清缓存，正在重建索引",
       "vault_trash": "已清空回收站",
-      "models": "已删除 {{count}} 个模型",
-      "reset": "已重置，旧配置备份在 {{path}}；正在重启…",
-      "reset_no_backup": "已重置；正在重启…"
+      "models": "已删除 {{count}} 个模型"
+    },
+    "reset_blocked": {
+      "restart_blocked_capture": "录音、实时字幕或语音输入还在进行，没有重置。结束后再试。",
+      "restart_save_failed": "有笔记没能保存（写入失败或和外部改动冲突），没有重置。内容还在编辑器里，处理后再试。",
+      "restart_save_timeout": "等笔记保存超时了，没有重置。内容还在编辑器里，稍后再试。"
     },
     "locations": "数据位置",
     "uninstall_title": "卸载后的数据保留",
@@ -1656,6 +1693,9 @@
       "update_check_failed": "暂时连不上更新服务器，请稍后再试。",
       "no_pending_update": "请先检查更新。",
       "update_install_failed": "下载或校验没有通过，没有安装。当前版本照常可用。",
+      "restart_blocked_capture": "录音、实时字幕或语音输入还在进行，没有安装。结束后再点一次。",
+      "restart_save_failed": "有笔记没能保存（写入失败或和外部改动冲突），没有安装。内容还在编辑器里，处理后再点一次。",
+      "restart_save_timeout": "等笔记保存超时了，没有安装。内容还在编辑器里，稍后再点一次。",
       "unknown": "检查更新没有完成，请稍后再试。"
     }
   }

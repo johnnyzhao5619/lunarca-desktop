@@ -53,11 +53,11 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use luna_sync::core::LocalFile;
-use luna_sync::crypto::KeyRing;
 use luna_sync::engine::{Engine, EngineConfig, RoundReport, SyncAbort};
 use luna_sync::keystore::CmkStore;
 use luna_sync::ports::{Expect, LocalError, LocalVault, Staged, WriteOutcome};
 use luna_sync::state::{Binding, BindingOwner, SyncState};
+use luna_sync_core::crypto::KeyRing;
 use luna_vault::Vault;
 use tauri::Manager;
 use uuid::Uuid;
@@ -262,7 +262,7 @@ impl LocalVault for VaultLocal {
             // 马上又变的哈希；引擎这一轮也不碰它（ADR-156）。
             if luna_sync::policy::is_settling(&file.rel, file.size, file.modified_ms, now) {
                 out.push(LocalFile {
-                    path: luna_vault::pathutil::nfc(&file.rel).into_owned(),
+                    path: luna_sync_core::path::nfc(&file.rel).into_owned(),
                     content_hash: String::new(),
                     size: file.size,
                     mtime_ms: file.modified_ms,
@@ -278,7 +278,7 @@ impl LocalVault for VaultLocal {
                 }
                 // 流式算：几百 MB 的录音不整份进内存。
                 _ => match std::fs::File::open(root.join(&file.rel))
-                    .and_then(luna_vault::hashing::ContentHash::of_reader)
+                    .and_then(luna_sync_core::hashing::ContentHash::of_reader)
                 {
                     Ok(hash) => {
                         let hash = hash.as_str().to_owned();
@@ -293,7 +293,7 @@ impl LocalVault for VaultLocal {
                 },
             };
             out.push(LocalFile {
-                path: luna_vault::pathutil::nfc(&file.rel).into_owned(),
+                path: luna_sync_core::path::nfc(&file.rel).into_owned(),
                 content_hash: hash,
                 size: file.size,
                 mtime_ms: file.modified_ms,
@@ -626,8 +626,33 @@ pub struct VaultSyncDto {
     pub local_bytes: Option<f64>,
     /// 对应云端库此刻占用的密文字节（含历史版本）；没选中 = `None`。
     pub cloud_bytes: Option<f64>,
-    /// 连在另一个账户下时，那个账户名的打码写法（`jo…88@gmail.com`，`account_scope::mask_account_name`）；其余为 `None`。
-    pub bound_account: Option<String>,
+    /// 连在另一个账户下时是哪个账户（打码名 + 所在服务器）；其余为 `None`。
+    pub bound_account: Option<BoundAccountDto>,
+}
+
+/// 库连着的那个别的账户：打码名 + 它所在的服务器。
+///
+/// 只写打码名不够（真机 2026-11-03）：同一个邮箱在测试服务器与 Lunarca 云上各有一个账户时，
+/// 「已连接到另一个账户（jo…19@gmail.com）」与此刻登录的邮箱一字不差，读起来像是自相矛盾。
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, specta::Type)]
+pub struct BoundAccountDto {
+    /// 绑定时账户名的打码写法（`jo…88@gmail.com`，`account_scope::mask_account_name`）。
+    pub label: String,
+    /// 那台服务器的主机与端口（分桶名）。
+    pub server_host: String,
+    /// 是不是本构建的 Lunarca 云：界面据此写「Lunarca 云」而不是主机名。
+    pub server_official: bool,
+}
+
+impl BoundAccountDto {
+    fn of(owner: &BindingOwner) -> Self {
+        Self {
+            label: owner.account_label.clone(),
+            server_host: owner.server_bucket.clone(),
+            server_official: owner.server_bucket
+                == luna_cloud::config::server_bucket(luna_cloud::config::DEFAULT_API_BASE),
+        }
+    }
 }
 
 /// 账户的同步存储容量（ADR-152）：已用是账户全部云端库的密文字节（含历史版本、含这台设备上
@@ -898,8 +923,8 @@ struct Loaded {
     owner: Option<BindingOwner>,
     /// 此刻账户名下选中同步的库，按本地库身份。
     live: BTreeMap<String, Session>,
-    /// 连在另一个账户下的库：本地库身份 → 那个账户名的打码写法。只显示，绝不打开、绝不发请求。
-    elsewhere: BTreeMap<String, String>,
+    /// 连在另一个账户下的库：本地库身份 → 那个账户。只显示，绝不打开、绝不发请求。
+    elsewhere: BTreeMap<String, BoundAccountDto>,
 }
 
 /// 应用托管的同步服务。
@@ -1989,7 +2014,7 @@ fn reconcile(
                 }
             }
             Ok(Some(bound)) => {
-                loaded.elsewhere.insert(id, bound.account_label);
+                loaded.elsewhere.insert(id, BoundAccountDto::of(&bound));
             }
             // 还没绑定、旧版（启动时已清）或读不出：都不算选中同步。
             _ => {}
@@ -2120,7 +2145,7 @@ fn engine_config(
             .backend_copy_arc()
             .and_then(|i18n| i18n.translate("sync:conflict_copy_label"))
             .unwrap_or_else(|| "conflict copy".to_owned()),
-        today: chrono::Local::now().format("%Y-%m-%d").to_string(),
+        today: crate::ipc::civil_now().date(),
         allow_bulk_delete,
         now_ms: now_ms(),
         max_chunks_per_entry: luna_sync::engine::MAX_CHUNKS_PER_ENTRY,
@@ -2577,8 +2602,8 @@ pub enum VaultSyncLinkDto {
     None,
     /// 此刻登录的账户正同步它：移除后这台设备停止同步它，云端副本保留。
     Syncing,
-    /// 连在别的账户下（或此刻没登录）：移除时这份连接一并解除。`account` 是那个账户的打码名。
-    Linked { account: String },
+    /// 连在别的账户下（或此刻没登录）：移除时这份连接一并解除。
+    Linked { account: BoundAccountDto },
 }
 
 /// 一个库在这台设备上的同步绑定（零网络）。`owner` 是此刻登录的账户（没登录 = `None`）。
@@ -2596,7 +2621,7 @@ pub fn sync_link_of(
             VaultSyncLinkDto::Syncing
         }
         Ok(Some(bound)) => VaultSyncLinkDto::Linked {
-            account: bound.account_label,
+            account: BoundAccountDto::of(&bound),
         },
         _ => VaultSyncLinkDto::None,
     }
@@ -2628,7 +2653,7 @@ pub fn linked_here(
 mod tests {
     use std::io::Read as _;
 
-    use luna_sync::manifest::content_hash;
+    use luna_sync_core::manifest::content_hash;
 
     use super::*;
 
@@ -2941,7 +2966,14 @@ mod tests {
         let sessions = Loaded {
             owner: Some(owner("acc-a")),
             live: BTreeMap::from([(b_id.to_owned(), session)]),
-            elsewhere: BTreeMap::from([(d_id.to_owned(), "jo***@example.test".to_owned())]),
+            elsewhere: BTreeMap::from([(
+                d_id.to_owned(),
+                BoundAccountDto {
+                    label: "jo***@example.test".to_owned(),
+                    server_host: "10.0.0.62:8443".to_owned(),
+                    server_official: false,
+                },
+            )]),
         };
         let open = (a_id.to_owned(), 3);
         let cloud = CloudSizes::default();
@@ -2971,8 +3003,19 @@ mod tests {
         );
         // 连在另一个账户下：只说连在谁那儿，不带远端库与错误。
         assert_eq!(
-            overview.vaults[3].bound_account.as_deref(),
+            overview.vaults[3]
+                .bound_account
+                .as_ref()
+                .map(|a| a.label.as_str()),
             Some("jo***@example.test")
+        );
+        // 同一个邮箱可能在两台服务器上各有一个账户：连在哪台服务器上一并下发。
+        assert_eq!(
+            overview.vaults[3]
+                .bound_account
+                .as_ref()
+                .map(|a| (a.server_host.as_str(), a.server_official)),
+            Some(("10.0.0.62:8443", false))
         );
         assert_eq!(overview.vaults[3].remote_vault_id, None);
         assert_eq!(overview.vaults[1].bound_account, None);
@@ -3125,6 +3168,15 @@ mod tests {
     // ── 绑定归账户（ADR-151 修订 2026-10-15）────────────────────────────────────────
 
     /// 测试里的云客户端都连默认服务器，归属也记在它名下。
+    /// 夹具账户都在本构建的 Lunarca 云上（`owner` 的分桶）。
+    fn official_account(label: &str) -> BoundAccountDto {
+        BoundAccountDto {
+            label: label.to_owned(),
+            server_host: luna_cloud::config::server_bucket(luna_cloud::config::DEFAULT_API_BASE),
+            server_official: true,
+        }
+    }
+
     fn owner(account_id: &str) -> BindingOwner {
         BindingOwner {
             server_bucket: luna_cloud::config::server_bucket(luna_cloud::config::DEFAULT_API_BASE),
@@ -3447,7 +3499,10 @@ mod tests {
         let row = &out.vaults[0];
         assert_eq!(row.phase, SyncPhase::OtherAccount);
         // A 登录那一轮已按新的打码写法重写了存下来的标签（`relabel_owner`）。
-        assert_eq!(row.bound_account.as_deref(), Some("al…ce@example.test"));
+        assert_eq!(
+            row.bound_account.as_ref().map(|a| a.label.as_str()),
+            Some("al…ce@example.test")
+        );
         assert_eq!(row.last_error, None);
         assert_eq!(row.remote_vault_id, None);
         assert_eq!(env.rounds().len(), 1, "不为另一个账户的库跑同步");
@@ -3672,7 +3727,7 @@ mod tests {
         let path = dir.join("state.sqlite");
         let keys = CredentialCmkStore::new(Arc::new(luna_cloud::store::MemoryStore::new()));
         let old_remote = Uuid::from_u128(9);
-        keys.save(old_remote, &luna_sync::crypto::Cmk::generate(1))
+        keys.save(old_remote, &luna_sync_core::crypto::Cmk::generate(1))
             .unwrap();
         let vault = Vault::open(root.path()).unwrap();
         let pin = vault.sync_pin(&pin_owner(old_remote), b"base").unwrap();
@@ -3734,7 +3789,10 @@ mod tests {
         tauri::async_runtime::block_on(service.realign_with(&env));
         let row = &env.last().vaults[0];
         assert_eq!(row.phase, SyncPhase::OtherAccount);
-        assert_eq!(row.bound_account.as_deref(), Some("a***@example.test"));
+        assert_eq!(
+            row.bound_account.as_ref().map(|a| a.label.as_str()),
+            Some("a***@example.test")
+        );
     }
 
     /// 旧版（没有归属）的绑定启动时删掉——只删那一个库的同步目录，别的一概不碰。
@@ -3800,7 +3858,7 @@ mod tests {
         std::fs::write(path.join("note.md"), b"# keep me").unwrap();
         bind_with_baseline(config, &id, remote, owner(account));
         let remote = Uuid::from_u128(remote);
-        keys.save(remote, &luna_sync::crypto::Cmk::generate(1))
+        keys.save(remote, &luna_sync_core::crypto::Cmk::generate(1))
             .unwrap();
         let pin = Vault::open(&path)
             .unwrap()
@@ -3877,13 +3935,13 @@ mod tests {
         assert_eq!(
             sync_link_of(config.path(), &vault.entry, Some(&owner("acc-b"))),
             VaultSyncLinkDto::Linked {
-                account: "a***@example.test".into()
+                account: official_account("a***@example.test")
             }
         );
         assert_eq!(
             sync_link_of(config.path(), &vault.entry, None),
             VaultSyncLinkDto::Linked {
-                account: "a***@example.test".into()
+                account: official_account("a***@example.test")
             }
         );
         let plain = tempfile::tempdir().unwrap();

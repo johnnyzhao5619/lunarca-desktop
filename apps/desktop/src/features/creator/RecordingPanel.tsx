@@ -21,9 +21,10 @@ import {
   type RecordingCheckDto,
   type RetakeNoteDto,
 } from "../../ipc/bindings";
-import { CheckIcon } from "../../components/ui/Icon";
+import { CheckIcon } from "@lunarca/editor-core/Icon";
 import { useVaultReload } from "../../hooks/use-vault-reload";
 import { vaultErrorText } from "../../lib/vault-error";
+import { useTeleprompterPrefs } from "../teleprompter/use-teleprompter-prefs";
 import {
   CREATE_ACTION_REASON_KEYS,
   CREATE_ACTION_REPAIR_LABEL_KEYS,
@@ -90,6 +91,12 @@ export function RecordingPanel({ script, createActions, onOpenScriptAt, onError 
     const reply = await commands.teleprompterOpen(script, follow);
     if (reply.status === "error") onError(vaultErrorText(reply.error));
   };
+  // 跟读由用户开、默认关（ADR-176 ④）：关着时这一下就是「开启跟读并开始」——先写开关再开。
+  const teleprompter = useTeleprompterPrefs();
+  const startFollow = async () => {
+    if (!teleprompter.followEnabled && !(await teleprompter.setFollowEnabled(true))) return;
+    await open(true);
+  };
 
   const ready = check?.microphone.kind === "available" && check.transcriber.kind === "available";
 
@@ -132,8 +139,8 @@ export function RecordingPanel({ script, createActions, onOpenScriptAt, onError 
           {row(t("creator.recording.transcriber"), check?.transcriber)}
         </ul>
         <div className="luna-creator-page__row">
-          <button type="button" className="luna-btn luna-btn--primary" disabled={!ready} onClick={() => void open(true)}>
-            {t("creator.recording.startFollow")}
+          <button type="button" className="luna-btn luna-btn--primary" disabled={!ready} onClick={() => void startFollow()}>
+            {t(teleprompter.followEnabled ? "creator.recording.startFollow" : "creator.recording.enableFollow")}
           </button>
           <button type="button" className="luna-btn luna-btn--secondary" onClick={() => void open(false)}>
             {t("creator.recording.openOnly")}

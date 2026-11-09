@@ -6,6 +6,7 @@
 //! 跨模块可见性：命令与本域 DTO `pub(crate)`；共享 helper 经 `use super::*` 从 `mod.rs` 取。
 
 use super::*;
+use luna_sync_core::naming::sanitized_file_stem;
 
 pub(crate) fn voice_start_options_from_settings(settings: &Settings) -> VoiceInputStartOptions {
     let lang_hint = settings
@@ -260,7 +261,7 @@ pub(crate) fn quick_note_stem(
     now: chrono::DateTime<chrono::Local>,
 ) -> String {
     let time_str = now.format("%Y-%m-%d %H%M").to_string();
-    let excerpt = super::notes::title_line(excerpt_source)
+    let excerpt = luna_sync_core::naming::title_line(excerpt_source)
         .map(|line| {
             line.chars()
                 .take(NOTE_STEM_EXCERPT_CHARS)

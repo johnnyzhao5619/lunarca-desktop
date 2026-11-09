@@ -30,8 +30,8 @@ import {
   MusicIcon,
   SettingsIcon,
   SquareIcon,
-} from "../../components/ui/Icon";
-import { formatBytes } from "../../lib/format-bytes";
+} from "@lunarca/editor-core/Icon";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { formatDuration } from "../../lib/format-duration";
 import { fetchErrorKey, unknownFetchErrorKey } from "../../lib/task-failure";
 import { FETCH_MEDIA_CHOICES, useUrlImport, type FetchMediaChoice } from "./use-url-import";

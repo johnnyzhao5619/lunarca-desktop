@@ -50,7 +50,7 @@ const dashboards = import.meta.glob("../dashboard/DashboardView.tsx", {
 const DASHBOARD = Object.values(dashboards)[0] ?? "";
 
 /** 全部产品源码（不含测试与生成物）——`activity://` 生成点清零的扫描面。 */
-const ALL_SOURCES = import.meta.glob("../../{app,features,components,hooks,lib}/**/*.{ts,tsx}", {
+const ALL_SOURCES = import.meta.glob(["../../{app,features,components,hooks,lib}/**/*.{ts,tsx}", "../../../../../packages/*/src/**/*.{ts,tsx}"], {
   eager: true,
   import: "default",
   query: "?raw",

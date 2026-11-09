@@ -16,7 +16,7 @@
  */
 
 import type { TFunction } from "i18next";
-import { TagsIcon } from "../../components/ui/Icon";
+import { TagsIcon } from "@lunarca/editor-core/Icon";
 import { buildMenu, separator, type ContextMenuEntry } from "../../lib/context-menu";
 import { GRAPH_RESCAN_EVENT, type GraphRescanRequestDetail } from "../../lib/app-events";
 import type { GraphTagExclusions } from "./use-graph-tag-exclusions";

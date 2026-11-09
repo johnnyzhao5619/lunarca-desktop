@@ -23,7 +23,7 @@ import { HudSurface } from "../../components/ui/HudSurface";
 import { HudHeader } from "../../components/ui/HudHeader";
 import { HudReceipt, type HudReceiptValue } from "../../components/ui/HudReceipt";
 import { IconButton } from "../../components/ui/IconButton";
-import { CloseIcon, StickyNoteIcon } from "../../components/ui/Icon";
+import { CloseIcon, StickyNoteIcon } from "@lunarca/editor-core/Icon";
 import { useWindowDrag } from "../../hooks/use-window-drag";
 import { usePanelTextEditing } from "../../hooks/use-panel-text-editing";
 import { commands, type WorkspaceMetricEntrySurfaceDto } from "../../ipc/bindings";

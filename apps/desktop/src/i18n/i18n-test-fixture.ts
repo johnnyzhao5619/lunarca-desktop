@@ -17,7 +17,7 @@ import { createElement, type ReactElement } from "react";
 import { createInstance, type i18n as I18nInstance } from "i18next";
 import { I18nextProvider } from "react-i18next";
 
-const BUNDLES = import.meta.glob("./locales/zh-CN/*.json", { eager: true }) as Record<
+const BUNDLES = import.meta.glob(["./locales/zh-CN/*.json", "../../../../packages/*/src/locales/zh-CN/*.json"], { eager: true }) as Record<
   string,
   { default: Record<string, unknown> }
 >;

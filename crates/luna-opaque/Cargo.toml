@@ -1,0 +1,32 @@
+# luna-opaque —— 口令登录（OPAQUE，ADR-158）的密码学与报文格式：套件、KSF 参数、邮箱与一次性码规整、
+# 信任包与领取凭据的派生。零 IO 叶子：桌面（luna-cloud）原生编译，网页版（luna-web）编译成 WASM
+# （ADR-177 ⑥）。互通向量 `tests/fixtures/opaque-login-v16.json` 是两端唯一的一份，商业仓服务端也读它。
+[package]
+name = "luna-opaque"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+opaque-ke = { workspace = true }
+hkdf = { workspace = true }
+aes-gcm = { workspace = true }
+sha2 = { workspace = true }
+zeroize = { workspace = true }
+base64 = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+# 邮箱规整用 NFKC（ADR-158 ②）。
+icu_normalizer = "2"
+
+[dev-dependencies]
+# 互通向量按固定随机数脚本重放。
+rand_chacha = "0.3"
+
+# 浏览器里的随机数源（`crypto.getRandomValues`）：网页版编译成 wasm32 时 OPAQUE 与 AES-GCM 的随机数走它。
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }

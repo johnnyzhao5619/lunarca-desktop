@@ -10,7 +10,7 @@
 
 import { useTranslation } from "react-i18next";
 import type { SettingSpecDto } from "../../../ipc/bindings";
-import { CpuIcon, GlobeIcon, ShieldIcon } from "../../../components/ui/Icon";
+import { CpuIcon, GlobeIcon, ShieldIcon } from "@lunarca/editor-core/Icon";
 import { useSettings } from "../../settings/use-settings";
 import { strValue } from "../../settings/SettingControls";
 

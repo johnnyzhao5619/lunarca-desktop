@@ -52,6 +52,10 @@ teleprompter-no-script = 提词器里还没有打开脚本。
 teleprompter-no-line = 提词器上找不到要标记的那一行，脚本可能刚改过。
 teleprompter-retake-once = 重来 · { $times }
 teleprompter-retake-many = 重来 ×{ $count } · { $times }
+teleprompter-follow-off = 跟读还没开启。在提词器首页或面板菜单里打开「跟读」。
+teleprompter-clipboard-empty = 剪贴板里没有文字。
+teleprompter-draft-title = 提词稿 { $time }
+teleprompter-file-unsupported = 提词器只认 .txt、.md、.docx、.pdf、.html、.rtf、.doc、.odt 文件；表格和扫描件 PDF 念不成稿。
 window-title-screenshot = Lunarca 截屏翻译
 window-title-desktop-lens = Lunarca 译境
 window-title-desktop-lens-trigger = Lunarca 译境控制
@@ -239,7 +243,7 @@ empty-result-note = 结果为空，没有可存入笔记的内容。
 empty-result-lens-note = 结果为空，没有可存入译境笔记的内容。
 vault-missing-path-gone = 笔记库路径已不存在：{ $path }
 vault-missing-open-failed = 无法打开笔记库：{ $error }
-vault-in-cloud = 笔记库 { $path } 的文件还在 iCloud 上，正在下载到这台 Mac。稍等片刻再试；也可以在访达里右键这个文件夹选「保持下载」。
+vault-in-cloud = 笔记库 { $path } 的文件还在 iCloud 上，已请 iCloud 下载到这台 Mac。iCloud 下载有时很慢，稍后再试；也可以在访达里右键这个文件夹选「保持下载」。
 vault-switch-busy = 有任务未能及时暂停，本次切换已中止，请稍后重试。
 vault-queue-save-failed = 待办任务未能保存到笔记库，本次切换已中止。请检查磁盘空间和目录权限后重试。
 vault-switch-recording = 录音进行中。请先停止录音，再切换笔记库。
@@ -256,6 +260,7 @@ strict-local-blocked-image = 严格本地模式已开启，远程图片下载已
 url-rejected = 仅支持 http/https 图片链接。
 vault-not-registered = 该目录不在笔记库清单中，请先在「管理库」里添加。
 vault-window-is-active = 这个笔记库已在主窗口中打开，无需另开窗口。
+app-restarting = Lunarca 正在保存并重启，请稍后再开新窗口。
 
 # 批次 J′：够不着 AppHandle 的那一批（ADR-107）。
 vault-switching = 正在切换笔记库，请稍候片刻再试。

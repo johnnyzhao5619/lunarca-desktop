@@ -24,7 +24,7 @@ import {
   FolderIcon,
   ListIcon,
   SpeakIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { vaultErrorText } from "../../lib/vault-error";
 import { ReadingView } from "../editor/ReadingView";
@@ -38,7 +38,7 @@ import { TopicClaimFilterList } from "../knowledge/TopicClaimFilterList";
 import { recallReadingScroll, rememberReadingScroll } from "../knowledge/reading-memory";
 import { noteStem } from "../../lib/note-path";
 import { reportCitationOutcome } from "../../lib/app-events";
-import { readingHeadings } from "../editor/reading-view";
+import { readingHeadings } from "@lunarca/editor-core/reading-view";
 
 /** 标题少于此数的短页不给大纲入口：一屏看得完的页不需要目录（TDD-07 §4.1e）。 */
 const OUTLINE_MIN_HEADINGS = 4;

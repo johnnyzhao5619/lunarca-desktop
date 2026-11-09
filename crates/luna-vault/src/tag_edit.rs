@@ -4,11 +4,12 @@
 //! 改名 / 合并 / 增删。纪律：只动 `tags` 键的值，其余字节逐字保留；只认三种写法——流式列表
 //! `tags: [a, b]`、块列表（`tags:` 下逐行 `- a`）、单值或逗号串 `tags: a, b`——并保持原引号与
 //! 缩进；认不出的写法（锚点/别名、行内注释、多行标量、跨行流式列表……）整篇跳过、如实报原因，
-//! 绝不重排 YAML。正文 `#标签` 只按索引同一个扫描器（[`crate::parse::inline_tag_spans`]）给出
+//! 绝不重排 YAML。正文 `#标签` 只按索引同一个扫描器（[`luna_sync_core::tags::inline_tag_spans`]）给出
 //! 的位置改写。
 
-use crate::frontmatter::{body_of, frontmatter_inner_range, read_luna_checked, update_luna};
-use crate::frontmatter_edit::{dedupe, render_item, EditSkip};
+use crate::frontmatter::{body_of, read_luna_checked, update_luna};
+use luna_sync_core::frontmatter::frontmatter_inner_range;
+use luna_sync_core::frontmatter_edit::{dedupe, render_item, EditSkip};
 
 /// 这一篇为什么没改（预览里逐篇列出）。
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -68,13 +69,14 @@ pub fn rename_tag_in_note(
 
 /// 就地改写 frontmatter 顶层 `tags` 的值：`transform` 拿到当前标签（去引号）、返回新标签；
 /// 结果按大小写不敏感去重。没有 `tags` 键或结果不变时 `Ok(None)`。写法的认定与改写是
-/// 通用的顶层键写入器（[`crate::frontmatter_edit`]，ADR-139），这里只把它的拒绝原因
+/// 通用的顶层键写入器（[`luna_sync_core::frontmatter_edit`]，ADR-139），这里只把它的拒绝原因
 /// 归到标签动作对用户说的几种。
 pub fn rewrite_frontmatter_tags(
     content: &str,
     transform: impl Fn(Vec<String>) -> Vec<String>,
 ) -> Result<Option<String>, TagEditSkip> {
-    crate::frontmatter_edit::rewrite_list_value(content, "tags", true, transform).map_err(skip_of)
+    luna_sync_core::frontmatter_edit::rewrite_list_value(content, "tags", true, transform)
+        .map_err(skip_of)
 }
 
 fn skip_of(skip: EditSkip) -> TagEditSkip {
@@ -93,7 +95,7 @@ fn skip_of(skip: EditSkip) -> TagEditSkip {
 }
 
 fn has_tags_key(content: &str) -> bool {
-    crate::frontmatter_edit::read_properties(content)
+    luna_sync_core::frontmatter_edit::read_properties(content)
         .is_ok_and(|props| props.iter().any(|p| p.key == "tags"))
 }
 
@@ -150,7 +152,10 @@ fn rename_inline(content: &str, from: &str, to: &str) -> String {
     let body = body_of(content);
     let body_start = content.len() - body.len();
     let mut out = content.to_owned();
-    for span in crate::parse::inline_tag_spans(body).into_iter().rev() {
+    for span in luna_sync_core::tags::inline_tag_spans(body)
+        .into_iter()
+        .rev()
+    {
         let tag = &body[span.clone()];
         if let Some(next) = renamed_tag(tag, from, to) {
             out.replace_range(body_start + span.start..body_start + span.end, &next);
@@ -177,9 +182,13 @@ pub enum NoteTagEdit {
 /// 给一篇笔记加一个用户标签：已有 `tags` 键就追加（同写法），没有就在 frontmatter 首行插
 /// `tags: [x]`，连 frontmatter 都没有就在文件最前面加一段——正文字节不变。
 pub fn add_tag_to_note(content: &str, tag: &str) -> NoteTagEdit {
-    if crate::parse::extract_tags(content).iter().any(|term| {
-        term.tag.eq_ignore_ascii_case(tag) && term.source == crate::parse::TagSource::User
-    }) {
+    if luna_sync_core::tags::extract_tags(content)
+        .iter()
+        .any(|term| {
+            term.tag.eq_ignore_ascii_case(tag)
+                && term.source == luna_sync_core::tags::TagSource::User
+        })
+    {
         return NoteTagEdit::Unchanged;
     }
     if has_tags_key(content) {
@@ -207,7 +216,7 @@ pub fn add_tag_to_note(content: &str, tag: &str) -> NoteTagEdit {
             )
         }
         // 开头的 frontmatter 没闭合：再前置一份会叠出两段，照「元数据读不出」如实跳过。
-        None if crate::frontmatter::has_unclosed_frontmatter(content) => {
+        None if luna_sync_core::frontmatter::has_unclosed_frontmatter(content) => {
             return NoteTagEdit::Skipped(TagEditSkip::InvalidMetadata);
         }
         None => format!("---\n{line}\n---\n{content}"),
@@ -217,11 +226,11 @@ pub fn add_tag_to_note(content: &str, tag: &str) -> NoteTagEdit {
 
 /// 从一篇笔记移除一个用户标签：只改 frontmatter `tags`；写在正文或只来自 AI 的如实说明。
 pub fn remove_tag_from_note(content: &str, tag: &str) -> NoteTagEdit {
-    let in_frontmatter = crate::parse::frontmatter_tags(content)
+    let in_frontmatter = luna_sync_core::tags::frontmatter_tags(content)
         .iter()
         .any(|t| t.eq_ignore_ascii_case(tag));
     if !in_frontmatter {
-        let inline = crate::parse::extract_inline_tags(body_of(content))
+        let inline = luna_sync_core::tags::extract_inline_tags(body_of(content))
             .iter()
             .any(|t| t.eq_ignore_ascii_case(tag));
         if inline {
@@ -255,7 +264,7 @@ pub fn is_valid_tag(tag: &str) -> bool {
         && !tag.starts_with('/')
         && !tag.ends_with('/')
         && !tag.contains("//")
-        && tag.chars().all(crate::parse::is_tag_char)
+        && tag.chars().all(luna_sync_core::tags::is_tag_char)
         && tag.chars().any(|c| !c.is_ascii_digit())
 }
 
@@ -338,7 +347,8 @@ impl crate::Vault {
             remove_tag_from_note(&doc.content, tag)
         };
         if let NoteTagEdit::Written(next) = &outcome {
-            let before = crate::ContentHash::of(doc.content.as_bytes()).to_string();
+            let before =
+                luna_sync_core::hashing::ContentHash::of(doc.content.as_bytes()).to_string();
             if !self
                 .write_if_current(rel, &before, next)
                 .map_err(vault_err)?
@@ -386,7 +396,8 @@ impl crate::Vault {
             match rename_tag_in_note(&doc.content, from, to, !is_system_page(&doc.content)) {
                 Ok(Some(_)) => preview.targets.push(TagEditTarget {
                     path,
-                    before_hash: crate::ContentHash::of(doc.content.as_bytes()).to_string(),
+                    before_hash: luna_sync_core::hashing::ContentHash::of(doc.content.as_bytes())
+                        .to_string(),
                 }),
                 Ok(None) => {}
                 Err(skip) => preview.skipped.push((path, skip)),
@@ -413,7 +424,9 @@ impl crate::Vault {
                 receipt.stale.push(target.path.clone());
                 continue;
             };
-            if crate::ContentHash::of(doc.content.as_bytes()).as_str() != target.before_hash {
+            if luna_sync_core::hashing::ContentHash::of(doc.content.as_bytes()).as_str()
+                != target.before_hash
+            {
                 receipt.stale.push(target.path.clone());
                 continue;
             }
@@ -437,7 +450,8 @@ impl crate::Vault {
                     receipt.changed.push(TagEditChange {
                         path: target.path.clone(),
                         before_hash: target.before_hash.clone(),
-                        after_hash: crate::ContentHash::of(next.as_bytes()).to_string(),
+                        after_hash: luna_sync_core::hashing::ContentHash::of(next.as_bytes())
+                            .to_string(),
                     });
                 }
                 Ok(false) => receipt.stale.push(target.path.clone()),
@@ -454,7 +468,8 @@ impl crate::Vault {
         for change in changes {
             let current = self.read(&change.path).ok();
             let unchanged = current.as_ref().is_some_and(|doc| {
-                crate::ContentHash::of(doc.content.as_bytes()).as_str() == change.after_hash
+                luna_sync_core::hashing::ContentHash::of(doc.content.as_bytes()).as_str()
+                    == change.after_hash
             });
             let before = unchanged
                 .then(|| self.snapshot_text_with_hash(&change.path, &change.before_hash))

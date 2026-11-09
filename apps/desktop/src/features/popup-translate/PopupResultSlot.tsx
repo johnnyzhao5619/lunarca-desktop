@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { type PresetInfo } from "../../ipc/bindings";
 import { FailureCard } from "../../components/ui/FailureCard";
 import { IconButton } from "../../components/ui/IconButton";
-import { CloseIcon, StopCircleIcon } from "../../components/ui/Icon";
+import { CloseIcon, StopCircleIcon } from "@lunarca/editor-core/Icon";
 import { TaskStatus, type TaskStatusKind } from "../../components/TaskStatus";
 import type { PopupSlot, PopupSlotStatus } from "./popup-slots";
 import { metaLabel } from "./popup-meta-label";

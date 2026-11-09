@@ -14,7 +14,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cssVariables } from "../../lib/css-variables";
-import { CloseIcon, PauseIcon, PlayIcon } from "../../components/ui/Icon";
+import { CloseIcon, PauseIcon, PlayIcon } from "@lunarca/editor-core/Icon";
 import { IconButton } from "../../components/ui/IconButton";
 import { formatClock } from "../../lib/format-duration";
 import { noteStem } from "../../lib/note-path";

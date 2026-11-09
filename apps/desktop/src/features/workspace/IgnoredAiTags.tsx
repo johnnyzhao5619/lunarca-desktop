@@ -9,7 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands, type IgnoredAiTagDto } from "../../ipc/bindings";
 import { useVaultReload } from "../../hooks/use-vault-reload";
-import { ChevronDownIcon, ChevronRightIcon } from "../../components/ui/Icon";
+import { ChevronDownIcon, ChevronRightIcon } from "@lunarca/editor-core/Icon";
 
 export function IgnoredAiTags() {
   const { t } = useTranslation("workspace");

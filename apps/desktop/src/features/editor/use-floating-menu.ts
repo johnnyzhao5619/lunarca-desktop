@@ -240,7 +240,12 @@ export function useFloatingMenu() {
       instruction,
       options.noteRel ?? null,
       options.context ? { before: options.context.before, after: options.context.after } : null,
-      options.options ?? { target_lang: null, summary_style: null, table_column: null },
+      options.options ?? {
+        target_lang: null,
+        summary_style: null,
+        table_column: null,
+        target_seconds: null,
+      },
       channel,
     );
     if (outcome.status === "error") {

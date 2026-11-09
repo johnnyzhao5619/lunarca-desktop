@@ -8,7 +8,8 @@ use crate::knowledge_evidence::{
     render_generated_claim, ClaimKind, ClaimSource, EvidenceLocator, TopicMaintenanceState,
     TopicScope,
 };
-use crate::{ContentHash, Vault, VaultError};
+use crate::{Vault, VaultError};
+use luna_sync_core::hashing::ContentHash;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::fs::{File, OpenOptions};

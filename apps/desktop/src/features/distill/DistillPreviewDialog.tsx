@@ -11,7 +11,7 @@
 
 import { useTranslation } from "react-i18next";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
-import { DiffView } from "../../components/ui/DiffView";
+import { DiffView } from "@lunarca/editor-core/DiffView";
 import type { DistillPreviewController } from "./use-distill-preview";
 
 export function DistillPreviewDialog({ controller }: { controller: DistillPreviewController }) {

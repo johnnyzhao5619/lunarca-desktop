@@ -41,7 +41,7 @@ describe("阅读面里的嵌入", () => {
     expect(screen.getByText("更深").tagName).toBe("BUTTON");
     screen.getByText("报告.pdf").click();
     expect(onOpenPath).toHaveBeenCalledWith("项目/报告.pdf");
-    expect(screen.getByText("![[没有]]").getAttribute("title")).toBe(t("editor:embed.missing"));
+    expect(screen.getByText("![[没有]]").getAttribute("title")).toBe(t("editor-core:reading.embedMissing"));
   });
 
   it("导出：预先解析好的嵌入展开进 HTML，图片是相对宿主的路径（交给 Rust 内联）", () => {

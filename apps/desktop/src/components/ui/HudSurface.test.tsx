@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 /**
  * 悬浮窗外壳的 Esc 逃生通道（ADR-111 ⑤ ⑵）：普通 Esc 关窗；输入法组字中、以及 WKWebView 上
- * 组字刚结束的那一下 Esc 属于输入法（判据 `lib/ime-composition.ts`），原样放行。
+ * 组字刚结束的那一下 Esc 属于输入法（判据 `@lunarca/editor-core/ime-composition`），原样放行。
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";

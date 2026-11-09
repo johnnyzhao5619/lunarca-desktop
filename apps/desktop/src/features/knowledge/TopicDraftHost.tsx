@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next";
 import { commands, type TopicDraftPlanDto } from "../../ipc/bindings";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import { IconButton } from "../../components/ui/IconButton";
-import { CloseIcon, SparklesIcon } from "../../components/ui/Icon";
+import { CloseIcon, SparklesIcon } from "@lunarca/editor-core/Icon";
 import { goTo } from "../../lib/navigate";
 import { noteStem } from "../../lib/note-path";
 import { TOPIC_DRAFT_REQUEST_EVENT, type TopicDraftRequestDetail } from "./topic-draft";

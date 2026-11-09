@@ -4,13 +4,19 @@ import { commands } from "../../ipc/bindings";
 import { useTaskStartGate } from "../../hooks/use-task-start-gate";
 import { dropOnEditor, editorSurfaceAt, logicalPoint, markEditorDropTarget } from "../../lib/editor-file-drop";
 import { dropOnProject, markProjectDropTarget, projectDropAt } from "../../lib/project-file-drop";
+import {
+  dropOnTeleprompter,
+  markTeleprompterDropTarget,
+  teleprompterDropAt,
+} from "../../lib/teleprompter-file-drop";
 import { dropOnTree, markTreeDropTarget, treeDropAt } from "../../lib/tree-file-drop";
 
 /**
  * 从系统拖入音/视频文件即入队转写（PRD-05-001 / PRD-07-008）；落点在编辑器正文上时改为
  * 交给那个编辑器插成附件（对标方案 B4，`lib/editor-file-drop.ts`），落点在文件树上时改为
  * 复制进那个文件夹（W5a，`lib/tree-file-drop.ts`），落点在创作项目上时作为项目来源导入
- * （ADR-167 ③，`lib/project-file-drop.ts`）。
+ * （ADR-167 ③，`lib/project-file-drop.ts`），落点在提词器首页上时转成提词稿（ADR-176 ⑨，
+ * `lib/teleprompter-file-drop.ts`）。
  *
  * 依赖 `dragDropEnabled: true`（`tauri.conf.json`）——它与 webview 的 HTML5 DnD 互斥，
  * 故应用内的树/标签拖拽已改用指针事件（`lib/pointer-drag.ts`），二者不再冲突。
@@ -56,16 +62,19 @@ export function useMediaDrop(
       const surface = point ? editorSurfaceAt(point.x, point.y) : null;
       const tree = point ? treeDropAt(point.x, point.y) : null;
       const project = point ? projectDropAt(point.x, point.y) : null;
+      const teleprompter = point ? teleprompterDropAt(point.x, point.y) : null;
       if (event.payload.type === "enter" || event.payload.type === "over") {
         markEditorDropTarget(surface);
         markTreeDropTarget(tree);
         markProjectDropTarget(project);
-        setHovering(surface === null && tree === null && project === null);
+        markTeleprompterDropTarget(teleprompter);
+        setHovering(surface === null && tree === null && project === null && teleprompter === null);
         return;
       }
       markEditorDropTarget(null);
       markTreeDropTarget(null);
       markProjectDropTarget(null);
+      markTeleprompterDropTarget(null);
       setHovering(false);
       if (event.payload.type !== "drop") {
         return;
@@ -79,6 +88,10 @@ export function useMediaDrop(
       }
       // 落点在创作项目上：作为这个项目的来源导入（ADR-167 ③），不进「转写」。
       if (point && dropOnProject(event.payload.paths, point.x, point.y)) {
+        return;
+      }
+      // 落点在提词器首页上：转成提词稿并打开（ADR-176 ⑨），不进「转写」。
+      if (point && dropOnTeleprompter(event.payload.paths, point.x, point.y)) {
         return;
       }
       // 预估不够时当场说清、不入队；够、在本机跑、拖进来的不是媒体（Rust 判）都照常往下走。

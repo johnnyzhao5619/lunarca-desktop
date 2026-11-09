@@ -7,8 +7,9 @@
 
 use crate::knowledge_generation::{TopicEvidenceInput, TopicGeneration};
 use crate::knowledge_plan::knowledge_commit_lock;
-use crate::{ClaimKind, ContentHash, PlanEvidence, PlanRejection, PlanRevisions, TopicScope};
+use crate::{ClaimKind, PlanEvidence, PlanRejection, PlanRevisions, TopicScope};
 use crate::{Vault, VaultError};
+use luna_sync_core::hashing::ContentHash;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use uuid::Uuid;

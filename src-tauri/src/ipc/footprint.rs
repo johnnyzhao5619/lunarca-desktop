@@ -245,16 +245,32 @@ pub(crate) fn clear_vault_cache(
     rebuild_vault_index(app, state)
 }
 
-/// 重置应用（PRD-09-026 / TDD-12 §11）：备份旧 `config.toml` → 设备级设置全部回默认 →
-/// 清应用缓存目录与启动诊断文件。返回备份路径（内存态配置时为空串）。之后调用方重启。
+/// 重置应用（PRD-09-026 / TDD-12 §11）：全部编辑窗口保存成功后，备份旧 `config.toml` → 设备级设置
+/// 全部回默认 → 清应用缓存目录与启动诊断文件 → 重启。重置不可逆，所以闸门在它之前：录音进行中或
+/// 保存不成功时什么都不动，留在当前应用。只有失败才返回。
+///
+/// # Errors
+/// 重启闸门拦下（`restart_*`，见 `restart_guard`）或备份、写设置失败。
 #[tauri::command]
 #[specta::specta]
-pub(crate) fn reset_app(
+pub(crate) async fn reset_app(
     app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
-) -> Result<String, String> {
-    let backup = match &state.settings_persistence {
-        SettingsPersistence::Writable(path) if path.is_file() => {
+) -> Result<(), String> {
+    let clearance = super::restart_guard::clear_for_restart(&app, &state)
+        .await
+        .map_err(str::to_owned)?;
+    if let Err(error) = reset_device_state(&app, &state) {
+        clearance.abandon(&app);
+        return Err(error);
+    }
+    // 从异步线程调用：走 `ExitRequested` / `Exit`，由事件循环在主线程结束进程，随包推理引擎照常收尾。
+    app.restart()
+}
+
+fn reset_device_state(app: &tauri::AppHandle, state: &AppState) -> Result<(), String> {
+    if let SettingsPersistence::Writable(path) = &state.settings_persistence {
+        if path.is_file() {
             let stamp = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .map(|d| d.as_secs())
@@ -264,10 +280,8 @@ pub(crate) fn reset_app(
                 luna_config::DEVICE_CONFIG_FILENAME
             ));
             std::fs::copy(path, &backup).map_err(|e| format!("RESET_BACKUP_FAILED: {e}"))?;
-            backup.to_string_lossy().into_owned()
         }
-        _ => String::new(),
-    };
+    }
     let keys: Vec<&'static str> = luna_config::SETTINGS
         .iter()
         .filter(|spec| spec.scope == SettingScope::Device)
@@ -280,20 +294,7 @@ pub(crate) fn reset_app(
     if let Ok(cache) = app.path().app_cache_dir() {
         let _ = std::fs::remove_dir_all(cache);
     }
-    Ok(backup)
-}
-
-/// 重启应用（重置后由前端在确认页调用）。
-///
-/// 在主线程上重启：`restart` = 拉起新进程 + `exit`，从 IPC 工作线程直接 `exit` 时主线程
-/// 与各常驻线程（事件 tap、采集）还在跑，真机 2026-09-06 就是这样撞出 SIGABRT 的。
-#[tauri::command]
-#[specta::specta]
-pub(crate) fn restart_app(app: tauri::AppHandle) {
-    let handle = app.clone();
-    let _ = app.run_on_main_thread(move || {
-        handle.restart();
-    });
+    Ok(())
 }
 
 /// 导出设置（PRD-09-050）：设备级必带，`include_vault` 时附带当前库的 Vault 级值；

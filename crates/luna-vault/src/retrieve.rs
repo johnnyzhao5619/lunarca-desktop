@@ -1,7 +1,7 @@
 //! 库内检索（PRD-16 §3.2、ADR-026 ⑤⑥）：
 //! 把一个**自然语言问题**变成「带出处的上下文」。
 //!
-//! 与 [`crate::search`] 分工明确——那个模块面向**搜索视图**（一行查询语法、AND 语义、
+//! 与 [`luna_sync_core::search`] 分工明确——那个模块面向**搜索视图**（一行查询语法、AND 语义、
 //! 命中行高亮、可替换）；本模块面向**问答**：问题是一整句话，需要的是「哪几篇最相关 +
 //! 每篇给一段可读摘录 + 一个能跳回去的锚」。
 //!
@@ -9,10 +9,10 @@
 //!
 //! 1. **确定性管线，不是 agentic 工具调用**（ADR-026 ⑤）：词提取 → 索引粗筛 → 读文件精算
 //!    → 摘录 → 预算装箱，每一步都是纯函数或确定性 IO，可无头单测、可预算、可解释。
-//! 2. **索引只做粗筛、文件读取定权威**（与 [`crate::search`] 同一条）：索引是派生数据，
+//! 2. **索引只做粗筛、文件读取定权威**（与 [`luna_sync_core::search`] 同一条）：索引是派生数据，
 //!    摘录与锚点必须对得上此刻磁盘上的字节，否则跳转会跳到错的地方。
 //! 3. **禁区与索引同源**：时间码标记与结构脚手架行（转写哨兵 / 对话角色标题）不参与匹配、
-//!    也不进摘录——判定复用 [`crate::search::SearchableLine`]，不写第二份。
+//!    也不进摘录——判定复用 [`luna_sync_core::search::SearchableLine`]，不写第二份。
 //! 4. **锚点是复合的、绝不写进源文件**（ADR-026 ⑥）：`{标题路径, 引文±前后文, 行提示}`
 //!    按序降级解析；锚不上时如实告知「原文已改动」，**绝不静默跳到错行**。
 //!
@@ -24,8 +24,8 @@
 //! 细粒度只提升准确度、不再有扫库代价。两套词表同源于一次切分，不是两套解析。
 
 use crate::frontmatter::{body_of, NoteStage, NoteType};
-use crate::parse::timecode_spans;
-use crate::search::SearchableLine;
+use luna_sync_core::scaffold::timecode_spans;
+use luna_sync_core::search::SearchableLine;
 
 /// 送进 SQL 粗筛的探测词上限（每个词一次索引查询，故这是扫库次数的天花板）。
 pub const MAX_PROBE_TERMS: usize = 8;
@@ -567,7 +567,7 @@ fn passage_window(lines: &[&str], center: usize) -> String {
     let mut out = String::new();
     let mut seen = false;
     for line in lines.iter().take(end).skip(start) {
-        if crate::parse::is_scaffold_line(line) {
+        if luna_sync_core::scaffold::is_scaffold_line(line) {
             continue;
         }
         let cleaned = strip_timecodes(line);
@@ -611,14 +611,14 @@ fn capture_anchor(lines: &[&str], focus: usize, base_line: usize, body: &str) ->
     let prefix = lines[..focus]
         .iter()
         .rev()
-        .find(|l| !l.trim().is_empty() && !crate::parse::is_scaffold_line(l))
+        .find(|l| !l.trim().is_empty() && !luna_sync_core::scaffold::is_scaffold_line(l))
         .map(|l| tail_chars(strip_timecodes(l).trim(), ANCHOR_CONTEXT_CHARS))
         .unwrap_or_default();
     let suffix = lines
         .get(focus + 1..)
         .unwrap_or_default()
         .iter()
-        .find(|l| !l.trim().is_empty() && !crate::parse::is_scaffold_line(l))
+        .find(|l| !l.trim().is_empty() && !luna_sync_core::scaffold::is_scaffold_line(l))
         .map(|l| truncate_chars(strip_timecodes(l).trim(), ANCHOR_CONTEXT_CHARS))
         .unwrap_or_default();
     Anchor {
@@ -627,7 +627,9 @@ fn capture_anchor(lines: &[&str], focus: usize, base_line: usize, body: &str) ->
         prefix,
         suffix,
         line_hint: (base_line + focus + 1) as u32,
-        source_hash: crate::ContentHash::of(body.as_bytes()).as_str().to_owned(),
+        source_hash: luna_sync_core::hashing::ContentHash::of(body.as_bytes())
+            .as_str()
+            .to_owned(),
     }
 }
 

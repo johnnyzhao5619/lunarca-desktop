@@ -51,6 +51,16 @@ export const commands = {
 	devicesList: () => typedError<DeviceDto[], CloudError>(__TAURI_INVOKE("plugin:luna-cloud|devices_list")),
 	/**  撤销指定设备（诚实边界：只拒新凭据使用，已在对端明文落地的数据无法远程擦除）。 */
 	deviceRevoke: (deviceId: string) => typedError<null, CloudError>(__TAURI_INVOKE("plugin:luna-cloud|device_revoke", { deviceId })),
+	/**  读取官方云账户的网页访问开关。 */
+	accountWebAccess: () => typedError<boolean, CloudError>(__TAURI_INVOKE("plugin:luna-cloud|account_web_access")),
+	/**  更新网页访问开关。关闭会吊销该账户的全部网页会话。 */
+	accountSetWebAccess: (enabled: boolean) => typedError<boolean, CloudError>(__TAURI_INVOKE("plugin:luna-cloud|account_set_web_access", { enabled })),
+	/**  列出官方云账户在用的网页会话。 */
+	accountWebSessions: () => typedError<WebSessionDto[], CloudError>(__TAURI_INVOKE("plugin:luna-cloud|account_web_sessions")),
+	/**  让一个浏览器退出 Lunarca。 */
+	accountRevokeWebSession: (id: string) => typedError<null, CloudError>(__TAURI_INVOKE("plugin:luna-cloud|account_revoke_web_session", { id })),
+	/**  让所有浏览器退出 Lunarca。 */
+	accountRevokeAllWebSessions: () => typedError<null, CloudError>(__TAURI_INVOKE("plugin:luna-cloud|account_revoke_all_web_sessions")),
 	/**
 	 *  注销前的后果预览（在扣费的订阅、会作废的预付余额、计费记录保留几年）。只读；取不到时界面照常
 	 *  允许注销，只说明细节没取到。
@@ -353,6 +363,11 @@ export type CloudError =
 { code: "already_signed_in" } |
 /**  输入既不是邀请链接，也不是服务器地址。 */
 { code: "not_an_address" } |
+/**
+ *  填的地址上没有 Lunarca 服务端（能力声明 404 或读不懂），按主机名回查
+ *  `.well-known/lunarca` 也没有——多半是填了官网或别的网站（ADR-158 ①）。
+ */
+{ code: "no_server_at_address"; host: string } |
 /**  登录第一步填的不是邮箱（缺 `@` 或域名）：发请求前在本地拒绝。 */
 { code: "not_an_email" } |
 /**  连接链接坏了（每一条原因对应一个用户能做的动作）。 */
@@ -397,6 +412,8 @@ export type CloudError =
  *  本地数据不受影响。
  */
 { code: "account_frozen" } |
+/**  网页访问只在启用网页版的官方云上提供（ADR-177 ①）。 */
+{ code: "web_access_unavailable" } |
 /**
  *  这次预留要从预付 credits 扣，而用户自设的本月预付上限已到（服务端 402 `spend_cap_reached`，
  *  纵切 3 C4）。下一步是调整上限，不是购买；订阅包含的额度不受上限影响。
@@ -749,10 +766,18 @@ email: string; methods: SignInMethodsDto | null; invite: boolean } |
 /**  这台服务器的身份与本机钉住的不一致：先核对、确认，再重新开始登录。 */
 { step: "needs_trust_confirmation"; trust: TrustStatusDto };
 
-/**  从哪开始登录。第一步只问邮箱（ADR-158 ①）；服务器由 Rust 按邮箱找，或由用户点「使用其他服务器」给。 */
+/**
+ *  从哪开始登录。第一步只问邮箱（ADR-158 ①）；服务器默认由 Rust 按邮箱找，「登录到」那一格可改成
+ *  Lunarca 云或用户自己给的服务器。
+ */
 export type SignInTarget =
 /**  按邮箱找服务器：这台设备记住的 → 邮箱域名上的 `.well-known/lunarca` → Lunarca 云。 */
 { kind: "discover"; email: string } |
+/**
+ *  就是 Lunarca 云：越过记住的那台。记住的是测试或组织服务器时，这是不用知道 API 地址就能
+ *  回到 Lunarca 云的唯一一步（真机 2026-11-03）。
+ */
+{ kind: "official"; email: string } |
 /**  「使用其他服务器」：一格输入既收地址也收连接链接。 */
 { kind: "server"; email: string; input: string } |
 /**  经 URL scheme 送达、此刻挂着的那条链接。 */
@@ -928,6 +953,17 @@ export type UsageLedgerDto = {
 	 */
 	period: string,
 	dimensions: UsageDimensionDto[],
+};
+
+/**  一个在用的网页会话（PRD-21-005、TDD-16 §9）。 */
+export type WebSessionDto = {
+	id: string,
+	/**  从 User-Agent 粗分的浏览器 / 系统（认不出 = 缺席）。 */
+	browser: string | null,
+	os: string | null,
+	/**  RFC 3339 时间戳（渲染归前端，本地化在 UI 层）。 */
+	created_at: string,
+	last_seen_at: string | null,
 };
 
 /* Tauri Specta runtime */

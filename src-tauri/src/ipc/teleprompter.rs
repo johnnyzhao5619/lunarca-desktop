@@ -10,12 +10,49 @@ use luna_core::prompter_align::{PrompterAligner, ScriptPosition};
 /// 提词器面板的窗口标签（只有一扇，常驻）。
 pub(crate) const TELEPROMPTER_LABEL: &str = "teleprompter";
 
+/// 提词器一行里的一段（口播记号，ADR-176 ⑦）。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum PrompterSpanDto {
+    Text {
+        text: String,
+    },
+    /// 强调：要念，加粗加色。
+    Emphasis {
+        text: String,
+    },
+    /// 停一拍：不念。
+    Pause,
+    /// 不念的提示：灰色小字。
+    Note {
+        text: String,
+    },
+}
+
+impl From<luna_vault::PrompterSpan> for PrompterSpanDto {
+    fn from(span: luna_vault::PrompterSpan) -> Self {
+        match span {
+            luna_vault::PrompterSpan::Text(text) => Self::Text { text },
+            luna_vault::PrompterSpan::Emphasis(text) => Self::Emphasis { text },
+            luna_vault::PrompterSpan::Pause => Self::Pause,
+            luna_vault::PrompterSpan::Note(text) => Self::Note { text },
+        }
+    }
+}
+
 /// 提词器上的一行。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 pub struct PrompterLineDto {
+    /// 要念的文字（口播记号已去掉；跟读对齐、录制标记都按它）。
     pub text: String,
     /// 行首形式标记（`口播` / `出镜` / `VO` / `CAM`），显示成小标签，不念。
     pub marker: Option<String>,
+    /// 这一行约念多少毫秒（本人语速 + 停顿，与脚本时长估算同一口径）：面板据此给「预计剩余」。
+    pub millis: u32,
+    /// 显示用的各段（ADR-176 ⑦）。
+    pub spans: Vec<PrompterSpanDto>,
+    /// 动作提示行（`> [!cue] …`）：整行不念，显示成彩色条。
+    pub cue: bool,
 }
 
 /// 提词器上的一段（一个二级标题下的各行；开场段没有标题）。
@@ -31,12 +68,33 @@ pub struct TeleprompterDto {
     pub path: Option<String>,
     pub title: String,
     pub blocks: Vec<PrompterBlockDto>,
+    /// 「提词器」应用生效没有：倒计时、计时、贴近镜头、防录屏等扩展只在它生效时出现（ADR-176 ③）。
+    pub extended: bool,
+    /// 改稿重读时找回的那一行（PRD-20-015）：面板请求里带了 `anchor` 才有。
+    pub anchor: Option<PrompterAtDto>,
 }
 
-fn prompter_dto(path: &str, content: &str) -> TeleprompterDto {
+/// 面板重读时带上的「刚才那一行」（改稿前的段号行号与要念的文字，PRD-20-015）。`path` 是面板
+/// 刚才显示的那一篇：此刻换成了别的稿子就不找回、不动跟读。
+#[derive(Debug, Clone, Deserialize, Type)]
+pub struct PrompterAnchorDto {
+    pub path: String,
+    pub block: u32,
+    pub line: u32,
+    pub text: String,
+}
+
+fn prompter_dto(
+    path: &str,
+    content: &str,
+    rate: luna_vault::SpeakingRate,
+    extended: bool,
+) -> TeleprompterDto {
     TeleprompterDto {
         path: Some(path.to_owned()),
         title: note_stem_of(path),
+        extended,
+        anchor: None,
         blocks: luna_vault::prompter_blocks(content)
             .into_iter()
             .map(|block| PrompterBlockDto {
@@ -45,8 +103,12 @@ fn prompter_dto(path: &str, content: &str) -> TeleprompterDto {
                     .lines
                     .into_iter()
                     .map(|line| PrompterLineDto {
+                        millis: luna_vault::spoken_millis(&line.text, rate)
+                            + line.pauses * luna_vault::PAUSE_MILLIS,
                         text: line.text,
                         marker: line.marker,
+                        spans: line.spans.into_iter().map(Into::into).collect(),
+                        cue: line.cue,
                     })
                     .collect(),
             })
@@ -70,8 +132,20 @@ pub(crate) fn teleprompter_open(
     path: String,
     follow: bool,
 ) -> Result<(), String> {
-    require_window(&app, &state, TELEPROMPTER_LABEL)?;
-    state.with_vault(window.label(), |vault| {
+    open_script(&app, &state, window.label(), &path, follow)
+}
+
+/// [`teleprompter_open`] 的本体：送稿路径（快捷键、服务菜单、拖放）也走这里。
+pub(crate) fn open_script(
+    app: &tauri::AppHandle,
+    state: &AppState,
+    label: &str,
+    path: &str,
+    follow: bool,
+) -> Result<(), String> {
+    let (app, path) = (app.clone(), path.to_owned());
+    require_window(&app, state, TELEPROMPTER_LABEL)?;
+    state.with_vault(label, |vault| {
         vault.read(&path).map(|_| ()).map_err(vault_err)
     })?;
     let previous = state
@@ -83,6 +157,7 @@ pub(crate) fn teleprompter_open(
     if previous.as_deref() != Some(path.as_str()) {
         flush_retake_marks(&app);
     }
+    remember_recent(&app, state, label, &path);
     crate::show_teleprompter(&app);
     if follow {
         use tauri::Manager as _;
@@ -99,10 +174,14 @@ pub(crate) fn teleprompter_open(
 /// 库未打开或脚本读不出时返回错误。
 #[tauri::command]
 #[specta::specta]
+#[allow(clippy::needless_pass_by_value)]
 pub(crate) fn teleprompter_content(
+    app: tauri::AppHandle,
     window: tauri::Window,
     state: tauri::State<'_, AppState>,
+    anchor: Option<PrompterAnchorDto>,
 ) -> Result<TeleprompterDto, String> {
+    let extended = crate::teleprompter_extended(&app);
     let path = state
         .teleprompter_script
         .lock()
@@ -113,12 +192,58 @@ pub(crate) fn teleprompter_content(
             path: None,
             title: String::new(),
             blocks: Vec::new(),
+            extended,
+            anchor: None,
         });
     };
-    state.with_vault(window.label(), |vault| {
+    let (mut dto, content) = state.with_vault(window.label(), |vault| {
         let doc = vault.read(&path).map_err(vault_err)?;
-        Ok(prompter_dto(&path, &doc.content))
-    })
+        let dto = prompter_dto(&path, &doc.content, vault.speaking_rate(), extended);
+        Ok((dto, doc.content))
+    })?;
+    // 改稿重读（PRD-20-015）：在新稿里找回刚才那一行；跟读开着就用新稿重建对齐器、从那一行接着跟。
+    if let Some(anchor) = anchor.filter(|anchor| anchor.path == path) {
+        let blocks = luna_vault::prompter_blocks(&content);
+        let found = luna_vault::relocate_line(&blocks, &anchor.text, anchor.block, anchor.line);
+        if let Some((block, line)) = found {
+            dto.anchor = Some(PrompterAtDto { block, line });
+            rebase_follow(&state, &content, block, line);
+        }
+    }
+    Ok(dto)
+}
+
+/// 稿子改了而跟读开着：对齐器换成新稿的，从 `(block, line)` 接着跟（不在跟读时什么都不做）。
+fn rebase_follow(state: &AppState, content: &str, block: u32, line: u32) {
+    let Ok(follow) = state.teleprompter_follow.lock() else {
+        return;
+    };
+    if let Some(aligner) = follow.as_ref() {
+        if let Ok(mut aligner) = aligner.lock() {
+            *aligner = aligner_for(content);
+            aligner.seek(block, line);
+        }
+    }
+}
+
+/// 贴近镜头（ADR-176 ⑤，PRD-20-008）：面板放到所在显示器工作区的上沿居中、收成窄条，并记住。
+///
+/// # Errors
+/// 「提词器」应用没生效时返回 `APP_DISABLED`（贴近镜头是它的扩展能力）。
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)]
+pub(crate) fn teleprompter_snap_to_camera(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    super::apps::require_app(&app, &state, luna_config::apps::TELEPROMPTER_APP.id)?;
+    use tauri::Manager as _;
+    if let Some(win) = app.get_webview_window(TELEPROMPTER_LABEL) {
+        crate::snap_teleprompter_to_camera(&win);
+        crate::remember_caption_window(&app, &win);
+    }
+    Ok(())
 }
 
 /// 收起提词器（记下位置与尺寸；面板只隐藏不关闭），攒下的录制标记随之写回脚本。
@@ -127,6 +252,370 @@ pub(crate) fn teleprompter_content(
 pub(crate) fn teleprompter_hide(app: tauri::AppHandle) {
     crate::hide_teleprompter(&app);
     flush_retake_marks(&app);
+}
+
+/// 跟读的增长快照间隔（毫秒，ADR-176 ④）：念到一行到它被带到阅读线的延迟 ≈ 间隔 + 单窗解码耗时。
+/// 取 1 秒而不是更短：快照解码按次计成本（随包 tiny 档单次约 0.3 秒，真机 2026-11-04），0.6 秒一次
+/// 时实时 RTF 压在 0.6 的降档线上下，一降到 Yellow 就跳掉全部快照窗（`recording::should_decode_window`）。
+const FOLLOW_SNAPSHOT_INTERVAL_MS: u32 = 1000;
+
+/// 跟读总开关（ADR-176 ④，PRD-20-005）：用户开、默认关。
+pub(crate) const FOLLOW_ENABLED_KEY: &str = "teleprompter.follow_enabled";
+
+fn follow_enabled(settings: &luna_config::Settings) -> bool {
+    settings.get_bool(FOLLOW_ENABLED_KEY).unwrap_or(false)
+}
+
+// ── 提词器首页（ADR-176 ②，PRD-20-004）────────────────────────────────────────
+
+/// 最近列表最多记几篇。
+const RECENT_LIMIT: usize = 20;
+
+/// 最近列表落在应用数据目录（只记在本机、不写库）：库根 → 库相对路径，新的在前。
+fn recent_file(app: &tauri::AppHandle) -> Option<PathBuf> {
+    use tauri::Manager as _;
+    app.path()
+        .app_data_dir()
+        .ok()
+        .map(|dir| dir.join("teleprompter").join("recent.json"))
+}
+
+fn read_recent(app: &tauri::AppHandle) -> BTreeMap<String, Vec<String>> {
+    recent_file(app)
+        .and_then(|file| std::fs::read(file).ok())
+        .and_then(|bytes| serde_json::from_slice(&bytes).ok())
+        .unwrap_or_default()
+}
+
+/// 把 `path` 提到最前（去重、截到上限）。纯函数，便于测试。
+fn bump_recent(list: &mut Vec<String>, path: &str) {
+    list.retain(|item| item != path);
+    list.insert(0, path.to_owned());
+    list.truncate(RECENT_LIMIT);
+}
+
+fn vault_key(state: &AppState, label: &str) -> Option<String> {
+    state
+        .with_vault(label, |vault| {
+            Ok(vault.root().to_string_lossy().into_owned())
+        })
+        .ok()
+}
+
+/// 记下这次提词的是哪一篇。写不成只记日志（最近列表是便利，不是事实）。
+fn remember_recent(app: &tauri::AppHandle, state: &AppState, label: &str, path: &str) {
+    let (Some(file), Some(root)) = (recent_file(app), vault_key(state, label)) else {
+        return;
+    };
+    let mut all = read_recent(app);
+    bump_recent(all.entry(root).or_default(), path);
+    let written = serde_json::to_vec(&all)
+        .map_err(|e| e.to_string())
+        .and_then(|bytes| {
+            if let Some(dir) = file.parent() {
+                std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+            }
+            std::fs::write(&file, &bytes).map_err(|e| e.to_string())
+        });
+    if let Err(error) = written {
+        eprintln!("[teleprompter] 最近列表写入失败：{error}");
+    }
+}
+
+/// 最近提词过的一篇。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+pub struct TeleprompterRecentDto {
+    pub path: String,
+    pub title: String,
+}
+
+/// 提词器首页要显示的东西。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+pub struct TeleprompterHomeDto {
+    /// 面板此刻打开的是哪一篇（没打开过为 `None`）。
+    pub current: Option<String>,
+    /// 最近提词过的稿子（新的在前；已不在库里的不列）。
+    pub recent: Vec<TeleprompterRecentDto>,
+    /// 新建的提词稿落在哪个目录（库相对）。
+    pub draft_dir: String,
+}
+
+/// 提词器首页（ADR-176 ②）。
+///
+/// # Errors
+/// 「提词器」没启用（`APP_DISABLED`）或库未打开时返回错误。
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)]
+pub(crate) fn teleprompter_home(
+    app: tauri::AppHandle,
+    window: tauri::Window,
+    state: tauri::State<'_, AppState>,
+) -> Result<TeleprompterHomeDto, String> {
+    super::apps::require_app(&app, &state, luna_config::apps::TELEPROMPTER_APP.id)?;
+    let current = state
+        .teleprompter_script
+        .lock()
+        .map_err(|_| "提词器状态锁中毒".to_owned())?
+        .clone();
+    let root = vault_key(&state, window.label()).unwrap_or_default();
+    let listed = read_recent(&app).remove(&root).unwrap_or_default();
+    let recent = state.with_vault(window.label(), |vault| {
+        Ok(listed
+            .into_iter()
+            .filter(|path| vault.read(path).is_ok())
+            .map(|path| TeleprompterRecentDto {
+                title: note_stem_of(&path),
+                path,
+            })
+            .collect::<Vec<_>>())
+    })?;
+    Ok(TeleprompterHomeDto {
+        current,
+        recent,
+        draft_dir: draft_dir(&state.settings_snapshot()),
+    })
+}
+
+fn draft_dir(settings: &luna_config::Settings) -> String {
+    safe_vault_relative_dir(settings, "vault.teleprompter_dir", "Teleprompter")
+}
+
+/// 一段稿子按本人语速约念多少秒（含停顿，与脚本时长估算同一口径）：AI「按时长压缩」的结果旁边
+/// 写明「约多少秒、比目标多 / 少多少」（ADR-176 ⑧，PRD-20-016：说清多出几秒，不替你删）。
+///
+/// # Errors
+/// 库未打开时返回错误。
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)]
+pub(crate) fn teleprompter_estimate_seconds(
+    window: tauri::Window,
+    state: tauri::State<'_, AppState>,
+    text: String,
+) -> Result<u32, String> {
+    state.with_vault(window.label(), |vault| {
+        Ok(luna_vault::script_outline(&text, vault.speaking_rate()).total_seconds)
+    })
+}
+
+// ── 送稿（ADR-176 ⑨，PRD-20-020~023）──────────────────────────────────────────
+
+/// 新建提词稿的正文从哪来。
+#[derive(Debug, Clone, Deserialize, Type)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum TeleprompterDraftSourceDto {
+    /// 空稿（「新建提词稿」：建好后在编辑器里写）。
+    Empty,
+    /// 剪贴板里的文字（「从剪贴板新建」）。
+    Clipboard,
+    /// 界面交来的文字（首页 ⌘V：粘贴事件里的那段）。
+    Text { text: String },
+}
+
+/// 新建一篇提词稿并用提词器打开，返回新稿路径。剪贴板或粘贴里没有文字时报错、不建空稿。
+///
+/// # Errors
+/// 「提词器」没启用、没有文字（`TELEPROMPTER_CLIPBOARD_EMPTY`）、库未打开或写入失败时返回错误。
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)]
+pub(crate) fn teleprompter_new_draft(
+    app: tauri::AppHandle,
+    window: tauri::Window,
+    state: tauri::State<'_, AppState>,
+    source: TeleprompterDraftSourceDto,
+) -> Result<String, String> {
+    let empty = || {
+        coded_error(
+            &app,
+            "TELEPROMPTER_CLIPBOARD_EMPTY",
+            "teleprompter-clipboard-empty",
+        )
+    };
+    let body = match source {
+        TeleprompterDraftSourceDto::Empty => String::new(),
+        TeleprompterDraftSourceDto::Clipboard => super::popup::read_clipboard_text()?
+            .filter(|text| !text.trim().is_empty())
+            .ok_or_else(empty)?,
+        TeleprompterDraftSourceDto::Text { text } => {
+            if text.trim().is_empty() {
+                return Err(empty());
+            }
+            text
+        }
+    };
+    let path = create_draft_only(&app, &state, window.label(), &body)?;
+    open_script(&app, &state, window.label(), &path, false)?;
+    Ok(path)
+}
+
+/// 建一篇提词稿（不打开）：清洗正文，以第一行起名（没有可用的第一行时用时间），落在提词稿
+/// 目录。返回新稿路径。送稿的各条入口都经这里（ADR-176 ⑨：外来文字一律先成为库里的笔记）。
+fn create_draft_only(
+    app: &tauri::AppHandle,
+    state: &AppState,
+    label: &str,
+    raw: &str,
+) -> Result<String, String> {
+    super::apps::require_app(app, state, luna_config::apps::TELEPROMPTER_APP.id)?;
+    let body = luna_vault::normalize_pasted_script(raw);
+    let i18n = backend_copy_arc(app);
+    let stem = luna_vault::script_title_of(&body)
+        .map(|title| super::processing::safe_media_stem(&title))
+        .unwrap_or_else(|| {
+            let stamp = chrono::Local::now().format("%Y-%m-%d %H%M").to_string();
+            i18n.as_deref()
+                .and_then(|i18n| {
+                    i18n.translate_args("teleprompter-draft-title", &[("time", stamp.clone())])
+                })
+                .unwrap_or_else(|| format!("Script {stamp}"))
+        });
+    let rel = format!("{}/{}.md", draft_dir(&state.settings_snapshot()), stem);
+    let doc = state.with_vault(label, |vault| {
+        super::notes::create_unique_note(i18n.as_deref(), vault, &rel, NoteType::Note, body.clone())
+    })?;
+    Ok(doc.path)
+}
+
+/// 提词器认得的文件（PRD-20-022）：纯文本与 Markdown、网页、Word、PDF，以及 macOS 上由系统转换
+/// 的 .doc / .rtf / .odt。表格类不认——一格一格念不成稿。
+fn prompter_format(path: &Path) -> Option<luna_docimport::DocFormat> {
+    use luna_docimport::DocFormat as F;
+    F::from_path(path).filter(|format| {
+        matches!(
+            format,
+            F::Text | F::Markdown | F::Html | F::Docx | F::Pdf | F::Doc | F::Rtf | F::Odt
+        ) && format.available_here()
+    })
+}
+
+/// 转换时不要图片与页码：提词器只念文字。
+struct PrompterConvertHost;
+
+impl luna_docimport::ConvertHost for PrompterConvertHost {
+    fn image_link(&mut self, _index: usize, _ext: &str) -> String {
+        String::new()
+    }
+    fn page_marker(&mut self, _page: usize) -> String {
+        String::new()
+    }
+}
+
+/// 把一个文件转成要念的 Markdown。
+fn convert_for_prompter(app: &tauri::AppHandle, path: &Path) -> Result<String, String> {
+    use luna_docimport::DocImportError as E;
+    let format = prompter_format(path).ok_or_else(|| {
+        coded_error(
+            app,
+            "TELEPROMPTER_FILE_UNSUPPORTED",
+            "teleprompter-file-unsupported",
+        )
+    })?;
+    let (format, input) = if format.needs_system_html() {
+        let html = super::doc_import::system_html(path, &luna_core::CancelToken::new())
+            .map_err(|code| coded_error(app, code, "doc-import-corrupt"))?;
+        (luna_docimport::DocFormat::Html, html)
+    } else {
+        let bytes = std::fs::read(path).map_err(|e| format!("FILE_READ_FAILED: {e}"))?;
+        (format, bytes)
+    };
+    let converted =
+        luna_docimport::convert(format, &input, &mut PrompterConvertHost).map_err(|e| {
+            let (code, key) = match e {
+                E::Empty => ("DOC_EMPTY", "doc-import-empty"),
+                E::Encrypted => ("DOC_ENCRYPTED", "doc-import-encrypted"),
+                E::NoTextLayer => ("DOC_NO_TEXT_LAYER", "doc-import-no-text-layer"),
+                E::Corrupt(_) | E::NeedsSystemHtml => ("DOC_CORRUPT", "doc-import-corrupt"),
+            };
+            coded_error(app, code, key)
+        })?;
+    // 文件名比正文第一行更像这篇稿子的名字：正文没有一级标题时用文件名作标题。
+    let markdown = converted.markdown;
+    Ok(match path.file_stem().and_then(|s| s.to_str()) {
+        Some(stem) if !markdown.trim_start().starts_with("# ") => format!("# {stem}\n\n{markdown}"),
+        _ => markdown,
+    })
+}
+
+/// 拖到首页或浮窗上的文件（PRD-20-022）：每个文件转成一篇提词稿，打开第一篇，返回各稿路径。
+///
+/// # Errors
+/// 「提词器」没启用，或没有一个文件能转成提词稿时返回第一个文件的错误。
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn teleprompter_import_files(
+    app: tauri::AppHandle,
+    window: tauri::Window,
+    paths: Vec<String>,
+) -> Result<Vec<String>, String> {
+    let label = window.label().to_owned();
+    tauri::async_runtime::spawn_blocking(move || {
+        use tauri::Manager as _;
+        let state = app.state::<AppState>();
+        super::apps::require_app(&app, &state, luna_config::apps::TELEPROMPTER_APP.id)?;
+        let mut created = Vec::new();
+        let mut first_error = None;
+        for path in paths {
+            let made = convert_for_prompter(&app, Path::new(&path))
+                .and_then(|markdown| create_draft_only(&app, &state, &label, &markdown));
+            match made {
+                Ok(rel) => created.push(rel),
+                Err(error) => {
+                    first_error.get_or_insert(error);
+                }
+            }
+        }
+        match (created.first(), first_error) {
+            (Some(first), _) => {
+                open_script(&app, &state, &label, first, false)?;
+                Ok(created)
+            }
+            (None, Some(error)) => Err(error),
+            (None, None) => Ok(created),
+        }
+    })
+    .await
+    .map_err(|e| format!("TELEPROMPTER_TASK_PANIC: {e}"))?
+}
+
+/// 「送进提词器」快捷键与「服务」菜单（PRD-20-021 / 023）拿到文字后：建稿并打开；失败给通知
+/// （参数不含正文）。`text = None` = 既没有选中的文字、剪贴板里也没有。须在主线程调用。
+pub(crate) fn send_text_to_teleprompter(app: &tauri::AppHandle, text: Option<String>) {
+    use crate::notifications::{NotificationCenter, NotificationEvent, NotificationTarget};
+    use tauri::Manager as _;
+    let Some(state) = app.try_state::<AppState>() else {
+        return;
+    };
+    let enabled = luna_config::apps::is_enabled(
+        &state.settings_snapshot(),
+        luna_config::apps::TELEPROMPTER_APP.id,
+    );
+    let event = if enabled {
+        match text.filter(|text| !text.trim().is_empty()) {
+            None => Some(NotificationEvent::failure(
+                "teleprompter_send_empty",
+                NotificationTarget::Workspace,
+            )),
+            Some(text) => create_draft_only(app, &state, "main", &text)
+                .and_then(|path| open_script(app, &state, "main", &path, false))
+                .err()
+                .map(|_| {
+                    NotificationEvent::failure(
+                        "teleprompter_send_failed",
+                        NotificationTarget::Workspace,
+                    )
+                }),
+        }
+    } else {
+        Some(NotificationEvent::failure(
+            "teleprompter_app_missing",
+            NotificationTarget::Route("apps://teleprompter".to_owned()),
+        ))
+    };
+    if let (Some(event), Some(center)) = (event, app.try_state::<NotificationCenter>()) {
+        center.publish(event, app);
+    }
 }
 
 // ── 跟读（C4b，PRD-19-015）──────────────────────────────────────────────────
@@ -187,15 +676,26 @@ pub(crate) fn teleprompter_follow_start(
         .map_err(|_| "提词器状态锁中毒".to_owned())?
         .clone()
         .ok_or_else(|| coded_error(&app, "TELEPROMPTER_NO_SCRIPT", "teleprompter-no-script"))?;
+    // 跟读由用户开、默认关（ADR-176 ④）：关着时连麦克风权限都不去问。
+    if !follow_enabled(&state.settings_snapshot()) {
+        return Err(coded_error(
+            &app,
+            "TELEPROMPTER_FOLLOW_OFF",
+            "teleprompter-follow-off",
+        ));
+    }
     let content = state.with_vault(window.label(), |vault| {
         vault.read(&path).map(|doc| doc.content).map_err(vault_err)
     })?;
     ensure_microphone_permission()?;
-    state.ensure_asr_provider_ready(&app)?;
+    // 跟读只用本机识别（ADR-176 ④）：即使实时转写设成了服务端，跟读的声音也不出本机。
+    let asr = state.follow_stream_asr(&app)?;
     let settings = state.settings_snapshot();
+    // 识别语言设成「自动」时按稿子的主语言提示：短窗里的自动语种检测常在中英之间乱跳。
     let lang_hint = settings
         .get_str("realtime.transcribe_lang")
         .filter(|s| !s.trim().is_empty() && s != "auto")
+        .or_else(|| luna_vault::script_language(&content).map(str::to_owned))
         .map(|s| luna_core::Lang::from(s.as_str()));
     let input_device = settings
         .get_str("recording.input_device")
@@ -218,9 +718,13 @@ pub(crate) fn teleprompter_follow_start(
             .ok()
             .and_then(|mut aligner| aligner.feed(&committed, &hypothesis));
         if let Some(position) = moved {
-            // 只记段号行号（日志不含转写文字）：真机核对标记落点时要知道高亮当时在哪。
+            // 只记段号行号与时刻（日志不含转写文字）：真机核对标记落点、量跟读延迟时要知道
+            // 高亮在什么时候到了哪里。
+            let at_ms = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_or(0, |d| d.as_millis());
             eprintln!(
-                "[C4c] 跟读位置 → 段 {} 行 {} 字 {}",
+                "[teleprompter] 跟读位置 → 段 {} 行 {} 字 {} @{at_ms}",
                 position.block, position.line, position.char_offset
             );
             let _ = on_position.send(crate::voice_input::voice_level_payload(position_payload(
@@ -236,7 +740,11 @@ pub(crate) fn teleprompter_follow_start(
         audio_dir: None,
         vault_root: None,
         format: luna_audio::RecordingFormat::Wav,
-        tuning: capture_tuning(&settings),
+        // 跟读只要最近十几个字、要的是快：增长快照从约 1.5 秒缩到 1 秒（ADR-176 ④）。
+        tuning: luna_audio::CaptureTuning {
+            stream_snapshot_interval_ms: FOLLOW_SNAPSHOT_INTERVAL_MS,
+            ..capture_tuning(&settings)
+        },
         vad: state.vad_factory(&app),
         lang_hint,
         input_device,
@@ -246,7 +754,7 @@ pub(crate) fn teleprompter_follow_start(
         translate_enabled: false,
         translate_config,
         glossary,
-        asr_provider: state.asr_provider_handle(),
+        asr_provider: Some(asr),
         asr_model_name: Arc::new(std::sync::Mutex::new(None)),
         // 跟读不归档：收尾走不归档分支，不调用此闭包。
         finalize_fn: Box::new(|_, _, _| Ok(String::new())),
@@ -288,6 +796,20 @@ pub(crate) fn teleprompter_follow_reset(state: tauri::State<'_, AppState>) {
     }
 }
 
+/// 跟读时从某一行接着跟（ADR-176 ⑥，PRD-20-013）：点了浮窗上的一行，或按键换行换段。不在
+/// 跟读时什么都不做（没跟读时位置只是浮窗的滚动，归浮窗）。
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn teleprompter_follow_seek(state: tauri::State<'_, AppState>, at: PrompterAtDto) {
+    if let Ok(follow) = state.teleprompter_follow.lock() {
+        if let Some(aligner) = follow.as_ref() {
+            if let Ok(mut aligner) = aligner.lock() {
+                aligner.seek(at.block, at.line);
+            }
+        }
+    }
+}
+
 /// 录音会话收场（任何终态，含出错）时调用：跟读状态清空，跟读期间攒下的录制标记写回脚本。
 /// 不在跟读时什么都不做。
 pub(crate) fn end_follow(app: &tauri::AppHandle) {
@@ -320,7 +842,7 @@ pub(crate) struct PendingRetake {
 }
 
 /// 面板报来的「此刻那一行」（跟读时是高亮行，没跟读时是阅读线上的那一行）。
-#[derive(Debug, Clone, Copy, Deserialize, Type)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct PrompterAtDto {
     pub block: u32,
     pub line: u32,
@@ -573,7 +1095,10 @@ mod tests {
         let dto = prompter_dto(
             "Creator/第一期/第一期-脚本.md",
             "## 开头\n[口播] 你好。\n\n```broll\n空镜\n```\n## 结尾\n再见。\n",
+            luna_vault::SpeakingRate::DEFAULT,
+            true,
         );
+        assert!(dto.extended);
         assert_eq!(dto.title, "第一期-脚本");
         assert_eq!(dto.blocks.len(), 2);
         assert_eq!(dto.blocks[0].heading.as_deref(), Some("开头"));
@@ -581,7 +1106,13 @@ mod tests {
             dto.blocks[0].lines,
             [PrompterLineDto {
                 text: "你好。".into(),
-                marker: Some("口播".into())
+                marker: Some("口播".into()),
+                // 「你好」两个字，默认 240 字 / 分 → 500 毫秒（与脚本时长同一口径）。
+                millis: 500,
+                spans: vec![PrompterSpanDto::Text {
+                    text: "你好。".into()
+                }],
+                cue: false,
             }]
         );
         assert_eq!(dto.blocks[1].lines[0].text, "再见。");
@@ -602,7 +1133,9 @@ mod tests {
         let position = aligner.feed("今天我们聊一聊怎么写", "").unwrap();
         assert_eq!((position.block, position.line), (1, 0));
         assert_eq!(
-            prompter_dto("P.md", script).blocks[1].lines[0].text,
+            prompter_dto("P.md", script, luna_vault::SpeakingRate::DEFAULT, false).blocks[1].lines
+                [0]
+            .text,
             "今天我们聊一聊怎么写脚本"
         );
     }
@@ -650,5 +1183,54 @@ mod tests {
         );
         let en = crate::i18n::BackendI18n::new("en-US");
         assert_eq!(retake_title(Some(&en), &["20:41".into()]), "Retake · 20:41");
+    }
+}
+
+#[cfg(test)]
+mod recent_tests {
+    use super::*;
+
+    #[test]
+    fn bumping_moves_to_front_dedups_and_caps() {
+        let mut list: Vec<String> = (0..RECENT_LIMIT).map(|i| format!("N/{i}.md")).collect();
+        bump_recent(&mut list, "N/5.md");
+        assert_eq!(list[0], "N/5.md");
+        assert_eq!(list.len(), RECENT_LIMIT);
+        assert_eq!(list.iter().filter(|p| *p == "N/5.md").count(), 1);
+        bump_recent(&mut list, "N/new.md");
+        assert_eq!(list[0], "N/new.md");
+        assert_eq!(list.len(), RECENT_LIMIT, "超出上限的最老一篇被挤掉");
+    }
+
+    #[test]
+    fn follow_is_off_by_default() {
+        assert!(!follow_enabled(&luna_config::Settings::default()));
+    }
+}
+
+#[cfg(test)]
+mod cue_tests {
+    use super::*;
+
+    #[test]
+    fn pauses_add_to_a_line_and_cue_lines_are_not_read() {
+        let dto = prompter_dto(
+            "P.md",
+            "## 开头\n你好 // 你好\n> [!cue] 看镜头\n",
+            luna_vault::SpeakingRate::DEFAULT,
+            true,
+        );
+        let lines = &dto.blocks[0].lines;
+        // 「你好你好」四个字 1000 毫秒 + 一个停顿 600 毫秒。
+        assert_eq!(lines[0].millis, 1600);
+        assert_eq!(lines[0].text, "你好 你好");
+        assert!(lines[1].cue);
+        assert_eq!(lines[1].millis, 0);
+        assert_eq!(
+            lines[1].spans,
+            [PrompterSpanDto::Text {
+                text: "看镜头".into()
+            }]
+        );
     }
 }

@@ -8,8 +8,8 @@
 //! 命中区间以**分段序列**（`text` + `hit`）下发而非下标对，正是为了让这条边界不可能被跨越。
 
 use super::*;
-use luna_vault::search::{MatchSegment, SearchQuery};
-use luna_vault::{DiffKind, LineDiff};
+use luna_sync_core::diff::{DiffKind, LineDiff};
+use luna_sync_core::search::{MatchSegment, SearchQuery};
 
 // ── DTO ─────────────────────────────────────────────────────────────────────
 

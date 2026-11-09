@@ -1,0 +1,672 @@
+{
+  "diffs": [
+    {
+      "diff": {
+        "added": 1,
+        "degraded": false,
+        "lines": [
+          {
+            "kind": "equal",
+            "new_line": 1,
+            "old_line": 1,
+            "text": "a"
+          },
+          {
+            "kind": "removed",
+            "new_line": null,
+            "old_line": 2,
+            "text": "b"
+          },
+          {
+            "kind": "added",
+            "new_line": 2,
+            "old_line": null,
+            "text": "B"
+          },
+          {
+            "kind": "equal",
+            "new_line": 3,
+            "old_line": 3,
+            "text": "c"
+          }
+        ],
+        "removed": 1
+      },
+      "new": "a\nB\nc\n",
+      "old": "a\nb\nc\n"
+    },
+    {
+      "diff": {
+        "added": 1,
+        "degraded": false,
+        "lines": [
+          {
+            "kind": "equal",
+            "new_line": 1,
+            "old_line": 1,
+            "text": "一"
+          },
+          {
+            "kind": "equal",
+            "new_line": 2,
+            "old_line": 2,
+            "text": "二"
+          },
+          {
+            "kind": "added",
+            "new_line": 3,
+            "old_line": null,
+            "text": "三"
+          }
+        ],
+        "removed": 0
+      },
+      "new": "一\n二\n三\n",
+      "old": "一\n二\n"
+    },
+    {
+      "diff": {
+        "added": 0,
+        "degraded": false,
+        "lines": [
+          {
+            "kind": "equal",
+            "new_line": 1,
+            "old_line": 1,
+            "text": "# 标题"
+          },
+          {
+            "kind": "equal",
+            "new_line": 2,
+            "old_line": 2,
+            "text": ""
+          },
+          {
+            "kind": "removed",
+            "new_line": null,
+            "old_line": 3,
+            "text": "第一段"
+          },
+          {
+            "kind": "equal",
+            "new_line": 3,
+            "old_line": 4,
+            "text": "第二段"
+          }
+        ],
+        "removed": 1
+      },
+      "new": "# 标题\n\n第二段\n",
+      "old": "# 标题\n\n第一段\n第二段\n"
+    },
+    {
+      "diff": {
+        "added": 1,
+        "degraded": false,
+        "lines": [
+          {
+            "kind": "added",
+            "new_line": 1,
+            "old_line": null,
+            "text": "新的一篇"
+          }
+        ],
+        "removed": 0
+      },
+      "new": "新的一篇\n",
+      "old": ""
+    },
+    {
+      "diff": {
+        "added": 0,
+        "degraded": false,
+        "lines": [
+          {
+            "kind": "equal",
+            "new_line": 1,
+            "old_line": 1,
+            "text": "同样"
+          }
+        ],
+        "removed": 0
+      },
+      "new": "同样\n",
+      "old": "同样\n"
+    },
+    {
+      "diff": {
+        "added": 1,
+        "degraded": false,
+        "lines": [
+          {
+            "kind": "equal",
+            "new_line": 1,
+            "old_line": 1,
+            "text": "行一"
+          },
+          {
+            "kind": "removed",
+            "new_line": null,
+            "old_line": 2,
+            "text": "行二"
+          },
+          {
+            "kind": "added",
+            "new_line": 2,
+            "old_line": null,
+            "text": "行二改"
+          }
+        ],
+        "removed": 1
+      },
+      "new": "行一\n行二改\n",
+      "old": "行一\r\n行二\r\n"
+    }
+  ],
+  "edits": [
+    {
+      "change": {
+        "from": 22,
+        "insert": "· 第 2 次",
+        "to": 25
+      },
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "title",
+        "op": "set",
+        "value": {
+          "kind": "text",
+          "value": "周会 · 第 2 次"
+        }
+      },
+      "text": "---\n# 我的注释\ntitle: '周会 · 第 2 次'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n"
+    },
+    {
+      "change": {
+        "from": 19,
+        "insert": "a: b",
+        "to": 25
+      },
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "title",
+        "op": "set",
+        "value": {
+          "kind": "text",
+          "value": "a: b"
+        }
+      },
+      "text": "---\n# 我的注释\ntitle: 'a: b'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n"
+    },
+    {
+      "change": {
+        "from": 62,
+        "insert": "2.0",
+        "to": 65
+      },
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "score",
+        "op": "set",
+        "value": {
+          "kind": "number",
+          "value": "2.00"
+        }
+      },
+      "text": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 2.00\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n"
+    },
+    {
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "score",
+        "op": "set",
+        "value": {
+          "kind": "number",
+          "value": "两个"
+        }
+      },
+      "skip": "invalid_value"
+    },
+    {
+      "change": {
+        "from": 49,
+        "insert": "tru",
+        "to": 53
+      },
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "done",
+        "op": "set",
+        "value": {
+          "kind": "checkbox",
+          "value": true
+        }
+      },
+      "text": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: true\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n"
+    },
+    {
+      "change": {
+        "from": 38,
+        "insert": "1-06",
+        "to": 42
+      },
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "due",
+        "op": "set",
+        "value": {
+          "kind": "date",
+          "value": "2026-11-06"
+        }
+      },
+      "text": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-11-06\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n"
+    },
+    {
+      "change": {
+        "from": 89,
+        "insert": "  - 新\n",
+        "to": 89
+      },
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "tags",
+        "op": "set",
+        "value": {
+          "kind": "list",
+          "value": [
+            "工作",
+            "重要",
+            "新"
+          ]
+        }
+      },
+      "text": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\n  - 新\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n"
+    },
+    {
+      "change": {
+        "from": 101,
+        "insert": ", 周例会",
+        "to": 101
+      },
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "aliases",
+        "op": "set",
+        "value": {
+          "kind": "list",
+          "value": [
+            "例会",
+            "周例会"
+          ]
+        }
+      },
+      "text": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会, 周例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n"
+    },
+    {
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "meta",
+        "op": "set",
+        "value": {
+          "kind": "text",
+          "value": "x"
+        }
+      },
+      "skip": "nested"
+    },
+    {
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "missing",
+        "op": "set",
+        "value": {
+          "kind": "text",
+          "value": "x"
+        }
+      },
+      "skip": "not_found"
+    },
+    {
+      "change": {
+        "from": 133,
+        "insert": "status:\n",
+        "to": 133
+      },
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "status",
+        "op": "add",
+        "value": {
+          "kind": "text",
+          "value": ""
+        }
+      },
+      "text": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nstatus:\nluna:\n  type: note\n---\n正文 🙂\n"
+    },
+    {
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "title",
+        "op": "add",
+        "value": {
+          "kind": "text",
+          "value": ""
+        }
+      },
+      "skip": "key_exists"
+    },
+    {
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "luna",
+        "op": "add",
+        "value": {
+          "kind": "text",
+          "value": ""
+        }
+      },
+      "skip": "invalid_key"
+    },
+    {
+      "change": {
+        "from": 43,
+        "insert": "",
+        "to": 55
+      },
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "done",
+        "op": "remove"
+      },
+      "text": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n"
+    },
+    {
+      "change": {
+        "from": 67,
+        "insert": "",
+        "to": 89
+      },
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "tags",
+        "op": "remove"
+      },
+      "text": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n"
+    },
+    {
+      "change": {
+        "from": 28,
+        "insert": "eadlin",
+        "to": 29
+      },
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "from": "due",
+        "op": "rename",
+        "to": "deadline"
+      },
+      "text": "---\n# 我的注释\ntitle: '周会 🗓️'\ndeadline: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n"
+    },
+    {
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "from": "due",
+        "op": "rename",
+        "to": "done"
+      },
+      "skip": "key_exists"
+    },
+    {
+      "change": {
+        "from": 18,
+        "insert": "[周会 🗓️]",
+        "to": 26
+      },
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "title",
+        "kind": "list",
+        "now": "2026-11-06T09:30",
+        "op": "retype",
+        "today": "2026-11-06"
+      },
+      "text": "---\n# 我的注释\ntitle: [周会 🗓️]\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n"
+    },
+    {
+      "change": {
+        "from": 18,
+        "insert": "2026-11-06",
+        "to": 26
+      },
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "title",
+        "kind": "date",
+        "now": "2026-11-06T09:30",
+        "op": "retype",
+        "today": "2026-11-06"
+      },
+      "text": "---\n# 我的注释\ntitle: 2026-11-06\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n"
+    },
+    {
+      "change": {
+        "from": 42,
+        "insert": "T00:00",
+        "to": 42
+      },
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "edit": {
+        "key": "due",
+        "kind": "date_time",
+        "now": "2026-11-06T09:30",
+        "op": "retype",
+        "today": "2026-11-06"
+      },
+      "text": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04T00:00\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n"
+    },
+    {
+      "change": {
+        "from": 12,
+        "insert": "月",
+        "to": 13
+      },
+      "content": "---\r\ntitle: 周报\r\ntags: [a, b]\r\n---\r\n正文\r\n",
+      "edit": {
+        "key": "title",
+        "op": "set",
+        "value": {
+          "kind": "text",
+          "value": "月报"
+        }
+      },
+      "text": "---\r\ntitle: 月报\r\ntags: [a, b]\r\n---\r\n正文\r\n"
+    },
+    {
+      "change": {
+        "from": 30,
+        "insert": "done: false\r\n",
+        "to": 30
+      },
+      "content": "---\r\ntitle: 周报\r\ntags: [a, b]\r\n---\r\n正文\r\n",
+      "edit": {
+        "key": "done",
+        "op": "add",
+        "value": {
+          "kind": "checkbox",
+          "value": false
+        }
+      },
+      "text": "---\r\ntitle: 周报\r\ntags: [a, b]\r\ndone: false\r\n---\r\n正文\r\n"
+    },
+    {
+      "change": {
+        "from": 0,
+        "insert": "---\ntitle: 新\n---\n",
+        "to": 0
+      },
+      "content": "正文\n",
+      "edit": {
+        "key": "title",
+        "op": "add",
+        "value": {
+          "kind": "text",
+          "value": "新"
+        }
+      },
+      "text": "---\ntitle: 新\n---\n正文\n"
+    },
+    {
+      "content": "---\ntitle: 没闭合\n正文\n",
+      "edit": {
+        "key": "title",
+        "op": "set",
+        "value": {
+          "kind": "text",
+          "value": "x"
+        }
+      },
+      "skip": "unclosed"
+    }
+  ],
+  "properties": [
+    {
+      "content": "---\n# 我的注释\ntitle: '周会 🗓️'\ndue: 2026-10-04\ndone: false\nscore: 1.50\ntags:\n  - 工作\n  - \"重要\"\naliases: [例会]\nmeta:\n  owner: 我\nanchor: &a 值\nluna:\n  type: note\n---\n正文 🙂\n",
+      "rows": [
+        {
+          "key": "title",
+          "line": 3,
+          "locked": null,
+          "raw": "'周会 🗓️'",
+          "value": {
+            "kind": "text",
+            "value": "周会 🗓️"
+          }
+        },
+        {
+          "key": "due",
+          "line": 4,
+          "locked": null,
+          "raw": "2026-10-04",
+          "value": {
+            "kind": "date",
+            "value": "2026-10-04"
+          }
+        },
+        {
+          "key": "done",
+          "line": 5,
+          "locked": null,
+          "raw": "false",
+          "value": {
+            "kind": "checkbox",
+            "value": false
+          }
+        },
+        {
+          "key": "score",
+          "line": 6,
+          "locked": null,
+          "raw": "1.50",
+          "value": {
+            "kind": "number",
+            "value": "1.50"
+          }
+        },
+        {
+          "key": "tags",
+          "line": 7,
+          "locked": null,
+          "raw": "- 工作\n  - \"重要\"",
+          "value": {
+            "kind": "list",
+            "value": [
+              "工作",
+              "重要"
+            ]
+          }
+        },
+        {
+          "key": "aliases",
+          "line": 10,
+          "locked": null,
+          "raw": "[例会]",
+          "value": {
+            "kind": "list",
+            "value": [
+              "例会"
+            ]
+          }
+        },
+        {
+          "key": "meta",
+          "line": 11,
+          "locked": "nested",
+          "raw": "owner: 我",
+          "value": null
+        },
+        {
+          "key": "anchor",
+          "line": 13,
+          "locked": "unsupported_form",
+          "raw": "&a 值",
+          "value": null
+        }
+      ]
+    },
+    {
+      "content": "---\r\ntitle: 周报\r\ntags: [a, b]\r\n---\r\n正文\r\n",
+      "rows": [
+        {
+          "key": "title",
+          "line": 2,
+          "locked": null,
+          "raw": "周报",
+          "value": {
+            "kind": "text",
+            "value": "周报"
+          }
+        },
+        {
+          "key": "tags",
+          "line": 3,
+          "locked": null,
+          "raw": "[a, b]",
+          "value": {
+            "kind": "list",
+            "value": [
+              "a",
+              "b"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "content": "没有 frontmatter 的笔记\n",
+      "rows": []
+    },
+    {
+      "content": "---\ntitle: 没闭合\n正文\n",
+      "skip": "unclosed"
+    },
+    {
+      "content": "---\ntitle: a\ntitle: b\n---\n",
+      "rows": [
+        {
+          "key": "title",
+          "line": 2,
+          "locked": "duplicate_key",
+          "raw": "a",
+          "value": null
+        },
+        {
+          "key": "title",
+          "line": 3,
+          "locked": "duplicate_key",
+          "raw": "b",
+          "value": null
+        }
+      ]
+    }
+  ]
+}

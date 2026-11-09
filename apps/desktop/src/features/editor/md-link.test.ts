@@ -17,8 +17,9 @@ import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 vi.mock("../../ipc/bindings", () => import("../../ipc/bindings-test-double"));
 
 import { commandMock, resetBindingsDouble } from "../../ipc/bindings-test-double";
-import { buildLivePreviewDecorations, livePreviewExtension } from "./live-preview";
-import { mdLinkClickHandler } from "./md-link";
+import { buildLivePreviewDecorations, livePreviewExtension } from "@lunarca/editor-core/live-preview";
+import { mdLinkClickHandler } from "@lunarca/editor-core/md-link";
+import { desktopEditorHost } from "./editor-host";
 
 beforeEach(resetBindingsDouble);
 
@@ -71,8 +72,8 @@ describe("真视图上的点击", () => {
         doc,
         extensions: [
           markdown({ base: markdownLanguage }),
-          livePreviewExtension(() => "Notes/当前.md"),
-          mdLinkClickHandler({
+          livePreviewExtension(desktopEditorHost, () => "Notes/当前.md"),
+          mdLinkClickHandler(desktopEditorHost, {
             notePath: () => "Notes/当前.md",
             onOpenPath: (path) => opened.push(path),
           }),

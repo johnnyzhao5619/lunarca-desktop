@@ -8,7 +8,8 @@
  */
 
 import type { ReactNode } from "react";
-import { MarkdownContent } from "../../components/markdown/MarkdownContent";
+import { MarkdownContent } from "@lunarca/editor-core/MarkdownContent";
+import { desktopMarkdownHost } from "../../components/markdown/markdown-host";
 
 export interface ChatMarkdownProps {
   content: string;
@@ -19,5 +20,5 @@ export interface ChatMarkdownProps {
 }
 
 export function ChatMarkdown({ content, streaming = false, renderText }: ChatMarkdownProps) {
-  return <MarkdownContent content={content} streaming={streaming} renderText={renderText} />;
+  return <MarkdownContent host={desktopMarkdownHost} content={content} streaming={streaming} renderText={renderText} />;
 }

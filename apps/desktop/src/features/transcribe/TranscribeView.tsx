@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { FilmIcon, LinkIcon, SettingsIcon } from "../../components/ui/Icon";
+import { FilmIcon, LinkIcon, SettingsIcon } from "@lunarca/editor-core/Icon";
 import type { TranscribeImport } from "./use-transcribe-import";
 
 export interface TranscribeViewProps {

@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 
 import { commands, type ScriptOutlineDto } from "../../ipc/bindings";
 import { useContextMenu } from "../../components/ContextMenuHost";
-import { ChevronDownIcon } from "../../components/ui/Icon";
+import { ChevronDownIcon } from "@lunarca/editor-core/Icon";
 import { notifyScriptRateChanged, requestScriptRewrite, type ScriptRewriteAction } from "../../lib/app-events";
 import { buildMenu } from "../../lib/context-menu";
 import { formatClock } from "../../lib/format-duration";

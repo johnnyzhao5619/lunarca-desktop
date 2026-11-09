@@ -12,7 +12,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands } from "../../../ipc/bindings";
-import { CheckIcon, FolderIcon } from "../../../components/ui/Icon";
+import { CheckIcon, FolderIcon } from "@lunarca/editor-core/Icon";
 import { vaultErrorText } from "../../../lib/vault-error";
 
 export function VaultStep({ onBound }: { onBound: () => void }) {

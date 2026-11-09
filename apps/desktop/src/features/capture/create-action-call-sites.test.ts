@@ -231,7 +231,7 @@ describe("HUD 落点预设没有缺省值（TDD-07 §2.3）", () => {
   //
   // 这条只能按源码断言：缺省参数是语法，运行时看不见（传了 `undefined` 与不传在
   // 函数里毫无区别），TypeScript 也不会因为多一个缺省值而报错。
-  const FRONTEND = import.meta.glob("/src/**/*.{ts,tsx}", {
+  const FRONTEND = import.meta.glob(["/src/**/*.{ts,tsx}", "../../../../../packages/*/src/**/*.{ts,tsx}"], {
     eager: true,
     import: "default",
     query: "?raw",

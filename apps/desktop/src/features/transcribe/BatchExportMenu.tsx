@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands, type TranscriptExportFormat } from "../../ipc/bindings";
 import { IconButton } from "../../components/ui/IconButton";
-import { DownloadIcon } from "../../components/ui/Icon";
+import { DownloadIcon } from "@lunarca/editor-core/Icon";
 import { useContextMenu } from "../../components/ContextMenuHost";
 import { buildMenu } from "../../lib/context-menu";
 import { requestExportOptions } from "../../lib/app-events";

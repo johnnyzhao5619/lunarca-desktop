@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { afterEditorsSaved, registerEditorSave } from "./editor-save-guard";
 
-const SOURCES = import.meta.glob(["../../**/*.{ts,tsx}", "!../../**/*.test.{ts,tsx}"], {
+const SOURCES = import.meta.glob(["../../**/*.{ts,tsx}", "../../../../../packages/*/src/**/*.{ts,tsx}", "!../../**/*.test.{ts,tsx}", "!../../../../../packages/*/src/**/*.test.{ts,tsx}"], {
   eager: true,
   import: "default",
   query: "?raw",

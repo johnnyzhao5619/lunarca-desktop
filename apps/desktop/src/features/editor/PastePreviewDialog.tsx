@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import type { HtmlPasteDto } from "../../ipc/bindings";
 import { useState } from "react";
-import type { TablePastePreview } from "./table-edit";
+import type { TablePastePreview } from "@lunarca/editor-core/table-edit";
 import type { PasteConversionChoice } from "./paste-assets";
 
 export function PastePreviewDialog({ preview, plain, tableTarget, onResolve }: {

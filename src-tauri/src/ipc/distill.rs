@@ -1195,7 +1195,7 @@ pub(crate) async fn run_distill(
         }
         (
             vault.distill_state(note_rel).map_err(vault_err)?,
-            luna_vault::title_of(note_rel),
+            luna_sync_core::links::title_of(note_rel),
         )
     };
 
@@ -1519,22 +1519,9 @@ fn unique_distill_path(vault: &Vault, dir: &str, title: &str, template: Template
 /// 笔记会读失败，于是被当成"这里是空的"，下一步就写在用户已有的资产上。这条判据错得很
 /// 安静——正常情况下它与真实存在性完全一致，只在出事那一刻不一致。
 pub(crate) fn unique_note_path_in(vault: &Vault, dir: &str, base: &str) -> String {
-    for index in 0..100 {
-        let name = if index == 0 {
-            format!("{base}.md")
-        } else {
-            format!("{base}-{index}.md")
-        };
-        let candidate = if dir.is_empty() {
-            name
-        } else {
-            format!("{dir}/{name}")
-        };
-        if vault.path_is_free(&candidate) {
-            return candidate;
-        }
-    }
-    format!("{dir}/{base}.md")
+    use luna_sync_core::naming::{free_note_path, numbered_note_path};
+    free_note_path(dir, base, |candidate| !vault.path_is_free(candidate))
+        .unwrap_or_else(|| numbered_note_path(dir, base, 0))
 }
 
 fn source_url_of(state: &AppState, note_rel: &str) -> Option<String> {
@@ -1642,12 +1629,13 @@ pub(crate) async fn distill_preview(
                 "distill-ineligible",
             ));
         }
-        let source_hash = luna_vault::ContentHash::of(luna_vault::body_of(&doc.content).as_bytes())
-            .as_str()
-            .to_owned();
+        let source_hash =
+            luna_sync_core::hashing::ContentHash::of(luna_vault::body_of(&doc.content).as_bytes())
+                .as_str()
+                .to_owned();
         (
             vault.distill_state(&note_rel).map_err(vault_err)?,
-            luna_vault::title_of(&note_rel),
+            luna_sync_core::links::title_of(&note_rel),
             source_hash,
         )
     };
@@ -1691,7 +1679,7 @@ pub(crate) async fn distill_preview(
                 .unwrap_or_default();
             return Ok(DistillPreviewDto {
                 target_path: staged.target_rel.clone(),
-                diff: luna_vault::diff_lines(&current, &staged.body).into(),
+                diff: luna_sync_core::diff::diff_lines(&current, &staged.body).into(),
             });
         }
     }
@@ -1752,7 +1740,7 @@ pub(crate) async fn distill_preview(
         ));
     }
 
-    let diff = luna_vault::diff_lines(&current, &built.text);
+    let diff = luna_sync_core::diff::diff_lines(&current, &built.text);
     {
         let mut slot = state
             .distill_preview
@@ -2260,7 +2248,7 @@ pub(crate) fn promote_quick_note_impl(
             ));
         }
         let dir = note_type_dir(&state.settings_snapshot(), NoteType::Note);
-        let stem = luna_vault::title_of(note_rel);
+        let stem = luna_sync_core::links::title_of(note_rel);
         let target = unique_note_path_in(vault, &dir, &stem);
         (target, luna_vault::body_of(&doc.content).to_owned())
     };
@@ -2323,7 +2311,7 @@ pub(crate) fn demote_to_quick_note(
             return Err(coded_error(&app, "DEMOTE_NOT_NOTE", "demote-not-note"));
         }
         let dir = note_type_dir(&state.settings_snapshot(), NoteType::QuickNote);
-        let stem = luna_vault::title_of(&note_rel);
+        let stem = luna_sync_core::links::title_of(&note_rel);
         unique_note_path_in(vault, &dir, &stem)
     };
     let (root, relinked) = {

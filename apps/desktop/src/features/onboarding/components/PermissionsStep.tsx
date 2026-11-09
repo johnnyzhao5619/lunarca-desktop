@@ -16,7 +16,7 @@ import {
   type PermissionStatus,
   type SetupStatusDto,
 } from "../../../ipc/bindings";
-import { BellIcon, KeyboardIcon, MicIcon } from "../../../components/ui/Icon";
+import { BellIcon, KeyboardIcon, MicIcon } from "@lunarca/editor-core/Icon";
 
 /**
  * 首启引导内预先说明的权限（PRD-14-030 表；屏幕录制为 P1 随会议录音接入，不在此列）。

@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { commands, type ProjectRefDto } from "../../ipc/bindings";
-import { FilmIcon } from "../../components/ui/Icon";
+import { FilmIcon } from "@lunarca/editor-core/Icon";
 import { goTo } from "../../lib/navigate";
 import { creatorRoute } from "../workspace/workspace-routes";
 

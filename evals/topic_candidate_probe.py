@@ -15,7 +15,7 @@
 「他主题命中」是**真实写到了那个主题**的来源，打印明细供人核对，不是误收。
 
 这是诊断，不是语义验收：模型拿到候选之后写不写、写得对不对，由 `topic_review_set_export`
-（两名评审）判定。
+（所有者）判定。
 
     python3 evals/topic_candidate_probe.py
     python3 evals/topic_candidate_probe.py --semantic

@@ -1,0 +1,352 @@
+{
+  "app": {
+    "name": "Lunarca",
+    "connecting": "Connecting to Lunarca Cloud…"
+  },
+  "signin": {
+    "language": "Language",
+    "languageName": "English",
+    "title": "Sign in to Lunarca",
+    "subtitle": "Read the notes you sync to Lunarca Cloud in your browser. Notes are decrypted in this page; the server never sees their content.",
+    "email": "Email",
+    "password": "Password",
+    "keep": "Keep me signed in",
+    "keepHint": "Only on your own computer: renews whenever you use it within 7 days, for up to 30 days. Otherwise you are signed out when the browser closes.",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "or": "or",
+    "google": "Continue with Google",
+    "facebook": "Continue with Facebook",
+    "noAccount": "No account yet?",
+    "signUp": "Sign up",
+    "downloadUrl": "https://lunarca.app/en/download.html",
+    "home": "Lunarca home",
+    "downloadNav": "Download"
+  },
+  "signup": {
+    "title": "Sign up for Lunarca",
+    "subtitle": "Create an account to write notes in your browser and sync them across your devices.",
+    "sendCode": "Send code",
+    "codeSent": "We sent a code to {{email}}. It should arrive within a few minutes; check your spam folder too.",
+    "code": "Code",
+    "verify": "Next",
+    "password": "Choose a password",
+    "passwordHint": "At least {{count}} characters. Your password is processed in this browser and never sent to the server.",
+    "agree": "By creating an account, you agree to the",
+    "and": "and",
+    "create": "Create account",
+    "working": "Please wait…",
+    "haveAccount": "Already have an account?",
+    "backToSignIn": "Sign in",
+    "badCode": "That code is wrong or has expired."
+  },
+  "error": {
+    "invalid_code": "That code doesn’t look right.",
+    "login_expired": "That took too long. Please start again.",
+    "account_exists": "This email already has an account. Please sign in.",
+    "email_domain_not_allowed": "This email domain can’t be used to sign up. Please use another email.",
+    "signup_mail_failed": "We couldn’t send the code. Please try again later.",
+    "terms_required": "Please agree to the terms first.",
+    "password_invalid": "Couldn’t set that password. Please try again.",
+    "invalid_credentials": "That email or password is not right.",
+    "rate_limited": "Too many attempts. Please try again later.",
+    "web_access_disabled": "Web access is turned off for this account. You can turn it back on in the desktop app under Account.",
+    "web_origin_rejected": "This request did not come from the Lunarca web page and was refused. Reload the page and try again.",
+    "password_login_disabled": "This account signs in through your organization's single sign-on and cannot use a password on the web.",
+    "password_not_set": "This account has no password. Unlock with Google or Facebook instead.",
+    "network_unavailable": "Can't reach Lunarca Cloud. Check your connection and try again.",
+    "account_disabled": "This account has been disabled.",
+    "sync_not_entitled": "Your plan does not include cloud sync.",
+    "no_managed_key": "This vault uses Advanced Data Protection and can't be opened on the web.",
+    "sync_quota_exceeded": "Your cloud storage is full, so the change wasn’t saved. Deleting some notes frees up space.",
+    "sync_read_only": "This vault is read-only right now, so the change wasn’t saved.",
+    "account_frozen": "Your account is frozen. Notes are read-only and the change wasn’t saved.",
+    "too_large": "This is larger than the per-file limit ({{limit}}).",
+    "too_large_unknown": "This is larger than the per-file limit.",
+    "path_taken": "A file with that name is already there. Try a different name.",
+    "invalid_name_empty": "The name can’t be empty.",
+    "invalid_name_reserved": "“.” and “..” can’t be used as names.",
+    "invalid_name_separator": "Names can’t contain “/”, “\\” or control characters.",
+    "invalid_name_hidden": "Names starting with “.” are hidden files and won’t show up on your devices. Pick another name.",
+    "not_found": "This note can’t be found. It may have just been deleted elsewhere.",
+    "not_text": "This file isn’t text, so it can’t be edited on the web.",
+    "chunk_missing": "Part of this note is missing in the cloud. Try again later.",
+    "content_mismatch": "The content didn’t pass its integrity check, so it isn’t shown. Try again later.",
+    "sync_remote_corrupt": "The cloud sent back data that couldn’t be read, so this didn’t finish.",
+    "conflict_copy_exhausted": "There are too many conflict copies with this name, so yours wasn’t saved separately. Tidy them up first.",
+    "vault_create_exhausted": "There are too many notes with this name. Try a different name.",
+    "sync_busy": "This note is changing too often elsewhere, so it wasn’t saved this time. It will try again.",
+    "vault_not_open": "The vault was closed. Choose it again.",
+    "download_too_large": "This attachment is over the web download limit ({{limit}}). Open it in the desktop app.",
+    "download_too_large_unknown": "This attachment is over the web download limit. Open it in the desktop app.",
+    "fulltext_not_ready": "The full-text index isn’t ready yet.",
+    "fulltext_cancelled": "Cancelled; nothing was kept.",
+    "changed_elsewhere": "This file was just restored or changed elsewhere, so it wasn’t restored. Refresh the list and take another look.",
+    "invalid_kind": "This kind of attachment can’t be uploaded.",
+    "generic": "Something went wrong ({{code}}). Please try again later."
+  },
+  "signinError": {
+    "provider_unavailable": "This sign-in option is unavailable right now. Try again later, or sign in with email and password.",
+    "signin_expired": "Signing in took too long and expired. Please sign in again.",
+    "account_unavailable": "This identity has no Lunarca account yet. Download the desktop app to sign up, then come back to sign in.",
+    "web_access_disabled": "Web access is turned off for this account. You can turn it back on in the desktop app under Account.",
+    "unlock_mismatch": "Unlocking didn't work: you signed in with a different account, or this session has ended.",
+    "generic": "Signing in didn't finish ({{code}}). Please try again."
+  },
+  "ended": {
+    "web_session_displaced": "A newer sign-in elsewhere signed this browser out: one account can be signed in on at most 5 browsers at a time.",
+    "web_session_revoked": "This browser was signed out or revoked elsewhere. Please sign in again."
+  },
+  "lock": {
+    "title": "Locked",
+    "body": "This page locked after being idle and your notes were cleared from the screen. Verify it's you to pick up where you left off.",
+    "account": "Account: {{email}}",
+    "unlock": "Unlock",
+    "unlocking": "Unlocking…",
+    "google": "Unlock with Google",
+    "facebook": "Unlock with Facebook",
+    "signOut": "Sign out",
+    "sealed": "Changes to {{count}} notes are not in the cloud yet. They are encrypted and kept on this page, and saving resumes after you unlock. Please do not close or reload this page."
+  },
+  "header": {
+    "account": "Account & sessions",
+    "signOut": "Sign out"
+  },
+  "vaults": {
+    "title": "Choose a vault",
+    "empty": "You don’t have a vault yet. Create one to start writing.",
+    "create": "New vault",
+    "defaultName": "My Notes",
+    "welcomeBody": "# Welcome to Lunarca\n\nThis note lives in your cloud vault and saves as you type. Create a note from the sidebar and start writing.\n\nWant your notes as Markdown files on your computer? Install the Lunarca desktop app and sign in to the same account.\n",
+    "notEntitledTitle": "Your plan does not include cloud sync",
+    "notEntitled": "The web app shows notes synced to Lunarca Cloud. Get a plan with cloud sync in the desktop app under Account and turn on sync to see them here.",
+    "unnamed": "Vault name unavailable",
+    "switch": "Switch vault",
+    "loading": "Loading your vaults…"
+  },
+  "nav": {
+    "label": "Notes",
+    "tree": "Folders",
+    "recent": "Recent",
+    "newNote": "New note",
+    "newFolder": "New folder",
+    "inFolder": "Creates it in “{{folder}}”",
+    "inRoot": "Creates it at the vault root",
+    "tags": "Tags",
+    "trash": "Recently deleted"
+  },
+  "search": {
+    "label": "Search titles and paths",
+    "placeholder": "Search titles and paths",
+    "empty": "No matching notes.",
+    "fulltext": "Search note text",
+    "fulltextPlaceholder": "Search note text"
+  },
+  "tree": {
+    "empty": "There are no notes in this vault yet."
+  },
+  "reader": {
+    "empty": "Pick a note on the left to read it.",
+    "loading": "Loading…",
+    "mediaHint": "Play it in the desktop app",
+    "fileMeta": "{{name}} · {{size}}",
+    "back": "Back to notes",
+    "copy": "Copy",
+    "copied": "Copied",
+    "diagramTimeout": "rendering timed out",
+    "download": "Download",
+    "downloading": "Downloading…"
+  },
+  "fulltext": {
+    "privacy": "Search happens in your browser: the first time, the text of every note in this vault is downloaded to this page and indexed here. Nothing is written to storage, and it’s discarded when you close the page.",
+    "start": "Download note text and build the index",
+    "progress": "Downloading note text {{done}} / {{total}}",
+    "cancel": "Cancel",
+    "failed": "Couldn’t build the index: {{reason}}",
+    "empty": "No matches in note text.",
+    "summary": "{{matches}} matches in {{notes}} notes",
+    "truncated": "Too many matching notes; showing the most recently modified ones.",
+    "moreLines": "More matches in this note",
+    "line": "Line {{line}}"
+  },
+  "tags": {
+    "empty": "No tags in this vault yet.",
+    "count_one": "{{count}} note",
+    "count_other": "{{count}} notes",
+    "aiOnly": "AI",
+    "aiOnlyHint": "Suggested by AI only",
+    "all": "All tags",
+    "notesTitle": "Notes tagged #{{tag}} (including sub-tags)",
+    "none": "No notes have this tag."
+  },
+  "trash": {
+    "hint": "Files deleted within the cloud retention period, most recent first. Once restored, they come back on every device.",
+    "empty": "Nothing was deleted recently.",
+    "deletedAt": "Deleted {{time}}",
+    "restore": "Restore",
+    "expired": "Past the retention period; can’t be restored",
+    "unreadable": "(name can’t be read)",
+    "more": "Load more",
+    "restored": "Restored “{{path}}”."
+  },
+  "history": {
+    "open": "Version history",
+    "title": "Version history of “{{name}}”",
+    "hint": "Versions within the cloud retention period, newest first. “Restore as new version” saves that version’s content as a new version; what’s there now stays in the history.",
+    "back": "Back to the note",
+    "empty": "No other versions yet.",
+    "loading": "Loading…",
+    "rev": "Version {{rev}}",
+    "current": "Current version",
+    "deleted": "Deleted",
+    "web": "Web · {{browser}}",
+    "webCurrent": "Web · {{browser}} (this browser)",
+    "webUnknown": "Web",
+    "webUnknownCurrent": "Web (this browser)",
+    "other": "Another device",
+    "view": "View",
+    "viewing": "Viewing version {{rev}} (read-only)",
+    "restore": "Restore as new version",
+    "restored": "Restored as a new version (version {{rev}}).",
+    "notText": "This version isn’t text, so it can’t be viewed on the web."
+  },
+  "upload": {
+    "uploading": "Uploading attachment…",
+    "done": "Attachment uploaded.",
+    "failed": "The attachment wasn’t uploaded: {{reason}}",
+    "cancelled": "You switched notes, so the uploaded attachment wasn’t inserted and was removed.",
+    "saveFirst": "The note isn’t saved yet, so the attachment wasn’t uploaded."
+  },
+  "account": {
+    "title": "Account & sessions",
+    "signedInAs": "Signed in as {{email}}",
+    "webAccess": "Allow access to my notes on the web",
+    "webAccessHint": "Turning this off signs out every web session right away (this one included) and blocks new web sign-ins. You can turn it back on in the desktop app under Account.",
+    "webAccessConfirm": "Turn off web access? Every web session will be signed out right away, including this one.",
+    "sessions": "Web sessions",
+    "sessionsHint": "One account can be signed in on at most {{max}} browsers at a time; signing in on one more signs out the least recently used.",
+    "current": "This browser",
+    "unknownBrowser": "Unknown browser",
+    "browserOs": "{{browser}} · {{os}}",
+    "lastSeen": "Last used {{time}}",
+    "keepSignedIn": "Kept signed in",
+    "revoke": "Sign out this session",
+    "revokeAll": "Sign out all web sessions",
+    "revokeAllConfirm": "Sign out all web sessions? This browser too.",
+    "idle": "Idle lock",
+    "idleHint": "Lock this page after being idle this long; you'll need to verify it's you again. Saved only in this browser.",
+    "idleOption": {
+      "auto": "Default (30 minutes unless kept signed in)",
+      "15m": "15 minutes",
+      "1h": "1 hour",
+      "4h": "4 hours",
+      "never": "Never"
+    },
+    "back": "Back to notes",
+    "signOut": "Sign out",
+    "loadFailed": "Couldn't load this ({{code}}).",
+    "webAccessConfirmAction": "Turn off web access"
+  },
+  "footer": {
+    "version": "Server {{version}}",
+    "source": "Source code (AGPL)",
+    "sourceUrl": "https://github.com/johnnyzhao5619/lunarca-desktop",
+    "terms": "Terms of Service",
+    "termsUrl": "https://lunarca.app/en/terms.html",
+    "privacy": "Cloud Privacy Policy",
+    "privacyUrl": "https://lunarca.app/en/cloud-privacy.html"
+  },
+  "common": {
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "OK"
+  },
+  "note": {
+    "placeholder": "Start typing…",
+    "untitled": "Untitled",
+    "conflictLabel": "conflict web",
+    "status": {
+      "saved": "Saved",
+      "saving": "Saving…",
+      "offline": "Offline — changes are kept on this page",
+      "failed": "Couldn’t save: {{reason}}"
+    },
+    "actions": {
+      "rename": "Rename",
+      "move": "Move",
+      "delete": "Delete"
+    },
+    "readOnly": {
+      "sync_quota_exceeded": "Your cloud storage is full, so notes are read-only. Deleting notes frees up space; unsaved changes are still on this page.",
+      "sync_read_only": "This vault is read-only: you can read it but not change or delete anything. Unsaved changes are still on this page.",
+      "account_frozen": "Your account is frozen: notes are read-only and can’t be changed or deleted. Unsaved changes are still on this page.",
+      "generic": "Notes are read-only right now ({{code}}). Unsaved changes are still on this page."
+    },
+    "gone": "This note was deleted elsewhere. Your unsaved changes are still on this page; saving brings it back.",
+    "remote": {
+      "body": "This note changed elsewhere, and this page still has unsaved changes.",
+      "compare": "Compare",
+      "hideCompare": "Hide comparison",
+      "merge": "Merge",
+      "saveMine": "Save mine separately"
+    },
+    "compare": {
+      "caption": "Lines marked − are the version saved elsewhere; lines marked + are the unsaved changes on this page.",
+      "same": "Both versions are the same.",
+      "degraded": "Too many changes to compare line by line, so the whole section is shown as replaced."
+    },
+    "merged": {
+      "body": "Merged changes from elsewhere",
+      "undo": "Undo",
+      "dismiss": "Dismiss"
+    },
+    "conflict": {
+      "body": "Both sides changed the same part, and both are kept: this note is now the other version, and your changes were saved as “{{path}}”.",
+      "show": "Open my copy",
+      "dismiss": "Got it"
+    },
+    "panes": {
+      "main": "This note",
+      "copy": "My copy",
+      "close": "Close the side copy"
+    },
+    "folder": {
+      "title": "New folder",
+      "label": "Folder name",
+      "hint": "Empty folders don’t sync: a folder shows up on your devices once its first note is in it. A new note will be created inside it.",
+      "confirm": "Create"
+    },
+    "rename": {
+      "title": "Rename",
+      "label": "New name",
+      "confirm": "Rename"
+    },
+    "move": {
+      "title": "Move to…",
+      "label": "Destination folder",
+      "root": "Vault root",
+      "confirm": "Move"
+    },
+    "delete": {
+      "title": "Delete “{{name}}”?",
+      "body": "The note goes to the Lunarca trash on each of your devices, where it can be restored.",
+      "confirm": "Delete",
+      "changedElsewhere": "Not deleted: this note was just changed elsewhere. Look at the new version first, then decide."
+    },
+    "signOutUnsaved": {
+      "title": "You have unsaved changes",
+      "body_one": "Changes to {{count}} note haven’t reached the cloud yet. Signing out now loses them.",
+      "body_other": "Changes to {{count}} notes haven’t reached the cloud yet. Signing out now loses them.",
+      "confirm": "Sign out anyway"
+    }
+  },
+  "unsaved": {
+    "title": "You were signed out",
+    "lockedTitle": "This page was locked",
+    "body": "Changes to the notes below didn’t reach the cloud in time. Copy them, then paste them back after signing in.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "continue": "Sign in",
+    "continueLocked": "Unlock"
+  }
+}

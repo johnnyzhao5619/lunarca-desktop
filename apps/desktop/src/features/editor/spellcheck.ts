@@ -16,7 +16,7 @@ import { syntaxTree } from "@codemirror/language";
 import { StateEffect, StateField, type EditorState, type Extension } from "@codemirror/state";
 import { Decoration, EditorView, ViewPlugin, type DecorationSet, type ViewUpdate } from "@codemirror/view";
 import { commands } from "../../ipc/bindings";
-import { getFrontmatterRange } from "./editor-extensions";
+import { getFrontmatterRange } from "@lunarca/editor-core/frontmatter";
 
 /** 停止输入多久后检查（毫秒）。 */
 const CHECK_DELAY_MS = 400;

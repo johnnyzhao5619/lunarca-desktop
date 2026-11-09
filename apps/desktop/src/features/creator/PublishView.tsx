@@ -26,7 +26,7 @@ import {
   type PublishSubtitlesDto,
 } from "../../ipc/bindings";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { CheckIcon, FilmIcon } from "../../components/ui/Icon";
+import { CheckIcon, FilmIcon } from "@lunarca/editor-core/Icon";
 import { SelectBox } from "../../components/ui/SelectBox";
 import { useVaultReload } from "../../hooks/use-vault-reload";
 import { formatClock } from "../../lib/format-duration";

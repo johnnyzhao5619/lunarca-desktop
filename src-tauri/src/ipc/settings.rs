@@ -379,6 +379,14 @@ pub(crate) fn apply_setting_side_effects(app: &tauri::AppHandle, state: &AppStat
         crate::reregister_global_shortcuts(app);
         crate::apply_double_tap_settings(app);
     }
+    // 提词器「尽量不被录屏」→ 当场给面板上 / 撤内容保护（ADR-176 ⑤）。
+    if key == "teleprompter.capture_hidden" {
+        crate::apply_teleprompter_capture(app);
+    }
+    // 遥控模式开关 → 浮窗显示着时当场占上 / 还回那组不带修饰的键（ADR-176 ⑥）。
+    if key == "teleprompter.remote_enabled" {
+        crate::refresh_teleprompter_shortcuts(app);
+    }
     // 改细分聚类阈值 → 重建细分 Provider 热生效（模型未装则维持未注册，TDD-03 §10.2）。
     if key == "diarize.cluster_threshold" {
         state.register_diarize_provider_if_available(app);

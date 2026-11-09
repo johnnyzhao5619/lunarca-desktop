@@ -6,10 +6,10 @@ import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { history, undo } from "@codemirror/commands";
 import { commands, type HtmlPasteDto } from "../../ipc/bindings";
 import type { PasteAssetsContext } from "./paste-assets";
-import { pasteRangeField } from "./paste-range";
-import { tableAt } from "./table-model";
-import { tableFillSpec } from "./table-edit";
-import { tablePreviewExtension } from "./table-preview";
+import { pasteRangeField } from "@lunarca/editor-core/paste-range";
+import { tableAt } from "@lunarca/editor-core/table-model";
+import { tableFillSpec } from "@lunarca/editor-core/table-edit";
+import { tablePreviewExtension } from "@lunarca/editor-core/table-preview";
 import { pasteTableCell } from "./table-paste";
 
 vi.mock("../../ipc/bindings", () => ({ commands: { convertClipboardHtml: vi.fn() } }));

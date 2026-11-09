@@ -20,10 +20,10 @@ import { PanelSettingRow } from "./PanelSettingRow";
 export const TRANSCRIPTION_CONSENT_KEY = "provider.remote_asr_enabled";
 
 /**
- * 勾不动时换成说明原因的那一句。穷尽 Record：Rust 新增一种原因时 tsc 立刻红，
+ * 勾不动时换成说明原因的那一句（转写槽位的下拉说「为什么选不到服务端」也用这一份）。穷尽 Record：Rust 新增一种原因时 tsc 立刻红，
  * 而不是让开关灰着却什么都不解释。`no_server` 那一档这一行根本不渲染，给一句以防万一。
  */
-const BLOCKER_COPY: Record<TranscriptionServerBlocker, string> = {
+export const BLOCKER_COPY: Record<TranscriptionServerBlocker, string> = {
   no_server: "compute_card.reason.device_policy",
   local_only_strategy: "compute_card.transcription_local_only",
   server_not_configured: "compute_card.reason.server_not_configured",

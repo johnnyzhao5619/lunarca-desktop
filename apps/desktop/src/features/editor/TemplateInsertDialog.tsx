@@ -10,7 +10,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton } from "../../components/ui/IconButton";
-import { CloseIcon } from "../../components/ui/Icon";
+import { CloseIcon } from "@lunarca/editor-core/Icon";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import { commands, type NoteTemplateEntryDto, type TemplateFileDto } from "../../ipc/bindings";
 import { GetMoreTemplates } from "../../components/GetMoreTemplates";

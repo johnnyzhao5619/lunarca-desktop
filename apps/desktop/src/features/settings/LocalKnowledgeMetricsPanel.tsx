@@ -14,7 +14,7 @@ import { SelectBox } from "../../components/ui/SelectBox";
 import { useTranslation } from "react-i18next";
 import { useConfirm } from "../../components/ConfirmHost";
 import { useVaultReload } from "../../hooks/use-vault-reload";
-import { ChevronRightIcon } from "../../components/ui/Icon";
+import { ChevronRightIcon } from "@lunarca/editor-core/Icon";
 import {
   commands,
   events,

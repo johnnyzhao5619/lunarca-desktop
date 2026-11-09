@@ -5,8 +5,6 @@ import {
   COMMANDS,
   COMMAND_SPACES,
   EDITOR_PALETTE_COMMANDS,
-  EDITOR_SHORTCUTS,
-  codeMirrorKey,
   commandById,
   commandShortcut,
   editorCommandForKey,
@@ -15,6 +13,7 @@ import {
   workspaceCommandForKey,
 } from "./command-registry";
 import { DoubleTapDetector } from "../../lib/double-tap";
+import { EDITOR_SHORTCUTS } from "@lunarca/editor-core/editor-shortcuts";
 
 function key(
   k: string,
@@ -58,15 +57,6 @@ describe("matchesShortcut（注册表键值串 → 键盘事件判定）", () =>
   });
 
   it("既有谓词从同一张表派生（改表即改键，不必再找第二处）", () => {
-  });
-});
-
-describe("codeMirrorKey（注册表键值串 → CM6 keymap 键名）", () => {
-  it("cmd_or_ctrl → Mod，alt → Alt，shift → Shift，主键原样", () => {
-    expect(codeMirrorKey("cmd_or_ctrl+b")).toBe("Mod-b");
-    expect(codeMirrorKey("cmd_or_ctrl+alt+t")).toBe("Mod-Alt-t");
-    expect(codeMirrorKey("cmd_or_ctrl+shift+f")).toBe("Mod-Shift-f");
-    expect(codeMirrorKey("cmd_or_ctrl+0")).toBe("Mod-0");
   });
 });
 

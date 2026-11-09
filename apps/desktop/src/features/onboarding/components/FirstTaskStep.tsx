@@ -14,8 +14,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { commands, type SetupStatusDto } from "../../../ipc/bindings";
-import { CheckIcon, LanguagesIcon, MicIcon, MusicIcon } from "../../../components/ui/Icon";
-import { formatShortcut } from "../../../lib/shortcut-display";
+import { CheckIcon, LanguagesIcon, MicIcon, MusicIcon } from "@lunarca/editor-core/Icon";
+import { formatShortcut } from "@lunarca/editor-core/shortcut-display";
 import { useSettings } from "../../settings/use-settings";
 import { vaultErrorText } from "../../../lib/vault-error";
 import type { OnboardingStepId } from "../onboarding-steps";

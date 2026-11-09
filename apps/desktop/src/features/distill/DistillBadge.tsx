@@ -54,7 +54,7 @@ import { createPortal } from "react-dom";
 import { cssVariables } from "../../lib/css-variables";
 import { useTranslation } from "react-i18next";
 import { commands, events, type DistillOptionsDto, type DistillStateDto } from "../../ipc/bindings";
-import { ChevronDownIcon, SparklesIcon } from "../../components/ui/Icon";
+import { ChevronDownIcon, SparklesIcon } from "@lunarca/editor-core/Icon";
 import { requestDistillPreview } from "./distill-actions";
 import { withoutErrorCode } from "../../lib/task-failure";
 import { useProcessingQueueSelector } from "../processing/use-processing-queue";

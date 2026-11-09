@@ -10,7 +10,7 @@ import {
 } from "./graph-sidebar-config";
 import { GRAPH_NOTE_TYPES } from "./graph-sim";
 import { noteTypeLabelKey } from "../../lib/note-type";
-import { comparableLocaleKeys, type LocaleDict } from "../../i18n/locale-keys";
+import { comparableLocaleKeys, type LocaleDict } from "@lunarca/lint-config/locale-keys";
 
 /**
  * 全库重扫（PRD-06-035 全库重扫入口）的 i18n 守护。
@@ -125,7 +125,7 @@ describe("全库重扫的动态文案（PRD-06-035）", () => {
   it("workspace 全文件键集中英一致（递归）", () => {
     // 原本只锁 graph 区段；多库切换（vault.*）与分层可感知化（tree.* / distill.*）
     // 又各加了一整片动态查表的键——逐区段登记必然漏掉下一片，改为递归锁整个文件。
-    // 取键集与去复数后缀的判据归 `i18n/locale-keys`——全 namespace 那份守护用的是同一
+    // 取键集与去复数后缀的判据归 `@lunarca/lint-config/locale-keys`——全 namespace 那份守护用的是同一
     // 份，两边各写一份 `flatten` 迟早只有一份跟上变化，而它们守的恰恰是"两边必须一样"。
     expect(comparableLocaleKeys(zhWorkspace as unknown as LocaleDict)).toEqual(
       comparableLocaleKeys(enWorkspace as unknown as LocaleDict),

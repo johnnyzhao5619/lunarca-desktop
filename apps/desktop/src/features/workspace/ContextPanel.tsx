@@ -14,7 +14,7 @@ import {
   SparklesIcon,
   TagsIcon,
   WikiLinkIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { BacklinksPanel } from "../editor/BacklinksPanel";
 import { NoteInfoPanel } from "../editor/NoteInfoPanel";
 import { NoteTagsPanel } from "../editor/NoteTagsPanel";

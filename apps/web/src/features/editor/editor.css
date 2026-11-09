@@ -1,0 +1,169 @@
+/*
+ * 网页编辑区的外壳：一篇笔记的页头（名字、三种模式、保存状态、改名 / 移动 / 删除）、横幅与提示、编辑面容器，
+ * 「查看对比」的逐行差异，以及主区里并排的两份（冲突副本与主文件）。编辑面本身（CM 渲染件）的样式在共享包 `@lunarca/styles/editor.css`
+ * 与 `codemirror.css`，作用域是容器上的 `.luna-md-surface`。
+ */
+
+.luna-web-panes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.luna-web-panes__tabs {
+  display: none;
+  flex-basis: 100%;
+  gap: var(--space-1);
+}
+
+.luna-web-panes__pane {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.luna-web-note {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.luna-web-note__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-web-note__title {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-web-note__modes {
+  display: inline-flex;
+  gap: var(--space-0-5);
+  padding: var(--space-0-5);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.luna-web-note__mode {
+  padding-block: var(--space-0-5);
+  padding-inline: var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.luna-web-note__mode[aria-pressed="true"] {
+  background: var(--color-bg-selected);
+  color: var(--color-text-primary);
+}
+
+.luna-web-note__status {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.luna-web-note__status[data-status="offline"] {
+  color: var(--color-status-warning);
+}
+
+.luna-web-note__status[data-status="failed"] {
+  color: var(--color-status-error);
+  white-space: normal;
+}
+
+.luna-web-note__actions {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+.luna-web-note__body {
+  min-inline-size: 0;
+}
+
+.luna-web-note__surface {
+  min-block-size: var(--web-editor-min-block);
+}
+
+.luna-web-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-status-attention);
+  border-radius: var(--radius-md);
+  background: var(--color-status-attention-surface);
+  font-size: var(--font-size-sm);
+}
+
+.luna-web-banner__text {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.luna-web-banner__actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.luna-web-toast {
+  position: fixed;
+  inset-block-end: var(--space-6);
+  inset-inline-start: 50%;
+  z-index: var(--z-notification);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-panel);
+  box-shadow: var(--shadow-md);
+  transform: translateX(-50%);
+}
+
+/* 「查看对比」就地展开的逐行差异（PRD-21-030）：差异视图本身在共享包 `@lunarca/styles/editor-chrome.css`。 */
+.luna-web-note__compare {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-block-size: var(--web-compare-max-block);
+  overflow: auto;
+}
+
+/* 窄屏单栏：两份变成页签切换（PRD-21-051）。媒体查询里写不了 Token。 */
+@media (max-width: 48rem) {
+  .luna-web-panes[data-companion] .luna-web-panes__tabs {
+    display: flex;
+  }
+
+  .luna-web-panes[data-companion][data-active-pane="main"] .luna-web-panes__pane[data-pane="companion"],
+  .luna-web-panes[data-companion][data-active-pane="companion"] .luna-web-panes__pane[data-pane="main"] {
+    display: none;
+  }
+
+  .luna-web-panes__pane {
+    flex-basis: 100%;
+  }
+}

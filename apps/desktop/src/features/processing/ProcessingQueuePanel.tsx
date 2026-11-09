@@ -26,7 +26,7 @@ import {
   ChevronUpIcon,
   CloseIcon,
   TrashIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { useConfirm } from "../../components/ConfirmHost";
 import { IconButton } from "../../components/ui/IconButton";
 import { HudActionMenu, type HudActionMenuItem } from "../../components/ui/HudActionMenu";

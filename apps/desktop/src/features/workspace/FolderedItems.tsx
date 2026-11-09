@@ -26,7 +26,7 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { Fragment } from "react";
-import { ChevronDownIcon, ChevronRightIcon, FolderIcon } from "../../components/ui/Icon";
+import { ChevronDownIcon, ChevronRightIcon, FolderIcon } from "@lunarca/editor-core/Icon";
 import { useContextMenu } from "../../components/ContextMenuHost";
 import { buildMenu, separator, type ContextMenuEntry } from "../../lib/context-menu";
 import { cssVariables } from "../../lib/css-variables";

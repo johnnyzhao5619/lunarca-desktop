@@ -9,14 +9,14 @@ import { useTranslation } from "react-i18next";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import { commands, type TrashEntryDto, type TrashPreviewDto } from "../../ipc/bindings";
 import { ReadingView } from "../editor/ReadingView";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import {
   ArrowClockwiseIcon,
   CloseIcon,
   FolderIcon,
   HardDriveIcon,
   TrashIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { formatDateTime } from "../../lib/format-datetime";
 import { FileNodeIcon } from "./NoteTree";
 import { vaultErrorText } from "../../lib/vault-error";

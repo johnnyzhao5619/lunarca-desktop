@@ -33,7 +33,7 @@ import {
 import type { ScriptOutlineDto } from "../../ipc/bindings";
 import { ContextMenuHost } from "../../components/ContextMenuHost";
 import { t, withI18n } from "../../i18n/i18n-test-fixture";
-import { formatShortcut } from "../../lib/shortcut-display";
+import { formatShortcut } from "@lunarca/editor-core/shortcut-display";
 import { ScriptInspector } from "./ScriptInspector";
 import { ScriptToolbar } from "./ScriptToolbar";
 

@@ -30,7 +30,6 @@ use crate::error::LoginRejection;
 use crate::fingerprint::FingerprintProvider;
 use crate::first_contact::{self, Channel, Purpose};
 use crate::lease::{self, LeaseError};
-use crate::opaque_auth::{self, BundleTls, Suite};
 use crate::protocol::{self, DeploymentFacts, ServiceModelDto};
 use crate::store::{CredentialStore, KEY_ACCESS, KEY_PROFILE, KEY_REFRESH, KEY_WRITE_PROBE};
 use crate::tls_root::TlsRootStore;
@@ -38,6 +37,7 @@ use crate::trust::{
     OfferedAnchor, PinnedAnchor, RotationStatement, TrustProvenance, TrustStatusDto, TrustStore,
     TrustVerdict,
 };
+use luna_opaque::{BundleTls, Suite};
 
 /// `slow_down` 时的间隔增量（RFC 8628 §3.5：轮询过快须把 interval 增加 5 秒）。
 const SLOW_DOWN_STEP_SECS: u64 = 5;
@@ -85,6 +85,18 @@ pub struct LoginPollDto {
 pub struct ProfileDto {
     pub account_id: String,
     pub email: String,
+}
+
+/// 一个在用的网页会话（PRD-21-005、TDD-16 §9）。
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct WebSessionDto {
+    pub id: String,
+    /// 从 User-Agent 粗分的浏览器 / 系统（认不出 = 缺席）。
+    pub browser: Option<String>,
+    pub os: Option<String>,
+    /// RFC 3339 时间戳（渲染归前端，本地化在 UI 层）。
+    pub created_at: String,
+    pub last_seen_at: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -346,7 +358,7 @@ struct PendingLogin {
 #[derive(Debug, Clone)]
 struct SignInContext {
     server: AccountServer,
-    /// 规整后的邮箱（[`opaque_auth::normalize_email`]）。
+    /// 规整后的邮箱（[`luna_opaque::normalize_email`]）。
     email: String,
     /// 邮箱域名上 `.well-known/lunarca` 发布的部署：握手与信任包都必须是它。
     expected_deployment: Option<String>,
@@ -403,6 +415,7 @@ const REGISTER_START_PATH: &str = "/v1/auth/opaque/register/start";
 const REGISTER_FINISH_PATH: &str = "/v1/auth/opaque/register/finish";
 /// 邮箱域名上的发现文档。
 const WELL_KNOWN_PATH: &str = "/.well-known/lunarca";
+const WEB_SESSIONS_PATH: &str = "/v1/web/sessions";
 /// 取发现文档最多等多久：取不到就跳过，不该让「下一步」卡住。
 const WELL_KNOWN_TIMEOUT: Duration = Duration::from_secs(5);
 
@@ -674,6 +687,12 @@ impl CloudClient {
             .rotation_applier
             .lock()
             .expect("rotation applier mutex poisoned") = Some(applier);
+    }
+
+    /// 此刻连的是不是官方云（登录后默认同步只对官方云，ADR-178 ②）。
+    #[must_use]
+    pub fn server_is_official(&self) -> bool {
+        self.account.effective_server().is_official()
     }
 
     /// 当前服务端桶名 —— 钉住 / 凭据 / 目录水位共用的那一个判据。
@@ -1221,7 +1240,7 @@ impl CloudClient {
             .post(self.url(REGISTER_START_PATH))
             .bearer_auth(bearer.as_str())
             .json(&serde_json::json!({
-                "registration_request": opaque_auth::b64u(&start.message.serialize()),
+                "registration_request": luna_opaque::b64u(&start.message.serialize()),
             }))
             .send()
             .await
@@ -1234,13 +1253,13 @@ impl CloudClient {
             .json()
             .await
             .map_err(|err| CloudError::body(&err, &self.config().api_base))?;
-        let registration_response = opaque_auth::from_b64u(&started.registration_response)
+        let registration_response = luna_opaque::from_b64u(&started.registration_response)
             .and_then(|bytes| RegistrationResponse::<Suite>::deserialize(&bytes).ok())
             .ok_or_else(|| CloudError::UnreadableResponse {
                 host: self.server_bucket(),
                 detail: "registration_response is not a valid opaque message".to_owned(),
             })?;
-        let ksf = opaque_auth::ksf();
+        let ksf = luna_opaque::ksf();
         let finished = start
             .state
             .finish(
@@ -1248,7 +1267,7 @@ impl CloudClient {
                 password.as_bytes(),
                 registration_response,
                 ClientRegistrationFinishParameters::new(
-                    opaque_auth::identifiers(email, deployment_id),
+                    luna_opaque::identifiers(email, deployment_id),
                     Some(&ksf),
                 ),
             )
@@ -1257,7 +1276,7 @@ impl CloudClient {
             REGISTER_FINISH_PATH,
             serde_json::json!({
                 "registration_id": started.registration_id,
-                "registration_upload": opaque_auth::b64u(&finished.message.serialize()),
+                "registration_upload": luna_opaque::b64u(&finished.message.serialize()),
                 "device_name": device_name,
                 "platform": platform,
                 "device_fingerprint": self.fingerprint.get().as_str(),
@@ -1284,7 +1303,7 @@ impl CloudClient {
         let access = self.access_token().ok_or(CloudError::NotLoggedIn)?;
         let email = self
             .cached_profile()
-            .map(|profile| opaque_auth::normalize_email(&profile.email))
+            .map(|profile| luna_opaque::normalize_email(&profile.email))
             .ok_or(CloudError::NotLoggedIn)?;
         // 部署 id 经钉住的通道现取（与登录时 `server_identity` 同一个值）。
         let deployment_id = self
@@ -1456,6 +1475,95 @@ impl CloudClient {
     }
 
     // ---- 设备管理 / 权益 / 注销 ----
+
+    /// 读取或更新网页访问开关（PRD-21-006、TDD-16 §9）。吊销会话由服务端事务完成。
+    pub(crate) async fn web_access(&self, enabled: Option<bool>) -> Result<bool, CloudError> {
+        self.require_official_web()?;
+        self.request_web_access(enabled).await
+    }
+
+    /// 网页版只开官方云（ADR-177 ①），组织服务端上一个请求都不发。
+    fn require_official_web(&self) -> Result<(), CloudError> {
+        self.require_session()?;
+        if self.account.effective_server().is_official() {
+            Ok(())
+        } else {
+            Err(CloudError::WebAccessUnavailable)
+        }
+    }
+
+    /// 列出在用的网页会话（PRD-21-005）。
+    pub(crate) async fn web_sessions(&self) -> Result<Vec<WebSessionDto>, CloudError> {
+        self.require_official_web()?;
+        self.request_web_sessions().await
+    }
+
+    async fn request_web_sessions(&self) -> Result<Vec<WebSessionDto>, CloudError> {
+        #[derive(Deserialize)]
+        struct Listed {
+            sessions: Vec<WebSessionDto>,
+        }
+
+        let response = self
+            .authed(reqwest::Method::GET, WEB_SESSIONS_PATH)
+            .await
+            .map_err(web_access_unavailable_on_404)?;
+        let listed: Listed = response
+            .json()
+            .await
+            .map_err(|error| CloudError::body(&error, &self.config().api_base))?;
+        Ok(listed.sessions)
+    }
+
+    /// 让一个浏览器退出；`id` 缺席 = 全部退出。那个会话已经不在了同样算成功：用户要的结果已经成立。
+    pub(crate) async fn revoke_web_sessions(&self, id: Option<&str>) -> Result<(), CloudError> {
+        self.require_official_web()?;
+        self.request_revoke_web_sessions(id).await
+    }
+
+    async fn request_revoke_web_sessions(&self, id: Option<&str>) -> Result<(), CloudError> {
+        let result = match id {
+            Some(id) => {
+                self.authed(
+                    reqwest::Method::DELETE,
+                    &format!("{WEB_SESSIONS_PATH}/{id}"),
+                )
+                .await
+            }
+            None => {
+                self.authed(reqwest::Method::DELETE, WEB_SESSIONS_PATH)
+                    .await
+            }
+        };
+        match result {
+            Ok(_) | Err(CloudError::Server { status: 404, .. }) if id.is_some() => Ok(()),
+            other => other.map(|_| ()).map_err(web_access_unavailable_on_404),
+        }
+    }
+
+    async fn request_web_access(&self, enabled: Option<bool>) -> Result<bool, CloudError> {
+        #[derive(Deserialize)]
+        struct WebAccess {
+            enabled: bool,
+        }
+
+        const PATH: &str = "/v1/account/web-access";
+        let response = match enabled {
+            Some(enabled) => {
+                self.authed_with(reqwest::Method::PUT, PATH, |request| {
+                    request.json(&serde_json::json!({ "enabled": enabled }))
+                })
+                .await
+            }
+            None => self.authed(reqwest::Method::GET, PATH).await,
+        }
+        .map_err(web_access_unavailable_on_404)?;
+        let access: WebAccess = response
+            .json()
+            .await
+            .map_err(|error| CloudError::body(&error, &self.config().api_base))?;
+        Ok(access.enabled)
+    }
 
     pub async fn devices(&self) -> Result<Vec<DeviceDto>, CloudError> {
         let response = self.authed(reqwest::Method::GET, "/v1/devices").await?;
@@ -2167,19 +2275,23 @@ impl CloudClient {
         self.forget_sign_in();
         let raw_email = match &target {
             SignInTarget::Discover { email }
+            | SignInTarget::Official { email }
             | SignInTarget::Server { email, .. }
             | SignInTarget::IncomingLink { email } => email,
         };
-        let email = opaque_auth::normalize_email(raw_email);
-        let domain = opaque_auth::email_domain(&email)
+        let email = luna_opaque::normalize_email(raw_email);
+        let domain = luna_opaque::email_domain(&email)
             .ok_or(CloudError::NotAnEmail)?
             .to_owned();
         let mut from_incoming = false;
+        // 用户手填的地址（不是链接）：那里没有服务端时，按这个主机名回查一次 `.well-known`。
+        let mut typed_host = None;
         let (server, expected_deployment, invite) = match target {
             SignInTarget::Discover { .. } => {
                 let (server, expected) = self.discover(&domain).await;
                 (server, expected, None)
             }
+            SignInTarget::Official { .. } => (AccountServer::official(), None, None),
             SignInTarget::Server { input, .. } => {
                 if crate::connect_link::looks_like_link(&input) {
                     let link = crate::connect_link::parse(&input)
@@ -2188,6 +2300,9 @@ impl CloudClient {
                 } else {
                     let origin = crate::account::normalize_server_address(&input)
                         .ok_or(CloudError::NotAnAddress)?;
+                    typed_host = reqwest::Url::parse(&origin)
+                        .ok()
+                        .and_then(|url| url.host_str().map(str::to_owned));
                     (
                         AccountServer {
                             origin,
@@ -2209,9 +2324,30 @@ impl CloudClient {
                 (link.server_account(), None, link.invite)
             }
         };
-        let step = self
-            .sign_in_at(server, email, expected_deployment, invite.is_some())
-            .await?;
+        let step = match self
+            .sign_in_at(server, email.clone(), expected_deployment, invite.is_some())
+            .await
+        {
+            // 填的是一个网站而不是服务端（官网 `lunarca.app` 是最自然的那一个，真机 2026-11-03）：
+            // 按同一份发布物再找一次，校验与部署一致性要求与邮箱域名发现完全相同。
+            Err(err) if typed_host.is_some() && no_server_there(&err) => {
+                let host = typed_host.unwrap_or_default();
+                let Some(found) = self.well_known(&host).await else {
+                    return Err(CloudError::NoServerAtAddress { host });
+                };
+                self.sign_in_at(
+                    AccountServer {
+                        origin: found.server,
+                        display_name: None,
+                    },
+                    email,
+                    Some(found.deployment_id),
+                    invite.is_some(),
+                )
+                .await?
+            }
+            other => other?,
+        };
         if matches!(step, SignInStepDto::Ready { .. }) {
             *self.invite.lock().expect("invite mutex poisoned") = invite;
             if from_incoming {
@@ -2593,7 +2729,7 @@ impl CloudClient {
                 .ok_or(CloudError::NoInvite)?,
         };
         // 形状不对的码不发请求：服务端那边也只认规整后恰为 10 位的 Crockford 码。
-        let code = zeroize::Zeroizing::new(opaque_auth::normalize_code(&raw).ok_or(
+        let code = zeroize::Zeroizing::new(luna_opaque::normalize_code(&raw).ok_or(
             CloudError::LoginRejected {
                 reason: LoginRejection::InvalidCredentials,
             },
@@ -2888,6 +3024,23 @@ impl CloudClient {
         self.account.set_server(server);
         self.reconfigure();
     }
+}
+
+/// 这个地址上没有服务端：能力声明 404，或回来的不是能力声明（网站首页、别的服务）。
+/// 连不上、超时、协议不兼容都不算——那是服务端在、只是此刻有问题，回查 `.well-known` 只会掩盖它。
+/// 网页接口在没开网页版的服务端上一律 404（TDD-16 §9）。
+fn web_access_unavailable_on_404(error: CloudError) -> CloudError {
+    match error {
+        CloudError::Server { status: 404, .. } => CloudError::WebAccessUnavailable,
+        other => other,
+    }
+}
+
+fn no_server_there(err: &CloudError) -> bool {
+    matches!(
+        err,
+        CloudError::Server { status: 404, .. } | CloudError::UnreadableResponse { .. }
+    )
 }
 
 /// 信任包的 TLS 身份能不能被采用：正式构建的官方后端只认 `public`（它用公网证书，送来一张

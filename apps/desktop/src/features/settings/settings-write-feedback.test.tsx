@@ -75,3 +75,26 @@ it("过期重置计划保持错误可见且不清除草稿；成功才更新恢�
   expect(commandMock("resetSettingGroup")).toHaveBeenLastCalledWith("privacy", "standard", "new");
   expect(result.current.resetEpochs["privacy.strict_local"]).toBe(1);
 });
+
+it("注册表读回之前不挑首页：先挂载、后进入设置也落在第一页而不是面板型页", async () => {
+  // 工作区一挂载控制器就在（`enabled=false`，不取数），此时页面清单只剩面板型页。
+  const { result, rerender } = renderHook(({ enabled }) => useSettingsController(enabled), {
+    initialProps: { enabled: false },
+  });
+  expect(result.current.activePage).toBe("");
+  setCommandReply("listSettings", {
+    status: "ok",
+    data: [createSettingSpecFixture({ key: "general.language", group: "general" })],
+  });
+  rerender({ enabled: true });
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  expect(result.current.activePage).toBe("general");
+});
+
+it("注册表一次都没读成：不落到面板型页，错误留给视图如实显示", async () => {
+  setCommandReply("listSettings", { status: "error", error: "VAULT_IO: x" });
+  const { result } = renderHook(() => useSettingsController(true));
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  expect(result.current.activePage).toBe("");
+  expect(result.current.error).not.toBeNull();
+});

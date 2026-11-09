@@ -76,7 +76,7 @@ import {
   ScissorsIcon,
   TrashIcon,
   UserIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { PLAYBACK_RATES } from "./use-playback";
 import { usePlaybackHost } from "./playback-host";
 import { findCueMatches, splitByMatch, stepMatch } from "./transcript-find";

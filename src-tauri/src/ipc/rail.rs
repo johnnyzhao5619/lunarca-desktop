@@ -31,6 +31,8 @@ pub enum WorkspaceSpaceDto {
     Chat,
     /// 创作空间（ADR-162）：归一方应用「创作」，应用未启用时不在活动栏上（ADR-165 ③）。
     Creator,
+    /// 提词器空间（ADR-176 ①）：归一方应用「提词器」，应用未生效时不在活动栏上。
+    Teleprompter,
     /// 「应用」目的地（ADR-165 ⑤）：系统区，贴底在回收站之上。
     Apps,
     Trash,
@@ -53,6 +55,7 @@ impl WorkspaceSpaceDto {
             "transcripts" => Some(Self::Transcripts),
             "chat" => Some(Self::Chat),
             "creator" => Some(Self::Creator),
+            "teleprompter" => Some(Self::Teleprompter),
             "apps" => Some(Self::Apps),
             "trash" => Some(Self::Trash),
             "settings" => Some(Self::Settings),
@@ -234,15 +237,14 @@ mod tests {
 
     #[test]
     fn a_space_of_a_disabled_app_is_not_on_the_rail_at_all() {
-        // 默认设置：创作未启用 → 整格不下发，其余照旧（ADR-165 ③ ④）。
+        // 默认设置：创作与提词器都未安装 → 整格不下发，其余照旧（ADR-165 ③ ④、ADR-176 ①）。
         let off = luna_config::Settings::default();
         let frozen = unavailable_spaces(&off);
-        assert_eq!(frozen, ["creator"]);
+        assert_eq!(frozen, ["creator", "teleprompter"]);
         let items = items_of(&resolve_rail_layout(&[]), &frozen);
-        assert!(items
-            .iter()
-            .all(|it| it.space != WorkspaceSpaceDto::Creator));
-        assert_eq!(items.len(), RAIL_SPACE_IDS.len() - 1);
+        assert!(items.iter().all(|it| it.space != WorkspaceSpaceDto::Creator
+            && it.space != WorkspaceSpaceDto::Teleprompter));
+        assert_eq!(items.len(), RAIL_SPACE_IDS.len() - 2);
 
         let mut on = luna_config::Settings::default();
         for key in [
@@ -251,7 +253,10 @@ mod tests {
         ] {
             on.set(
                 key,
-                luna_config::SettingValue::StringList(vec!["creator".to_owned()]),
+                luna_config::SettingValue::StringList(vec![
+                    "creator".to_owned(),
+                    "teleprompter".to_owned(),
+                ]),
             );
         }
         assert!(unavailable_spaces(&on).is_empty());

@@ -6,9 +6,10 @@
 use crate::frontmatter::{body_of, read_luna};
 use crate::frontmatter::{NoteStage, NoteType};
 use crate::{
-    evidence_eligibility, ClaimKind, ContentHash, EvidenceLocator, EvidenceReason, PlanEvidence,
-    SourcePolicy, TopicScope, Vault, VaultError, VaultOpenError,
+    evidence_eligibility, ClaimKind, EvidenceLocator, EvidenceReason, PlanEvidence, SourcePolicy,
+    TopicScope, Vault, VaultError, VaultOpenError,
 };
+use luna_sync_core::hashing::ContentHash;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap, HashSet};
 use uuid::Uuid;
@@ -251,7 +252,7 @@ impl Vault {
                 next_fragment: (read_to < fragments.len())
                     .then(|| u32::try_from(read_to).unwrap_or(u32::MAX)),
             });
-            let title = crate::title_of(&opened.rel).to_owned();
+            let title = luna_sync_core::links::title_of(&opened.rel).to_owned();
             for fragment in fragments.into_iter().skip(start).take(accepted) {
                 evidence.push(TopicEvidenceInput {
                     id: format!("e{:04}", evidence.len()),
@@ -374,11 +375,11 @@ fn transcript_source_lines(content: &str) -> Vec<FormalLine> {
     let mut lines: Vec<(u64, String, u32, bool)> = Vec::new();
     for (index, line) in body.lines().enumerate() {
         let trimmed = line.trim();
-        if trimmed == crate::vault::TRANSCRIPT_BEGIN {
+        if trimmed == luna_sync_core::scaffold::TRANSCRIPT_BEGIN {
             inside = true;
             continue;
         }
-        if trimmed == crate::vault::TRANSCRIPT_END {
+        if trimmed == luna_sync_core::scaffold::TRANSCRIPT_END {
             inside = false;
             continue;
         }

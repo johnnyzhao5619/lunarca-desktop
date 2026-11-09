@@ -17,6 +17,8 @@ luna-jobqueue = { path = "../luna-jobqueue" }
 luna-provider = { path = "../luna-provider" }
 # `luna export`（PRD-11-006 / TDD-09 §2）：与 GUI 同一份段收集（luna-vault）与导出器（luna-export）。
 luna-vault = { path = "../luna-vault" }
+# 搜索的查询语法与命中结果（与 GUI、网页版同一份，ADR-177 ⑥）。
+luna-sync-core = { path = "../luna-sync-core" }
 luna-export = { path = "../luna-export" }
 # 复用 GUI 的设备配置（`storage.vault_root`），`--vault` 可覆盖（PRD-08-005）。
 luna-config = { path = "../luna-config" }

@@ -134,6 +134,19 @@ impl PrompterAligner {
         self.committed.clear();
     }
 
+    /// 从某一行接着跟（ADR-176 ⑥，PRD-20-013：点哪行从哪行开始、按键换行换段）：游标放到这一行
+    /// 第一个记号上，已确定的识别记号清空——之前念过的不再参与这一行之后的对齐。这一行没有记号
+    /// （空行）时放到它之后的第一个记号；在稿末之后就放到最后。
+    pub fn seek(&mut self, block: u32, line: u32) {
+        let at = self
+            .positions
+            .iter()
+            .position(|p| (p.block, p.line) >= (block, line))
+            .unwrap_or(self.positions.len());
+        self.cursor = at;
+        self.committed.clear();
+    }
+
     /// 喂一次实时转写：`committed` 是这次新确定的文字（可空），`hypothesis` 是此刻的暂定尾
     /// （每次整句替换）。位置变了返回新位置；没变或对不上返回 `None`。
     pub fn feed(&mut self, committed: &str, hypothesis: &str) -> Option<ScriptPosition> {
@@ -300,5 +313,25 @@ mod tests {
         assert_eq!((a.position().block, a.position().line), (0, 1));
         a.feed("", "大家好今天我们聊一聊怎么把视频脚本写得更顺口啊");
         assert_eq!((a.position().block, a.position().line), (0, 0));
+    }
+
+    #[test]
+    fn seeking_moves_the_follow_cursor_to_that_line() {
+        let mut a = script();
+        a.seek(1, 0);
+        assert_eq!(
+            a.position().block,
+            0,
+            "还没念到这一行时，位置停在它前一个记号上"
+        );
+        let moved = a.feed("先把每句话控制在一口气", "");
+        assert_eq!(moved.map(|p| (p.block, p.line)), Some((1, 0)));
+        // 往回跳也照样接得上。
+        a.seek(0, 1);
+        let moved = a.feed("很多人写完稿子一念", "");
+        assert_eq!(moved.map(|p| (p.block, p.line)), Some((0, 1)));
+        // 稿末之后：放到最后。
+        a.seek(9, 9);
+        assert_eq!((a.position().block, a.position().line), (1, 0));
     }
 }

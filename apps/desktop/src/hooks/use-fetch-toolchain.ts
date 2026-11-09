@@ -7,7 +7,7 @@ import {
   type FetchToolStatusDto,
   type InstallToolchainDto,
 } from "../ipc/bindings";
-import { formatBytes } from "../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { vaultErrorText } from "../lib/vault-error";
 
 /**

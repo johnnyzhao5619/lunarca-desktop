@@ -80,9 +80,16 @@ pub struct SpeechWindow {
     pub abs_start: u64,
     /// 本窗实际语音内容的样本数（padding 之前）。
     pub speech_len: usize,
-    /// 相比本 utterance 上一个已产出窗（快照/终窗）**新增**的语音样本数。
-    /// RTF `T_audio` 只计增量——增长快照重复携带的旧语音不得重复计入音频时长。
-    pub speech_delta: usize,
+    /// 自本分段器**上一次出窗**（任一 utterance 的快照/终窗；首窗从分段器开工算起）
+    /// 到本窗出窗之间流过的**会话样本数**——含 utterance 之间的静音、预滚与尾静音迟滞，
+    /// 不含暂停期（与 `abs_start` 同一时钟）。
+    ///
+    /// 它是 RTF 的分母口径（TDD-02 §5.1）：解码器跟不跟得上，看的是「这段**时间**里
+    /// 解码器忙了多久」，不是「这段时间里有多少语音」。按新增语音算时，底噪峰值切出的
+    /// 100–300 ms 短窗每个都要付一次整窗解码，RTF 被算成 1–2.6，而解码器实际只忙了
+    /// 一成多的时间——实时档位就这样被底噪推到 Yellow/Red、字幕停更。连续语音时两种
+    /// 口径逐窗相等（快照之间流过的正好是快照间隔），正常说话的档位判定不变。
+    pub elapsed_samples: usize,
     /// 是否为**增长快照**（`emit_snapshot` 产出为 `true`；终窗/强切窗 `emit_window` 为 `false`）。
     /// 消费端据此在高负载档位跳过快照解码卸载负载（TDD-02 §5.2；见 [`crate::SpeechEvent::Window`]）。
     pub is_snapshot: bool,
@@ -114,8 +121,10 @@ pub struct StreamSegmenter {
     /// overlap 缓冲（上一窗尾部，下一窗前缀）。
     overlap_buf: Vec<f32>,
     /// 本 utterance 已随最近一次出窗（快照/终窗）计入的语音样本数
-    /// （快照触发判定 + `speech_delta` 增量计算；utterance 收尾复位 0）。
+    /// （快照触发判定；utterance 收尾复位 0）。
     emitted_len: usize,
+    /// 上一次出窗时的 `abs_samples`（`elapsed_samples` 的起点；跨 utterance 不复位）。
+    last_emit_abs: u64,
     /// utterance 内连续尾静音样本计数（达 `hangover_samples` 才判说完出窗）。
     silence_run: usize,
 }
@@ -138,6 +147,7 @@ impl StreamSegmenter {
             in_speech: false,
             overlap_buf: Vec::new(),
             emitted_len: 0,
+            last_emit_abs: 0,
             silence_run: 0,
         }
     }
@@ -280,8 +290,8 @@ impl StreamSegmenter {
     /// 段级状态——utterance 继续增长，终窗随后以同 `abs_start` 取代全部快照。
     fn emit_snapshot(&mut self) -> SpeechWindow {
         let speech_len = self.speech_buf.len();
-        let speech_delta = speech_len - self.emitted_len;
         self.emitted_len = speech_len;
+        let elapsed_samples = self.take_elapsed();
 
         let mut samples = self.speech_buf.clone();
         if samples.len() < self.cfg.window_samples {
@@ -291,7 +301,7 @@ impl StreamSegmenter {
             samples,
             abs_start: self.speech_start_abs,
             speech_len,
-            speech_delta,
+            elapsed_samples,
             is_snapshot: true,
         }
     }
@@ -305,7 +315,7 @@ impl StreamSegmenter {
             return None;
         }
         let speech_len = self.speech_buf.len();
-        let speech_delta = speech_len - self.emitted_len;
+        let elapsed_samples = self.take_elapsed();
         let abs_start = self.speech_start_abs;
 
         // Padding：短窗补零到 window_samples（抑制幻觉）。
@@ -333,9 +343,16 @@ impl StreamSegmenter {
             samples,
             abs_start,
             speech_len,
-            speech_delta,
+            elapsed_samples,
             is_snapshot: false,
         })
+    }
+
+    /// 取「自上一次出窗以来流过的会话样本数」并把起点挪到此刻（每次出窗恰好调用一次）。
+    fn take_elapsed(&mut self) -> usize {
+        let elapsed = self.abs_samples - self.last_emit_abs;
+        self.last_emit_abs = self.abs_samples;
+        usize::try_from(elapsed).unwrap_or(usize::MAX)
     }
 }
 
@@ -480,48 +497,97 @@ mod tests {
         );
     }
 
-    /// speech_delta 增量：全部窗（快照+终窗）的 delta 之和 = 终窗全量 speech_len。
+    /// `elapsed_samples` 把会话时钟**无缝切分**给各窗：每窗计「上一次出窗 → 本窗出窗」
+    /// 流过的样本，累加恰为最后一窗出窗时刻的 `abs_samples`——不漏（静音照计）、不重
+    /// （增长快照不重复计旧语音）。连续语音时快照之间流过的正好是快照间隔，与此前按新增
+    /// 语音计的口径逐窗相等：正常说话的 RTF 一个数都没变。
     #[test]
-    fn speech_delta_sums_to_total_speech_len() {
+    fn elapsed_samples_partition_the_session_clock() {
         let mut seg = StreamSegmenter::new(cfg());
         let frame = vec![0.5f32; 320];
+        let quiet = vec![0.0f32; 320];
         let mut windows = Vec::new();
-        for _ in 0..(5 * SR as usize / 320) {
-            windows.extend(seg.push(&frame, VadLabel::Speech));
+        let mut last_emit_abs = 0;
+        let mut push =
+            |seg: &mut StreamSegmenter, f: &[f32], label, out: &mut Vec<SpeechWindow>| {
+                let produced = seg.push(f, label);
+                if !produced.is_empty() {
+                    last_emit_abs = seg.abs_samples();
+                }
+                out.extend(produced);
+            };
+        // 1s 静音 → 5s 连续语音（三个快照）→ 超迟滞静音收尾 → 2s 静音 → 2s 语音收尾。
+        for _ in 0..50 {
+            push(&mut seg, &quiet, VadLabel::Silence, &mut windows);
         }
-        windows.extend(seg.push(&vec![0.0f32; 320], VadLabel::Silence));
-        let total: usize = windows.iter().map(|w| w.speech_delta).sum();
+        for _ in 0..(5 * SR as usize / 320) {
+            push(&mut seg, &frame, VadLabel::Speech, &mut windows);
+        }
+        for _ in 0..140 {
+            push(&mut seg, &quiet, VadLabel::Silence, &mut windows);
+        }
+        for _ in 0..(2 * SR as usize / 320) {
+            push(&mut seg, &frame, VadLabel::Speech, &mut windows);
+        }
+        for _ in 0..40 {
+            push(&mut seg, &quiet, VadLabel::Silence, &mut windows);
+        }
+        let total: usize = windows.iter().map(|w| w.elapsed_samples).sum();
         assert_eq!(
-            total,
-            windows.last().unwrap().speech_len,
-            "delta 之和应等于终窗全量（RTF 不重复计音频）"
+            total as u64, last_emit_abs,
+            "各窗 elapsed 之和必须恰为最后一次出窗时的会话时钟（不漏不重）"
         );
+        // 第一段 5 s 连续语音里的快照（同一 abs_start）。
+        let first_abs = windows[0].abs_start;
+        let snapshots: Vec<_> = windows
+            .iter()
+            .filter(|w| w.is_snapshot && w.abs_start == first_abs)
+            .collect();
+        assert!(snapshots.len() >= 3);
+        for w in &snapshots[1..] {
+            assert_eq!(
+                w.elapsed_samples,
+                cfg().snapshot_interval_samples,
+                "连续语音中快照之间流过的正好是快照间隔（正常说话口径不变）"
+            );
+        }
     }
 
-    /// 快照后进入下一 utterance：新窗 abs_start 前进、delta 计数复位。
+    /// 快照后进入下一 utterance：新窗 abs_start 前进，`elapsed_samples` 把两段之间的
+    /// 静音也算进来（解码器在这段时间里是闲的，这正是 RTF 分母要看见的）。
     #[test]
-    fn next_utterance_after_snapshot_resets_delta_and_advances_abs() {
+    fn next_utterance_elapsed_includes_the_silence_between() {
         let mut seg = StreamSegmenter::new(cfg());
         let frame = vec![0.5f32; 320];
         let mut first: Vec<SpeechWindow> = Vec::new();
         for _ in 0..(2 * SR as usize / 320) {
             first.extend(seg.push(&frame, VadLabel::Speech));
         }
-        first.extend(seg.push(&vec![0.0f32; 320], VadLabel::Silence));
         let abs0 = first[0].abs_start;
-        // 1s 静音后再说 2s。
+        // 1s 静音（期间超迟滞、第一段终窗出窗）后再说 2s。
         for _ in 0..(SR as usize / 320) {
-            seg.push(&vec![0.0f32; 320], VadLabel::Silence);
+            first.extend(seg.push(&vec![0.0f32; 320], VadLabel::Silence));
         }
+        let first_final_at = {
+            let w = first.last().expect("第一段应收尾出终窗");
+            assert!(!w.is_snapshot);
+            w.abs_start + w.speech_len as u64 + cfg().hangover_samples as u64
+        };
         let mut second: Vec<SpeechWindow> = Vec::new();
         for _ in 0..(2 * SR as usize / 320) {
             second.extend(seg.push(&frame, VadLabel::Speech));
         }
         assert!(!second.is_empty(), "第二段应产窗");
-        assert!(second[0].abs_start > abs0, "新 utterance abs_start 应前进");
-        assert_eq!(
-            second[0].speech_delta, second[0].speech_len,
-            "新 utterance 首窗 delta = 全量"
+        let w = &second[0];
+        assert!(w.abs_start > abs0, "新 utterance abs_start 应前进");
+        let second_emit_at = w.abs_start + w.speech_len as u64;
+        assert!(
+            (w.elapsed_samples as u64).abs_diff(second_emit_at - first_final_at) <= 320,
+            "新 utterance 首窗的 elapsed = 上一终窗出窗到本窗出窗（含中间静音）"
+        );
+        assert!(
+            w.elapsed_samples > w.speech_len,
+            "两段之间的静音必须计入（否则 RTF 只看得见语音、看不见解码器的空闲）"
         );
     }
 

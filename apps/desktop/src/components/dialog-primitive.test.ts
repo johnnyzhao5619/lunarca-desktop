@@ -18,7 +18,7 @@
 
 import { describe, expect, it } from "vitest";
 
-const SOURCES = import.meta.glob("../{app,features,components}/**/*.tsx", {
+const SOURCES = import.meta.glob(["../{app,features,components}/**/*.tsx", "../../../../packages/*/src/**/*.tsx"], {
   eager: true,
   import: "default",
   query: "?raw",

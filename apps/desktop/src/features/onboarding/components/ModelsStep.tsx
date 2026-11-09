@@ -6,8 +6,8 @@
 
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CpuIcon, DownloadIcon } from "../../../components/ui/Icon";
-import { formatBytes } from "../../../lib/format-bytes";
+import { CpuIcon, DownloadIcon } from "@lunarca/editor-core/Icon";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { cssVariables } from "../../../lib/css-variables";
 import {
   type ModelDownloadProgress,

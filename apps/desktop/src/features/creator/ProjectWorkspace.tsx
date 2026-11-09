@@ -24,7 +24,7 @@ import {
 } from "../../ipc/bindings";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { IconButton } from "../../components/ui/IconButton";
-import { CloseIcon, EllipsisIcon, FilmIcon } from "../../components/ui/Icon";
+import { CloseIcon, EllipsisIcon, FilmIcon } from "@lunarca/editor-core/Icon";
 import { useTablistNavigation } from "../../hooks/use-tablist-navigation";
 import { useVaultReload } from "../../hooks/use-vault-reload";
 import { requestEditorReveal } from "../../lib/app-events";

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { FetchInstallPlanDto } from "../ipc/bindings";
-import { formatBytes } from "../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { FactRow } from "./ui/FactRow";
 import { HelpDetails } from "./ui/HelpDetails";
 import { PathDetails } from "./ui/PathDetails";

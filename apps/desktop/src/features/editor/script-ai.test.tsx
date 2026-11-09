@@ -95,7 +95,7 @@ describe("脚本改稿动作", () => {
         <AiResultPanel scope="selection" result={done} originalText="大家好，那个，今天我们聊一聊脚本。" candidateIndex={0} candidateCount={1}
           onSelectCandidate={() => {}} routeLabel={null} acceptShortcut="⌘↵" onStop={() => {}} onRetry={() => {}}
           onReject={() => {}} onCopy={() => {}} onSaveNote={() => {}} onLand={() => {}} onFollowUp={() => {}}
-          onSavePreset={null} onExplain={async () => ""} onBackground={null} />,
+          onSavePreset={null} onExplain={async () => ""} onBackground={null} fitTarget={null} />,
       ),
     );
     expect(container.querySelector(".luna-floating-menu__diff")).not.toBeNull();

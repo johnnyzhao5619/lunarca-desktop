@@ -34,7 +34,7 @@ describe("笔记装载失败的提示", () => {
   });
 
   it("编辑面在失败时隐藏，不显示占位提示", () => {
-    const surface = EDITOR.match(/className="luna-editor__surface"\s+data-hidden=\{([^\n]*)\}/)?.[1] ?? "";
+    const surface = EDITOR.match(/className="luna-editor__surface luna-md-surface"\s+data-hidden=\{([^\n]*)\}/)?.[1] ?? "";
     expect(surface).toContain("loadError !== null");
   });
 

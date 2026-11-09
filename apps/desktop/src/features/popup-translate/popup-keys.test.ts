@@ -2,7 +2,7 @@
  * 弹窗翻译输入框的 Enter 分类（PRD-01-005）。
  *
  * 这份判据的全部价值在于**中文用户按回车上屏候选时不把半句话拿去翻译**，而那件事在三种
- * 运行时给出的事实各不相同（表见 `lib/ime-composition.ts`）。最险的是 WKWebView 那一行：
+ * 运行时给出的事实各不相同（表见 `@lunarca/editor-core/ime-composition`）。最险的是 WKWebView 那一行：
  * 合成在 keydown **之前**就结束了，那一下身上一点"我属于输入法"的痕迹都没有。
  */
 
@@ -11,7 +11,7 @@ import {
   COMPOSITION_COMMIT_WINDOW_MS,
   NO_COMPOSITION,
   type CompositionState,
-} from "../../lib/ime-composition";
+} from "@lunarca/editor-core/ime-composition";
 import { classifyPopupInputKey, type PopupInputKey } from "./popup-keys";
 
 function key(overrides: Partial<PopupInputKey> = {}): PopupInputKey {

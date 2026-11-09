@@ -1,0 +1,297 @@
+/*
+ * 提词器面板（ADR-162 ⑤、ADR-176 ③）：创作与提词器两个应用共用的那一扇常驻浮动窗。
+ */
+
+/* ── 提词器（ADR-162 ⑤ C4a）──────────────────────────────────────────────────
+   常驻浮动面板：上面一条控制条（整条可拖窗），下面是大字阅读面。字号与行宽来自内部设置，
+   经 `--prompter-*` 变量传进来；镜像只翻文字，不翻控制条。 */
+.luna-teleprompter {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  block-size: 100vh;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  overflow: hidden;
+}
+
+.luna-teleprompter__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-teleprompter__title {
+  flex: 1;
+  min-inline-size: var(--space-0);
+  overflow: hidden;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-teleprompter__stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.luna-teleprompter__value {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.luna-teleprompter__scroll {
+  flex: 1;
+  min-block-size: var(--space-0);
+  overflow-y: auto;
+}
+
+/* 文字从阅读面上方三分之一处开始、可以滚到最后一行也停在那里：读的那一行总在眼睛附近。 */
+.luna-teleprompter__text {
+  inline-size: var(--prompter-line-width);
+  margin-inline: auto;
+  padding-block: 33vh 66vh;
+  font-size: var(--prompter-font-size);
+  line-height: 1.5;
+}
+
+.luna-teleprompter[data-mirror] .luna-teleprompter__text {
+  transform: scaleX(-1);
+}
+
+.luna-teleprompter__block {
+  margin-block-end: 1em;
+}
+
+.luna-teleprompter__heading {
+  margin: var(--space-0) var(--space-0) 0.4em;
+  font-size: 0.5em;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.luna-teleprompter__line {
+  margin: var(--space-0) var(--space-0) 0.5em;
+  /* 点哪一行从哪一行开始（PRD-20-013）。 */
+  cursor: pointer;
+}
+
+.luna-teleprompter__marker {
+  display: inline-block;
+  margin-inline-end: 0.5em;
+  padding: 0 0.4em;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-selected);
+  font-size: 0.45em;
+  vertical-align: middle;
+  color: var(--color-text-secondary);
+}
+
+.luna-teleprompter__empty {
+  margin: var(--space-6) var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.luna-teleprompter__resize {
+  position: absolute;
+  inset-block-end: var(--space-0);
+  inset-inline-end: var(--space-0);
+  inline-size: var(--space-4);
+  block-size: var(--space-4);
+  padding: var(--space-0);
+  border: 0;
+  background: transparent;
+  cursor: nwse-resize;
+}
+
+.luna-teleprompter__resize::after {
+  content: "";
+  position: absolute;
+  inset-block-end: var(--space-1);
+  inset-inline-end: var(--space-1);
+  inline-size: var(--space-2-5);
+  block-size: var(--space-2-5);
+  border-block-end: var(--border-width-thick) solid var(--color-text-muted);
+  border-inline-end: var(--border-width-thick) solid var(--color-text-muted);
+  border-end-end-radius: var(--radius-xs);
+}
+
+/* 跟读（C4b）：念到的那一行用强调色标出；出错的提示压在阅读面顶上。 */
+.luna-teleprompter__line[data-current] {
+  color: var(--color-accent);
+}
+
+.luna-teleprompter__notice {
+  position: sticky;
+  /* 压在滚过去的正文上面（真机：大字号正文滚到顶时会盖住提示）。 */
+  z-index: 1;
+  inset-block-start: var(--space-0);
+  margin: var(--space-0);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-status-warning-surface);
+  font-size: var(--font-size-sm);
+  color: var(--color-status-warning);
+}
+
+/* 文件正拖在浮窗上（ADR-176 ⑨）：整窗描一圈强调色，松手即换成那一篇。 */
+.luna-teleprompter[data-dragging] {
+  outline: var(--border-width-thick) solid var(--color-accent);
+  outline-offset: calc(var(--border-width-thick) * -1);
+}
+
+/* 控制条上的小标签：遥控中（ADR-176 ⑥，那几个不带修饰的键此刻归提词器）、本机识别（ADR-176 ④）。 */
+.luna-teleprompter__badge {
+  flex: none;
+  padding: var(--space-0) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-surface);
+  color: var(--color-accent-strong);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+/* 口播记号（ADR-176 ⑦）：强调加粗加色；停顿是一根竖条；不念的提示是灰色小字；动作提示是一条彩色条。 */
+.luna-teleprompter__em {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent-strong);
+}
+
+.luna-teleprompter__pause {
+  display: inline-block;
+  inline-size: 0.15em;
+  block-size: 0.9em;
+  margin-inline: 0.3em;
+  vertical-align: -0.1em;
+  border-radius: var(--radius-xs);
+  background: var(--color-accent);
+}
+
+.luna-teleprompter__note {
+  margin-inline: 0.25em;
+  font-size: 0.5em;
+  color: var(--color-text-muted);
+}
+
+.luna-teleprompter__cue {
+  margin: var(--space-0) var(--space-0) 0.5em;
+  padding: 0.15em 0.5em;
+  border-inline-start: var(--border-width-thick) solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-surface);
+  font-size: 0.6em;
+  color: var(--color-accent-strong);
+  cursor: pointer;
+}
+
+/* 计时（ADR-176 ⑤）：已用 · 预计剩余，等宽数字免得每秒抖动。 */
+.luna-teleprompter__clock {
+  flex: none;
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+/* 开始前倒计时（ADR-176 ⑤）：压在阅读面中央的大数字。 */
+.luna-teleprompter__countdown {
+  position: sticky;
+  z-index: 2;
+  inset-block-start: var(--space-0);
+  margin: var(--space-0);
+  padding-block: var(--space-6);
+  text-align: center;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent);
+}
+
+/* ── 提词器首页（ADR-176 ②）──────────────────────────────────────────────────
+   主区是画布：限宽一列，页头用共享原语 `.luna-main-header`，空态用 `.luna-empty-state`，
+   开关用 `.luna-switch`——本段只管各节与清单行的排布。 */
+.luna-teleprompter-home {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  inline-size: var(--size-full);
+  max-inline-size: var(--editor-content-max-inline);
+  margin-inline: auto;
+}
+
+.luna-teleprompter-home__lede {
+  margin: var(--space-0);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.luna-teleprompter-home__error {
+  margin: var(--space-0);
+  color: var(--color-status-error);
+  font-size: var(--font-size-sm);
+}
+
+.luna-teleprompter-home__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.luna-teleprompter-home__section > h2 {
+  margin: var(--space-0);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.luna-teleprompter-home__list {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.luna-teleprompter-home__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.luna-teleprompter-home__setting {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: var(--space-0);
+}
+
+.luna-teleprompter-home__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+}
+
+.luna-teleprompter-home__hint {
+  margin: var(--space-0);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* 文件正拖在首页上（ADR-176 ⑨，`data-file-drop` 由主窗口的拖放监听标上）。 */
+.luna-teleprompter-home[data-file-drop] {
+  outline: var(--border-width-thick) dashed var(--color-accent);
+  outline-offset: var(--space-2);
+  border-radius: var(--radius-md);
+}
+

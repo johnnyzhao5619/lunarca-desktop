@@ -153,14 +153,14 @@ pub(crate) async fn export_note_html(
 /// 一篇笔记正文引用到的**本地**附件（笔记相对链接 → Vault 相对路径），去重保序。
 /// 外链、wiki 链接目标（`.md`）不算附件。
 pub(crate) fn local_attachment_refs(note_rel: &str, content: &str) -> Vec<(String, String)> {
-    let dir = luna_vault::pathutil::parent_dir(note_rel);
+    let dir = luna_sync_core::links::parent_dir(note_rel);
     let mut seen = std::collections::HashSet::new();
     let mut out = Vec::new();
     for link in luna_vault::extract_links(content) {
         if is_external_src(&link) || link.ends_with(".md") || link.starts_with('#') {
             continue;
         }
-        let Some(vault_rel) = luna_vault::pathutil::normalize_vault_rel(dir, &link) else {
+        let Some(vault_rel) = luna_sync_core::links::normalize_vault_rel(dir, &link) else {
             continue;
         };
         if seen.insert(vault_rel.clone()) {

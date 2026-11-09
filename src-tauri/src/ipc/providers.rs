@@ -447,6 +447,28 @@ impl AppState {
         self.outbound_gate.sync(self.strict_local());
     }
 
+    /// 提词器跟读专用的流式识别器（ADR-176 ④）：只在本机、只用**已装的最小一档**（随包 tiny
+    /// 优先，与组合里兜底腿同一个判据 [`crate::model_store::fallback_asr_weight`]）。
+    ///
+    /// - 不取 `realtime_asr` 槽位装好的组合：那里可能有一条服务端腿，跟读的声音不出本机。
+    /// - 不用用户为实时转写选的模型：跟读要的是快，对齐只需对上一部分字。快照解码的成本按次计、
+    ///   与模型大小成正比，选了 small / medium 时 1 秒一次的快照会把实时档位推到 Yellow，而
+    ///   Yellow 起会跳掉全部快照窗——跟读反而更慢（真机 2026-11-04：tiny 档单次解码约 0.3 秒）。
+    ///
+    /// # Errors
+    /// 本机一个转写模型都没有、或模型加载失败时返回可读原因。
+    pub(crate) fn follow_stream_asr(
+        &self,
+        app: &tauri::AppHandle,
+    ) -> Result<Arc<dyn luna_core::StreamingAsr>, String> {
+        let root = self.models_root(app);
+        let Some(path) = crate::model_store::fallback_asr_weight(&root) else {
+            return Err(asr_model_missing_message(self.copy()));
+        };
+        let whisper = self.ensure_local_whisper(&path)?;
+        Ok(whisper as Arc<dyn luna_core::StreamingAsr>)
+    }
+
     /// 当前流式 ASR 句柄（`None` = 既没有本地模型也没有服务端通道）。
     #[must_use]
     pub fn asr_provider_handle(&self) -> Option<Arc<dyn luna_core::StreamingAsr>> {

@@ -18,7 +18,7 @@ import {
   type ProjectOverviewDto,
 } from "../../ipc/bindings";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { EllipsisIcon, FilmIcon, PlusIcon } from "../../components/ui/Icon";
+import { EllipsisIcon, FilmIcon, PlusIcon } from "@lunarca/editor-core/Icon";
 import { IconButton } from "../../components/ui/IconButton";
 import { useVaultReload } from "../../hooks/use-vault-reload";
 import type { ContextMenuEntry } from "../../lib/context-menu";

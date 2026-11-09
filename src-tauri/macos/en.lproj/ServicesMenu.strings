@@ -1,2 +1,4 @@
 /* 「服务」菜单里的名字（W5b，键是 Info.plist NSServices 的 default）。 */
 "Save to Lunarca as Quick Note" = "Save to Lunarca as Quick Note";
+/* 「服务」菜单里的名字（ADR-176 ⑨）。 */
+"Show in Lunarca Teleprompter" = "Show in Lunarca Teleprompter";

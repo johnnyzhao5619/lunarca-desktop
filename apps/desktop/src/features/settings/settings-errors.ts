@@ -7,7 +7,7 @@
  */
 
 import type { SettingValueDto } from "../../ipc/bindings";
-import { formatShortcut } from "../../lib/shortcut-display";
+import { formatShortcut } from "@lunarca/editor-core/shortcut-display";
 
 /** 一次失败的呈现材料：i18n key + 插值参数（`raw` = 未识别时的原始错误串）。 */
 export interface SettingErrorView {

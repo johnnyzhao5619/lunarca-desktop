@@ -6,6 +6,7 @@
 //! 跨模块可见性：命令与本域 DTO `pub(crate)`；共享 helper 经 `use super::*` 从 `mod.rs` 取。
 
 use super::*;
+use luna_sync_core::naming;
 
 /// `VaultError` → IPC 错误串：**稳定码 + 载荷**，措辞归前端（ADR-105）。
 ///
@@ -388,7 +389,8 @@ pub(crate) fn tidy_list_levels_preview(
         let doc = vault.read(&path).map_err(vault_err)?;
         let tidy = luna_vault::tidy_list_levels(&doc.content);
         Ok(TidyListPreviewDto {
-            content_hash: luna_vault::ContentHash::of(doc.content.as_bytes()).to_string(),
+            content_hash: luna_sync_core::hashing::ContentHash::of(doc.content.as_bytes())
+                .to_string(),
             changes: tidy.changes.into_iter().map(Into::into).collect(),
         })
     })
@@ -411,7 +413,9 @@ pub(crate) fn tidy_list_levels_apply(
 ) -> Result<u32, String> {
     let (content, lines) = state.with_vault(window.label(), |vault| {
         let doc = vault.read(&path).map_err(vault_err)?;
-        if luna_vault::ContentHash::of(doc.content.as_bytes()).as_str() != expected_hash {
+        if luna_sync_core::hashing::ContentHash::of(doc.content.as_bytes()).as_str()
+            != expected_hash
+        {
             return Err(coded_error(&app, "TIDY_LIST_STALE", "tidy-list-stale"));
         }
         let tidy = luna_vault::tidy_list_levels(&doc.content);
@@ -748,122 +752,78 @@ pub(crate) fn draft_note_rel_path(
     note_type: NoteType,
     lang: &str,
 ) -> Result<String, String> {
-    let stem = title_line(content)
-        .and_then(sanitized_file_stem)
-        .unwrap_or_else(|| {
-            let now = chrono::Local::now();
-            let time_str = now.format("%Y%m%d_%H%M%S").to_string();
-            let is_zh = lang.starts_with("zh");
-            let prefix = match note_type {
-                NoteType::Note => {
-                    if is_zh {
-                        "笔记"
-                    } else {
-                        "Note"
-                    }
-                }
-                NoteType::Recording => {
-                    if is_zh {
-                        "录音"
-                    } else {
-                        "Recording"
-                    }
-                }
-                NoteType::Chat => {
-                    if is_zh {
-                        "对话"
-                    } else {
-                        "Chat"
-                    }
-                }
-                NoteType::QuickNote => {
-                    if is_zh {
-                        "闪记"
-                    } else {
-                        "QuickNote"
-                    }
-                }
-                NoteType::Transcript => {
-                    if is_zh {
-                        "转写"
-                    } else {
-                        "Transcript"
-                    }
-                }
-                NoteType::Document => {
-                    if is_zh {
-                        "文档"
-                    } else {
-                        "Document"
-                    }
-                }
-                NoteType::VideoProject => {
-                    if is_zh {
-                        "视频项目"
-                    } else {
-                        "VideoProject"
-                    }
-                }
-                NoteType::Script => {
-                    if is_zh {
-                        "脚本"
-                    } else {
-                        "Script"
-                    }
-                }
-                NoteType::Swipe => {
-                    if is_zh {
-                        "灵感"
-                    } else {
-                        "Swipe"
-                    }
-                }
-            };
-            format!("{prefix}_{time_str}")
-        });
+    let is_zh = lang.starts_with("zh");
+    let prefix = match note_type {
+        NoteType::Note => {
+            if is_zh {
+                "笔记"
+            } else {
+                "Note"
+            }
+        }
+        NoteType::Recording => {
+            if is_zh {
+                "录音"
+            } else {
+                "Recording"
+            }
+        }
+        NoteType::Chat => {
+            if is_zh {
+                "对话"
+            } else {
+                "Chat"
+            }
+        }
+        NoteType::QuickNote => {
+            if is_zh {
+                "闪记"
+            } else {
+                "QuickNote"
+            }
+        }
+        NoteType::Transcript => {
+            if is_zh {
+                "转写"
+            } else {
+                "Transcript"
+            }
+        }
+        NoteType::Document => {
+            if is_zh {
+                "文档"
+            } else {
+                "Document"
+            }
+        }
+        NoteType::VideoProject => {
+            if is_zh {
+                "视频项目"
+            } else {
+                "VideoProject"
+            }
+        }
+        NoteType::Script => {
+            if is_zh {
+                "脚本"
+            } else {
+                "Script"
+            }
+        }
+        NoteType::Swipe => {
+            if is_zh {
+                "灵感"
+            } else {
+                "Swipe"
+            }
+        }
+    };
+    let stem = naming::draft_stem(content, prefix, &super::civil_now());
     Ok(format!("{stem}.md"))
 }
 
 pub(crate) fn empty_note_rel_path(note_type: NoteType, lang: &str) -> Result<String, String> {
     draft_note_rel_path("", note_type, lang)
-}
-
-/// 一段正文的**标题行**：第一条有字的行，去掉行首的 Markdown 块标记（标题 `#`、引用 `>`）。
-///
-/// 文件名从正文首行派生的**唯一**判据（知识笔记 [`draft_note_rel_path`] 与速记
-/// [`super::voice::quick_note_stem`] 共用）。此前两处各写一份，只有知识笔记那份认得标题
-/// 标记：以 `## 标题` 开头的速记文件名成了「速记 … ##-标题」（真机 2026-10-02，便签「另存为
-/// 新速记」）。只剥标记、不剥字：`#标签 正文` 照旧留下「标签 正文」。
-pub(crate) fn title_line(text: &str) -> Option<&str> {
-    text.lines().find_map(|line| {
-        let title = line.trim().trim_start_matches(['#', '>']).trim();
-        (!title.is_empty()).then_some(title)
-    })
-}
-
-pub(crate) fn sanitized_file_stem(input: &str) -> Option<String> {
-    let mut out = String::new();
-    let mut pending_dash = false;
-    for ch in input.chars() {
-        if out.chars().count() >= DRAFT_STEM_MAX_CHARS {
-            break;
-        }
-        if ch == '/' || ch == '\\' || ch == ':' || ch == '\0' || ch.is_control() {
-            pending_dash = true;
-            continue;
-        }
-        if ch.is_whitespace() {
-            pending_dash = true;
-            continue;
-        }
-        if pending_dash && !out.is_empty() {
-            out.push('-');
-        }
-        pending_dash = false;
-        out.push(ch);
-    }
-    let trimmed = out.trim_matches(['-', '.', ' ']).to_owned();
-    (!trimmed.is_empty()).then_some(trimmed)
 }
 
 /// 创建一篇空白 Markdown 笔记。文件名由 Rust 生成，前端只消费返回路径（ADR-003）。
@@ -940,23 +900,15 @@ where
     let path = Path::new(rel_path);
     let parent = path
         .parent()
-        .filter(|parent| !parent.as_os_str().is_empty());
+        .and_then(|parent| parent.to_str())
+        .unwrap_or("");
     let stem = path
         .file_stem()
         .and_then(|value| value.to_str())
         .unwrap_or("note");
 
-    for index in 0..100 {
-        let file_name = if index == 0 {
-            format!("{stem}.md")
-        } else {
-            format!("{stem}-{index}.md")
-        };
-        let candidate = parent
-            .map(|parent| parent.join(&file_name))
-            .unwrap_or_else(|| PathBuf::from(&file_name))
-            .to_string_lossy()
-            .into_owned();
+    for index in 0..naming::NUMBERED_NAME_ATTEMPTS {
+        let candidate = naming::numbered_note_path(parent, stem, index);
         let candidate_stem = Path::new(&candidate)
             .file_stem()
             .and_then(|value| value.to_str())

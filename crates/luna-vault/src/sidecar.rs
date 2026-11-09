@@ -12,8 +12,8 @@
 
 use crate::atomic::write_atomic;
 use crate::error::Result;
-use crate::hashing::ContentHash;
 use luna_core::Segment;
+use luna_sync_core::hashing::ContentHash;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 

@@ -49,13 +49,14 @@ fn collect(
         }
         // 标题与别名只用来显示与匹配，给 NFC 形态：文件名可能以 NFD 落盘，而用户敲的查询是
         // NFC（ADR-148 ⑥）；两种形态显示上没有区别。`path` 照原样，打开文件用它。
-        let title = crate::pathutil::nfc(child.name.strip_suffix(".md").unwrap_or(&child.name))
-            .into_owned();
+        let title =
+            luna_sync_core::path::nfc(child.name.strip_suffix(".md").unwrap_or(&child.name))
+                .into_owned();
         let aliases: Vec<String> = aliases
             .remove(&child.path)
             .unwrap_or_default()
             .iter()
-            .map(|alias| crate::pathutil::nfc(alias).into_owned())
+            .map(|alias| luna_sync_core::path::nfc(alias).into_owned())
             .collect();
         let mut pinyin = crate::pinyin_keys(&title);
         for alias in &aliases {

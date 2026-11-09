@@ -20,13 +20,13 @@ use std::sync::Arc;
 
 use uuid::Uuid;
 
-use crate::crypto::{Cmk, KeyRing};
 use crate::engine::{Engine, EngineConfig, SyncAbort};
-use crate::manifest::{assemble, open_entry};
 use crate::policy::RecordingsMode;
 use crate::ports::RemoteError;
 use crate::state::{path_key, Binding, SyncState};
 use crate::testing::{FakeServer, MemVault};
+use luna_sync_core::crypto::{Cmk, KeyRing};
+use luna_sync_core::manifest::{assemble, open_entry};
 
 const LOCAL_ID: &str = "0190f0f0-0000-7000-8000-00000000c0de";
 const POOL: &[&str] = &[
@@ -327,7 +327,7 @@ impl Sim {
         let uncertain: HashSet<(String, String)> = self.devices[device]
             .stashed
             .iter()
-            .map(|(path, bytes)| (path.clone(), crate::manifest::content_hash(bytes)))
+            .map(|(path, bytes)| (path.clone(), luna_sync_core::manifest::content_hash(bytes)))
             .collect();
         let all_before = self.devices[device].state.bases().unwrap();
         let cloud_only: HashSet<Uuid> = all_before

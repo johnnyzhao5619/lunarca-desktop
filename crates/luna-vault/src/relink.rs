@@ -1,7 +1,7 @@
 //! 改名重构：按「指向谁」改写链接（PRD-06-030 2026-10-04 修订，TDD-06 §3 改名重构）。
 //!
 //! 此前的改写器按「文件名 == 旧名」改 wikilink、按路径全等改 md 链接，与图谱 / 点击用的
-//! [`crate::graph::LinkIndex`] 是两套口径：库里有两篇 `foo` 时改一篇会把指向另一篇的链接
+//! [`luna_sync_core::links::LinkIndex`] 是两套口径：库里有两篇 `foo` 时改一篇会把指向另一篇的链接
 //! 一起改掉；同名移动不改写，链接却可能悄悄改指别处；附件改名只认 `](旧)` 一种写法。
 //!
 //! 这里只有一条规则：**移动前解析一次、移动后再解析一次，指向变了或名字变了的才改**。
@@ -12,12 +12,12 @@
 //! - 只换目标那一段：片段、`|` 别名、md 标题与尖括号原样保留（区间来自 [`scan_links`]）。
 //!
 
-use crate::graph::LinkIndex;
-use crate::parse::{scan_links, title_of, LinkKind};
-use crate::pathutil::{
-    canonical_link_target, encode_link_target, percent_decode, relative_link_path,
-};
+use crate::parse::{scan_links, LinkKind};
+use crate::pathutil::encode_link_target;
 use crate::vault::PathPairs;
+use luna_sync_core::links::title_of;
+use luna_sync_core::links::LinkIndex;
+use luna_sync_core::links::{canonical_link_target, percent_decode, relative_link_path};
 use std::collections::{HashMap, HashSet};
 
 /// 一次移动前（或后）的库：笔记（路径, 标题）、别名（路径, 别名）与全部文件。
@@ -148,7 +148,7 @@ impl<'a> Resolver<'a> {
         let written = written.trim();
         match kind {
             LinkKind::Wiki { .. } if file_extension(written).is_some() => {
-                crate::embed::find_file(self.files, src, written)
+                luna_sync_core::links::find_file(self.files, src, written)
             }
             LinkKind::Wiki { .. } => self.index.resolve(src, written).map(str::to_owned),
             // md 链接是**相对源笔记**的路径：先按源目录归一化找真实文件，库根同名文件不得抢先；

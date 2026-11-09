@@ -8,14 +8,16 @@ use std::collections::VecDeque;
 /// 默认滑动窗大小（采样数）。
 pub const DEFAULT_RTF_WINDOW: usize = 5;
 
-/// RTF 滑窗计算器（TDD-02 §5.1 逐行实现）。
+/// RTF 滑窗计算器（TDD-02 §5.1 逐行实现）：滑窗内 **解码耗时之和 ÷ 流过的会话时长之和**，
+/// 即解码器的忙碌占比——它 ≥ 1 才真的跟不上实时。
 ///
-/// `T_audio` 由消费线程的 `SpeechWindow.audio_ms` 提供；
-/// `T_inference` 由 ASR worker 内部结果通道回传（不污染对外 `JobEvent`）。
+/// 分母是**会话时长**（消费线程按 `SpeechWindow::elapsed_samples` 累计，含静音与被跳过的窗），
+/// 不是窗里有多少语音：底噪峰值切出的短窗每个都付一次整窗解码，按语音时长算会把一成多的
+/// 真实负载算成 1–2.6。`T_inference` 由 ASR worker 内部结果通道回传（不污染对外 `JobEvent`）。
 /// 聚合与决策归 `RealtimeSession`（TDD-01 §5.9）。
 pub struct RtfTracker {
     window_infer_times: VecDeque<f32>,
-    window_audio_times: VecDeque<f32>,
+    window_elapsed_times: VecDeque<f32>,
     limit: usize,
 }
 
@@ -25,7 +27,7 @@ impl RtfTracker {
     pub fn new(limit: usize) -> Self {
         Self {
             window_infer_times: VecDeque::with_capacity(limit),
-            window_audio_times: VecDeque::with_capacity(limit),
+            window_elapsed_times: VecDeque::with_capacity(limit),
             limit,
         }
     }
@@ -36,21 +38,22 @@ impl RtfTracker {
         Self::new(DEFAULT_RTF_WINDOW)
     }
 
-    /// 添加一次测量（infer_ms = ASR 推理耗时，audio_ms = 对应音频物理时长）。
-    pub fn add_measurement(&mut self, infer_ms: f32, audio_ms: f32) {
+    /// 添加一次测量（`infer_ms` = 这段时间里完成的 ASR 推理耗时，`elapsed_ms` = 这段时间
+    /// 流过的会话时长）。
+    pub fn add_measurement(&mut self, infer_ms: f32, elapsed_ms: f32) {
         if self.window_infer_times.len() >= self.limit {
             self.window_infer_times.pop_front();
-            self.window_audio_times.pop_front();
+            self.window_elapsed_times.pop_front();
         }
         self.window_infer_times.push_back(infer_ms);
-        self.window_audio_times.push_back(audio_ms);
+        self.window_elapsed_times.push_back(elapsed_ms);
     }
 
-    /// 当前滑窗 RTF（= 推理总时长 / 音频总时长；无数据时为 0）。
+    /// 当前滑窗 RTF（= 推理总时长 / 会话时长总和；无数据时为 0）。
     #[must_use]
     pub fn current_rtf(&self) -> f32 {
         let total_infer: f32 = self.window_infer_times.iter().sum();
-        let total_audio: f32 = self.window_audio_times.iter().sum();
+        let total_audio: f32 = self.window_elapsed_times.iter().sum();
         if total_audio == 0.0 {
             0.0
         } else {

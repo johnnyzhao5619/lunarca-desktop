@@ -24,7 +24,7 @@ import {
 } from "../../ipc/bindings";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import { useAppEnabled } from "../../hooks/use-apps";
-import { FilmIcon } from "../../components/ui/Icon";
+import { FilmIcon } from "@lunarca/editor-core/Icon";
 import { goTo } from "../../lib/navigate";
 import { appDetailRoute } from "../../lib/app-route";
 import { recordCreateEntry } from "../workspace/use-workspace-metrics";

@@ -94,7 +94,7 @@ fn convert_paste(html: String, text: String) -> HtmlPasteDto {
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn note_edit_diff(before: String, after: String) -> Result<LineDiffDto, String> {
-    tokio::task::spawn_blocking(move || luna_vault::diff_lines(&before, &after).into())
+    tokio::task::spawn_blocking(move || luna_sync_core::diff::diff_lines(&before, &after).into())
         .await
         .map_err(|_| "NOTE_DIFF_FAILED".to_owned())
 }
@@ -120,12 +120,16 @@ pub(crate) async fn note_merge(
     ours: String,
     theirs: String,
 ) -> Result<NoteMergeDto, String> {
-    tokio::task::spawn_blocking(move || match luna_vault::merge3(&base, &ours, &theirs) {
-        luna_vault::MergeOutcome::Merged(text) => NoteMergeDto::Merged {
-            change: luna_vault::frontmatter_edit::text_change(&ours, &text).into(),
-        },
-        luna_vault::MergeOutcome::Conflict { regions } => NoteMergeDto::Conflict { regions },
-        luna_vault::MergeOutcome::TooLarge => NoteMergeDto::TooLarge,
+    tokio::task::spawn_blocking(move || {
+        match luna_sync_core::merge3::merge3(&base, &ours, &theirs) {
+            luna_sync_core::merge3::MergeOutcome::Merged(text) => NoteMergeDto::Merged {
+                change: luna_sync_core::frontmatter_edit::text_change(&ours, &text).into(),
+            },
+            luna_sync_core::merge3::MergeOutcome::Conflict { regions } => {
+                NoteMergeDto::Conflict { regions }
+            }
+            luna_sync_core::merge3::MergeOutcome::TooLarge => NoteMergeDto::TooLarge,
+        }
     })
     .await
     .map_err(|_| "NOTE_MERGE_FAILED".to_owned())
@@ -152,9 +156,9 @@ pub(crate) enum PropertySkipDto {
     InvalidValue,
 }
 
-impl From<luna_vault::frontmatter_edit::EditSkip> for PropertySkipDto {
-    fn from(skip: luna_vault::frontmatter_edit::EditSkip) -> Self {
-        use luna_vault::frontmatter_edit::EditSkip as S;
+impl From<luna_sync_core::frontmatter_edit::EditSkip> for PropertySkipDto {
+    fn from(skip: luna_sync_core::frontmatter_edit::EditSkip) -> Self {
+        use luna_sync_core::frontmatter_edit::EditSkip as S;
         match skip {
             S::UnsupportedForm => Self::UnsupportedForm,
             S::InlineComment => Self::InlineComment,
@@ -182,9 +186,9 @@ pub(crate) enum PropertyValueDto {
     List(Vec<String>),
 }
 
-impl From<luna_vault::frontmatter_edit::PropertyValue> for PropertyValueDto {
-    fn from(value: luna_vault::frontmatter_edit::PropertyValue) -> Self {
-        use luna_vault::frontmatter_edit::PropertyValue as V;
+impl From<luna_sync_core::frontmatter_edit::PropertyValue> for PropertyValueDto {
+    fn from(value: luna_sync_core::frontmatter_edit::PropertyValue) -> Self {
+        use luna_sync_core::frontmatter_edit::PropertyValue as V;
         match value {
             V::Text(v) => Self::Text(v),
             V::Number(v) => Self::Number(v),
@@ -196,7 +200,7 @@ impl From<luna_vault::frontmatter_edit::PropertyValue> for PropertyValueDto {
     }
 }
 
-impl From<PropertyValueDto> for luna_vault::frontmatter_edit::PropertyValue {
+impl From<PropertyValueDto> for luna_sync_core::frontmatter_edit::PropertyValue {
     fn from(value: PropertyValueDto) -> Self {
         match value {
             PropertyValueDto::Text(v) => Self::Text(v),
@@ -232,7 +236,7 @@ pub(crate) enum PropertyKindDto {
     List,
 }
 
-impl From<PropertyKindDto> for luna_vault::frontmatter_edit::PropertyKind {
+impl From<PropertyKindDto> for luna_sync_core::frontmatter_edit::PropertyKind {
     fn from(kind: PropertyKindDto) -> Self {
         match kind {
             PropertyKindDto::Text => Self::Text,
@@ -281,8 +285,8 @@ pub(crate) struct TextChangeDto {
     pub insert: String,
 }
 
-impl From<luna_vault::frontmatter_edit::TextChange> for TextChangeDto {
-    fn from(change: luna_vault::frontmatter_edit::TextChange) -> Self {
+impl From<luna_sync_core::frontmatter_edit::TextChange> for TextChangeDto {
+    fn from(change: luna_sync_core::frontmatter_edit::TextChange) -> Self {
         Self {
             from: u32::try_from(change.from).unwrap_or(u32::MAX),
             to: u32::try_from(change.to).unwrap_or(u32::MAX),
@@ -295,7 +299,7 @@ impl From<luna_vault::frontmatter_edit::TextChange> for TextChangeDto {
 #[tauri::command]
 #[specta::specta]
 pub(crate) fn note_properties(content: String) -> Result<Vec<NotePropertyDto>, PropertySkipDto> {
-    let props = luna_vault::frontmatter_edit::read_properties(&content)?;
+    let props = luna_sync_core::frontmatter_edit::read_properties(&content)?;
     Ok(props
         .into_iter()
         .map(|p| {
@@ -321,7 +325,7 @@ pub(crate) fn note_property_edit(
     content: String,
     edit: NotePropertyEditDto,
 ) -> Result<TextChangeDto, PropertySkipDto> {
-    use luna_vault::frontmatter_edit::{apply_property_edit, text_change, PropertyEdit};
+    use luna_sync_core::frontmatter_edit::{apply_property_edit, text_change, PropertyEdit};
     let edit = match edit {
         NotePropertyEditDto::Set { key, value } => PropertyEdit::Set {
             key,

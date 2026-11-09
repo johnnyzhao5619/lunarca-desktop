@@ -4,9 +4,9 @@
 
 import type { EditorView } from "@codemirror/view";
 import { buildMenu, separator, type ContextMenuEntry, type ContextMenuItem } from "../../lib/context-menu";
-import type { TableAlign } from "../../lib/markdown";
-import { tableAt, type TableModel } from "./table-model";
-import { applyTableEdit, type TableMenuTarget } from "./table-preview";
+import type { TableAlign } from "@lunarca/editor-core/markdown";
+import { tableAt, type TableModel } from "@lunarca/editor-core/table-model";
+import { applyTableEdit, type TableMenuTarget } from "@lunarca/editor-core/table-preview";
 import type { TableAiTask } from "./FloatingMenu";
 import {
   alignColumnEdit,
@@ -21,7 +21,7 @@ import {
   tableToTextEdit,
   tidyTableEdit,
   type TableEdit,
-} from "./table-structure";
+} from "@lunarca/editor-core/table-structure";
 
 /** 表格菜单的文案（调用方过 i18n 注入）。 */
 export interface TableMenuLabels {

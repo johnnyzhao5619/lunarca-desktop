@@ -11,7 +11,7 @@
 //!
 //! 与「应用」页的 `app_update`（Lunarca 下载的组件）是两回事：这里更新的是 Lunarca 本身。
 
-use std::sync::Mutex;
+use std::sync::{Mutex, PoisonError};
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
@@ -21,6 +21,7 @@ use tauri_plugin_updater::{Update, UpdaterExt as _};
 
 use tauri_specta::Event as _;
 
+use super::restart_guard::{self, CODE_BLOCKED_CAPTURE};
 use super::settings::{set_setting_value, SettingValueDto};
 use super::{AppState, SettingsChanged};
 use crate::notifications::{NotificationCenter, NotificationEvent, NotificationTarget};
@@ -104,10 +105,36 @@ pub(crate) async fn app_release_check(
     Ok(view)
 }
 
-/// **下载并安装**刚查到的那一版，装好后重启进入新版本。验签不过、下载失败都不装，旧版本照常运行。
+const CODE_INSTALL_FAILED: &str = "update_install_failed";
+
+/// 下载 → 重启闸门（录音判据、全部编辑窗口保存）→ 安装 → 重启。只有失败才返回，返回值是稳定错误码。
+///
+/// 下载放在冻结输入之前：它可能要好几分钟，用户这段时间照常编辑，只有最后保存与安装的几秒才冻结。
+async fn install_and_restart(app: &tauri::AppHandle, state: &AppState, update: &Update) -> String {
+    if restart_guard::capture_blocks_restart(state) {
+        return CODE_BLOCKED_CAPTURE.to_owned();
+    }
+    let Ok(bytes) = update.download(|_, _| {}, || {}).await else {
+        return CODE_INSTALL_FAILED.to_owned();
+    };
+    let clearance = match restart_guard::clear_for_restart(app, state).await {
+        Ok(clearance) => clearance,
+        Err(code) => return code.to_owned(),
+    };
+    if update.install(bytes).is_err() {
+        clearance.abandon(app);
+        return CODE_INSTALL_FAILED.to_owned();
+    }
+    // 从异步线程调用：走 `ExitRequested` / `Exit`，随包推理引擎照常收尾。
+    app.restart()
+}
+
+/// **下载并安装**刚查到的那一版，全部编辑窗口保存成功后才安装并重启。验签不过、下载失败都不装；
+/// 保存不成功就留在当前应用，这一版继续留着，处理完可以再点一次。
 ///
 /// # Errors
-/// 严格本地拦截、没有待装的版本（`no_pending_update`，先检查更新）、下载或验签失败（`update_install_failed`）。
+/// 严格本地拦截、没有待装的版本（`no_pending_update`，先检查更新）、重启闸门拦下
+/// （`restart_*`，见 `restart_guard`）、下载或验签失败（`update_install_failed`）。
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn app_release_install(
@@ -115,21 +142,29 @@ pub(crate) async fn app_release_install(
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
     super::apps::refuse_if_strict_local(&app, &state)?;
-    let update = app
-        .try_state::<PendingRelease>()
+    // 取走即占位：并发的第二次点击拿到 `no_pending_update`，不会装两遍。
+    let pending = app.try_state::<PendingRelease>();
+    let update = pending
+        .as_ref()
         .and_then(|pending| {
             pending
                 .0
                 .lock()
-                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .unwrap_or_else(PoisonError::into_inner)
                 .take()
         })
         .ok_or_else(|| "no_pending_update".to_owned())?;
-    update
-        .download_and_install(|_, _| {}, || {})
-        .await
-        .map_err(|_| "update_install_failed".to_owned())?;
-    app.restart();
+    let code = install_and_restart(&app, &state, &update).await;
+    if let Some(pending) = pending {
+        *pending.0.lock().unwrap_or_else(PoisonError::into_inner) = Some(update);
+    }
+    Err(code)
+}
+
+/// 后台装不装。Windows 的安装器会直接结束当前进程，等于不经保存协调的重启，所以「自动」在那里也
+/// 只提醒，由用户点「下载并安装」；其它平台装完不重启，下次启动才生效。
+fn installs_unattended(policy: UpdatePolicy, install_exits_process: bool) -> bool {
+    policy == UpdatePolicy::Automatic && !install_exits_process
 }
 
 /// 「关于与更新」要不要显示提问卡「启动时自动检查更新？」：还没答过、策略仍是缺省的仅手动、
@@ -190,7 +225,7 @@ pub(crate) fn app_release_answer_startup_check(
 /// 启动后的那一步（严格本地开着时什么都不做）：
 /// - 仅手动（缺省）且从没问过：发一条本地通知问要不要启动时检查，**不联网**；之后不再每次启动都发；
 /// - 启动时检查、由用户确认：查到新版本发一条通知，带到通用设置里看说明、点安装；
-/// - 自动：查到就下载安装，装好发一条通知，下次启动即是新版本。
+/// - 自动：查到就下载安装，装好发一条通知，下次启动即是新版本（Windows 例外，见 [`installs_unattended`]）。
 ///
 /// 只查一次、失败不重试不提示——这是用户答应过的顺手一查，随时可以手动检查。
 pub(crate) fn spawn_startup_check(app: tauri::AppHandle) {
@@ -214,7 +249,7 @@ pub(crate) fn spawn_startup_check(app: tauri::AppHandle) {
         let Ok(Some(update)) = fetch(&app).await else {
             return;
         };
-        let notice = if policy == UpdatePolicy::Automatic {
+        let notice = if installs_unattended(policy, cfg!(windows)) {
             if update.download_and_install(|_, _| {}, || {}).await.is_err() {
                 return;
             }
@@ -275,6 +310,38 @@ mod tests {
             UpdatePolicy::Manual,
             "检查更新是 opt-in 联网：缺省必须是仅手动"
         );
+    }
+
+    #[test]
+    fn automatic_never_installs_unattended_when_the_installer_ends_the_process() {
+        assert!(installs_unattended(UpdatePolicy::Automatic, false));
+        assert!(!installs_unattended(UpdatePolicy::Automatic, true));
+        assert!(!installs_unattended(UpdatePolicy::CheckAndConfirm, false));
+    }
+
+    /// 权限弹窗、设置页与隐私说明讲的要是同一件事（v1.1.0 发布判据）：默认本机，开启服务端转写才外发。
+    #[test]
+    fn capture_usage_strings_cover_local_default_and_chosen_server() {
+        let plist = include_str!("../../Info.plist");
+        let settings = include_str!("../../../apps/desktop/src/i18n/locales/zh-CN/settings.json");
+        let setting_name = "服务端转写";
+        assert!(settings.contains(&format!("\"remote_asr_enabled\": \"{setting_name}\"")));
+        for key in [
+            "NSMicrophoneUsageDescription",
+            "NSAudioCaptureUsageDescription",
+        ] {
+            let value = plist
+                .split(&format!("<key>{key}</key>"))
+                .nth(1)
+                .and_then(|rest| rest.split("</string>").next())
+                .expect(key);
+            assert!(value.contains("默认在本机转写"), "{key}");
+            assert!(value.contains(setting_name), "{key}");
+            assert!(value.contains("发送到你选择的服务端"), "{key}");
+            for stale in ["全程本地", "不上传"] {
+                assert!(!value.contains(stale), "{key} 不能写 {stale}");
+            }
+        }
     }
 
     #[test]

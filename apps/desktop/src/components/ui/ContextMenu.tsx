@@ -7,7 +7,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { cssVariables } from "../../lib/css-variables";
-import { CheckIcon, ChevronRightIcon } from "./Icon";
+import { CheckIcon, ChevronRightIcon } from "@lunarca/editor-core/Icon";
 import {
   focusableIndexes,
   menuHasLeadingSlot,

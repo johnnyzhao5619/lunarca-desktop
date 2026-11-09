@@ -98,7 +98,10 @@ pub(crate) fn creator_save_quote(
         };
         let href = format!(
             "{}{fragment}",
-            luna_vault::encode_link_target(&luna_vault::relative_link_path(&research_rel, &source))
+            luna_vault::encode_link_target(&luna_sync_core::links::relative_link_path(
+                &research_rel,
+                &source
+            ))
         );
         for _ in 0..2 {
             let (base, created) = match vault.read(&research_rel) {
@@ -302,8 +305,10 @@ fn with_section_line(
 
 /// 「素材」一节的那一行：`- [素材标题](相对路径)`。
 fn material_line(research_rel: &str, note_rel: &str) -> (String, String) {
-    let target =
-        luna_vault::encode_link_target(&luna_vault::relative_link_path(research_rel, note_rel));
+    let target = luna_vault::encode_link_target(&luna_sync_core::links::relative_link_path(
+        research_rel,
+        note_rel,
+    ));
     let line = format!(
         "- {}",
         luna_vault::markdown_link(research_rel, note_rel, &note_stem_of(note_rel))

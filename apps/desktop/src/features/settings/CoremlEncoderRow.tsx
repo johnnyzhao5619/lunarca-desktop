@@ -11,7 +11,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cssVariables } from "../../lib/css-variables";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import type { CoremlPhase, ModelDownloadProgress, ModelEntryDto } from "../../ipc/bindings";
 import type { ModelsController } from "./use-settings";
 

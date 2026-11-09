@@ -17,7 +17,7 @@ import {
   PinIcon,
   PlusIcon,
   SplitIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { IconButton } from "../../components/ui/IconButton";
 import {
   canGoBack,

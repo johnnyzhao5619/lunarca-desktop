@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { commands, events, type AppReleaseDto } from "../../ipc/bindings";
+import { RESTART_BLOCK_CODES } from "./restart-block-codes";
 
 /** Rust 侧会回的稳定错误码（按小写比对）；不在其中的一律显示「没有完成」。 */
 export const RELEASE_ERROR_CODES = [
@@ -17,6 +18,7 @@ export const RELEASE_ERROR_CODES = [
   "update_check_failed",
   "no_pending_update",
   "update_install_failed",
+  ...RESTART_BLOCK_CODES,
 ] as const;
 
 type ReleaseErrorCode = (typeof RELEASE_ERROR_CODES)[number] | "unknown";
@@ -94,7 +96,7 @@ export function AppReleasePanel() {
 
   const install = async (release: AppReleaseDto) => {
     setPhase({ kind: "installing", release });
-    // 成功时 Rust 装好就重启应用，这里等不到返回；只有失败会回来。
+    // 成功时 Rust 保存、装好就重启应用，这里等不到返回；只有失败会回来，这一版留着可以再点一次。
     const result = await commands.appReleaseInstall();
     if (result.status === "error") {
       setPhase({ kind: "error", code: releaseErrorCode(result.error), release });
@@ -107,7 +109,8 @@ export function AppReleasePanel() {
   };
 
   const busy = phase.kind === "checking" || phase.kind === "installing";
-  const release = phase.kind === "available" || phase.kind === "installing" ? phase.release : null;
+  const release =
+    phase.kind === "available" || phase.kind === "installing" || phase.kind === "error" ? phase.release : null;
 
   return (
     <section className="luna-settings-panel" aria-labelledby="app-release-title">

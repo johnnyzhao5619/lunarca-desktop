@@ -21,6 +21,8 @@ pub enum MicHolder {
     PopupVoiceButton,
     /// 快捷录音（P1，Cmd+Shift+R）。
     Recording,
+    /// 应用即将重启（安装更新、重置应用）：这段时间不许开始新的采集（TDD-13 §5）。
+    AppRestart,
 }
 
 impl MicHolder {
@@ -31,6 +33,7 @@ impl MicHolder {
             Self::VoiceInput => "mic.holder.voice_input",
             Self::PopupVoiceButton => "mic.holder.popup_voice",
             Self::Recording => "mic.holder.recording",
+            Self::AppRestart => "mic.holder.app_restart",
         }
     }
 }
@@ -41,6 +44,7 @@ impl fmt::Display for MicHolder {
             Self::VoiceInput => "语音输入",
             Self::PopupVoiceButton => "弹窗语音输入",
             Self::Recording => "录音",
+            Self::AppRestart => "应用重启",
         })
     }
 }

@@ -475,10 +475,15 @@ export function SettingsView({
     : advancedSearchCount(controller.allSpecs.filter((spec) => !controller.modifiedOnly || spec.modified), query, searchText);
 
   if (controller.loading || (!searching && activePage === "")) {
-    // 规格未载入，或载入后还没落到任何一页（控制器下一帧即回落到首页）。
+    // 规格未载入，或载入后还没落到任何一页（控制器下一帧即回落到首页）。注册表一次都没
+    // 读成功时控制器不挑页，此处如实给出那条错误，而不是一直写着「设置…」。
     return (
       <section className="luna-settings" aria-label={t("title")}>
-        <p className="luna-empty">{t("title")}…</p>
+        {controller.error && !controller.loading ? (
+          <p className="luna-field-error" role="alert">{controller.error}</p>
+        ) : (
+          <p className="luna-empty">{t("title")}…</p>
+        )}
       </section>
     );
   }

@@ -10,7 +10,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { commands, type EmbedHitDto } from "../../ipc/bindings";
 import { noteStem } from "../../lib/note-path";
 import { ReadingView, resolveEmbedsFor } from "./ReadingView";
-import { prepareRichContent } from "../../lib/rich-content";
+import { prepareRichContent } from "@lunarca/editor-core/rich-content";
 
 /** 等图片与字体就位再打印：打印面板拿到的是当前渲染快照。 */
 async function waitForAssets(): Promise<void> {

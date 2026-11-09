@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useFailureGuidance } from "../../hooks/use-failure-guidance";
 import { goTo } from "../../lib/navigate";
-import { CheckIcon, InfoIcon } from "./Icon";
+import { CheckIcon, InfoIcon } from "@lunarca/editor-core/Icon";
 
 export type HudReceiptAction = { label: string; onSelect: () => void };
 

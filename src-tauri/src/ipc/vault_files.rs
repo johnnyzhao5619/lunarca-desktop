@@ -289,7 +289,10 @@ pub(crate) fn vault_list_dirs(
 /// 用户真起了一个叫 `assets` 的分组会被一并藏起——那正是附件会落进去的地方，两者本就分不开。
 fn without_attachment_dirs(settings: &Settings, dirs: Vec<String>) -> Vec<String> {
     let is_attachment_dir = |dir: &str| {
-        let probe = luna_vault::join_vault_rel(luna_vault::parent_dir(dir), "x.md");
+        let probe = luna_sync_core::attachment::join_vault_rel(
+            luna_sync_core::links::parent_dir(dir),
+            "x.md",
+        );
         super::workspace::media_asset_dir(settings, &probe) == dir
     };
     dirs.into_iter()
@@ -370,55 +373,23 @@ pub(crate) fn vault_rename(
     })
 }
 
-/// 重命名后的库相对路径：同目录、用户给的名字、**原扩展名**（目录没有扩展名）。
-///
-/// 用户已经把扩展名打进去的（`x.png` → `y.png`）不再重复追加——判据是"是否以原扩展名
-/// 结尾"这一条确定的事实，不是猜他有没有打后缀。
+/// 重命名后的库相对路径（规则与网页版同一份：`luna_sync_core::naming::renamed_entry_path`——同目录、
+/// 用户给的名字、原扩展名），不合法的名字给本地化的错误。
 pub(crate) fn renamed_entry_path(
     i18n: BackendCopy<'_>,
     current_path: &str,
     name: &str,
     is_dir: bool,
 ) -> Result<String, String> {
-    let trimmed = name.trim();
-    if trimmed.is_empty() {
-        return Err(coded_error_with(i18n, "INVALID_NAME", "invalid-name-empty"));
-    }
-    if trimmed == "." || trimmed == ".." {
-        return Err(coded_error_with(
-            i18n,
-            "INVALID_NAME",
-            "invalid-name-generic",
-        ));
-    }
-    if trimmed
-        .chars()
-        .any(|ch| ch == '/' || ch == '\\' || ch == '\0' || ch.is_control())
-    {
-        return Err(coded_error_with(
-            i18n,
-            "INVALID_NAME",
-            "invalid-name-separator",
-        ));
-    }
-
-    let current = Path::new(current_path);
-    let extension = if is_dir {
-        None
-    } else {
-        current.extension().and_then(|ext| ext.to_str())
-    };
-    let file_name = match extension {
-        Some(ext) if !trimmed.ends_with(&format!(".{ext}")) => format!("{trimmed}.{ext}"),
-        _ => trimmed.to_owned(),
-    };
-    let target = current
-        .parent()
-        .filter(|parent| !parent.as_os_str().is_empty())
-        .map(|parent| parent.join(&file_name))
-        .unwrap_or_else(|| PathBuf::from(&file_name));
-    // Vault 相对路径一律 `/`（Windows 上 `join` 拼出的是 `\`，前端拿它对不上标签页与文件树）。
-    Ok(target.to_string_lossy().replace('\\', "/"))
+    use luna_sync_core::naming::NameError;
+    luna_sync_core::naming::renamed_entry_path(current_path, name, is_dir).map_err(|err| {
+        let key = match err {
+            NameError::Empty => "invalid-name-empty",
+            NameError::Separator => "invalid-name-separator",
+            NameError::Reserved | NameError::Hidden => "invalid-name-generic",
+        };
+        coded_error_with(i18n, "INVALID_NAME", key)
+    })
 }
 
 /// 当前生效的删除策略（PRD-06-009 回收站三态 + 删除确认文案）。

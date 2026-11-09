@@ -10,7 +10,7 @@ import { useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent
 import { useTranslation } from "react-i18next";
 
 import type { ProjectCardDto } from "../../ipc/bindings";
-import { ChevronLeftIcon, ChevronRightIcon } from "../../components/ui/Icon";
+import { ChevronLeftIcon, ChevronRightIcon } from "@lunarca/editor-core/Icon";
 import { IconButton } from "../../components/ui/IconButton";
 import { cssVariables } from "../../lib/css-variables";
 import { formatMonthTitle, weekdayNames } from "../../lib/format-datetime";

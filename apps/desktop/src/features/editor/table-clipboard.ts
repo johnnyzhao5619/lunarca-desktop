@@ -2,10 +2,10 @@
 // 单元格文字取**去掉 Markdown 标记**的纯文本（粘进表格软件的是「乙」，不是「**乙**」）；
 // 带格式那份就是阅读视图的静态渲染——与 HTML 导出同一条路（`renderNoteHtml`），不另写一套。
 
-import { inlineToPlainText, parseChatMarkdown } from "../../lib/markdown";
+import { inlineToPlainText, parseChatMarkdown } from "@lunarca/editor-core/markdown";
 import { commands } from "../../ipc/bindings";
 import { renderNoteHtml } from "./note-export-html";
-import { prepareRichContent } from "../../lib/rich-content";
+import { prepareRichContent } from "@lunarca/editor-core/rich-content";
 
 /** 表格源码 → 纯文本单元格矩阵（首行为表头）；不是一张表时返回 null。 */
 export function tablePlainCells(source: string): string[][] | null {

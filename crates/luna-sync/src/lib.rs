@@ -14,15 +14,12 @@
 //! - [`ports`]：引擎向外要的远端与本地库接口。
 //! - [`engine`]：一轮同步的执行器。
 
-pub mod chunk;
 pub mod core;
-pub mod crypto;
 pub mod engine;
 pub mod keystore;
-pub mod manifest;
 pub mod policy;
 pub mod ports;
-pub mod recovery;
+pub mod preview;
 pub mod restore;
 pub mod state;
 

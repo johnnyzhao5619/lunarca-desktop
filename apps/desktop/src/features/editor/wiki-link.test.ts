@@ -16,8 +16,9 @@ vi.mock("../../ipc/bindings", () => import("../../ipc/bindings-test-double"));
 
 import { commandMock, resetBindingsDouble, setCommandReply } from "../../ipc/bindings-test-double";
 import { consumePendingEditorReveal } from "../../lib/app-events";
-import { resetWikiResolutions, wikiLinkClickHandler, wikiLinkExtension } from "./wiki-link";
+import { resetWikiResolutions, wikiLinkClickHandler, wikiLinkExtension } from "@lunarca/editor-core/wiki-link";
 import { openWikiLink } from "./wiki-link-open";
+import { desktopEditorHost } from "./editor-host";
 
 beforeEach(() => {
   resetBindingsDouble();
@@ -31,14 +32,16 @@ afterEach(() => {
 
 function mount(doc: string, resolve: (path: string, targets: string[]) => Promise<(string | null)[] | null>) {
   const onActivate = vi.fn();
-  const ctx = { notePath: () => "会议.md", resolve, onActivate };
+  const ctx = { notePath: () => "会议.md", onActivate };
+  // 解析走编辑器端口的库级能力；这里换成用例给的应答，其余照桌面那一份。
+  const host = { ...desktopEditorHost, vault: { ...desktopEditorHost.vault, resolveWikiTargets: resolve } };
   const parent = document.createElement("div");
   document.body.appendChild(parent);
   const view = new EditorView({
     parent,
     state: EditorState.create({ doc, extensions: [
       markdown({ base: markdownLanguage, addKeymap: false }),
-      wikiLinkExtension(ctx),
+      wikiLinkExtension(host, ctx),
       wikiLinkClickHandler(ctx),
     ] }),
   });

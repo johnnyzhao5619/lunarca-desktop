@@ -31,7 +31,7 @@
 
 import { describe, expect, it } from "vitest";
 
-const TSX = import.meta.glob("../{app,features,components}/**/*.tsx", {
+const TSX = import.meta.glob(["../{app,features,components}/**/*.tsx", "../../../../packages/*/src/**/*.tsx"], {
   eager: true,
   import: "default",
   query: "?raw",
@@ -39,7 +39,8 @@ const TSX = import.meta.glob("../{app,features,components}/**/*.tsx", {
 
 const VIEWS = Object.fromEntries(Object.entries(TSX).filter(([p]) => !p.endsWith(".test.tsx")));
 
-const STYLES = import.meta.glob("../**/*.css", {
+// 共享样式包里的 CSS 同样算在内：编辑面与阅读面的规则住在那里（`@lunarca/styles`）。
+const STYLES = import.meta.glob(["../**/*.css", "../../../../packages/*/src/**/*.css"], {
   eager: true,
   import: "default",
   query: "?raw",
@@ -191,6 +192,7 @@ export function orphanCssStateHooks(
 describe("选中态口径", () => {
   it("扫描面非空（glob 失效时本用例先红）", () => {
     expect(Object.keys(VIEWS).length).toBeGreaterThan(50);
+    expect(Object.keys(VIEWS).some((path) => path.includes("/packages/editor-core/src/")), "共享渲染包不在扫描面里").toBe(true);
     expect(Object.keys(STYLES).length).toBeGreaterThan(40);
   });
 

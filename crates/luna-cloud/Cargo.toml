@@ -33,6 +33,9 @@ name = "export-cloud-bindings"
 path = "src/bin/export_bindings.rs"
 
 [dependencies]
+# 同步提交的条目、请求体与逐条结果只有这一份（零依赖叶子，网页版 WASM 用的同一份，ADR-177 ⑥）；
+# 网页版端到端用例的种子工具（`examples/web_e2e_seed.rs`）也经它建库与推送。
+luna-sync-core = { path = "../luna-sync-core" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
@@ -70,11 +73,11 @@ uuid = { workspace = true, features = ["v4"] }
 # 应用内口令登录（ADR-158，`opaque_auth` / `first_contact`）：OPAQUE 握手；信任包用会话密钥经
 # HKDF-SHA512 派生的 AES-256-GCM 密钥解开；随机数取 aes-gcm 自带的 OsRng（rand_core 0.6，与 opaque-ke 同代）。
 opaque-ke = { workspace = true }
+# 口令登录的密码学与报文格式（与网页版共用，ADR-177 ⑥）。
+luna-opaque = { path = "../luna-opaque" }
 hkdf = { workspace = true }
 aes-gcm = { workspace = true }
 zeroize = { workspace = true }
-# 邮箱规整的 NFKC（`opaque_auth::normalize_email`，两端同一条规则）：已随 url → idna 进入依赖树，零新增 crate。
-icu_normalizer = "2"
 
 # 设备指纹的硬件标识（纵切 3 C5，`fingerprint`）。两者都已在依赖树里（core-foundation 随 src-tauri
 # 的 IOKit 采样、winreg 随 Windows 资源嵌入），只按平台编入，零新增 crate。
@@ -92,5 +95,3 @@ winreg = "0.55"
 # 无法离线自证。契约测试随服务端留在商业仓（对着 pinned upstream 的本 crate 跑）。
 tokio = { workspace = true }
 tempfile = "3"
-# 中继到另一台部署的 3DH 失败用例要一颗确定的随机源（互通向量本身用循环随机数脚本，见 `opaque_auth`）。
-rand_chacha = "0.3"

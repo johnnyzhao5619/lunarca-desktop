@@ -16,8 +16,9 @@ import { InlineDetails } from "../../components/ui/InlineDetails";
 import { PathValue } from "../../components/ui/PathDetails";
 import { useConfirm } from "../../components/ConfirmHost";
 import { commands, type FootprintEntryDto } from "../../ipc/bindings";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { vaultErrorText } from "../../lib/vault-error";
+import { isRestartBlockCode } from "./restart-block-codes";
 
 type ClearAction = "vault_cache" | "vault_trash" | "models";
 
@@ -99,14 +100,16 @@ export function DataFootprintPanel() {
       return;
     }
     setBusy("reset");
+    // 成功时 Rust 保存、重置后直接重启，这里等不到返回；只有失败会回来。
     const result = await commands.resetApp();
     if (result.status === "error") {
       setBusy(null);
-      setFeedback(vaultErrorText(result.error));
-      return;
+      setFeedback(
+        isRestartBlockCode(result.error)
+          ? t(`footprint.reset_blocked.${result.error}`)
+          : vaultErrorText(result.error),
+      );
     }
-    setFeedback(result.data ? t("footprint.done.reset", { path: result.data }) : t("footprint.done.reset_no_backup"));
-    void commands.restartApp();
   }
 
   return (

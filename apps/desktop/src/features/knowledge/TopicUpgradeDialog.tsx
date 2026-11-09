@@ -16,7 +16,7 @@ import {
 } from "../../ipc/bindings";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import { IconButton } from "../../components/ui/IconButton";
-import { CloseIcon } from "../../components/ui/Icon";
+import { CloseIcon } from "@lunarca/editor-core/Icon";
 import { noteStem } from "../../lib/note-path";
 
 type ReadyPreview = Extract<TopicUpgradePreviewDto, { status: "ready" }>;

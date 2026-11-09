@@ -141,8 +141,8 @@ use quick_note::*;
 mod vaults;
 use vaults::*;
 pub(crate) use vaults::{
-    close_for_account, current_vault_root, open_for_account, recording_blocks_switch,
-    start_index_scan, ModelDownloadProgress,
+    close_for_account, current_vault_root, open_for_account, open_startup_vault_when_local,
+    recording_blocks_switch, start_index_scan, ModelDownloadProgress,
 };
 pub(crate) mod settings;
 pub(crate) mod themes;
@@ -162,6 +162,7 @@ mod rail;
 use rail::*;
 mod app_release;
 mod apps;
+mod restart_guard;
 pub(crate) use app_release::spawn_startup_check as spawn_release_startup_check;
 pub(crate) use app_release::PendingRelease;
 use app_release::*;
@@ -188,8 +189,9 @@ use creator_distribute::*;
 use creator_publish::*;
 use creator_research::*;
 use creator_sources::*;
+pub(crate) use popup::read_clipboard_text;
 use teleprompter::*;
-pub(crate) use teleprompter::{mark_from_hotkey, TELEPROMPTER_LABEL};
+pub(crate) use teleprompter::{mark_from_hotkey, send_text_to_teleprompter, TELEPROMPTER_LABEL};
 mod glossary;
 use glossary::*;
 /// 信任锚：导入组织配置文件 / 确认一次变更（ADR-060、ADR-071）。
@@ -250,12 +252,14 @@ mod quick_note_refine;
 mod voice;
 // 官方同步的命令面（ADR-148）。
 mod sync_cloud;
+mod sync_first_login;
 mod sync_ipc;
 pub(crate) use caption::{
     remember_caption_window_geometry, remembered_caption_window_geometry, CaptionWindowGeometry,
     CaptionWindowHidden,
 };
 use sync_cloud::*;
+use sync_first_login::*;
 use sync_ipc::*;
 use voice::*;
 pub(crate) use voice::{show_voice_hud_with_preset, VoiceInputHudPresetDto};
@@ -285,12 +289,29 @@ pub fn restore_queue_history(app: &tauri::AppHandle) {
 use providers::RemoteBatchAsr;
 pub use providers::{build_state_with_settings_persistence, models_root_from_settings};
 
-const DRAFT_STEM_MAX_CHARS: usize = 48;
+/// 此刻的本地时刻：文件命名规则（新笔记兜底名、冲突副本日期）要的年月日时分秒，格式由
+/// `luna_sync_core::naming` 写出——与网页版同一份。
+pub(crate) fn civil_now() -> luna_sync_core::naming::CivilTime {
+    use chrono::{Datelike as _, Timelike as _};
+    let now = chrono::Local::now();
+    luna_sync_core::naming::CivilTime {
+        year: now.year(),
+        month: now.month(),
+        day: now.day(),
+        hour: now.hour(),
+        minute: now.minute(),
+        second: now.second(),
+    }
+}
+
 const LUNA_VAULT_ROOT_ENV: &str = "LUNA_VAULT_ROOT";
 const LUNA_VAULT_PRIVATE_DIR: &str = ".luna";
 /// 打开库前等 iCloud 把 `.luna/` 取回本机的上限（启动装载与切库同一个值）：正常取回一个小文件
 /// 不到一秒；超过这个时间多半是取回卡住了，再等下去窗口就一直出不来。
 const VAULT_CLOUD_FETCH_WAIT: std::time::Duration = std::time::Duration::from_secs(5);
+/// 没等到时转入后台等待（[`open_startup_vault_when_local`]），隔多久看一次：只看文件标记，代价可忽略；
+/// 取回到了最多晚这么久自动打开。
+const VAULT_CLOUD_POLL: std::time::Duration = std::time::Duration::from_secs(2);
 /// 时间戳式默认文件名中的内容摘要长度上限（字符，语音速记与对话归档共用）。
 /// 时间戳承担主要辨识职责，摘要只做"这条说了什么"的提示，取短防止文件名爆长。
 pub(crate) const NOTE_STEM_EXCERPT_CHARS: usize = 16;
@@ -1278,8 +1299,8 @@ pub struct WikiLinkCandidateDto {
     pub path: String,
 }
 
-impl From<luna_vault::WikiLinkCandidate> for WikiLinkCandidateDto {
-    fn from(c: luna_vault::WikiLinkCandidate) -> Self {
+impl From<luna_sync_core::links::WikiLinkCandidate> for WikiLinkCandidateDto {
+    fn from(c: luna_sync_core::links::WikiLinkCandidate) -> Self {
         Self {
             title: c.title,
             insert: c.insert,
@@ -2051,6 +2072,10 @@ pub enum FloatingMenuAction {
     ScriptSpoken,
     /// 视频脚本（PRD-19-013）：整理口述——去掉口头禅、重复与说错重说，保留本人的话。
     ScriptDictation,
+    /// 提词器的 AI 口播动作（ADR-176 ⑧，PRD-20-016）：改成口播稿 / 按时长压缩 / 标注停顿与强调。
+    PrompterSpoken,
+    PrompterFit,
+    PrompterCues,
 }
 
 impl FloatingMenuAction {
@@ -2086,6 +2111,9 @@ impl FloatingMenuAction {
             "script_hook" => Self::ScriptHook,
             "script_spoken" => Self::ScriptSpoken,
             "script_dictation" => Self::ScriptDictation,
+            "prompter_spoken" => Self::PrompterSpoken,
+            "prompter_fit" => Self::PrompterFit,
+            "prompter_cues" => Self::PrompterCues,
             _ => return None,
         })
     }
@@ -2110,6 +2138,9 @@ impl FloatingMenuAction {
             Self::ScriptHook => "script_hook",
             Self::ScriptSpoken => "script_spoken",
             Self::ScriptDictation => "script_dictation",
+            Self::PrompterSpoken => "prompter_spoken",
+            Self::PrompterFit => "prompter_fit",
+            Self::PrompterCues => "prompter_cues",
         }
     }
 
@@ -2130,6 +2161,9 @@ impl FloatingMenuAction {
                 | Self::ScriptHook
                 | Self::ScriptSpoken
                 | Self::ScriptDictation
+                | Self::PrompterSpoken
+                | Self::PrompterFit
+                | Self::PrompterCues
         )
     }
 }
@@ -2204,6 +2238,8 @@ pub struct FloatingMenuOptionsDto {
     pub summary_style: Option<FloatingSummaryStyle>,
     /// 「按列填充」填哪一列（0 起）；其它动作不读。
     pub table_column: Option<u32>,
+    /// 「按时长压缩」的目标秒数（ADR-176 ⑧）；其它动作不读。
+    pub target_seconds: Option<u32>,
 }
 
 /// 笔记 AI 悬浮菜单作用域（PRD-06-020）：选区 / 光标处 / 整篇。
@@ -4169,7 +4205,6 @@ pub fn builder() -> Builder<tauri::Wry> {
             data_footprint,
             clear_vault_cache,
             reset_app,
-            restart_app,
             export_settings,
             preview_settings_import,
             import_settings,
@@ -4282,7 +4317,13 @@ pub fn builder() -> Builder<tauri::Wry> {
             teleprompter_hide,
             teleprompter_follow_start,
             teleprompter_follow_reset,
+            teleprompter_follow_seek,
             teleprompter_mark,
+            teleprompter_home,
+            teleprompter_new_draft,
+            teleprompter_snap_to_camera,
+            teleprompter_import_files,
+            teleprompter_estimate_seconds,
             creator_calibrate_speaking_rate,
             creator_reset_speaking_rate,
             bookmarks,
@@ -4555,6 +4596,9 @@ pub fn builder() -> Builder<tauri::Wry> {
             take_pending_navigation,
             sync_overview,
             sync_remote_vaults,
+            sync_first_login_offer,
+            sync_first_login_decided,
+            sync_merge_preview,
             sync_enable,
             sync_join,
             sync_restore_point,
@@ -4591,7 +4635,7 @@ pub fn builder() -> Builder<tauri::Wry> {
             GraphRescanProgress,
             VaultSwitched,
             crate::vault_lists::VaultsChanged,
-            crate::vault_lists::VaultFollowedAccount,
+            crate::vault_lists::VaultSwitchedByApp,
             EmbedProgress,
             CheckupProgress,
             KnowledgeReceiptDto,
@@ -5401,6 +5445,7 @@ mod tests {
             "chats://Chats/对话.md",
             "notes://Notes/示例.md",
             "creator://",
+            "teleprompter://",
             "topics://",
             "tags://%E9%A1%B9%E7%9B%AE",
             "graph://Notes/%E7%A4%BA%E4%BE%8B.md",
@@ -5667,46 +5712,6 @@ mod tests {
         assert_eq!(note_title_of("Notes/foo.md"), "foo");
         assert_eq!(note_title_of("bar.md"), "bar");
         assert_eq!(note_title_of("a/b/c.md"), "c");
-    }
-
-    #[test]
-    fn attachment_target_covers_four_modes() {
-        let note = "Chats/talk.md";
-        // 子目录（默认）：笔记同级 assets。
-        let t = attachment_target("note_subfolder", "assets", note, "p.png");
-        assert_eq!(t.dir_rel, "Chats/assets");
-        assert_eq!(t.link, "assets/p.png");
-        // 笔记同级。
-        let t = attachment_target("note_folder", "", note, "p.png");
-        assert_eq!(t.dir_rel, "Chats");
-        assert_eq!(t.link, "p.png");
-        // 仓库根：链接需 ../ 回退。
-        let t = attachment_target("vault_root", "", note, "p.png");
-        assert_eq!(t.dir_rel, "");
-        assert_eq!(t.link, "../p.png");
-        // 指定目录：库内相对路径 + ../ 链接。
-        let t = attachment_target("specified_folder", "Attachments", note, "p.png");
-        assert_eq!(t.dir_rel, "Attachments");
-        assert_eq!(t.link, "../Attachments/p.png");
-        // 未知模式回退子目录；folder 越界段被清洗。
-        let t = attachment_target("???", "../evil/sub", note, "p.png");
-        assert_eq!(t.dir_rel, "Chats/evil/sub");
-        // 根笔记 + 子目录。
-        let t = attachment_target("note_subfolder", "assets", "root.md", "p.png");
-        assert_eq!(t.dir_rel, "assets");
-        assert_eq!(t.link, "assets/p.png");
-    }
-
-    #[test]
-    fn asset_ext_maps_known_mimes_and_falls_back() {
-        assert_eq!(asset_ext_from_mime("image/png"), "png");
-        assert_eq!(asset_ext_from_mime("image/jpeg"), "jpg");
-        assert_eq!(asset_ext_from_mime("image/svg+xml"), "svg");
-        // 未知 image/* 取子类型（纯字母数字）。
-        assert_eq!(asset_ext_from_mime("image/heic"), "heic");
-        // 非图片或含非法字符 → bin。
-        assert_eq!(asset_ext_from_mime("application/pdf"), "bin");
-        assert_eq!(asset_ext_from_mime("image/x-icon"), "bin");
     }
 
     /// 多分片排序 + 区间推导：显式区间（多 part）与缺省区间（单 part）各走各路。
@@ -5983,7 +5988,7 @@ mod tests {
             !slot("realtime_llm").follow_is_server_managed,
             "实时槽清掉后继承的是本机默认档，标成服务端托管就是屏幕与字节去向相反"
         );
-        // 转写走独立的「服务端转写」通道，不属于「服务端托管」这一模式。
+        // 转写还没同意交给服务端：清掉落到本机兜底，不得标成服务端托管。
         assert!(!slot("realtime_asr").follow_is_server_managed);
         assert!(!slot("batch_asr").follow_is_server_managed);
 
@@ -6003,6 +6008,80 @@ mod tests {
                 .follow_is_server_managed,
             "没连服务端却把「跟随」标成服务端托管，是承诺一个不存在的落点"
         );
+    }
+
+    /// 同意把转写交给服务端之后，转写两槽的空选项也叫「服务端托管」（ADR-059 ④）：此前它仍写
+    /// 「自动选择」，而同一行的「当前生效」已是「服务端托管」。判的是清掉本槽后**真正**落到
+    /// 哪里——实时档钉了本机，离线档清掉继承的就是那台本机模型，不得标托管。
+    #[test]
+    fn transcription_follow_is_named_server_managed_only_when_it_lands_on_the_server_channel() {
+        let temp = tempfile::tempdir().unwrap();
+        let store = ModelStore::for_test_root(temp.path());
+        let mut settings = Settings::with_defaults();
+        settings.set("provider.remote_asr_enabled", true);
+        let follow = |settings: &Settings, name: &str| {
+            model_assignment_dtos(
+                settings,
+                &store,
+                &[],
+                true,
+                crate::ipc::models::ServerManagedFacts::all_clear(),
+            )
+            .into_iter()
+            .find(|a| a.slot == name)
+            .unwrap()
+            .follow_is_server_managed
+        };
+        assert!(
+            follow(&settings, "realtime_asr"),
+            "同意后实时转写自动走服务端，空选项却没叫服务端托管"
+        );
+        assert!(
+            follow(&settings, "batch_asr"),
+            "离线转写继承实时档的服务端通道，空选项同理"
+        );
+
+        settings.set("ai.assignment.realtime_asr", DEVICE_POLICY_ASR);
+        assert!(
+            follow(&settings, "realtime_asr"),
+            "实时档自己清掉后仍落到服务端"
+        );
+        assert!(
+            !follow(&settings, "batch_asr"),
+            "实时档钉了本机，离线档清掉继承的是本机模型，标成服务端托管就是屏幕与字节去向相反"
+        );
+
+        settings.set("ai.route_strategy", "local_only");
+        assert!(!follow(&settings, "realtime_asr"), "仅本机时清掉也落在本机");
+    }
+
+    /// 转写槽位下拉为什么没有「服务端托管」：与算力卡同一份阻断原因，另加「还没同意」。
+    /// 没有服务端可言时不说话。
+    #[test]
+    fn asr_server_gate_reports_the_first_closed_gate() {
+        use crate::ipc::models::{asr_server_gate, AsrServerGate, TranscriptionServerBlocker};
+        let mut settings = Settings::with_defaults();
+        assert_eq!(
+            asr_server_gate(None, &settings),
+            Some(AsrServerGate::ConsentOff),
+            "连着能转写的服务端、只差同意时，要说出差的是同意"
+        );
+        assert_eq!(
+            asr_server_gate(Some(TranscriptionServerBlocker::NoServer), &settings),
+            None
+        );
+        assert_eq!(
+            asr_server_gate(
+                Some(TranscriptionServerBlocker::LocalOnlyStrategy),
+                &settings
+            ),
+            Some(AsrServerGate::Blocked {
+                blocker: TranscriptionServerBlocker::LocalOnlyStrategy
+            }),
+            "同意项勾不动时照搬算力卡的原因，而不是叫用户去勾一个勾不动的开关"
+        );
+        settings.set("provider.remote_asr_enabled", true);
+        assert_eq!(asr_server_gate(None, &settings), None);
     }
 
     /// 模型分配 DTO 里**一个字的界面文案都不许由 Rust 拼**（ADR-059 ④、TDD-15 i18n）。
@@ -6396,6 +6475,7 @@ mod tests {
                 strict_local: true,
                 meeting_minutes: false,
                 glossary: &[],
+                speaking_rate: None,
             },
             &settings,
             &detector,
@@ -6417,6 +6497,7 @@ mod tests {
                 strict_local: true,
                 meeting_minutes: false,
                 glossary: &[],
+                speaking_rate: None,
             },
             &settings,
             &detector,
@@ -6446,6 +6527,7 @@ mod tests {
                 strict_local: true,
                 meeting_minutes: false,
                 glossary: &[],
+                speaking_rate: None,
             },
             &settings,
             &detector,
@@ -6530,6 +6612,7 @@ mod tests {
                 strict_local: true,
                 meeting_minutes: false,
                 glossary: &[],
+                speaking_rate: None,
             },
             &settings,
             &detector,
@@ -6672,6 +6755,7 @@ mod tests {
             strict_local: true,
             meeting_minutes: false,
             glossary: &[],
+            speaking_rate: None,
         };
         let proofread = floating_menu_job(
             None,
@@ -6747,6 +6831,7 @@ mod tests {
                     target_lang: Some("ja".into()),
                     summary_style: None,
                     table_column: None,
+                    target_seconds: None,
                 },
             ),
             &settings,
@@ -6765,6 +6850,7 @@ mod tests {
                     target_lang: None,
                     summary_style: Some(FloatingSummaryStyle::OneLine),
                     table_column: None,
+                    target_seconds: None,
                 },
             ),
             &settings,
@@ -6844,6 +6930,7 @@ mod tests {
                 strict_local: true,
                 meeting_minutes: false,
                 glossary: &[],
+                speaking_rate: None,
             },
             &settings,
             &detector,
@@ -6877,6 +6964,7 @@ mod tests {
                 strict_local: true,
                 meeting_minutes: false,
                 glossary: &[],
+                speaking_rate: None,
             },
             &settings,
             &detector,
@@ -6894,6 +6982,7 @@ mod tests {
                 strict_local: true,
                 meeting_minutes: false,
                 glossary: &[],
+                speaking_rate: None,
             },
             &settings,
             &detector,
@@ -6912,6 +7001,7 @@ mod tests {
                 strict_local: true,
                 meeting_minutes: false,
                 glossary: &[],
+                speaking_rate: None,
             },
             &settings,
             &detector,
@@ -6990,6 +7080,7 @@ mod tests {
                     strict_local: true,
                     meeting_minutes: false,
                     glossary: &[],
+                    speaking_rate: None,
                 },
                 &settings,
                 &detector,
@@ -7054,6 +7145,7 @@ mod tests {
                 strict_local: false,
                 meeting_minutes: false,
                 glossary: &[],
+                speaking_rate: None,
             },
             &settings,
             &detector,
@@ -7087,6 +7179,7 @@ mod tests {
                 strict_local: false,
                 meeting_minutes: false,
                 glossary: &[],
+                speaking_rate: None,
             },
             &settings,
             &detector,
@@ -7122,6 +7215,7 @@ mod tests {
                 strict_local: true,
                 meeting_minutes: true,
                 glossary: &[],
+                speaking_rate: None,
             },
             &settings,
             &detector,
@@ -7378,7 +7472,7 @@ mod tests {
         );
         // 摘要取的是标题行而不是首行原文：以 Markdown 标题 / 引用开头的正文不把 `##`、`>`
         // 带进文件名（真机 2026-10-02：便签「另存为新速记」得到「速记 … ##-便签冲突验证」）。
-        // 与知识笔记命名同一个判据（`notes::title_line`）。
+        // 与知识笔记命名同一个判据（`luna_sync_core::naming::title_line`）。
         assert_eq!(
             super::voice::quick_note_stem(
                 super::voice::text_capture_prefix("zh-CN"),

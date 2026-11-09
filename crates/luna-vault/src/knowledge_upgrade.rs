@@ -8,7 +8,8 @@
 use crate::frontmatter::body_of;
 use crate::knowledge_evidence::{KnowledgeMeta, TopicMaintenanceState, TopicScope};
 use crate::topic::{ownership_of, TopicOwnership};
-use crate::{ContentHash, Vault, VaultError};
+use crate::{Vault, VaultError};
+use luna_sync_core::hashing::ContentHash;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use uuid::Uuid;

@@ -9,7 +9,9 @@
 //!   淡显占位节点呈现（id = `ghost:<目标小写>`），提示知识网络的缺口。
 //! - 非 `.md` 扩展的链接目标（图片/音频附件等）不入图（图谱只表达笔记间关系）。
 
-use crate::pathutil::name_key;
+// 「这条链接指向哪一篇」的唯一实现，与网页版共用（`luna_sync_core::links`，ADR-177 ⑥）。
+use luna_sync_core::links::LinkIndex;
+use luna_sync_core::path::name_key;
 use std::collections::{BTreeMap, BTreeSet};
 
 /// 一行笔记底表（路径 / 标题 / 两轴事实）。
@@ -109,154 +111,6 @@ fn is_note_target(dst: &str) -> bool {
             !ext_like || (!stem.is_empty() && ext.eq_ignore_ascii_case("md"))
         }
         None => true,
-    }
-}
-
-/// 链接目标 → 笔记路径的解析表（**全仓唯一**的「这条链接指向哪一篇」实现）。
-///
-/// 图谱建边与知识体检（PRD-16-030 断链 / 失效引用）共用它：两处各写一份解析，必然在
-/// "转义要不要解码""相对路径按谁归一化"上漂移，而漂移的表现是**同一条链接在图谱里是
-/// 实线、在体检里是断链**。
-pub struct LinkIndex<'a> {
-    by_path: BTreeMap<String, &'a str>,
-    /// 同名笔记全部留下（路径升序）：选哪一篇要看链接写在哪，见 [`Self::pick_same_name`]。
-    by_stem: BTreeMap<String, Vec<&'a str>>,
-    /// frontmatter `aliases` → 笔记（对标方案 C2）。只在路径与文件名都认不出时才查：
-    /// 一篇真叫这个名字的笔记永远优先于别人的别名（Obsidian 同口径）。
-    by_alias: BTreeMap<String, Vec<&'a str>>,
-}
-
-impl<'a> LinkIndex<'a> {
-    /// 由「(路径, 标题)」序列构建。
-    #[must_use]
-    pub fn build(notes: impl IntoIterator<Item = (&'a str, &'a str)>) -> Self {
-        let mut entries: Vec<(&'a str, &'a str)> = notes.into_iter().collect();
-        entries.sort_by(|a, b| a.0.cmp(b.0));
-        let mut by_path = BTreeMap::new();
-        let mut by_stem: BTreeMap<String, Vec<&'a str>> = BTreeMap::new();
-        for (path, title) in entries {
-            by_path.insert(name_key(path), path);
-            by_stem.entry(name_key(title)).or_default().push(path);
-        }
-        Self {
-            by_path,
-            by_stem,
-            by_alias: BTreeMap::new(),
-        }
-    }
-
-    /// 加上别名（`(笔记路径, 别名)`）；指向库里没有的笔记的别名忽略。几篇同用一个别名时
-    /// 与同名笔记同一套挑法（[`Self::pick_same_name`]）。
-    #[must_use]
-    pub fn with_aliases(mut self, aliases: impl IntoIterator<Item = (&'a str, &'a str)>) -> Self {
-        for (path, alias) in aliases {
-            if let Some(&known) = self.by_path.get(&name_key(path)) {
-                let paths = self.by_alias.entry(name_key(alias.trim())).or_default();
-                if !paths.contains(&known) {
-                    paths.push(known);
-                }
-            }
-        }
-        self
-    }
-
-    /// 由索引给的两张表（`(路径, 标题)` 与 `(路径, 别名)`）构建——解析、补全共用的入口。
-    #[must_use]
-    pub fn from_rows(notes: &'a [(String, String)], aliases: &'a [(String, String)]) -> Self {
-        Self::build(
-            notes
-                .iter()
-                .map(|(path, title)| (path.as_str(), title.as_str())),
-        )
-        .with_aliases(
-            aliases
-                .iter()
-                .map(|(path, alias)| (path.as_str(), alias.as_str())),
-        )
-    }
-
-    /// 同名笔记里选一篇（Obsidian 口径）：与写链接的笔记**同目录**的优先，其次层级最浅、
-    /// 路径最短，最后按路径字典序——任何一步都确定，同一条链接永远指向同一篇。
-    fn pick_same_name(src: &str, paths: &[&'a str]) -> Option<&'a str> {
-        let src_dir = crate::pathutil::parent_dir(src);
-        paths.iter().copied().min_by_key(|path| {
-            (
-                crate::pathutil::parent_dir(path) != src_dir,
-                path.matches('/').count(),
-                path.chars().count(),
-                *path,
-            )
-        })
-    }
-
-    /// 一种写法的查表：依次尝试 ① 精确路径 ② 补 `.md` 的路径（仅带目录的写法）③ 文件名 stem
-    /// ④ frontmatter 别名（均大小写不敏感，与反链 `dst = 路径 OR stem OR 别名` 口径同源）。
-    fn lookup(&self, src: &str, candidate: &str) -> Option<&'a str> {
-        let lower = name_key(candidate.trim().trim_start_matches("./"));
-        if lower.is_empty() {
-            return None;
-        }
-        if let Some(path) = self.by_path.get(&lower) {
-            return Some(path);
-        }
-        // 补 `.md` 只给带目录的写法：裸名字要走同名消歧，否则库根那篇永远抢在同目录那篇前面。
-        if lower.contains('/') {
-            if let Some(path) = self.by_path.get(&format!("{lower}.md")) {
-                return Some(path);
-            }
-        }
-        self.by_stem
-            .get(&lower)
-            .or_else(|| self.by_alias.get(&lower))
-            .and_then(|paths| Self::pick_same_name(src, paths))
-    }
-
-    /// 解析一条链接（`src` = 写下这条链接的笔记）。三种写法**依次尝试、命中即止**
-    /// （严格是原有行为的超集：只会多认出笔记，绝不会少认——第一步就是原样查表）：
-    ///
-    /// 1. **原样**：wikilink stem 与同目录 md 链接走这条；
-    /// 2. **百分号解码后**：Lunarca 自动生成的链接对空格/括号转过义
-    ///    （[`crate::pathutil::encode_link_target`]），`项目%20X.md` 原样查表必然落空；
-    /// 3. **按源笔记所在目录归一化后**：跨文件夹的自动链接恒是 `../Notes/x.md` 这种
-    ///    形态（出处行、蒸馏来源区、归入源链接），只按字面查表同样落空。
-    ///
-    /// 后两条缺失的代价不是"少一条边"，而是**一篇存在的笔记被画成幽灵节点**——图谱上
-    /// 凭空多出未创建笔记，而知识体检会把它当成真断链报给用户。
-    #[must_use]
-    pub fn resolve(&self, src: &str, dst: &str) -> Option<&'a str> {
-        self.resolve_exact(src, dst).or_else(|| {
-            // 旧索引行里的 wikilink 可能还带着 `#标题`（片段剥离之前写入的），按笔记部分再认一次；
-            // 只在原样认不出时才试，文件名里真带 `#` 的笔记不受影响。
-            let (note, fragment) = crate::parse::split_wikilink_target(dst);
-            fragment.and_then(|_| self.resolve_exact(src, note))
-        })
-    }
-
-    fn resolve_exact(&self, src: &str, dst: &str) -> Option<&'a str> {
-        if let Some(path) = self.lookup(src, dst) {
-            return Some(path);
-        }
-        let decoded = crate::pathutil::percent_decode(dst.trim());
-        if decoded != dst.trim() {
-            if let Some(path) = self.lookup(src, &decoded) {
-                return Some(path);
-            }
-        }
-        // **不限于含 `/` 的目标**：同目录链接 `[纪要](四月纪要.md)` 是归入源链接与出处行
-        // 最常见的形态，而它按字面既不是库内路径（缺目录）也不是 stem（多了 `.md`）——
-        // 不按源笔记目录归一化就永远解析不到，于是一篇存在的笔记被画成幽灵。
-        // 换算走 `canonical_link_target`：与写进 `links` 表的口径**同一处实现**（schema v7），
-        // 否则"表里存的形态"与"解析时认的形态"会各自漂移。
-        let canonical = crate::pathutil::canonical_link_target(src, dst);
-        (canonical != dst)
-            .then(|| self.lookup(src, &canonical))
-            .flatten()
-    }
-
-    /// 这条路径在不在库里（体检判「链接指向的笔记还在不在」用）。
-    #[must_use]
-    pub fn contains_path(&self, path: &str) -> bool {
-        self.by_path.contains_key(&name_key(path))
     }
 }
 

@@ -20,7 +20,13 @@ import { describe, expect, it } from "vitest";
 
 import cloudEn from "../../i18n/locales/en-US/cloud.json";
 import cloudZh from "../../i18n/locales/zh-CN/cloud.json";
-import { logoutConfirmation, SignedInView, UsageSection } from "./AccountPanel";
+import {
+  choiceAfterSwitchingFrom,
+  logoutConfirmation,
+  SignedInView,
+  switchServerConfirmation,
+  UsageSection,
+} from "./AccountPanel";
 import { errorAction, errorMessage, errorText } from "../../lib/cloud-error";
 import { formatInstant } from "../../lib/format-datetime";
 import { renderWithSettingsHosts, translateForTest } from "../settings/settings-test-fixture";
@@ -90,6 +96,7 @@ describe("账户 · 失败呈现", () => {
       "rate_limited",
       "already_signed_in",
       "not_an_address",
+      "no_server_at_address",
       "not_an_email",
       "server_identity_rejected",
       "client_too_old",
@@ -627,6 +634,7 @@ describe("账户 · 失败呈现", () => {
         entitlements,
         confirmingDelete,
         onLogout: () => {},
+        onSwitchServer: () => {},
         loggingOut,
         onRevoke: () => {},
         onDeleteRequest: () => {},
@@ -637,6 +645,10 @@ describe("账户 · 失败呈现", () => {
       } as never),
     );
   }
+
+  it("身份段在「退出登录」旁给「切换服务器」", () => {
+    expect(renderSignedIn([], null, false)).toContain(translateForTest("cloud:actions.switch_server"));
+  });
 
   /** 严格本地挡住三块在线数据：只说一次并给隐私档入口；别的失败照说；未知值不写成破折号（F28）。 */
   it("严格本地：在线区块只提示一次，未知值写明暂不可获取", () => {
@@ -691,6 +703,21 @@ describe("账户 · 失败呈现", () => {
     expect(asked?.destructive).toBe(false);
     expect(cloudZh.session.logout_confirm.body).toContain("再次登录同一账户会自动接着同步");
     expect(cloudEn.session.logout_confirm.body).toMatch(/same account resumes syncing/);
+  });
+
+  it("切换服务器总要确认：写出退出的是哪台服务器上的哪个账户；之后「登录到」默认另一侧", () => {
+    const test = { origin: "https://10.0.0.62:8443", display_name: "测试服务端", kind: "organization" } as const;
+    const asked = switchServerConfirmation("jo@gmail.com", test, translateCloud);
+    expect(asked.title).toBe(translateForTest("cloud:session.switch_confirm.title"));
+    expect(asked.description).toContain("jo@gmail.com");
+    expect(asked.description).toContain("测试服务端");
+    expect(asked.destructive).toBe(false);
+    expect(choiceAfterSwitchingFrom(test)).toBe("official");
+    expect(choiceAfterSwitchingFrom({ origin: "https://api.lunarca.app", display_name: null, kind: "official" })).toBe("other");
+    for (const bundle of [cloudZh, cloudEn]) {
+      expect(bundle.session.switch_confirm.body).toContain("{{server}}");
+      expect(bundle.actions.switch_server.length).toBeGreaterThan(0);
+    }
   });
 
   it("登出在途时按钮显示「正在退出」并禁用", () => {

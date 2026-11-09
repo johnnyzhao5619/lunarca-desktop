@@ -343,8 +343,9 @@ async fn fill_clip_note(
             };
             let rel = unique_asset(root, &asset_dir, &format!("{note_stem}-{}", index + 1), ext);
             write_file(root, &rel, &bytes, written)?;
-            let link =
-                luna_vault::encode_link_target(&luna_vault::relative_link_path(note_rel, &rel));
+            let link = luna_vault::encode_link_target(&luna_sync_core::links::relative_link_path(
+                note_rel, &rel,
+            ));
             images.push((url.clone(), link));
         }
     }

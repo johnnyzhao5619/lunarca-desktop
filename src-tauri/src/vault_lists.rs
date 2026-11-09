@@ -38,11 +38,11 @@ use crate::account_scope::account_key;
 #[tauri_specta(event_name = "vaults://changed")]
 pub struct VaultsChanged {}
 
-/// 换了账户、主窗口因此换了库（或交出了库、回到空状态）。主窗口工作区据此整体重挂载——切库
-/// 由 Rust 发起，不经界面的切换控制器。
+/// 主窗口的库由 Rust 换了（或交出了库、回到空状态）：换了账户跟着换库，或启动时还在 iCloud 上的库
+/// 取回后自动打开。主窗口工作区据此整体重挂载——切库由 Rust 发起，不经界面的切换控制器。
 #[derive(Debug, Clone, Serialize, Deserialize, Type, tauri_specta::Event)]
-#[tauri_specta(event_name = "vault://followed-account")]
-pub struct VaultFollowedAccount {}
+#[tauri_specta(event_name = "vault://switched-by-app")]
+pub struct VaultSwitchedByApp {}
 
 /// 此刻登录的账户键（`None` = 未登录或还没对齐）。账户档案在钥匙串里，每次取清单都读会在
 /// 某些构建上多弹钥匙串框，故只在对齐时（启动一次、每次账户变化一次）读一次记在这里。

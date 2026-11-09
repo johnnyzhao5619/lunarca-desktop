@@ -24,7 +24,7 @@
  *    那句还把「系统」写成了 "System & Diagnostics"。分隔符不统一只是难看，**指到一个不
  *    存在的页名是把用户送进死胡同**——而两者都只有并排看两种语言才看得出来。
  *
- * ④ **字节单位阶梯只有一份**。`lib/format-bytes.ts` 与 `lib/format-datetime.ts` 曾各写一套
+ * ④ **字节单位阶梯只有一份**。`format-bytes` 与 `lib/format-datetime.ts` 曾各写一套
  *    `1024` 换算，一份标 `KB/MB/GB`、一份标 `KiB/MiB/GiB`，于是同一个数字在「数据足迹」
  *    与「用量记录」两页读法不同，而其中一份的注释正好在论证另一份是错的。这类重复靠
  *    自觉发现不了——两份各自都是对的，只有并排看才看得出矛盾，而没有人会并排看它们。
@@ -34,13 +34,13 @@ import { describe, expect, it } from "vitest";
 
 import { SETTINGS_PAGES } from "../features/settings/settings-information-architecture";
 
-const LOCALES = import.meta.glob("./locales/*/*.json", {
+const LOCALES = import.meta.glob(["./locales/*/*.json", "../../../../packages/*/src/locales/*/*.json"], {
   eager: true,
   import: "default",
   query: "?raw",
 }) as Record<string, string>;
 
-const CODE = import.meta.glob("../{app,features,components,hooks,lib}/**/*.{ts,tsx}", {
+const CODE = import.meta.glob(["../{app,features,components,hooks,lib}/**/*.{ts,tsx}", "../../../../packages/*/src/**/*.{ts,tsx}"], {
   eager: true,
   import: "default",
   query: "?raw",
@@ -233,7 +233,7 @@ export function localeFreeFormatting(source: string): string[] {
   ].map((m) => m[0]);
 }
 
-/** `lib/format-bytes.ts` 之外自造的字节单位阶梯（相邻两个引号包起来的单位就是它的形状）。 */
+/** `@lunarca/editor-core/format-bytes` 之外自造的字节单位阶梯（相邻两个引号包起来的单位就是它的形状）。 */
 export function adHocByteUnitLadder(source: string): string[] {
   return [
     ...stripComments(source).matchAll(
@@ -243,7 +243,7 @@ export function adHocByteUnitLadder(source: string): string[] {
 }
 
 /** 字节单位阶梯的唯一归属（判据里写死路径，改名时本用例会当场变红）。 */
-const BYTE_UNITS_HOME = "../lib/format-bytes.ts";
+const BYTE_UNITS_HOME = "../../../../packages/editor-core/src/format/format-bytes.ts";
 
 
 // ---- ⑤ 应用内指路（分隔符 + 目的地必须真的存在）----
@@ -338,6 +338,8 @@ describe("术语与本地化", () => {
   it("扫描面非空（glob 失效时本用例先红）", () => {
     expect(Object.keys(LOCALES).length).toBeGreaterThan(20);
     expect(Object.keys(CODE).length).toBeGreaterThan(50);
+    expect(Object.keys(LOCALES).some((path) => path.includes("/packages/editor-core/src/")), "共享渲染包不在扫描面里").toBe(true);
+    expect(Object.keys(CODE).some((path) => path.includes("/packages/editor-core/src/")), "共享渲染包不在扫描面里").toBe(true);
   });
 
   it("每个目的地只有一个名字键（退役的副本键没有复活）", () => {
@@ -556,13 +558,13 @@ describe("术语与本地化", () => {
    * 它管的是**谁在给单位起名字**。名字一旦有第二份，两份就会各自漂，而界面上看不出
    * 哪一份才算数。
    */
-  it("字节单位阶梯只有 lib/format-bytes 一份", () => {
+  it("字节单位阶梯只有 @lunarca/editor-core/format-bytes 一份", () => {
     const offenders = Object.entries(CODE)
       .filter(([path]) => path !== BYTE_UNITS_HOME)
       .flatMap(([path, source]) => adHocByteUnitLadder(source).map((hit) => `${path}: ${hit}`));
     expect(
       offenders,
-      `体积一律走 lib/format-bytes 的 formatBytes（IEC 单位 + 注入 locale）；` +
+      `体积一律走 @lunarca/editor-core/format-bytes 的 formatBytes（IEC 单位 + 注入 locale）；` +
         `按 1024 算却标 GB 是三家风格指南都禁止的写法：\n${offenders.join("\n")}`,
     ).toEqual([]);
   });

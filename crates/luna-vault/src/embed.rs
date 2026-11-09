@@ -2,14 +2,16 @@
 //!
 //! 一条嵌入指向三种东西之一：库里的一个文件（图片 / 附件，按文件名找，与 Obsidian 同口径）、
 //! 一篇笔记或其中一节（`![[笔记]]` / `![[笔记#标题]]` / `![[笔记#^块]]`，按 wikilink 同一份
-//! [`crate::graph::LinkIndex`] 认，含别名），或者找不到。前端只拿结果渲染，不比对文件名。
+//! [`luna_sync_core::links::LinkIndex`] 认，含别名），或者找不到。前端只拿结果渲染，不比对文件名。
 //!
 //! 被嵌入笔记里的相对链接按**宿主笔记**的位置改写（[`rebase_links`]）：嵌入内容是在宿主里
 //! 显示、跟着宿主导出的，它的 `![](assets/图.png)` 若仍按原笔记目录解析，换个文件夹就成了破图。
 
 use crate::frontmatter::body_of;
-use crate::pathutil::{canonical_link_target, encode_link_target, parent_dir, relative_link_path};
+use crate::pathutil::encode_link_target;
 use crate::Vault;
+use luna_sync_core::links::{canonical_link_target, parent_dir, relative_link_path};
+use luna_sync_core::links::{extension_of, find_file, IMAGE_EXTENSIONS};
 
 /// 一条嵌入指向什么。
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -25,16 +27,6 @@ pub enum EmbedHit {
     Note { path: String, content: String },
     /// 指不到（笔记不存在、片段不在、文件不在）。
     Missing,
-}
-
-const IMAGE_EXTENSIONS: [&str; 12] = [
-    "png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "avif", "tif", "tiff", "ico", "heic",
-];
-
-fn extension_of(name: &str) -> Option<String> {
-    let file = name.rsplit('/').next().unwrap_or(name);
-    let (_, ext) = file.rsplit_once('.')?;
-    (!ext.is_empty()).then(|| ext.to_ascii_lowercase())
 }
 
 fn heading_level(line: &str) -> Option<usize> {
@@ -150,12 +142,12 @@ impl Vault {
     /// 一批嵌入目标（`![[…]]` 里 `|` 之前的文字）各自指向什么，`host` 是写这条嵌入的笔记。
     pub fn resolve_embeds(&self, host: &str, targets: &[String]) -> crate::Result<Vec<EmbedHit>> {
         let (notes, aliases) = self.link_rows()?;
-        let index = crate::graph::LinkIndex::from_rows(&notes, &aliases);
+        let index = luna_sync_core::links::LinkIndex::from_rows(&notes, &aliases);
         // 按文件名找附件要走一遍库；只在真有文件嵌入时走，且一批只走一次。
         let mut files: Option<Vec<String>> = None;
         let mut out = Vec::with_capacity(targets.len());
         for target in targets {
-            let (note, fragment) = crate::parse::split_wikilink_target(target.trim());
+            let (note, fragment) = luna_sync_core::links::split_wikilink_target(target.trim());
             let note = note.trim();
             let hit = match extension_of(note) {
                 Some(ext) if ext != "md" => {
@@ -233,46 +225,6 @@ pub(crate) fn walk_all(
         }
     }
     Ok(())
-}
-
-/// 按嵌入写法找文件（Obsidian 口径）：先按宿主目录的相对路径、再按库根路径精确找；都没有就按
-/// 文件名在全库找，同名时与宿主同目录的优先，其次层级最浅、路径最短、字典序——结果确定。
-pub(crate) fn find_file(files: &[String], host: &str, wanted: &str) -> Option<String> {
-    let exact = |candidate: &str| {
-        files
-            .iter()
-            .find(|f| f.eq_ignore_ascii_case(candidate))
-            .cloned()
-    };
-    let decoded = crate::pathutil::percent_decode(wanted);
-    if let Some(path) =
-        crate::pathutil::normalize_vault_rel(parent_dir(host), &decoded).and_then(|p| exact(&p))
-    {
-        return Some(path);
-    }
-    if let Some(path) = exact(decoded.trim_start_matches('/')) {
-        return Some(path);
-    }
-    if decoded.contains('/') {
-        return None;
-    }
-    let host_dir = parent_dir(host);
-    files
-        .iter()
-        .filter(|f| {
-            f.rsplit('/')
-                .next()
-                .is_some_and(|name| name.eq_ignore_ascii_case(&decoded))
-        })
-        .min_by_key(|f| {
-            (
-                parent_dir(f) != host_dir,
-                f.matches('/').count(),
-                f.chars().count(),
-                (*f).clone(),
-            )
-        })
-        .cloned()
 }
 
 #[cfg(test)]

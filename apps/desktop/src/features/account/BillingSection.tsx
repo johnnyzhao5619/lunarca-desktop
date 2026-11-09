@@ -23,7 +23,7 @@ import type {
   SubscriptionStandingDto,
 } from "../../ipc/cloud-bindings";
 import { errorMessage } from "../../lib/cloud-error";
-import { formatBytes, isByteDimension } from "../../lib/format-bytes";
+import { formatBytes, isByteDimension } from "@lunarca/editor-core/format-bytes";
 import { formatCount, formatDate } from "../../lib/format-datetime";
 import { formatMinorUnits } from "../../lib/format-money";
 import { serverLabel } from "./server-label";

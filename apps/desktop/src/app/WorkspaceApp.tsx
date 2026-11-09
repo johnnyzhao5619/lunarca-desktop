@@ -29,6 +29,8 @@ import {
 } from "../ipc/bindings";
 import { ChatView } from "../features/chat/ChatView";
 import { AppsView } from "../features/apps/AppsView";
+import { TeleprompterHome } from "../features/teleprompter/TeleprompterHome";
+import { createTeleprompterDraft, openInTeleprompter } from "../features/teleprompter/teleprompter-actions";
 import { CreatorBoard } from "../features/creator/CreatorBoard";
 import { CreatorNotePage } from "../features/creator/CreatorNotePage";
 import { NewProjectDialog } from "../features/creator/NewProjectDialog";
@@ -62,7 +64,7 @@ import { CommandPalette } from "../features/command/CommandPalette";
 import { EMPTY_EDITOR_METRICS, VaultEditor, type EditorMetrics } from "../features/editor/VaultEditor";
 import { setTabFocusMode, useTabFocusMode } from "../lib/tab-focus-mode";
 import { AssetView } from "../features/media/AssetView";
-import { classifyAssetTarget } from "../features/media/asset-kind";
+import { classifyAssetTarget } from "@lunarca/editor-core/asset-kind";
 import { DashboardView } from "../features/dashboard/DashboardView";
 import { LAUNCH_OVERVIEW_KEY } from "../features/dashboard/launch-overview";
 import { SetupBanner } from "../features/onboarding/SetupBanner";
@@ -79,7 +81,7 @@ import { CaptionSettingsPreview } from "../features/caption/CaptionSettingsPrevi
 import { AccountPanel } from "../features/account/AccountPanel";
 import { SettingsNav } from "../features/settings/SettingsNav";
 import { useSettingsController } from "../features/settings/use-settings-controller";
-import { formatShortcut } from "../lib/shortcut-display";
+import { formatShortcut } from "@lunarca/editor-core/shortcut-display";
 import {
   recordingIndicatorFrom,
   type RecordingIndicator,
@@ -161,7 +163,7 @@ import {
   SettingsIcon,
   SidebarCloseIcon,
   SidebarOpenIcon,
-} from "../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useDialogBehavior } from "../hooks/use-dialog-behavior";
 import { GraphView } from "../features/graph/GraphView";
@@ -989,6 +991,9 @@ export function WorkspaceApp({
   // 最近打开（PRD-07-040 ②，设备状态）：活跃标签换成一个文件就记一次；文件夹卡片、新标签
   // 页由 Rust 忽略。切库在途时不记——那一刻的路径属于旧库。
   const activeTabPath = activeNoteTab(panesState)?.path ?? null;
+  // 命令上下文只建一次：「在提词器中打开这篇」经 ref 取此刻那一篇。
+  const activeTabPathRef = useRef(activeTabPath);
+  activeTabPathRef.current = activeTabPath;
   useEffect(() => {
     if (vaultOpen !== true || vaultSwitch.switchingTo !== null || !activeTabPath) {
       return;
@@ -1117,7 +1122,6 @@ export function WorkspaceApp({
     };
   }, [tree]);
 
-  /** 「上次的库找不到了」→ 让用户指回它现在的位置（PRD-14-062）。 */
   /** 库还在 iCloud 上时的「重试」：照原路径再开一次；Rust 侧还没取回就再说一遍「还在下载」。 */
   async function retryVaultInCloud(root: string) {
     const result = await commands.selectVault(root);
@@ -1128,6 +1132,7 @@ export function WorkspaceApp({
     }
   }
 
+  /** 「上次的库找不到了」→ 让用户指回它现在的位置（PRD-14-062）。 */
   async function relocateVault() {
     const picked = await commands.pickFolder(null);
     if (picked.status !== "ok" || !picked.data) {
@@ -1332,6 +1337,15 @@ export function WorkspaceApp({
           setAppsSelection(intent.appId);
           setLocation(intent.location);
           break;
+        case "teleprompter":
+          // 提词器应用未生效：深链落到它的详情页（ADR-165 ④ 同一条）。
+          if (appOfUnavailableSpaceRef.current.has("teleprompter")) {
+            setAppsSelection("teleprompter" satisfies AppId);
+            setLocation(locationFor("apps"));
+            break;
+          }
+          setLocation(intent.location);
+          break;
         case "creator":
           // 创作应用未启用：深链落到它的详情页（ADR-165 ④），不打开任何创作的东西。
           if (appOfUnavailableSpaceRef.current.has("creator")) {
@@ -1447,6 +1461,18 @@ export function WorkspaceApp({
       },
       openCreatorProjectTeleprompter: () => {
         void creatorActionsRef.current.openTeleprompter();
+      },
+      openActiveNoteInTeleprompter: () => {
+        const path = activeTabPathRef.current;
+        if (!path) return;
+        void openInTeleprompter(path).then((failure) => {
+          if (failure) setStatus(failure);
+        });
+      },
+      createTeleprompterDraft: (fromClipboard) => {
+        void createTeleprompterDraft({ kind: fromClipboard ? "clipboard" : "empty" }).then((failure) => {
+          if (failure) setStatus(failure);
+        });
       },
       openCreatorProjectPublish: () => {
         const view = creatorViewRef.current;
@@ -3408,6 +3434,8 @@ export function WorkspaceApp({
             projectNav={creatorProjectNav}
           />
         )}
+
+        {isAt("teleprompter") && vaultOpen !== false && <TeleprompterHome />}
 
         {isAt("apps") && <AppsView selected={appsSelection} />}
 

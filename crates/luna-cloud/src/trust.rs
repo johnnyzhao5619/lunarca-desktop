@@ -1085,8 +1085,8 @@ const X: &str = \"/v1/me\";
                 // 允许的四条之内——多一处放宽、多发一条路径、或核对被删掉，照样算违规。
                 let exempt = path.ends_with("luna-cloud/src/first_contact.rs")
                     && source.matches("danger_accept_invalid_certs(true)").count() == 1
-                    && source.contains("opaque_auth::open_bundle(")
-                    && source.contains("opaque_auth::ensure_same_deployment(")
+                    && source.contains("luna_opaque::open_bundle(")
+                    && source.contains("luna_opaque::ensure_same_deployment(")
                     && first_contact_paths_are_allowed(&source);
                 for needle in FORBIDDEN {
                     let allowed = usize::from(exempt && needle.contains("accept_invalid_certs"));

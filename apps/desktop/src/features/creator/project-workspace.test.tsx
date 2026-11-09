@@ -122,12 +122,14 @@ describe("项目工作区", () => {
     });
     setCommandReply("teleprompterOpen", { status: "ok", data: null });
     setCommandReply("requestPermission", null);
+    setCommandReply("listSettings", { status: "ok", data: [] });
     const reveals: unknown[] = [];
     const onReveal = (event: Event) => reveals.push((event as CustomEvent).detail);
     window.addEventListener("luna:editor-reveal", onReveal);
     const { onPane } = show({ tab: "recording" });
     expect(await screen.findByText(t("workspace:create.reason.micPermissionRequired"))).toBeTruthy();
-    const start = screen.getByRole("button", { name: t("workspace:creator.recording.startFollow") }) as HTMLButtonElement;
+    // 跟读默认关（ADR-176 ④）：主按钮是「开启跟读并开始」。
+    const start = screen.getByRole("button", { name: t("workspace:creator.recording.enableFollow") }) as HTMLButtonElement;
     expect(start.disabled).toBe(true);
     fireEvent.click(screen.getByRole("button", { name: t("workspace:create.repair") }));
     expect(commandMock("requestPermission")).toHaveBeenCalledWith("microphone");
@@ -144,12 +146,31 @@ describe("项目工作区", () => {
     setCommandReply("creatorRecordingCheck", { microphone: { kind: "available" }, transcriber: { kind: "available" } });
     setCommandReply("creatorScriptRetakes", { status: "ok", data: [] });
     setCommandReply("teleprompterOpen", { status: "ok", data: null });
+    setCommandReply("listSettings", {
+      status: "ok",
+      data: [{ key: "teleprompter.follow_enabled", current_value: { kind: "bool", value: true }, control: { kind: "toggle" } }],
+    });
     show({ tab: "recording" });
     expect(await screen.findByText(t("workspace:creator.recording.noRetakes"))).toBeTruthy();
-    const start = screen.getByRole("button", { name: t("workspace:creator.recording.startFollow") }) as HTMLButtonElement;
+    const start = (await screen.findByRole("button", { name: t("workspace:creator.recording.startFollow") })) as HTMLButtonElement;
     await waitFor(() => expect(start.disabled).toBe(false));
     fireEvent.click(start);
-    expect(commandMock("teleprompterOpen")).toHaveBeenCalledWith("Creator/P/P-脚本.md", true);
+    await waitFor(() => expect(commandMock("teleprompterOpen")).toHaveBeenCalledWith("Creator/P/P-脚本.md", true));
+    expect(commandMock("setSetting")).not.toHaveBeenCalled();
+  });
+
+  it("录制页签：跟读关着（默认）时一键「开启跟读并开始」——先写开关再开跟读", async () => {
+    setCommandReply("creatorRecordingCheck", { microphone: { kind: "available" }, transcriber: { kind: "available" } });
+    setCommandReply("creatorScriptRetakes", { status: "ok", data: [] });
+    setCommandReply("teleprompterOpen", { status: "ok", data: null });
+    setCommandReply("listSettings", { status: "ok", data: [] });
+    setCommandReply("setSetting", { status: "ok", data: null });
+    show({ tab: "recording" });
+    const start = (await screen.findByRole("button", { name: t("workspace:creator.recording.enableFollow") })) as HTMLButtonElement;
+    await waitFor(() => expect(start.disabled).toBe(false));
+    fireEvent.click(start);
+    await waitFor(() => expect(commandMock("teleprompterOpen")).toHaveBeenCalledWith("Creator/P/P-脚本.md", true));
+    expect(commandMock("setSetting")).toHaveBeenCalledWith("teleprompter.follow_enabled", { kind: "bool", value: true });
   });
 
   it("脚本页签放脚本的编辑器；发布页签放发布包、没有编辑器", async () => {

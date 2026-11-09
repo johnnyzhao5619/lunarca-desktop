@@ -12,7 +12,7 @@ import zhCommon from "../i18n/locales/zh-CN/common.json";
 import enCommon from "../i18n/locales/en-US/common.json";
 import { vaultErrorText, isDialogCancelled } from "./vault-error";
 
-const app = import.meta.glob("../**/*.{ts,tsx}", {
+const app = import.meta.glob(["../**/*.{ts,tsx}", "../../../../packages/*/src/**/*.{ts,tsx}"], {
   eager: true,
   query: "?raw",
   import: "default",
@@ -99,6 +99,8 @@ describe("Vault 错误码 ↔ 中英文案（ADR-105）", () => {
           path.includes("account/DeviceLimitPicker") ||
           // 登录状态下改密码（ADR-158 ⑤）：同上，结构化 `CloudError` 经 `errorText` 渲染。
           path.includes("account/ChangePassword") ||
+          path.endsWith("account/WebAccessControl.tsx") ||
+          path.endsWith("account/WebSessions.tsx") ||
           path.includes("account/ServerIdentity") ||
           path.includes("account/SyncSection") ||
           path.includes("account/SyncSetupDialog") ||

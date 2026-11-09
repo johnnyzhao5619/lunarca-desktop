@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import type { CreatorBoardViewDto, ProjectCardDto, ProjectStageDto } from "../../ipc/bindings";
 import { useContextMenu } from "../../components/ContextMenuHost";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { FilmIcon } from "../../components/ui/Icon";
+import { FilmIcon } from "@lunarca/editor-core/Icon";
 import { buildMenu } from "../../lib/context-menu";
 import { cssVariables } from "../../lib/css-variables";
 import { DRAG_GHOST_OFFSET_PX, usePointerDrag } from "../../lib/pointer-drag";

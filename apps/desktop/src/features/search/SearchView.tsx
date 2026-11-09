@@ -22,11 +22,11 @@ import {
   InfoIcon,
   ReplaceIcon,
   SearchIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { QueryBox } from "../../components/ui/QueryBox";
 import { commands } from "../../ipc/bindings";
 import { useContextMenu } from "../../components/ContextMenuHost";
-import { formatShortcut } from "../../lib/shortcut-display";
+import { formatShortcut } from "@lunarca/editor-core/shortcut-display";
 import { buildMenu, separator } from "../../lib/context-menu";
 import { useNoteMenu } from "../workspace/note-menu";
 import { requestEditorReveal } from "../../lib/app-events";

@@ -39,6 +39,7 @@
     "transcripts": "Go to: Transcripts",
     "chat": "Go to: AI chat",
     "creator": "Go to: Create",
+    "teleprompter": "Go to: Teleprompter",
     "apps": "Go to: Apps",
     "trash": "Go to: Trash",
     "settings": "Go to: Settings"
@@ -54,5 +55,10 @@
     "swipe_library": "Creator: Open inspiration library",
     "teleprompter": "Creator: Open this project's teleprompter",
     "publish": "Creator: Open this project's publishing checklist"
+  },
+  "teleprompter": {
+    "open_current": "Teleprompter: Open this note in the teleprompter",
+    "new_draft": "Teleprompter: New script",
+    "from_clipboard": "Teleprompter: New script from clipboard"
   }
 }

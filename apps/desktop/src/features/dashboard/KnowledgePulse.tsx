@@ -16,7 +16,7 @@
 
 import { useTranslation } from "react-i18next";
 import type { SuggestionSurfaceDto } from "../../ipc/bindings";
-import { SparklesIcon } from "../../components/ui/Icon";
+import { SparklesIcon } from "@lunarca/editor-core/Icon";
 import { requestDistillBatch } from "../distill/distill-actions";
 import { TopicSuggestionRow } from "../knowledge/TopicSuggestionRow";
 import { goTo } from "../../lib/navigate";

@@ -16,15 +16,11 @@ use async_trait::async_trait;
 use luna_cloud::client::CloudClient;
 use luna_cloud::error::CloudError;
 use luna_cloud::store::CredentialStore;
-use luna_cloud::sync_client::{
-    Base64Bytes, SyncChangeInput, SyncCommitItem, SyncEntryDto, SyncItemResultDto,
-};
-use luna_sync::crypto::Cmk;
+use luna_cloud::sync_client::SyncEntryDto;
 use luna_sync::keystore::{decode, encode, keychain_entry, merged, CmkStore, KeyStoreError};
-use luna_sync::ports::{
-    Remote, RemoteChange, RemoteChanges, RemoteCommitItem, RemoteCommitReply, RemoteEntry,
-    RemoteError, RemoteItemResult, RemoteManifest,
-};
+use luna_sync::ports::{Remote, RemoteChanges, RemoteEntry, RemoteError, RemoteManifest};
+use luna_sync_core::commit::{CommitItem, CommitReply};
+use luna_sync_core::crypto::Cmk;
 use uuid::Uuid;
 
 /// 服务端稳定码 → 引擎的远端错误（TDD-16 §9 的码表）。认不出的码原样带着。
@@ -47,6 +43,7 @@ pub fn remote_error(err: CloudError) -> RemoteError {
         // 账户被冻结（纵切 3 C3）：`check_status` 已把 403 `account_frozen` 认成它；引擎据此暂停上传、
         // 照常下载，不当成一轮失败。
         CloudError::AccountFrozen => RemoteError::AccountFrozen,
+        CloudError::WebAccessUnavailable => RemoteError::Other("web_access_unavailable".into()),
         CloudError::RateLimited { retry_after_secs } => RemoteError::RateLimited {
             retry_after_secs: retry_after_secs.map(u64::from),
         },
@@ -67,6 +64,7 @@ pub fn remote_error(err: CloudError) -> RemoteError {
         // 以下只出现在登录流程里，同步路径上不会真的遇到；如实带码而不是吞掉。
         CloudError::AlreadySignedIn
         | CloudError::NotAnAddress
+        | CloudError::NoServerAtAddress { .. }
         | CloudError::NotAnEmail
         | CloudError::LinkRejected { .. }
         | CloudError::ServerIdentityRejected
@@ -237,70 +235,12 @@ impl Remote for CloudRemote {
         &self,
         vault_id: Uuid,
         idempotency_key: &str,
-        items: Vec<RemoteCommitItem>,
-    ) -> Result<RemoteCommitReply, RemoteError> {
-        let wire: Vec<SyncCommitItem> = items
-            .into_iter()
-            .map(|item| SyncCommitItem {
-                file_id: item.file_id.to_string(),
-                base_rev: item.base_rev,
-                change: match item.change {
-                    RemoteChange::Put {
-                        entry_ct,
-                        size_padded,
-                        chunk_ids,
-                    } => SyncChangeInput::Put {
-                        entry_ct: Base64Bytes(entry_ct),
-                        size_padded,
-                        chunk_ids,
-                    },
-                    RemoteChange::Delete => SyncChangeInput::Delete,
-                },
-            })
-            .collect();
-        let reply = self
-            .client
-            .sync_commit(&vault_id.to_string(), idempotency_key, &wire)
+        items: Vec<CommitItem>,
+    ) -> Result<CommitReply, RemoteError> {
+        self.client
+            .sync_commit(&vault_id.to_string(), idempotency_key, &items)
             .await
-            .map_err(remote_error)?;
-        let results = reply
-            .results
-            .into_iter()
-            .map(|r| {
-                Ok(match r {
-                    SyncItemResultDto::Committed { file_id, rev, seq } => {
-                        RemoteItemResult::Committed {
-                            file_id: uuid(&file_id)?,
-                            rev,
-                            seq,
-                        }
-                    }
-                    SyncItemResultDto::StaleBase {
-                        file_id,
-                        current_rev,
-                    } => RemoteItemResult::StaleBase {
-                        file_id: uuid(&file_id)?,
-                        current_rev,
-                    },
-                    SyncItemResultDto::MissingBlobs { file_id, chunk_ids } => {
-                        RemoteItemResult::MissingBlobs {
-                            file_id: uuid(&file_id)?,
-                            chunk_ids,
-                        }
-                    }
-                    SyncItemResultDto::TooLarge { file_id, max_bytes } => {
-                        RemoteItemResult::TooLarge {
-                            file_id: uuid(&file_id)?,
-                            max_bytes,
-                        }
-                    }
-                })
-            })
-            .collect::<Result<_, RemoteError>>()?;
-        Ok(RemoteCommitReply {
-            head_seq: reply.head_seq,
-            results,
-        })
+            .map_err(remote_error)
     }
 }
 

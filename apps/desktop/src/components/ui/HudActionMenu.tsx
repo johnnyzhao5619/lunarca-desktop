@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { IconButton } from "./IconButton";
-import { CheckIcon, EllipsisIcon } from "./Icon";
+import { CheckIcon, EllipsisIcon } from "@lunarca/editor-core/Icon";
 
 export type HudActionMenuItem = {
   id: string;

@@ -19,7 +19,7 @@ import {
   type CreateActionRepairDto,
   type WorkspaceMetricEntryResultDto,
 } from "../../ipc/bindings";
-import { DiscIcon, DownloadIcon, MicIcon, NotebookIcon, PencilIcon } from "../../components/ui/Icon";
+import { DiscIcon, DownloadIcon, MicIcon, NotebookIcon, PencilIcon } from "@lunarca/editor-core/Icon";
 import { goTo } from "../../lib/navigate";
 
 /**

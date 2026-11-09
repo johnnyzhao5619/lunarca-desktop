@@ -343,6 +343,42 @@
           "markdownDescription": "Denies the account_export command without any pre-configured scope."
         },
         {
+          "description": "Enables the account_revoke_all_web_sessions command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-account-revoke-all-web-sessions",
+          "markdownDescription": "Enables the account_revoke_all_web_sessions command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the account_revoke_all_web_sessions command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-account-revoke-all-web-sessions",
+          "markdownDescription": "Denies the account_revoke_all_web_sessions command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the account_revoke_web_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-account-revoke-web-session",
+          "markdownDescription": "Enables the account_revoke_web_session command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the account_revoke_web_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-account-revoke-web-session",
+          "markdownDescription": "Denies the account_revoke_web_session command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the account_set_web_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-account-set-web-access",
+          "markdownDescription": "Enables the account_set_web_access command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the account_set_web_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-account-set-web-access",
+          "markdownDescription": "Denies the account_set_web_access command without any pre-configured scope."
+        },
+        {
           "description": "Enables the account_sign_in_begin command without any pre-configured scope.",
           "type": "string",
           "const": "allow-account-sign-in-begin",
@@ -473,6 +509,30 @@
           "type": "string",
           "const": "deny-account-state",
           "markdownDescription": "Denies the account_state command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the account_web_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-account-web-access",
+          "markdownDescription": "Enables the account_web_access command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the account_web_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-account-web-access",
+          "markdownDescription": "Denies the account_web_access command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the account_web_sessions command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-account-web-sessions",
+          "markdownDescription": "Enables the account_web_sessions command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the account_web_sessions command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-account-web-sessions",
+          "markdownDescription": "Denies the account_web_sessions command without any pre-configured scope."
         },
         {
           "description": "Enables the billing_available command without any pre-configured scope.",
@@ -643,10 +703,10 @@
           "markdownDescription": "Denies the usage command without any pre-configured scope."
         },
         {
-          "description": "Lunarca 云客户端：账户与登录、设备管理、账户数据导出与注销、权益、用量与月度上限、收单与签名模型目录。\n#### This default permission set includes:\n\n- `allow-account-state`\n- `allow-account-sign-in-begin`\n- `allow-account-sign-in-password`\n- `allow-account-sign-in-code`\n- `allow-account-sign-in-set-password`\n- `allow-account-sign-in-request-code`\n- `allow-account-change-password`\n- `allow-account-sign-in-browser`\n- `allow-account-sign-in-reopen-browser`\n- `allow-account-sign-in-cancel`\n- `allow-account-sign-in-resolve-device-limit`\n- `allow-account-sign-out`\n- `allow-devices-list`\n- `allow-device-revoke`\n- `allow-account-deletion-preview`\n- `allow-account-delete`\n- `allow-account-export`\n- `allow-entitlements`\n- `allow-usage`\n- `allow-spend-cap-set`\n- `allow-billing-offer`\n- `allow-billing-available`\n- `allow-billing-checkout`\n- `allow-billing-portal`\n- `allow-billing-verify-card`\n- `allow-catalog-status`\n- `allow-prompt-catalog-status`\n- `allow-trust-status`\n- `allow-trust-confirm-change`",
+          "description": "Lunarca 云客户端：账户与登录、设备管理、账户数据导出与注销、权益、用量与月度上限、收单与签名模型目录。\n#### This default permission set includes:\n\n- `allow-account-state`\n- `allow-account-sign-in-begin`\n- `allow-account-sign-in-password`\n- `allow-account-sign-in-code`\n- `allow-account-sign-in-set-password`\n- `allow-account-sign-in-request-code`\n- `allow-account-change-password`\n- `allow-account-sign-in-browser`\n- `allow-account-sign-in-reopen-browser`\n- `allow-account-sign-in-cancel`\n- `allow-account-sign-in-resolve-device-limit`\n- `allow-account-sign-out`\n- `allow-devices-list`\n- `allow-device-revoke`\n- `allow-account-web-access`\n- `allow-account-set-web-access`\n- `allow-account-web-sessions`\n- `allow-account-revoke-web-session`\n- `allow-account-revoke-all-web-sessions`\n- `allow-account-deletion-preview`\n- `allow-account-delete`\n- `allow-account-export`\n- `allow-entitlements`\n- `allow-usage`\n- `allow-spend-cap-set`\n- `allow-billing-offer`\n- `allow-billing-available`\n- `allow-billing-checkout`\n- `allow-billing-portal`\n- `allow-billing-verify-card`\n- `allow-catalog-status`\n- `allow-prompt-catalog-status`\n- `allow-trust-status`\n- `allow-trust-confirm-change`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Lunarca 云客户端：账户与登录、设备管理、账户数据导出与注销、权益、用量与月度上限、收单与签名模型目录。\n#### This default permission set includes:\n\n- `allow-account-state`\n- `allow-account-sign-in-begin`\n- `allow-account-sign-in-password`\n- `allow-account-sign-in-code`\n- `allow-account-sign-in-set-password`\n- `allow-account-sign-in-request-code`\n- `allow-account-change-password`\n- `allow-account-sign-in-browser`\n- `allow-account-sign-in-reopen-browser`\n- `allow-account-sign-in-cancel`\n- `allow-account-sign-in-resolve-device-limit`\n- `allow-account-sign-out`\n- `allow-devices-list`\n- `allow-device-revoke`\n- `allow-account-deletion-preview`\n- `allow-account-delete`\n- `allow-account-export`\n- `allow-entitlements`\n- `allow-usage`\n- `allow-spend-cap-set`\n- `allow-billing-offer`\n- `allow-billing-available`\n- `allow-billing-checkout`\n- `allow-billing-portal`\n- `allow-billing-verify-card`\n- `allow-catalog-status`\n- `allow-prompt-catalog-status`\n- `allow-trust-status`\n- `allow-trust-confirm-change`"
+          "markdownDescription": "Lunarca 云客户端：账户与登录、设备管理、账户数据导出与注销、权益、用量与月度上限、收单与签名模型目录。\n#### This default permission set includes:\n\n- `allow-account-state`\n- `allow-account-sign-in-begin`\n- `allow-account-sign-in-password`\n- `allow-account-sign-in-code`\n- `allow-account-sign-in-set-password`\n- `allow-account-sign-in-request-code`\n- `allow-account-change-password`\n- `allow-account-sign-in-browser`\n- `allow-account-sign-in-reopen-browser`\n- `allow-account-sign-in-cancel`\n- `allow-account-sign-in-resolve-device-limit`\n- `allow-account-sign-out`\n- `allow-devices-list`\n- `allow-device-revoke`\n- `allow-account-web-access`\n- `allow-account-set-web-access`\n- `allow-account-web-sessions`\n- `allow-account-revoke-web-session`\n- `allow-account-revoke-all-web-sessions`\n- `allow-account-deletion-preview`\n- `allow-account-delete`\n- `allow-account-export`\n- `allow-entitlements`\n- `allow-usage`\n- `allow-spend-cap-set`\n- `allow-billing-offer`\n- `allow-billing-available`\n- `allow-billing-checkout`\n- `allow-billing-portal`\n- `allow-billing-verify-card`\n- `allow-catalog-status`\n- `allow-prompt-catalog-status`\n- `allow-trust-status`\n- `allow-trust-confirm-change`"
         }
       ]
     }

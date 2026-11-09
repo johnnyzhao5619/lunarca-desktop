@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { comparableLocaleKeys, pluralBaseKey, type LocaleDict } from "./locale-keys";
+import { comparableLocaleKeys, pluralBaseKey, type LocaleDict } from "@lunarca/lint-config/locale-keys";
 
 /**
  * 全 namespace 的中英键集守护（批次 3/4 验收轮补上的缺口）。
@@ -13,7 +13,7 @@ import { comparableLocaleKeys, pluralBaseKey, type LocaleDict } from "./locale-k
  * 用 `import.meta.glob` 收全两个语言目录：新增 namespace 自动纳入守护，不必回来登记。
  */
 
-const MODULES = import.meta.glob("./locales/*/*.json", { eager: true }) as Record<
+const MODULES = import.meta.glob(["./locales/*/*.json", "../../../../packages/*/src/locales/*/*.json"], { eager: true }) as Record<
   string,
   { default: LocaleDict }
 >;
@@ -22,7 +22,7 @@ const MODULES = import.meta.glob("./locales/*/*.json", { eager: true }) as Recor
 function byLocale(): Map<string, Map<string, string[]>> {
   const out = new Map<string, Map<string, string[]>>();
   for (const [path, module] of Object.entries(MODULES)) {
-    const match = /\.\/locales\/([^/]+)\/([^/]+\.json)$/.exec(path);
+    const match = /\/locales\/([^/]+)\/([^/]+\.json)$/.exec(path);
     if (!match) {
       continue;
     }
@@ -44,6 +44,8 @@ describe("i18n 全 namespace 中英键集一致", () => {
     expect(zh, "zh-CN 目录缺失").toBeTruthy();
     expect(en, "en-US 目录缺失").toBeTruthy();
     expect([...zh!.keys()].sort()).toEqual([...en!.keys()].sort());
+    // 共享渲染包自带的文案同样受中英键集约束。
+    expect(zh!.has("editor-core.json"), "共享渲染包的文案不在扫描面里").toBe(true);
   });
 
   it("每个 namespace 的键集递归一致", () => {

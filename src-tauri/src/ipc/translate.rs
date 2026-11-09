@@ -207,6 +207,18 @@ pub(crate) fn script_instruction(
     )
 }
 
+/// 「按时长压缩」的目标量（ADR-176 ⑧）：按稿子主语言与本人语速，把秒数换算成中文字数或英文词数，
+/// 写成模型读得懂的量（`240 Chinese characters` / `150 words`，提示词里前面已有 `about`）。
+fn fit_target_units(text: &str, seconds: u32, rate: luna_vault::SpeakingRate) -> String {
+    let minutes = f64::from(seconds) / 60.0;
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    let count = |per_minute: f32| (f64::from(per_minute) * minutes).round().max(1.0) as u32;
+    match luna_vault::script_language(text) {
+        Some("zh") => format!("{} Chinese characters", count(rate.cjk_per_minute)),
+        _ => format!("{} words", count(rate.words_per_minute)),
+    }
+}
+
 /// 总结指令按风格生成。
 ///
 /// 三档都**显式写出形态**，且语言用全称：此前要点档只写 `Write the summary in zh.`
@@ -435,6 +447,8 @@ pub(crate) struct FloatingMenuRequest<'a> {
     pub meeting_minutes: bool,
     /// 术语表（PRD-01-017）：只把**本次输入命中**的词条注入翻译 / 润色指令。
     pub glossary: &'a [GlossaryEntry],
+    /// 本人语速（「按时长压缩」把目标秒数换算成字数用，ADR-176 ⑧）；`None` = 默认语速。
+    pub speaking_rate: Option<luna_vault::SpeakingRate>,
 }
 
 pub(crate) fn floating_menu_job(
@@ -453,6 +467,7 @@ pub(crate) fn floating_menu_job(
         strict_local,
         meeting_minutes,
         glossary,
+        speaking_rate,
     } = request;
     let ctx = lang_context_from_settings(settings);
     let detection = detector.detect(&text);
@@ -524,6 +539,39 @@ pub(crate) fn floating_menu_job(
             // 脚本改稿也带上设置里的「我的频道风格」（ADR-166 ⑤）：改成口语、重写开头都该像作者本人。
             let mut instruction = script_instruction(key, &detection, &context);
             super::creator_publish::CreatorNotes::new(settings, None).apply(&mut instruction);
+            JobKind::Refine {
+                instruction: Some(instruction),
+                text: TextRef::Inline(text),
+            }
+        }
+        // 提词器的 AI 口播动作（ADR-176 ⑧，PRD-20-016）：与脚本改稿同一形状，指令取自提词器应用自带的
+        // editor 域模板。「按时长压缩」按本人语速把目标秒数换算成字数写进指令——小模型对「秒」没有
+        // 概念，对「约 240 个中文字」有。
+        FloatingMenuAction::PrompterSpoken
+        | FloatingMenuAction::PrompterCues
+        | FloatingMenuAction::PrompterFit => {
+            let instruction = match action {
+                FloatingMenuAction::PrompterFit => {
+                    let rate = speaking_rate.unwrap_or(luna_vault::SpeakingRate::DEFAULT);
+                    let seconds = options.target_seconds.unwrap_or(60).clamp(5, 3600);
+                    let current = luna_vault::script_outline(&text, rate).total_seconds;
+                    let target = fit_target_units(&text, seconds, rate);
+                    editor_instruction(
+                        "teleprompter.fit",
+                        &[
+                            ("seconds", &seconds.to_string()),
+                            ("current_seconds", &current.to_string()),
+                            ("target", &target),
+                            ("language_lock", &language_lock_clause(&detection)),
+                            ("context", &context_clause(&context)),
+                        ],
+                    )
+                }
+                FloatingMenuAction::PrompterCues => {
+                    script_instruction("teleprompter.cues", &detection, &context)
+                }
+                _ => script_instruction("teleprompter.spoken", &detection, &context),
+            };
             JobKind::Refine {
                 instruction: Some(instruction),
                 text: TextRef::Inline(text),
@@ -823,6 +871,14 @@ pub(crate) async fn submit_floating_menu(
             strict_local: settings.strict_local(),
             meeting_minutes,
             glossary: &glossary,
+            // 只有「按时长压缩」要本人语速（存在库里，`.luna/speaking_rate.json`）。
+            speaking_rate: (action == FloatingMenuAction::PrompterFit)
+                .then(|| {
+                    state
+                        .with_vault("main", |vault| Ok(vault.speaking_rate()))
+                        .ok()
+                })
+                .flatten(),
         },
         &settings,
         state.detector.as_ref(),
@@ -1318,8 +1374,9 @@ pub(crate) async fn run_note_ai(
         summary_style: summary_style
             .as_deref()
             .map(FloatingSummaryStyle::from_setting),
-        // 后台只跑整篇动作，没有「哪一列」。
+        // 后台只跑整篇动作，没有「哪一列」，也没有「压到几秒」。
         table_column: None,
+        target_seconds: None,
     };
     let glossary = load_glossary_entries(&state);
     let job = floating_menu_job(
@@ -1334,6 +1391,7 @@ pub(crate) async fn run_note_ai(
             strict_local: settings.strict_local(),
             meeting_minutes,
             glossary: &glossary,
+            speaking_rate: None,
         },
         &settings,
         state.detector.as_ref(),
@@ -1570,5 +1628,37 @@ mod table_fill_tests {
         assert_eq!(fill_cell_value("\"Bright lamp\"", "Pitch"), "Bright lamp");
         assert_eq!(fill_cell_value("Pitch: bright", "Pitch"), "bright");
         assert_eq!(fill_cell_value("   ", "x"), "");
+    }
+}
+
+#[cfg(test)]
+mod prompter_fit_tests {
+    use super::fit_target_units;
+    use luna_vault::SpeakingRate;
+
+    #[test]
+    fn target_follows_the_scripts_language_and_the_speakers_pace() {
+        let rate = SpeakingRate::DEFAULT;
+        // 默认中文 240 字 / 分：60 秒 = 240 字；英文 150 词 / 分：30 秒 = 75 词。
+        assert_eq!(
+            fit_target_units("今天我们来聊一聊怎么写口播稿，先说结论。", 60, rate),
+            "240 Chinese characters"
+        );
+        assert_eq!(
+            fit_target_units(
+                "Today we talk about writing a script you can read aloud.",
+                30,
+                rate
+            ),
+            "75 words"
+        );
+        let slow = SpeakingRate {
+            cjk_per_minute: 180.0,
+            ..rate
+        };
+        assert_eq!(
+            fit_target_units("今天我们来聊一聊怎么写口播稿，先说结论。", 90, slow),
+            "270 Chinese characters"
+        );
     }
 }

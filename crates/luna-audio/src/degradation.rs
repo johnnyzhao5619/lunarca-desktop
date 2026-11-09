@@ -36,7 +36,7 @@ pub enum DegradationState {
 /// 负载由实时字幕买单：用户点了「二次转写」，代价是同一时刻的实时字幕停更。方向反了。
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct AsrLoad {
-    /// 实时腿的滑窗 RTF（`T_inference / T_audio`）。
+    /// 实时腿的滑窗 RTF（解码耗时 ÷ 流过的会话时长 = 解码器忙碌占比，TDD-02 §5.1）。
     pub realtime_rtf: f32,
     /// 此刻在本机 ASR 引擎上跑着的**批式**转写 Job 数（音频已全量在手、无截止期的那一类）。
     pub batch_inflight: usize,

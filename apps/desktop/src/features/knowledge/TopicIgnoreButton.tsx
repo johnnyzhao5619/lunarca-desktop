@@ -13,7 +13,7 @@
  */
 
 import { useTranslation } from "react-i18next";
-import { CloseIcon } from "../../components/ui/Icon";
+import { CloseIcon } from "@lunarca/editor-core/Icon";
 import { ignoreTopicSuggestion } from "./topic-draft";
 
 export function TopicIgnoreButton({

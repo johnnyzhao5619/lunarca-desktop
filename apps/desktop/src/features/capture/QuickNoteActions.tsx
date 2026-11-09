@@ -10,7 +10,7 @@
  */
 
 import { useTranslation } from "react-i18next";
-import { BookOpenIcon, PencilIcon, SparklesIcon, TrashIcon } from "../../components/ui/Icon";
+import { BookOpenIcon, PencilIcon, SparklesIcon, TrashIcon } from "@lunarca/editor-core/Icon";
 
 export interface QuickNoteActionsProps {
   onSettle: () => void;

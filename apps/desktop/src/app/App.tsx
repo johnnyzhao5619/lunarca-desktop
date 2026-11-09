@@ -10,7 +10,7 @@ import { TextQuickNoteHud } from "../features/capture/TextQuickNoteHud";
 import { DesktopNoteWindow } from "../features/capture/DesktopNoteWindow";
 import { RecordingHud } from "../features/recording/RecordingHud";
 import { CaptionPanel } from "../features/caption/CaptionPanel";
-import { TeleprompterPanel } from "../features/creator/TeleprompterPanel";
+import { TeleprompterPanel } from "../features/teleprompter/TeleprompterPanel";
 import { CaptionTranslationWindow } from "../features/caption/CaptionTranslationWindow";
 import { NoteWindow } from "../features/editor/NoteWindow";
 import { NotePrintView } from "../features/editor/NotePrintView";
@@ -23,6 +23,7 @@ import { NotificationDrawerHost } from "../features/notifications/NotificationDr
 import { ExportOptionsHost } from "../features/transcribe/ExportOptionsHost";
 import { NotificationHost } from "../features/notifications/NotificationHost";
 import { OnboardingWizard } from "../features/onboarding/OnboardingWizard";
+import { FirstSyncPrompt } from "../features/account/FirstSyncPrompt";
 import { useOnboarding } from "../features/onboarding/use-onboarding";
 import { SetupStatusProvider, useSetupStatus } from "../features/onboarding/use-setup-status";
 import { useAppearance } from "../theme/use-appearance";
@@ -53,11 +54,11 @@ export function App() {
   const onboarding = useOnboarding(bootstrap?.onboarding ?? null, bootstrapFailed, setupStatus);
   // 库世代：每次切库自增，驱动工作区整体重挂载（见下方 key 注释）。
   const [vaultEpoch, setVaultEpoch] = useState(0);
-  // 换了账户、Rust 因此换了库或交出了库（ADR-151 修订 2026-10-15「续二」）：这次切库不经界面的
-  // 切换控制器，同样整体重挂载工作区。只有主窗承载工作区。
+  // Rust 换了库或交出了库：换了账户跟着换（ADR-151 修订 2026-10-15「续二」），或启动时还在 iCloud
+  // 上的库取回后自动打开。这次切库不经界面的切换控制器，同样整体重挂载工作区。只有主窗承载工作区。
   useEffect(() => {
     if (windowLabel !== "main") return;
-    const unlisten = events.vaultFollowedAccount.listen(() => setVaultEpoch((epoch) => epoch + 1));
+    const unlisten = events.vaultSwitchedByApp.listen(() => setVaultEpoch((epoch) => epoch + 1));
     return () => void unlisten.then((dispose) => dispose());
   }, [windowLabel]);
   // 引导覆盖层（PRD-14-060 重入）：设置页「重新运行引导」与「完成设置」横幅都经同一个事件
@@ -210,6 +211,7 @@ export function App() {
       <KnowledgeReceiptHost />
       <CitationOutcomeHost />
       <NotificationHost />
+      <FirstSyncPrompt />
       {/* 通知抽屉与工作区**同层**（ADR-087 ② / PRD-15-064）：它是覆盖在当前工作上下文
           之上的历史宿主，不是工作区的一页——故它不随切库重挂载（`key` 只给工作区），
           也不依赖任何一级导航目的地。铃铛与 `notifications://` 打开的都是它。 */}

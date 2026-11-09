@@ -130,7 +130,14 @@ pub struct CaptureTuning {
     pub rolling_split_max_bytes: u64,
     /// VAD 灵敏度档位（= 门限相对本轨噪声底的余量，**不是绝对门限**）。
     pub vad_sensitivity: crate::vad::VadSensitivity,
+    /// 实时转写的增长快照间隔（毫秒，见 [`crate::SegmenterConfig::snapshot_interval_samples`]）：
+    /// 不是用户旋钮而是**用途**旋钮——提词器跟读只要最近十几个字、要的是快，把它缩短
+    /// （ADR-176 ④）；其余会话照默认。
+    pub stream_snapshot_interval_ms: u32,
 }
+
+/// 实时转写增长快照的默认间隔（毫秒）：首字延迟 ≈ 间隔 + 单窗解码耗时（TDD-02 §3.3-B）。
+pub const DEFAULT_STREAM_SNAPSHOT_INTERVAL_MS: u32 = 1500;
 
 impl Default for CaptureTuning {
     fn default() -> Self {
@@ -139,6 +146,7 @@ impl Default for CaptureTuning {
             disk_warn_bytes: crate::writer::DEFAULT_DISK_SOFT_THRESHOLD_BYTES,
             rolling_split_max_bytes: crate::writer::DEFAULT_ROLLING_SPLIT_MAX_BYTES,
             vad_sensitivity: crate::vad::VadSensitivity::default(),
+            stream_snapshot_interval_ms: DEFAULT_STREAM_SNAPSHOT_INTERVAL_MS,
         }
     }
 }

@@ -16,7 +16,7 @@ import { listen } from "@tauri-apps/api/event";
 import { commands } from "../../ipc/bindings";
 import { LiveSubtitleView } from "../recording/LiveSubtitleView";
 import { focusTranslatedView, type SubtitleView } from "../recording/live-subtitle";
-import { CaptionsIcon, CloseIcon, SettingsIcon } from "../../components/ui/Icon";
+import { CaptionsIcon, CloseIcon, SettingsIcon } from "@lunarca/editor-core/Icon";
 import { CaptionAppearancePanel } from "./CaptionAppearancePanel";
 import { useCaptionWindowHidden } from "./use-caption-window-hidden";
 import { useCaptionAppearance } from "../recording/use-caption-appearance";

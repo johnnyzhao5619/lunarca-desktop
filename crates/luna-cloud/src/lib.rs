@@ -38,7 +38,6 @@ pub mod error;
 pub mod fingerprint;
 pub mod first_contact;
 pub mod lease;
-pub mod opaque_auth;
 #[cfg(test)]
 mod opaque_mock;
 pub mod protocol;
@@ -98,6 +97,11 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::account_sign_out,
             commands::devices_list,
             commands::device_revoke,
+            commands::account_web_access,
+            commands::account_set_web_access,
+            commands::account_web_sessions,
+            commands::account_revoke_web_session,
+            commands::account_revoke_all_web_sessions,
             commands::account_deletion_preview,
             commands::account_delete,
             commands::account_export,

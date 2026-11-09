@@ -18,7 +18,9 @@ use crate::account_data::{
 use crate::billing::BillingOfferDto;
 use crate::browser;
 use crate::catalog::{CatalogClient, CatalogStatusDto};
-use crate::client::{CloudClient, DeviceDto, EntitlementsDto, LoginPollStatus, LogoutDto};
+use crate::client::{
+    CloudClient, DeviceDto, EntitlementsDto, LoginPollStatus, LogoutDto, WebSessionDto,
+};
 use crate::device_limit::DeviceLimitResolutionDto;
 use crate::error::CloudError;
 use crate::trust::TrustStatusDto;
@@ -438,6 +440,51 @@ pub async fn device_revoke(
     state.0.revoke_device(&device_id).await
 }
 
+/// 读取官方云账户的网页访问开关。
+#[tauri::command]
+#[specta::specta]
+pub async fn account_web_access(state: State<'_, CloudState>) -> Result<bool, CloudError> {
+    state.0.web_access(None).await
+}
+
+/// 列出官方云账户在用的网页会话。
+#[tauri::command]
+#[specta::specta]
+pub async fn account_web_sessions(
+    state: State<'_, CloudState>,
+) -> Result<Vec<WebSessionDto>, CloudError> {
+    state.0.web_sessions().await
+}
+
+/// 让一个浏览器退出 Lunarca。
+#[tauri::command]
+#[specta::specta]
+pub async fn account_revoke_web_session(
+    state: State<'_, CloudState>,
+    id: String,
+) -> Result<(), CloudError> {
+    state.0.revoke_web_sessions(Some(&id)).await
+}
+
+/// 让所有浏览器退出 Lunarca。
+#[tauri::command]
+#[specta::specta]
+pub async fn account_revoke_all_web_sessions(
+    state: State<'_, CloudState>,
+) -> Result<(), CloudError> {
+    state.0.revoke_web_sessions(None).await
+}
+
+/// 更新网页访问开关。关闭会吊销该账户的全部网页会话。
+#[tauri::command]
+#[specta::specta]
+pub async fn account_set_web_access(
+    state: State<'_, CloudState>,
+    enabled: bool,
+) -> Result<bool, CloudError> {
+    state.0.web_access(Some(enabled)).await
+}
+
 /// 注销前的后果预览（在扣费的订阅、会作废的预付余额、计费记录保留几年）。只读；取不到时界面照常
 /// 允许注销，只说明细节没取到。
 #[tauri::command]
@@ -717,6 +764,11 @@ mod surface_tests {
         ("account_sign_out", Reach::RequiresSession),
         ("devices_list", Reach::RequiresSession),
         ("device_revoke", Reach::RequiresSession),
+        ("account_web_access", Reach::RequiresSession),
+        ("account_web_sessions", Reach::RequiresSession),
+        ("account_revoke_web_session", Reach::RequiresSession),
+        ("account_revoke_all_web_sessions", Reach::RequiresSession),
+        ("account_set_web_access", Reach::RequiresSession),
         ("account_deletion_preview", Reach::RequiresSession),
         ("account_delete", Reach::RequiresSession),
         // 会话判在保存对话框之前：未登录时连对话框都不弹，更不发请求。

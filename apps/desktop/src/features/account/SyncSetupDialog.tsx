@@ -11,13 +11,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
-import { commands, type RemoteVaultDto } from "../../ipc/bindings";
-import { formatBytes } from "../../lib/format-bytes";
+import { commands, type MergePreviewDto, type RemoteVaultDto } from "../../ipc/bindings";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { formatInstant } from "../../lib/format-datetime";
+import { downloadCloudVault, pickParentTitle } from "./cloud-vault-download";
 import { syncErrorText } from "./sync-error";
 
-/** 「新建」或某个云端库的 id。 */
-type Choice = { kind: "new" } | { kind: "join"; id: string };
+/** 「新建」、合并进某个云端库，或把它下载成新库（ADR-178 ④，只在登录后那一屏出现）。 */
+type Choice = { kind: "new" } | { kind: "join"; id: string } | { kind: "download"; id: string };
 
 export function SyncSetupDialog({
   vaultPath,
@@ -26,6 +27,7 @@ export function SyncSetupDialog({
   localBytes,
   remainingBytes,
   linkedRemotes,
+  firstLogin,
   onClose,
 }: {
   /** 要开启同步的那个本地库（库注册表的键）。 */
@@ -42,6 +44,8 @@ export function SyncSetupDialog({
   remainingBytes: number | null;
   /** 这台设备上已经有本地库对应的云端库：一个云端库只对应一个本地库，不再列出来。 */
   linkedRemotes: readonly string[];
+  /** 登录后的那一屏（ADR-178 ②）：预选、可以「暂不同步」、放不下时录音默认不上传。 */
+  firstLogin?: { recordingBytes: number };
   onClose: () => void;
 }) {
   const { t, i18n } = useTranslation("cloud");
@@ -54,6 +58,7 @@ export function SyncSetupDialog({
   const submitting = useRef(false);
   const listSequence = useRef(0);
   const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<MergePreviewDto | null>(null);
   const mounted = useRef(true);
   // 打开那一刻的快照：总览每来一次事件都是一个新数组，拿它当依赖会把清单重取一遍、
   // 把用户刚选的那一项冲掉。
@@ -87,11 +92,38 @@ export function SyncSetupDialog({
         (vault) => !linkedAtOpen.current.includes(vault.id),
       );
       setVaults(list);
+      if (firstLogin) {
+        const newest = [...list].sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
+        setChoice(newest ? { kind: "join", id: newest.id } : { kind: "new" });
+      }
     }).catch((cause: unknown) => {
       if (mounted.current && sequence === listSequence.current) setListError(String(cause));
     });
+    // firstLogin 只决定打开那一刻的预选，不因父组件重渲染重取清单。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(loadVaults, [loadVaults]);
+
+  const previewId = firstLogin && choice?.kind === "join" ? choice.id : null;
+  useEffect(() => {
+    setPreview(null);
+    if (previewId === null) return;
+    let live = true;
+    void commands.syncMergePreview(vaultPath, previewId).then((result) => {
+      if (live && result.status === "ok") setPreview(result.data);
+    });
+    return () => {
+      live = false;
+    };
+  }, [previewId, vaultPath]);
+
+  /** 放不下时录音默认不上传（ADR-178 ②）：登录后那一屏才替用户定，账户页的向导不动既有设置。 */
+  const skipRecordings =
+    firstLogin !== undefined &&
+    firstLogin.recordingBytes > 0 &&
+    remainingBytes !== null &&
+    localBytes !== null &&
+    localBytes > remainingBytes;
 
   const submit = async () => {
     if (!choice || submitting.current || vaults === null || listError) return;
@@ -99,6 +131,18 @@ export function SyncSetupDialog({
     setBusy(true);
     setError(null);
     try {
+    if (choice.kind === "download") {
+      const vault = vaults.find((item) => item.id === choice.id);
+      const outcome = await downloadCloudVault(choice.id, pickParentTitle(vault?.name ?? null, t));
+      if (!mounted.current || outcome.kind === "cancelled") return;
+      if (outcome.kind === "failed") {
+        setError(outcome.code);
+        return;
+      }
+      onClose();
+      return;
+    }
+    if (skipRecordings) await commands.setSetting("sync.recordings_mode", { kind: "str", value: "off" });
     const result =
       choice.kind === "new"
         ? await commands.syncEnable(vaultPath, takeOver)
@@ -176,6 +220,19 @@ export function SyncSetupDialog({
                 <span>{t("sync.wizard.choice_join", { vault: vaultLabel(vault) })}</span>
               </label>
             ))}
+            {firstLogin
+              ? (vaults ?? []).map((vault) => (
+                  <label key={`download-${vault.id}`} className="cloud-sync__choice">
+                    <input
+                      type="radio"
+                      name="cloud-sync-choice"
+                      checked={choice?.kind === "download" && choice.id === vault.id}
+                      onChange={() => setChoice({ kind: "download", id: vault.id })}
+                    />
+                    <span>{t("sync.wizard.choice_download", { vault: vaultLabel(vault) })}</span>
+                  </label>
+                ))
+              : null}
             <label className="cloud-sync__choice">
               <input
                 type="radio"
@@ -198,8 +255,30 @@ export function SyncSetupDialog({
             ) : null}
           </fieldset>
           {choice ? <p className="luna-settings-panel__desc">
-            {t(choice.kind === "new" ? "sync.wizard.new_desc" : "sync.wizard.join_desc")}
+            {t(
+              choice.kind === "new"
+                ? "sync.wizard.new_desc"
+                : choice.kind === "join"
+                  ? "sync.wizard.join_desc"
+                  : "sync.wizard.download_desc",
+            )}
           </p> : null}
+          {preview ? (
+            <p className="cloud-sync__notice" data-tone={preview.differ > 0 ? "warning" : "muted"} role="status">
+              {t("sync.wizard.preview", {
+                download: preview.download,
+                upload: preview.upload,
+                size: formatBytes(preview.upload_bytes, i18n.language),
+                same: preview.same,
+                differ: preview.differ,
+              })}
+            </p>
+          ) : null}
+          {skipRecordings ? (
+            <p className="cloud-sync__notice" data-tone="warning" role="status">
+              {t("sync.wizard.recordings_stay")}
+            </p>
+          ) : null}
           {/* 开同步前就说清容量够不够（OneDrive「选择文件夹」同样先报所需空间）。只是提示、
               不拦：上传到上限后服务端会停在只读，删掉文件即可继续。 */}
           {choice?.kind === "new" && localBytes !== null ? (
@@ -238,7 +317,7 @@ export function SyncSetupDialog({
             disabled={busy}
             onClick={onClose}
           >
-            {tCommon("action.cancel")}
+            {firstLogin ? t("sync.wizard.not_now") : tCommon("action.cancel")}
           </button>
           <button
             type="submit"

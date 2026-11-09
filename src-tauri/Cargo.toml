@@ -56,6 +56,7 @@ luna-metrics = { path = "../crates/luna-metrics" }
 luna-cloud = { path = "../crates/luna-cloud" }
 # 官方同步核心（ADR-148）：远端与钥匙串的适配在 cloud_sync.rs，S4 接线前不进命令面。
 luna-sync = { path = "../crates/luna-sync" }
+luna-sync-core = { path = "../crates/luna-sync-core" }
 # 云客户端（账户/会话/Lease/目录/制品）——ADR-037 后为普通依赖，无 feature 门。
 # 未登录且未配置计算服务时零云网络行为，由 `cloud::CloudGate` 保证并有机器断言。
 tokio.workspace = true

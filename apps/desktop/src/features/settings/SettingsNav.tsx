@@ -31,7 +31,7 @@ import {
   ShieldIcon,
   SparklesIcon,
   UserIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { QueryBox } from "../../components/ui/QueryBox";
 import { useResetSettingsPage } from "./use-reset-settings-page";
 import { searchPages, searchSpecs } from "./settings-filter";

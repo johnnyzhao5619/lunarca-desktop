@@ -1,0 +1,40 @@
+# luna-sync-core —— 同步与合并共用的纯逻辑（ADR-148、ADR-177 ⑥，TDD-17 §2）：加解密、分块、清单与提交请求体、
+# 恢复密钥、行级 diff 与三路合并、路径名比较口径、文件命名规则。零 IO 叶子：不依赖文件系统、SQLite、HTTP 与异步
+# 运行时，原生编译给桌面、编译成 WASM 给网页版（`luna-web`）。
+[package]
+name = "luna-sync-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+# AES-256-GCM 内容加密与信封封装（RustCrypto，MIT OR Apache-2.0，ADR-005 已核）。
+aes-gcm = { workspace = true }
+# CMK → 子密钥。
+hkdf = { workspace = true }
+# 块 id = HMAC-SHA256(K_chunkid, 明文块)。
+hmac = { workspace = true }
+sha2 = { workspace = true }
+# 密钥材料离开作用域即清零。
+zeroize = { workspace = true }
+# 大文件分块。
+fastcdc = { workspace = true }
+# 路径名比较的 NFC 规范化（Unicode-3.0，ADR-005 已核）。
+icu_normalizer = { version = "2.2", default-features = false, features = ["compiled_data"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+# 标签的读法要解析 frontmatter 的 `tags` / `luna.ai_tags`（MIT，已在依赖树里，ADR-005 已核）。
+serde_yaml_ng = { workspace = true }
+# 提交请求体里的条目密文是 base64（与服务端同一口径）。
+base64 = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+
+# 浏览器里的随机数源（`crypto.getRandomValues`）：网页版编译成 wasm32 时 aes-gcm 的 OsRng 走它；原生编译不受影响。
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+# 网页版新建文件要生成 UUIDv7（`file_id`），同一个随机数源。
+uuid = { workspace = true, features = ["js"] }

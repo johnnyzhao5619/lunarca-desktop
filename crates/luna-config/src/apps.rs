@@ -233,7 +233,34 @@ first_party_apps! {
         ],
         components: &[],
         highlights: &["pipeline", "teleprompter", "publish"],
-        // 提词器（PRD-19 §3.4）。
+        // 提词器（PRD-19 §3.4）：与「提词器」应用共用这一扇（ADR-176 ③）。
+        windows: &["teleprompter"],
+    }
+
+    /// 「提词器」（PRD-20 / ADR-176）：可单独安装的提词器，有自己的空间；与「创作」共用同一扇
+    /// 面板与 `teleprompter.*` 内部键（任一拥有者生效即可用），扩展能力只归它。
+    TELEPROMPTER_APP = "teleprompter" {
+        space: Some("teleprompter"),
+        // 不拥有任何类型：库里任意一篇笔记都能提词。
+        note_types: &[],
+        // 提词稿目录只服务于提词器（「新建提词稿」「从剪贴板新建」）。
+        setting_keys: &["vault.teleprompter_dir"],
+        // 提词器的全局键（立即隐藏、送稿、浮窗按键）一枝全归它（ADR-176 ⑤ ⑥ ⑨）。
+        setting_prefixes: &["teleprompter.", "shortcuts.teleprompter_"],
+        permissions: &[
+            AppPermission::Microphone,
+            AppPermission::VaultFolder,
+            AppPermission::Ai,
+        ],
+        contributions: &[
+            AppContribution::Space,
+            AppContribution::EditorActions,
+            AppContribution::Windows,
+            AppContribution::Settings,
+            AppContribution::Prompts,
+        ],
+        components: &[],
+        highlights: &["any_note", "follow", "camera"],
         windows: &["teleprompter"],
     }
 
@@ -277,12 +304,19 @@ first_party_apps! {
 /// `apps.installed` 的默认值：全部未安装（与 [`APPS_ENABLED_DEFAULT`] 同一份 token）。
 pub const APPS_INSTALLED_DEFAULT: &[&str] = APPS_ENABLED_DEFAULT;
 
-/// 拥有这个窗口（Tauri 标签）的应用；不归任何应用的窗口为 `None`。
-#[must_use]
-pub fn window_owner(label: &str) -> Option<&'static AppManifest> {
+/// 声明了这个窗口（Tauri 标签）的应用（清单顺序）。同一扇窗可以有多个主人（提词器面板归创作与
+/// 提词器，ADR-176 ③）；不归任何应用的窗口没有主人。
+pub fn window_owners(label: &str) -> impl Iterator<Item = &'static AppManifest> + '_ {
     FIRST_PARTY_APPS
         .iter()
-        .find(|app| app.windows.contains(&label))
+        .filter(move |app| app.windows.contains(&label))
+}
+
+/// 这扇窗此刻可用吗：不归任何应用，或者它的主人里**至少一个**已生效（ADR-176 ③）。
+#[must_use]
+pub fn window_available(settings: &Settings, label: &str) -> bool {
+    let mut owners = window_owners(label).peekable();
+    owners.peek().is_none() || owners.any(|app| is_enabled(settings, app.id))
 }
 
 /// 按 id 找清单。
@@ -483,10 +517,20 @@ pub fn primary_action(
     }
 }
 
-/// 这个设置键归哪个应用（不归任何应用 = `None`）。
+/// 声明了这个设置键的应用（清单顺序；不归任何应用 = 空）。`teleprompter.*` 同归创作与提词器
+/// （ADR-176 ③）。
+pub fn setting_owners(key: &str) -> impl Iterator<Item = &'static AppManifest> + '_ {
+    FIRST_PARTY_APPS
+        .iter()
+        .filter(move |app| app.owns_setting(key))
+}
+
+/// 这个设置键此刻可用吗：不归任何应用，或者它的主人里至少一个已生效（与 [`window_available`]
+/// 同一条）。
 #[must_use]
-pub fn setting_owner(key: &str) -> Option<&'static AppManifest> {
-    FIRST_PARTY_APPS.iter().find(|app| app.owns_setting(key))
+pub fn setting_available(settings: &Settings, key: &str) -> bool {
+    let mut owners = setting_owners(key).peekable();
+    owners.peek().is_none() || owners.any(|app| is_enabled(settings, app.id))
 }
 
 /// 这个活动栏空间归哪个应用。
@@ -570,10 +614,36 @@ mod tests {
                 app.id
             );
             for label in app.windows {
-                assert_eq!(window_owner(label).map(|owner| owner.id), Some(app.id));
+                assert!(window_owners(label).any(|owner| owner.id == app.id));
             }
         }
-        assert!(window_owner("main").is_none());
+        assert!(window_owners("main").next().is_none());
+    }
+
+    #[test]
+    fn the_teleprompter_panel_is_available_while_either_owner_is_on() {
+        let owners: Vec<&str> = window_owners("teleprompter").map(|app| app.id).collect();
+        assert_eq!(owners, ["creator", "teleprompter"]);
+        assert!(!window_available(&Settings::default(), "teleprompter"));
+        let creator = installed_and_enabled(&["creator"], &["creator"]);
+        assert!(window_available(&creator, "teleprompter"));
+        assert!(setting_available(&creator, "teleprompter.font_size"));
+        let own = installed_and_enabled(&["teleprompter"], &["teleprompter"]);
+        assert!(window_available(&own, "teleprompter"));
+        assert!(setting_available(&own, "teleprompter.follow_enabled"));
+        assert!(!setting_available(&own, "creator.board_view"));
+        let paused = installed_and_enabled(
+            &["creator", "teleprompter"],
+            &["off:creator", "off:teleprompter"],
+        );
+        assert!(
+            !window_available(&paused, "teleprompter"),
+            "两个都停用才收起"
+        );
+        assert!(
+            window_available(&Settings::default(), "main"),
+            "不归任何应用的窗口恒可用"
+        );
     }
 
     #[test]
@@ -642,7 +712,7 @@ mod tests {
         let off = Settings::default();
         assert_eq!(
             ids_of(&with_installed(&off, "link_import", true)),
-            ["off:creator", "link_import"]
+            ["off:creator", "off:teleprompter", "link_import"]
         );
     }
 
@@ -787,16 +857,16 @@ mod tests {
         let off = Settings::default();
         assert_eq!(
             ids_of(&with_enabled(&off, "creator", true)),
-            ["creator", "off:link_import"]
+            ["creator", "off:teleprompter", "off:link_import"]
         );
         let on = with(&["creator"]);
         assert_eq!(
             ids_of(&with_enabled(&on, "creator", false)),
-            ["off:creator", "off:link_import"]
+            ["off:creator", "off:teleprompter", "off:link_import"]
         );
         assert_eq!(
             ids_of(&with_enabled(&on, "bogus", true)),
-            ["creator", "off:link_import"],
+            ["creator", "off:teleprompter", "off:link_import"],
             "未知 id 写不进去"
         );
     }
@@ -808,14 +878,18 @@ mod tests {
             "creator.board_view",
             "vault.creator_dir",
             "privacy.web_clip",
-            "teleprompter.font_size",
         ] {
-            assert_eq!(
-                setting_owner(key).map(|app| app.id),
-                Some("creator"),
-                "{key}"
-            );
+            let owners: Vec<&str> = setting_owners(key).map(|app| app.id).collect();
+            assert_eq!(owners, ["creator"], "{key}");
         }
+        let shared: Vec<&str> = setting_owners("teleprompter.font_size")
+            .map(|app| app.id)
+            .collect();
+        assert_eq!(
+            shared,
+            ["creator", "teleprompter"],
+            "提词器偏好两者共有（ADR-176 ③）"
+        );
         for key in [
             "workspace.rail_layout",
             "vault.documents_dir",
@@ -823,7 +897,7 @@ mod tests {
             APPS_ENABLED_KEY,
             APPS_INSTALLED_KEY,
         ] {
-            assert!(setting_owner(key).is_none(), "{key} 不归任何应用");
+            assert!(setting_owners(key).next().is_none(), "{key} 不归任何应用");
         }
     }
 
@@ -834,11 +908,8 @@ mod tests {
             "transcribe.fetch_proxy",
             "transcribe.fetch_tool_path",
         ] {
-            assert_eq!(
-                setting_owner(key).map(|app| app.id),
-                Some("link_import"),
-                "{key}"
-            );
+            let owners: Vec<&str> = setting_owners(key).map(|app| app.id).collect();
+            assert_eq!(owners, ["link_import"], "{key}");
         }
         let needs: Vec<(&str, ComponentNeed)> = LINK_IMPORT_APP
             .components

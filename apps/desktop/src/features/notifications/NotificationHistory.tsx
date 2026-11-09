@@ -29,7 +29,7 @@ import {
   ExternalWindowIcon,
   FilterIcon,
   TrashIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { IconButton } from "../../components/ui/IconButton";
 import { goTo } from "../../lib/navigate";
 import {

@@ -21,7 +21,7 @@ import {
   type VoiceInputState,
 } from "../../ipc/bindings";
 import { useModels, useSettings } from "../settings/use-settings";
-import { formatShortcut } from "../../lib/shortcut-display";
+import { formatShortcut } from "@lunarca/editor-core/shortcut-display";
 import { usePersistentVoiceMode } from "./voice-modes";
 import { pushLevelFrames, type VoiceLevel, type VoiceLevelPayload } from "./voice-waveform";
 import { goTo } from "../../lib/navigate";

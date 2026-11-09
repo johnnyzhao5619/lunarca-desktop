@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands, events, type RelatedNotesDto } from "../../ipc/bindings";
-import { LinkIcon, SparklesIcon, WikiLinkIcon } from "../../components/ui/Icon";
+import { LinkIcon, SparklesIcon, WikiLinkIcon } from "@lunarca/editor-core/Icon";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { notePathLabel } from "../../lib/note-path";
 

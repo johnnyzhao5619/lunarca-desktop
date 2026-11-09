@@ -4,11 +4,11 @@ use std::sync::Arc;
 
 use uuid::Uuid;
 
-use crate::crypto::{Cmk, KeyRing};
 use crate::engine::{Engine, EngineConfig, RoundReport, SyncAbort};
 use crate::ports::RemoteError;
 use crate::state::{Binding, SyncState};
 use crate::testing::{FakeServer, MemVault};
+use luna_sync_core::crypto::{Cmk, KeyRing};
 
 const LOCAL_ID: &str = "0190f0f0-0000-7000-8000-00000000abcd";
 
@@ -724,7 +724,7 @@ async fn an_interrupted_download_resumes_without_refetching_chunks() {
     world.sync(&mut b).await;
     let (_, second) = world.server.take_blob_traffic();
     assert_eq!(b.vault.get("rec.wav").as_deref(), Some(audio.as_slice()));
-    let chunks = crate::chunk::boundaries(&audio).len();
+    let chunks = luna_sync_core::chunk::boundaries(&audio).len();
     assert_eq!(
         first + second,
         chunks,
@@ -751,7 +751,7 @@ async fn an_interrupted_upload_resumes_without_resending_chunks() {
     let report = world.sync(&mut a).await;
     assert_eq!(report.pushed, 1);
     let (second, _) = world.server.take_blob_traffic();
-    let chunks = crate::chunk::boundaries(&audio).len();
+    let chunks = luna_sync_core::chunk::boundaries(&audio).len();
     assert_eq!(
         first + second,
         chunks,
@@ -1090,4 +1090,37 @@ async fn only_the_frozen_refusal_is_absorbed_other_write_failures_still_abort() 
         world.try_sync(&mut a, false).await,
         Err(SyncAbort::Remote(RemoteError::QuotaExceeded))
     ));
+}
+
+#[tokio::test]
+async fn notes_land_before_a_full_account_stops_the_attachments() {
+    let world = World::new();
+    let mut a = world.device();
+    a.vault.put("note.md", b"note");
+    a.vault.put("big.png", b"attachment");
+    // 拉清单、笔记那一波的问缺块、传块、提交，共四次调用；第五次（附件的问缺块）起账户满了。
+    world.server.fail_after(4, RemoteError::QuotaExceeded);
+    assert!(matches!(
+        world.try_sync(&mut a, false).await,
+        Err(SyncAbort::Remote(RemoteError::QuotaExceeded))
+    ));
+    assert_eq!(world.server.live_files(), 1, "笔记已经提交，附件停在满额上");
+    world.server.heal();
+    world.sync(&mut a).await;
+    assert_eq!(world.server.live_files(), 2, "腾出空间后接着传");
+}
+
+#[test]
+fn upload_waves_put_notes_first_then_grow_by_size() {
+    use crate::engine::upload_waves;
+    let waves = upload_waves(vec![
+        (0, false, 5),
+        (1, true, 9),
+        (2, false, 1),
+        (3, true, 1),
+    ]);
+    assert_eq!(waves, vec![vec![3, 1], vec![2, 0]]);
+    let big = 20 * 1024 * 1024;
+    let waves = upload_waves(vec![(0, false, big), (1, false, big)]);
+    assert_eq!(waves, vec![vec![0], vec![1]]);
 }

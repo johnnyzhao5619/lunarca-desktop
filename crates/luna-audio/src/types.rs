@@ -387,8 +387,9 @@ pub enum SpeechEvent {
         abs_start: u64,
         /// 本窗实际语音内容的样本数（padding 前）。
         speech_len: usize,
-        /// 相比本 utterance 上一个已产出窗**新增**的语音样本数（RTF `T_audio` 只计增量）。
-        speech_delta: usize,
+        /// 自上一次出窗以来流过的会话样本数（含静音；RTF 的分母口径，见
+        /// [`crate::SpeechWindow::elapsed_samples`]）。
+        elapsed_samples: usize,
         /// 是否为**增长快照**（同 utterance 中途滚动出字用，非终窗）。
         ///
         /// 用于消费端自适应卸载负载（TDD-02 §5.2）：高负载档位（Yellow/Orange/Red）**跳过快照解码**、

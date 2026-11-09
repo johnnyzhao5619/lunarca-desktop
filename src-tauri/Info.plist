@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
   <key>NSMicrophoneUsageDescription</key>
-  <string>Lunarca 需要使用麦克风将你的语音在本机转写为文本，用于语音输入与录音功能。</string>
+  <string>Lunarca 需要使用麦克风将你的语音转写为文本，用于语音输入与录音功能。默认在本机转写；只有你开启「服务端转写」并选择服务端时，音频才会发送到你选择的服务端。</string>
   <!-- 系统音频录制（CATap，PRD-04-052/ADR-019）：TCC「系统音频录制」独立类别的授权文案；
        缺此 key 正式签名构建不弹授权框（TDD-02 §7）。 -->
   <key>NSAudioCaptureUsageDescription</key>
-  <string>Lunarca 需要录制系统音频，以便在会议、视频场景把对方（系统播放）的声音在本机转写为文字；全程本地处理，不上传。</string>
+  <string>Lunarca 需要录制系统音频，以便在会议、视频场景把对方（系统播放）的声音转写为文字。默认在本机转写；只有你开启「服务端转写」并选择服务端时，音频才会发送到你选择的服务端。</string>
   <!-- 本地网络（macOS 15 起的 TCC 类别）：连接部署在局域网里的组织服务端、从它下载模型时
        系统会弹授权框，缺此 key 框里没有说明。授权按签名身份记录——ad-hoc 调试包每次重编译
        都要重新授权，期间连局域网地址一律失败（实测，TDD-13 §签名）。 -->
@@ -27,6 +27,24 @@
       </dict>
       <key>NSMessage</key>
       <string>saveAsQuickNote</string>
+      <key>NSPortName</key>
+      <string>Lunarca</string>
+      <key>NSSendTypes</key>
+      <array>
+        <string>public.utf8-plain-text</string>
+        <string>NSStringPboardType</string>
+      </array>
+      <key>NSRequiredContext</key>
+      <dict/>
+    </dict>
+    <dict>
+      <key>NSMenuItem</key>
+      <dict>
+        <key>default</key>
+        <string>Show in Lunarca Teleprompter</string>
+      </dict>
+      <key>NSMessage</key>
+      <string>showInTeleprompter</string>
       <key>NSPortName</key>
       <string>Lunarca</string>
       <key>NSSendTypes</key>

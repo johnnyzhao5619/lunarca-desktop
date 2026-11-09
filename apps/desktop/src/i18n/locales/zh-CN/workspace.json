@@ -15,6 +15,7 @@
     "knowledge": "知识库",
     "transcripts": "转写",
     "creator": "创作",
+    "teleprompter": "提词器",
     "apps": "应用",
     "sectionNav": "二级分区",
     "section": {
@@ -84,7 +85,7 @@
     "vaultMissingTitle": "上次的库找不到了",
     "vaultMissing": "上次打开的库在 {{path}}，现在找不到它——可能在外置盘上，或者被移动、删除了。指回它现在的位置，或换一个库。",
     "vaultInCloudTitle": "库还在从 iCloud 下载",
-    "vaultInCloud": "{{path}} 里的库文件被 iCloud 移到了云端，正在下载到这台 Mac。下载好后点「重试」；想以后不再出现，在访达里右键这个文件夹，选「保持下载」。",
+    "vaultInCloud": "{{path}} 里的库文件被 iCloud 移到了云端，已请 iCloud 下载回这台 Mac，下载好会自动打开。iCloud 下载有时很慢甚至会停住，久没动静可以在访达里看看这个文件夹的下载状态；想以后不再出现，右键这个文件夹选「保持下载」。",
     "retryVaultInCloud": "重试",
     "relocateVault": "重新定位…",
     "chooseAnotherVault": "换一个库",
@@ -977,7 +978,7 @@
     "forgetHint": "「移除」只从这份列表移除记录，不会删除磁盘上的任何文件。",
     "forgetSyncTitle": "移除「{{name}}」？",
     "forgetSyncing": "这个库正在同步，移除后这台设备将停止同步它；云端副本保留。磁盘上的文件不会被删除。",
-    "forgetLinked": "这个库在这台设备上连着账户 {{account}} 的云同步，移除时这份连接一并解除；云端副本保留。磁盘上的文件不会被删除。",
+    "forgetLinked": "这个库在这台设备上连着账户 {{account}}（{{server}}）的云同步，移除时这份连接一并解除；云端副本保留。磁盘上的文件不会被删除。",
     "forgetConfirm": "移除",
     "rename": "重命名（只改这里的显示名，不动文件夹名）",
     "create": "新建库…",
@@ -1839,28 +1840,6 @@
         "allClear": "都齐了：每一步都已完成，没有超限或不合规的地方。"
       }
     },
-    "teleprompter": {
-      "title": "提词器",
-      "play": "开始滚动",
-      "pause": "暂停",
-      "speed": "速度",
-      "fontSize": "字号",
-      "lineWidth": "行宽",
-      "mirror": "镜像",
-      "top": "回到开头",
-      "close": "收起提词器",
-      "resize": "拖动改变大小",
-      "less": "{{what}}减一档",
-      "more": "{{what}}加一档",
-      "empty": "在脚本工具栏里点「提词器」，要念的文字会显示在这里。",
-      "follow": "跟读",
-      "followStop": "停止跟读",
-      "followFailed": "跟读没能开始，请稍后再试。",
-      "mark": "标记重来",
-      "markPending": "已标记 {{count}} 次，停止跟读或收起提词器时写回脚本。",
-      "markHint": "念砸了就点一下：标在此刻这一行上，停止跟读或收起提词器时写回脚本。",
-      "marksWritten": "已把 {{count}} 处录制标记写回脚本。"
-    },
     "recording": {
       "check": "开录前检查",
       "microphone": "麦克风",
@@ -1871,7 +1850,8 @@
       "hint": "跟读会打开提词器、边念边带到你念到的那一行。念砸了在提词器上点「标记重来」（或按录音打点键），停止跟读时标记写回脚本。",
       "retakes": "重来标记",
       "noRetakes": "脚本里还没有重来标记。",
-      "retakeHint": "回到脚本里的这一行"
+      "retakeHint": "回到脚本里的这一行",
+      "enableFollow": "开启跟读并开始"
     },
     "project": {
       "newTitle": "新建视频项目",
@@ -2103,6 +2083,64 @@
       "podcast": "Apple Podcasts：节目里有 AI 生成的音频（例如合成人声）要在节目说明里如实写明。"
     }
   },
+  "teleprompter": {
+    "panel": {
+      "title": "提词器",
+      "play": "开始滚动",
+      "pause": "暂停",
+      "speed": "速度",
+      "fontSize": "字号",
+      "lineWidth": "行宽",
+      "mirror": "镜像",
+      "top": "回到开头",
+      "close": "收起提词器",
+      "resize": "拖动改变大小",
+      "less": "{{what}}减一档",
+      "more": "{{what}}加一档",
+      "empty": "在任意一篇笔记里选「在提词器中打开」，要念的文字会显示在这里。",
+      "follow": "跟读",
+      "followStop": "停止跟读",
+      "followFailed": "跟读没能开始，请稍后再试。",
+      "mark": "标记重来",
+      "markPending": "已标记 {{count}} 次，停止跟读或收起提词器时写回脚本。",
+      "markHint": "念砸了就点一下：标在此刻这一行上，停止跟读或收起提词器时写回脚本。",
+      "marksWritten": "已把 {{count}} 处录制标记写回脚本。",
+      "clock": "{{elapsed}} · 约剩 {{remaining}}",
+      "clockLabel": "已用时间与预计剩余时间",
+      "more_menu": "更多",
+      "menu": {
+        "follow": "跟读",
+        "camera": "贴近镜头",
+        "captureHidden": "尽量不被录屏",
+        "countdownOff": "不倒计时",
+        "countdown": "开始前倒计时 {{secs}} 秒",
+        "remote": "遥控模式（翻页器 / 脚踏板）"
+      },
+      "remoteOn": "遥控中",
+      "remoteHint": "遥控模式开着：浮窗显示时，空格、方向键、PageUp / PageDown、Home、B、C、= / -、Esc 归提词器，翻页器与脚踏板直接可用。在「···」里关掉。",
+      "followLocal": "本机识别",
+      "followLocalHint": "跟读只在这台电脑上识别你的声音：不录音、不留识别文字，即使实时转写设成了服务端也不外发。",
+      "pauseMark": "停顿"
+    },
+    "home": {
+      "title": "提词器",
+      "lede": "打开一篇稿子，它会显示在镜头旁的浮动窗里。",
+      "sendHint": "在这一页按 ⌘V 粘贴、或把 .txt / .md / .docx / .pdf 文件拖到这里，就能直接提词；在别的应用里选中文字（Google Docs 里先 ⌘C）后按「送进提词器」快捷键（默认 ⌃⌥P）。",
+      "start": "开始提词",
+      "startCurrent": "继续提词《{{title}}》",
+      "startHint": "打开当前或最近一篇稿子；也可以在任意笔记的命令面板里选「提词器：在提词器中打开这篇」。",
+      "recent": "最近提词",
+      "recentEmpty": "还没有提词过的稿子。",
+      "open": "提词",
+      "newDraft": "新建提词稿",
+      "fromClipboard": "从剪贴板新建",
+      "draftHint": "提词稿是「{{dir}}」文件夹里的普通笔记。",
+      "settings": "跟读",
+      "follow": "跟读",
+      "followDesc": "打开后，开始跟读时用麦克风在本机识别你念到哪里；不录音、不留识别文字。默认关闭。",
+      "loading": "正在读取…"
+    }
+  },
   "apps": {
     "lede": "按需添加功能。卸载或暂时停用只收起它的入口，库里的内容不受影响。",
     "byline": "{{developer}} 官方 · 开源（{{license}}）",
@@ -2221,6 +2259,37 @@
         "publish": {
           "title": "一次导出发布包",
           "body": "双语字幕、章节，以及每个渠道的标题与简介。"
+        }
+      }
+    },
+    "teleprompter": {
+      "name": "提词器",
+      "summary": "出镜念稿用的提词器：贴着镜头显示，跟着你说话滚动，库里任何一篇笔记都能直接念。",
+      "description": "把要念的稿子放在镜头旁的浮动窗里：不抢录屏 / 录像软件的焦点，改稿保存后立即生效，不用重新导入。打开「跟读」后，本机识别你念到哪里并把那一行带到阅读线上；说错重说也接得上。",
+      "contribution": {
+        "space": "活动栏上的「提词器」：开始提词、最近提词过的稿子、新建提词稿与跟读开关；命令面板里的「提词器：」一组",
+        "windows": "提词器浮窗（与「创作」共用同一扇）",
+        "settings": "设置「笔记库」里的提词稿目录",
+        "editor_actions": "编辑器 AI 面板里的「提词器」一组：改成口播稿、压到 30 / 60 / 90 秒、标注停顿与强调；结果以差异呈现，确认才替换",
+        "prompts": "AI 提示词：口播动作的提示词随应用一起发布，离线可用；更新应用就会更新它们"
+      },
+      "permission": {
+        "microphone": "麦克风：只在你打开「跟读」并开始跟读时使用，只在本机识别，不录音、不留识别文字",
+        "vault_folder": "文件：新建的提词稿是库里提词稿目录下的普通笔记",
+        "ai": "AI：口播动作按你的算力设置执行，本机优先；只发选中的那段"
+      },
+      "highlight": {
+        "any_note": {
+          "title": "任何笔记都能念",
+          "body": "稿子就是库里的 Markdown，改了保存就生效，不用重新导入。"
+        },
+        "follow": {
+          "title": "跟着你说话滚动",
+          "body": "打开跟读后在本机识别，说错重说也接得上；默认关闭。"
+        },
+        "camera": {
+          "title": "不抢焦点的浮窗",
+          "body": "录屏、录像软件留在前台，提词器浮在镜头旁。"
         }
       }
     },

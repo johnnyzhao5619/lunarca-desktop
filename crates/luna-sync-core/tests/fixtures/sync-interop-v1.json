@@ -1,0 +1,206 @@
+{
+  "at": {
+    "date": "2026-11-06",
+    "day": 6,
+    "hour": 9,
+    "minute": 5,
+    "month": 11,
+    "second": 7,
+    "stamp": "20261106_090507",
+    "year": 2026
+  },
+  "chunks": [
+    {
+      "ct_sha256": "886c0c6e4017e6af63640b0b5fda6e6e0ab02e7223689e72fbe53b3aaa8c6b0a",
+      "id": "efe217667e9774988144b2066ff8ab56fc14c18666cd5b5aea05d51b6fa0318e",
+      "sealed_b64": "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"
+    }
+  ],
+  "cmk_b64": "BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc=",
+  "cmk_version": 1,
+  "commit": {
+    "base_rev": 3,
+    "delete": {
+      "items": [
+        {
+          "base_rev": 3,
+          "change": {
+            "kind": "delete"
+          },
+          "file_id": "0190f0a0-0000-7000-8000-0000000000aa"
+        }
+      ]
+    },
+    "put_without_entry_ct": {
+      "items": [
+        {
+          "base_rev": 3,
+          "change": {
+            "chunk_ids": [
+              "efe217667e9774988144b2066ff8ab56fc14c18666cd5b5aea05d51b6fa0318e"
+            ],
+            "kind": "put",
+            "size_padded": 4096
+          },
+          "file_id": "0190f0a0-0000-7000-8000-0000000000aa"
+        }
+      ]
+    }
+  },
+  "conflict_copies": [
+    {
+      "attempt": 1,
+      "copy": "周报/2026-11 (冲突 网页 2026-11-06).md",
+      "date": "2026-11-06",
+      "label": "冲突 网页",
+      "path": "周报/2026-11.md"
+    },
+    {
+      "attempt": 2,
+      "copy": "周报/2026-11 (冲突 网页 2026-11-06 2).md",
+      "date": "2026-11-06",
+      "label": "冲突 网页",
+      "path": "周报/2026-11.md"
+    },
+    {
+      "attempt": 1,
+      "copy": "附件/图.tar (冲突副本 2026-11-06).gz",
+      "date": "2026-11-06",
+      "label": "冲突副本",
+      "path": "附件/图.tar.gz"
+    },
+    {
+      "attempt": 3,
+      "copy": ".env (conflict copy 2026-11-06 3)",
+      "date": "2026-11-06",
+      "label": "conflict copy",
+      "path": ".env"
+    }
+  ],
+  "entry": {
+    "chunks": [
+      "efe217667e9774988144b2066ff8ab56fc14c18666cd5b5aea05d51b6fa0318e"
+    ],
+    "content_hash": "6c9e6ad44f5a50efaf217e614aba9dc5d6e112b9de68ceed2ddada1f88a96cdf",
+    "mtime_ms": 0,
+    "path": "周报/2026-11.md",
+    "size": 56,
+    "v": 1
+  },
+  "entry_sealed_b64": "AQAAAAG1H8P7GF1DvQ9MLG58WYFRectMr93fOuBrAJ4IdMM0VlfCyxJ01cddrmZQcFtslPoUzOLwIY5ULVR+B2V/M9+2B4aQN+Phvgx973IhWULzumKC6rSKTGynmyHncbLLx1a+B040ICSHuKzjwGL9Ye5PwoU4ZP//wxsdRec6RS5/LVQHBik1EbrXFdd9x+FPdAyoRBGiEAmC1Fx8RKXUyrmH964xurNWy05NU92wSvyCoc+SaVKSfuHKmsreQKsLNRZSMJ/ucNXTEeLYeKF3va3ahStQTSoAlSutt7yWJzuzM5zfcEfOBfjiQeAbNQm5ORyIfP/DBA==",
+  "file_id": "0190f0a0-0000-7000-8000-0000000000aa",
+  "merge": [
+    {
+      "base": "a\nb\nc\n",
+      "ours": "A\nb\nc\n",
+      "outcome": {
+        "kind": "merged",
+        "text": "A\nb\nC\n"
+      },
+      "theirs": "a\nb\nC\n"
+    },
+    {
+      "base": "a\nb\nc\n",
+      "ours": "a\nX\nc\n",
+      "outcome": {
+        "kind": "conflict",
+        "regions": 1
+      },
+      "theirs": "a\nY\nc\n"
+    },
+    {
+      "base": "---\ntitle: 甲\ntags: [x]\n---\n正文\n",
+      "ours": "---\ntitle: 乙\ntags: [x]\n---\n正文\n",
+      "outcome": {
+        "kind": "merged",
+        "text": "---\ntitle: 乙\ntags: [y]\n---\n正文\n"
+      },
+      "theirs": "---\ntitle: 甲\ntags: [y]\n---\n正文\n"
+    }
+  ],
+  "new_notes": [
+    {
+      "dir": "Notes",
+      "path": "Notes/周会纪要.md",
+      "prefix": "笔记",
+      "taken": [],
+      "text": "# 周会纪要\n\n正文"
+    },
+    {
+      "dir": "Notes",
+      "path": "Notes/周会纪要-2.md",
+      "prefix": "笔记",
+      "taken": [
+        "Notes/周会纪要.md",
+        "notes/周会纪要-1.MD"
+      ],
+      "text": "## 周会纪要\n"
+    },
+    {
+      "dir": "",
+      "path": "Note_20261106_090507.md",
+      "prefix": "Note",
+      "taken": [],
+      "text": "   \n"
+    },
+    {
+      "dir": "Notes",
+      "path": "Notes/hello-from-luna.md",
+      "prefix": "Note",
+      "taken": [],
+      "text": "hello / from: luna"
+    }
+  ],
+  "path": "周报/2026-11.md",
+  "paths": [
+    {
+      "name_key": "café.md",
+      "nfc": "Café.md",
+      "raw": "Café.md"
+    },
+    {
+      "name_key": "周报/격.md",
+      "nfc": "周报/격.md",
+      "raw": "周报/격.md"
+    },
+    {
+      "name_key": "mixed.md",
+      "nfc": "MiXeD.md",
+      "raw": "MiXeD.md"
+    }
+  ],
+  "plaintext": "---\ntags: [周报]\n---\n# 周报\n\nCafé 进展顺利。\n",
+  "rev": 3,
+  "size_padded": 4096,
+  "vault_id": "0190f0a0-0000-7000-8000-000000000001",
+  "vault_paths": [
+    {
+      "error": null,
+      "path": "工作/周报.md"
+    },
+    {
+      "error": "invalid_name_empty",
+      "path": ""
+    },
+    {
+      "error": "invalid_name_empty",
+      "path": "a//b.md"
+    },
+    {
+      "error": "invalid_name_reserved",
+      "path": "a/../b.md"
+    },
+    {
+      "error": "invalid_name_hidden",
+      "path": ".luna/x.json"
+    },
+    {
+      "error": "invalid_name_separator",
+      "path": "a/ b.md"
+    },
+    {
+      "error": "invalid_name_separator",
+      "path": "a\\b.md"
+    }
+  ]
+}

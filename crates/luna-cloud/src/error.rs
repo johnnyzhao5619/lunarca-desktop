@@ -87,6 +87,10 @@ pub enum CloudError {
     /// 输入既不是邀请链接，也不是服务器地址。
     #[error("not a server address")]
     NotAnAddress,
+    /// 填的地址上没有 Lunarca 服务端（能力声明 404 或读不懂），按主机名回查
+    /// `.well-known/lunarca` 也没有——多半是填了官网或别的网站（ADR-158 ①）。
+    #[error("no Lunarca server at {host}")]
+    NoServerAtAddress { host: String },
     /// 登录第一步填的不是邮箱（缺 `@` 或域名）：发请求前在本地拒绝。
     #[error("not an email address")]
     NotAnEmail,
@@ -133,6 +137,9 @@ pub enum CloudError {
     /// 本地数据不受影响。
     #[error("account is frozen")]
     AccountFrozen,
+    /// 网页访问只在启用网页版的官方云上提供（ADR-177 ①）。
+    #[error("web access unavailable")]
+    WebAccessUnavailable,
     /// 这次预留要从预付 credits 扣，而用户自设的本月预付上限已到（服务端 402 `spend_cap_reached`，
     /// 纵切 3 C4）。下一步是调整上限，不是购买；订阅包含的额度不受上限影响。
     #[error("monthly prepaid spend cap reached")]

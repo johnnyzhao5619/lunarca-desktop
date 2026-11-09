@@ -78,9 +78,11 @@ pub(crate) fn spoken_counts(line: &str) -> (u32, u32) {
             break;
         }
     }
+    // 口播记号（注释、停顿号、强调星号）不念（ADR-176 ⑦）。
+    let (spoken, _, _) = parse_cues(text);
     let mut cjk = 0u32;
     let mut words = 0u32;
-    for token in text.split_whitespace() {
+    for token in spoken.split_whitespace() {
         // 裸链接与 Markdown 链接的地址部分不念（`[文字](地址)` 只念文字）。
         if token.starts_with("http://") || token.starts_with("https://") {
             continue;
@@ -107,6 +109,109 @@ pub(crate) fn spoken_counts(line: &str) -> (u32, u32) {
         }
     }
     (cjk, words)
+}
+
+/// 送进提词器的外来文字（粘贴、剪贴板、选中文字、转换后的文件）的清洗（ADR-176 ⑨，PRD-20-020）：
+/// 统一换行、去掉零宽字符与行尾空白、不换行空格改普通空格、去掉图片（提词器只念文字）、把连续空行
+/// 收成一行；段落保留，文字一字不改。结果以换行结尾（空文字为空串）。
+#[must_use]
+pub fn normalize_pasted_script(raw: &str) -> String {
+    let text = raw.replace("\r\n", "\n").replace('\r', "\n");
+    let mut out: Vec<String> = Vec::new();
+    for line in text.split('\n') {
+        let cleaned: String = line
+            .chars()
+            .filter(|c| {
+                !matches!(
+                    c,
+                    '\u{200B}' | '\u{200C}' | '\u{200D}' | '\u{2060}' | '\u{FEFF}'
+                )
+            })
+            .map(|c| {
+                if matches!(c, '\u{00A0}' | '\u{202F}') {
+                    ' '
+                } else {
+                    c
+                }
+            })
+            .collect();
+        let cleaned = cleaned.trim_end();
+        // 单独一行的图片（转换出的 `![…](…)`，地址可能为空）不念。
+        let is_image = cleaned.trim_start().starts_with("![") && cleaned.ends_with(')');
+        if is_image {
+            continue;
+        }
+        if cleaned.is_empty() && out.last().is_none_or(String::is_empty) {
+            continue;
+        }
+        // 动作提示行后面紧跟正文时补一个空行：Markdown 的引用块会把紧跟的下一行并进去，编辑器与
+        // Obsidian 里就成了提示框的一部分（真机 2026-11-04）。提词器本来就只把那一行当提示。
+        if !cleaned.is_empty() && out.last().is_some_and(|prev| cue_label(prev).is_some()) {
+            out.push(String::new());
+        }
+        out.push(cleaned.to_owned());
+    }
+    while out.last().is_some_and(String::is_empty) {
+        out.pop();
+    }
+    if out.is_empty() {
+        String::new()
+    } else {
+        out.join("\n") + "\n"
+    }
+}
+
+/// 提词稿的名字（PRD-20-020）：第一行非空文字，去掉标题井号、列表符与形式标记，最多
+/// [`SCRIPT_TITLE_MAX_CHARS`] 个字（按字符截，不切坏多字节字）。没有可用文字时为 `None`。
+#[must_use]
+pub fn script_title_of(text: &str) -> Option<String> {
+    let first = text.lines().map(str::trim).find(|line| !line.is_empty())?;
+    let mut line = first.trim_start_matches('#').trim_start();
+    for prefix in ["- ", "* ", "> "] {
+        if let Some(rest) = line.strip_prefix(prefix) {
+            line = rest.trim_start();
+        }
+    }
+    for marker in DELIVERY_MARKERS {
+        if let Some(rest) = line.strip_prefix(marker) {
+            line = rest.trim_start();
+        }
+    }
+    let title: String = line.chars().take(SCRIPT_TITLE_MAX_CHARS).collect();
+    let title = title.trim().to_owned();
+    (!title.is_empty()).then_some(title)
+}
+
+/// 提词稿名字最多几个字。
+pub const SCRIPT_TITLE_MAX_CHARS: usize = 24;
+
+/// 稿子的主语言（ADR-176 ④）：跟读的识别语言设成「自动」时，按它给识别器一个语言提示——短窗里
+/// 的自动语种检测常在中英之间乱跳。按要念的字数比：每两个中文字算一个英文词的分量，中文多就是
+/// `"zh"`，否则 `"en"`；一个字都没有为 `None`。中英混读的中文稿判为中文（Whisper 的中文模式
+/// 能带出英文词，反过来不行）。
+#[must_use]
+pub fn script_language(content: &str) -> Option<&'static str> {
+    let (cjk, words) = prompter_blocks(content)
+        .iter()
+        .flat_map(|block| block.lines.iter())
+        .map(|line| spoken_counts(&line.text))
+        .fold((0u32, 0u32), |(c, w), (lc, lw)| (c + lc, w + lw));
+    match (cjk, words) {
+        (0, 0) => None,
+        (cjk, words) if cjk / 2 >= words => Some("zh"),
+        _ => Some("en"),
+    }
+}
+
+/// 一行要念多少毫秒（与脚本时长估算同一口径、同一语速；提词器的「预计剩余」按它累加）。
+#[must_use]
+pub fn spoken_millis(line: &str, rate: SpeakingRate) -> u32 {
+    let (cjk, words) = spoken_counts(line);
+    let minutes = f64::from(cjk) / f64::from(rate.cjk_per_minute.max(1.0))
+        + f64::from(words) / f64::from(rate.words_per_minute.max(1.0));
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    let millis = (minutes * 60_000.0).round() as u32;
+    millis
 }
 
 fn seconds_for(cjk: u32, words: u32, rate: SpeakingRate) -> u32 {
@@ -232,6 +337,9 @@ pub fn script_outline(content: &str, rate: SpeakingRate) -> ScriptOutline {
         seconds: 0,
     };
     let mut scanner = LineScanner::default();
+    // 每段的停顿数（ADR-176 ⑦：时长估算计入停顿），与 `sections` 一一对应。
+    let mut pauses_in_section = 0u32;
+    let mut kept_pauses: Vec<u32> = Vec::new();
     for (index, line) in body.lines().enumerate() {
         let line_no = u32::try_from(offset + index + 1).unwrap_or(u32::MAX);
         let text = match scanner.classify(line) {
@@ -242,16 +350,21 @@ pub fn script_outline(content: &str, rate: SpeakingRate) -> ScriptOutline {
             }
             LineKind::Heading2(text) => text,
             LineKind::Other => {
-                if line.trim_start().starts_with('#') || is_embed_line(line) {
+                if line.trim_start().starts_with('#')
+                    || is_embed_line(line)
+                    || cue_label(line).is_some()
+                {
                     continue;
                 }
                 let (cjk, words) = spoken_counts(line);
                 current.cjk_chars += cjk;
                 current.words += words;
+                pauses_in_section += parse_cues(line).2;
                 continue;
             }
         };
         {
+            let pauses = std::mem::take(&mut pauses_in_section);
             let finished = std::mem::replace(
                 &mut current,
                 ScriptSection {
@@ -267,14 +380,17 @@ pub fn script_outline(content: &str, rate: SpeakingRate) -> ScriptOutline {
                 || finished.cjk_chars + finished.words + finished.broll_blocks > 0
             {
                 sections.push(finished);
+                kept_pauses.push(pauses);
             }
         }
     }
     if current.heading.is_some() || current.cjk_chars + current.words + current.broll_blocks > 0 {
         sections.push(current);
+        kept_pauses.push(pauses_in_section);
     }
-    for section in &mut sections {
-        section.seconds = seconds_for(section.cjk_chars, section.words, rate);
+    for (section, pauses) in sections.iter_mut().zip(kept_pauses) {
+        section.seconds = seconds_for(section.cjk_chars, section.words, rate)
+            + (pauses * PAUSE_MILLIS + 500) / 1000;
     }
     let total_seconds = sections.iter().map(|s| s.seconds).sum();
     ScriptOutline {
@@ -557,13 +673,155 @@ fn trailing_newlines(text: &str, newline: &str) -> usize {
     count
 }
 
+/// 提词器一行里的一段（口播记号，ADR-176 ⑦，PRD-20-014）。
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum PrompterSpan {
+    /// 要念的文字。
+    Text(String),
+    /// 强调（`**词**`）：要念，显示时加粗加色。
+    Emphasis(String),
+    /// 停一拍（`//` 或 `[停顿]` / `[pause]`）：不念，时长估算加 [`PAUSE_MILLIS`]。
+    Pause,
+    /// 不念的提示（`%% … %%`，Obsidian 注释语法）：显示成灰色小字，不计时、不对齐。
+    Note(String),
+}
+
+/// 一个停顿记号在时长估算里算多久（毫秒）。
+pub const PAUSE_MILLIS: u32 = 600;
+
+/// 动作提示标注块的类型（`> [!cue] 举起产品`，ADR-176 ⑦）：整行不念，提词器上显示成彩色条。
+pub const CUE_CALLOUT: &str = "[!cue]";
+
 /// 提词器上的一行（C4a，PRD-19-016）。
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PrompterLine {
-    /// 要念的文字（已去掉行首形式标记与列表符号）。
+    /// 要念的文字（已去掉行首形式标记、列表符号与口播记号）：跟读对齐、录制标记、时长都用它。
     pub text: String,
     /// 行首形式标记里的字（`口播` / `出镜` / `VO` / `CAM`），作为小标签显示，不念。
     pub marker: Option<String>,
+    /// 显示用的各段（口播记号拆开后的样子，ADR-176 ⑦）。
+    pub spans: Vec<PrompterSpan>,
+    /// 这一行有几个停顿记号（时长估算加 [`PAUSE_MILLIS`] × 这个数）。
+    pub pauses: u32,
+    /// 动作提示行（`> [!cue] …`）：整行不念，`spans` 里是提示的字。
+    pub cue: bool,
+}
+
+/// 一行文字里的口播记号拆开（ADR-176 ⑦）：返回（要念的文字、显示用的各段、停顿数）。
+///
+/// - `%% … %%` 不念；`**…**` 要念（去掉星号）；`[停顿]` / `[pause]` 与前后都是空白（或行首行尾）的
+///   `//` 是停顿——`https://` 这种紧贴字母的不算。没闭合的 `%%` / `**` 照原样当文字。
+/// - 要念的文字里停顿处补一个空格，再把连续空白收成一个。
+#[must_use]
+pub fn parse_cues(text: &str) -> (String, Vec<PrompterSpan>, u32) {
+    let mut spans: Vec<PrompterSpan> = Vec::new();
+    let mut buf = String::new();
+    let mut pauses = 0u32;
+    let flush = |buf: &mut String, spans: &mut Vec<PrompterSpan>| {
+        if !buf.is_empty() {
+            spans.push(PrompterSpan::Text(std::mem::take(buf)));
+        }
+    };
+    let mut rest = text;
+    while let Some(ch) = rest.chars().next() {
+        if let Some(after) = rest.strip_prefix("%%") {
+            if let Some(end) = after.find("%%") {
+                flush(&mut buf, &mut spans);
+                let note = after[..end].trim();
+                if !note.is_empty() {
+                    spans.push(PrompterSpan::Note(note.to_owned()));
+                }
+                rest = &after[end + 2..];
+                continue;
+            }
+        }
+        if let Some(after) = rest.strip_prefix("**") {
+            if let Some(end) = after.find("**").filter(|end| *end > 0) {
+                flush(&mut buf, &mut spans);
+                spans.push(PrompterSpan::Emphasis(after[..end].to_owned()));
+                rest = &after[end + 2..];
+                continue;
+            }
+        }
+        let worded = ["[停顿]", "[pause]"]
+            .iter()
+            .find(|word| {
+                rest.get(..word.len())
+                    .is_some_and(|head| head.eq_ignore_ascii_case(word))
+            })
+            .map(|word| word.len());
+        // `//` 只在两边都是空白（或行首行尾、紧挨别的记号）时算停顿：`https://` 不算。
+        let slashes = rest.starts_with("//")
+            && buf.chars().last().is_none_or(char::is_whitespace)
+            && rest[2..].chars().next().is_none_or(char::is_whitespace);
+        if let Some(len) = worded.or_else(|| slashes.then_some(2)) {
+            flush(&mut buf, &mut spans);
+            spans.push(PrompterSpan::Pause);
+            pauses += 1;
+            rest = &rest[len..];
+            continue;
+        }
+        buf.push(ch);
+        rest = &rest[ch.len_utf8()..];
+    }
+    flush(&mut buf, &mut spans);
+    let spoken: String = spans
+        .iter()
+        .map(|span| match span {
+            PrompterSpan::Text(text) | PrompterSpan::Emphasis(text) => text.as_str(),
+            PrompterSpan::Pause => " ",
+            PrompterSpan::Note(_) => "",
+        })
+        .collect::<String>()
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ");
+    (spoken, spans, pauses)
+}
+
+/// 动作提示行（`> [!cue] 举起产品`）的提示文字；不是动作提示行为 `None`。
+fn cue_label(line: &str) -> Option<&str> {
+    let rest = line.trim_start().strip_prefix('>')?.trim_start();
+    let head = rest.get(..CUE_CALLOUT.len())?;
+    head.eq_ignore_ascii_case(CUE_CALLOUT)
+        .then(|| rest[CUE_CALLOUT.len()..].trim())
+}
+
+/// 在新稿里找回改稿前的那一行（ADR-176 ⑦，PRD-20-015）：要念的文字一样的行里离原位置最近的
+/// 那一行；一行都对不上时落在离原段号行号最近的那一行。稿子是空的为 `None`。
+#[must_use]
+pub fn relocate_line(
+    blocks: &[PrompterBlock],
+    text: &str,
+    block: u32,
+    line: u32,
+) -> Option<(u32, u32)> {
+    let flat: Vec<(u32, u32, &str)> = blocks
+        .iter()
+        .enumerate()
+        .flat_map(|(b, blk)| {
+            blk.lines.iter().enumerate().map(move |(l, ln)| {
+                (
+                    u32::try_from(b).unwrap_or(u32::MAX),
+                    u32::try_from(l).unwrap_or(u32::MAX),
+                    ln.text.as_str(),
+                )
+            })
+        })
+        .collect();
+    let distance = |b: u32, l: u32| -> u64 {
+        u64::from(b.abs_diff(block)) * 10_000 + u64::from(l.abs_diff(line))
+    };
+    let same_text = (!text.trim().is_empty())
+        .then(|| {
+            flat.iter()
+                .filter(|(_, _, t)| *t == text)
+                .min_by_key(|(b, l, _)| distance(*b, *l))
+        })
+        .flatten();
+    same_text
+        .or_else(|| flat.iter().min_by_key(|(b, l, _)| distance(*b, *l)))
+        .map(|(b, l, _)| (*b, *l))
 }
 
 /// 提词器上的一段：一个二级标题下要念的各行。第一个二级标题之前有要念的内容时，单独成
@@ -623,6 +881,22 @@ fn walk_prompter(content: &str) -> (Vec<PrompterBlock>, Vec<SourcedLine>) {
                 if trimmed.is_empty() || trimmed.starts_with('#') || is_embed_line(trimmed) {
                     continue;
                 }
+                // 动作提示行（ADR-176 ⑦）：整行不念，照样占一行（录制标记、跟读的行号都按它数）。
+                if let Some(label) = cue_label(trimmed) {
+                    sourced.push(SourcedLine {
+                        block: blocks.len(),
+                        line: current.lines.len(),
+                        end: at,
+                    });
+                    current.lines.push(PrompterLine {
+                        text: String::new(),
+                        marker: None,
+                        spans: vec![PrompterSpan::Text(label.to_owned())],
+                        pauses: 0,
+                        cue: true,
+                    });
+                    continue;
+                }
                 let trimmed = trimmed
                     .strip_prefix("- ")
                     .or_else(|| trimmed.strip_prefix("* "))
@@ -645,9 +919,13 @@ fn walk_prompter(content: &str) -> (Vec<PrompterBlock>, Vec<SourcedLine>) {
                         line: current.lines.len(),
                         end: at,
                     });
+                    let (spoken, spans, pauses) = parse_cues(text);
                     current.lines.push(PrompterLine {
-                        text: text.to_owned(),
+                        text: spoken,
                         marker,
+                        spans,
+                        pauses,
+                        cue: false,
                     });
                 }
             }
@@ -1054,21 +1332,19 @@ mod tests {
         assert_eq!(blocks[0].heading, None);
         assert_eq!(blocks[0].lines[0].text, "先打个招呼。");
         assert_eq!(blocks[1].heading.as_deref(), Some("开头"));
+        let plain = |text: &str, marker: Option<&str>| PrompterLine {
+            text: text.into(),
+            marker: marker.map(Into::into),
+            spans: vec![PrompterSpan::Text(text.into())],
+            pauses: 0,
+            cue: false,
+        };
         assert_eq!(
             blocks[1].lines,
             [
-                PrompterLine {
-                    text: "你好。".into(),
-                    marker: Some("口播".into())
-                },
-                PrompterLine {
-                    text: "今天聊三件事".into(),
-                    marker: None
-                },
-                PrompterLine {
-                    text: "Look here.".into(),
-                    marker: Some("CAM".into())
-                },
+                plain("你好。", Some("口播")),
+                plain("今天聊三件事", None),
+                plain("Look here.", Some("CAM")),
             ]
         );
         // 只有标题的空段照样列出（念到哪一段一目了然）。
@@ -1183,5 +1459,108 @@ mod tests {
             "那一行不是 broll 围栏"
         );
         assert!(broll_shots(&done)[0].done);
+    }
+
+    #[test]
+    fn pasted_text_is_cleaned_but_its_words_are_kept() {
+        let raw = "第一段\u{00A0}开头\u{200B}\r\n\r\n\r\n\r\n第二段   \n![](x.png)\n![]()\n\n\n";
+        assert_eq!(normalize_pasted_script(raw), "第一段 开头\n\n第二段\n");
+        assert_eq!(normalize_pasted_script("  \n\n"), "");
+        assert_eq!(normalize_pasted_script("one\rtwo"), "one\ntwo\n");
+        // 动作提示行后补空行，免得下一行被并进提示框。
+        assert_eq!(
+            normalize_pasted_script("> [!cue] 举起产品\n第二件\n"),
+            "> [!cue] 举起产品\n\n第二件\n"
+        );
+    }
+
+    #[test]
+    fn a_script_is_named_after_its_first_line() {
+        assert_eq!(
+            script_title_of("\n\n## 开场白\n正文").as_deref(),
+            Some("开场白")
+        );
+        assert_eq!(script_title_of("[口播] 大家好").as_deref(), Some("大家好"));
+        assert_eq!(
+            script_title_of("- Hello world").as_deref(),
+            Some("Hello world")
+        );
+        let long = "一".repeat(40);
+        assert_eq!(
+            script_title_of(&long).map(|t| t.chars().count()),
+            Some(SCRIPT_TITLE_MAX_CHARS)
+        );
+        assert_eq!(script_title_of("#\n  \n"), None);
+    }
+
+    #[test]
+    fn the_script_language_follows_what_is_read_aloud() {
+        assert_eq!(
+            script_language("## 开头\n大家好，今天聊 AI 和 local-first。\n"),
+            Some("zh")
+        );
+        assert_eq!(
+            script_language("Hello everyone, today we talk about 本地优先.\n"),
+            Some("en")
+        );
+        assert_eq!(script_language("```broll\n空镜头\n```\n"), None);
+        assert_eq!(script_language(""), None);
+    }
+
+    #[test]
+    fn cue_marks_split_into_spoken_text_and_display_spans() {
+        let (spoken, spans, pauses) =
+            parse_cues("大家好 // 今天聊**三件事**%% 慢一点 %%[停顿]见 https://lunarca.app");
+        assert_eq!(spoken, "大家好 今天聊三件事 见 https://lunarca.app");
+        assert_eq!(pauses, 2, "`//` 与 `[停顿]` 各一处；网址里的 // 不算");
+        assert_eq!(
+            spans,
+            [
+                PrompterSpan::Text("大家好 ".into()),
+                PrompterSpan::Pause,
+                PrompterSpan::Text(" 今天聊".into()),
+                PrompterSpan::Emphasis("三件事".into()),
+                PrompterSpan::Note("慢一点".into()),
+                PrompterSpan::Pause,
+                PrompterSpan::Text("见 https://lunarca.app".into()),
+            ]
+        );
+        // 没闭合的记号照原样念；[pause] 不分大小写。
+        assert_eq!(parse_cues("a ** b %% c").0, "a ** b %% c");
+        assert_eq!(parse_cues("Wait [PAUSE] go").2, 1);
+    }
+
+    #[test]
+    fn cue_lines_take_a_line_but_are_not_read_and_pauses_count_toward_duration() {
+        let script =
+            "## 开头\n大家好 // 今天聊三件事。\n> [!cue] 举起产品\n%% 不念 %%这一句要念。\n";
+        let blocks = prompter_blocks(script);
+        let lines = &blocks[0].lines;
+        assert_eq!(lines.len(), 3);
+        assert!(lines[1].cue);
+        assert_eq!(lines[1].text, "", "动作提示不念");
+        assert_eq!(lines[1].spans, [PrompterSpan::Text("举起产品".into())]);
+        assert_eq!(lines[0].pauses, 1);
+        assert_eq!(lines[2].text, "这一句要念。");
+        let rate = SpeakingRate {
+            cjk_per_minute: 60.0,
+            words_per_minute: 60.0,
+            calibrated: true,
+        };
+        // 念的字：大家好今天聊三件事（9）+ 这一句要念（5）= 14 字 = 14 秒；一个停顿 0.6 秒，四舍五入加 1 秒。
+        assert_eq!(script_outline(script, rate).total_seconds, 15);
+    }
+
+    #[test]
+    fn an_edited_script_finds_the_line_you_were_on() {
+        let before = prompter_blocks("## 甲\n一\n二\n三\n## 乙\n四\n");
+        assert_eq!(relocate_line(&before, "三", 0, 2), Some((0, 2)));
+        // 前面插了两行：「三」挪到第 4 行，仍找得到。
+        let after = prompter_blocks("## 甲\n新一\n新二\n一\n二\n三\n## 乙\n四\n");
+        assert_eq!(relocate_line(&after, "三", 0, 2), Some((0, 4)));
+        // 那一行被改掉了：落在原段号行号。
+        let edited = prompter_blocks("## 甲\n一\n二\n改过的三\n## 乙\n四\n");
+        assert_eq!(relocate_line(&edited, "三", 0, 2), Some((0, 2)));
+        assert_eq!(relocate_line(&[], "三", 0, 0), None);
     }
 }

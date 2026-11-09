@@ -15,6 +15,7 @@
     "knowledge": "Knowledge",
     "transcripts": "Transcripts",
     "creator": "Create",
+    "teleprompter": "Teleprompter",
     "apps": "Apps",
     "sectionNav": "Sections",
     "section": {
@@ -84,7 +85,7 @@
     "vaultMissingTitle": "The last vault can't be found",
     "vaultMissing": "The vault you last opened was at {{path}} and isn't there now — it may be on an external drive, or was moved or deleted. Point to where it is now, or pick another vault.",
     "vaultInCloudTitle": "The vault is still downloading from iCloud",
-    "vaultInCloud": "iCloud moved the vault files in {{path}} to the cloud and is downloading them to this Mac. Click Retry once they are back. To keep this from happening again, right-click the folder in Finder and choose “Keep Downloaded”.",
+    "vaultInCloud": "iCloud moved the vault files in {{path}} to the cloud. Lunarca has asked iCloud to download them to this Mac and will open the vault as soon as they are back. iCloud downloads can be slow or stall; if nothing happens for a long time, check the folder’s download status in Finder. To keep this from happening again, right-click the folder and choose “Keep Downloaded”.",
     "retryVaultInCloud": "Retry",
     "relocateVault": "Locate it…",
     "chooseAnotherVault": "Pick another vault",
@@ -986,7 +987,7 @@
     "forgetHint": "“Remove” only takes it off this list. Nothing on disk is deleted.",
     "forgetSyncTitle": "Remove “{{name}}”?",
     "forgetSyncing": "This vault is syncing. After you remove it, this device stops syncing it; the cloud copy is kept. Nothing on disk is deleted.",
-    "forgetLinked": "On this device, this vault is connected to cloud sync for {{account}}. Removing it disconnects that link too; the cloud copy is kept. Nothing on disk is deleted.",
+    "forgetLinked": "On this device, this vault is connected to cloud sync for {{account}} ({{server}}). Removing it disconnects that link too; the cloud copy is kept. Nothing on disk is deleted.",
     "forgetConfirm": "Remove",
     "rename": "Rename (display name only — the folder is untouched)",
     "create": "New vault…",
@@ -1900,30 +1901,6 @@
         "allClear": "All set: every step is done and nothing is over a limit."
       }
     },
-    "teleprompter": {
-      "title": "Teleprompter",
-      "play": "Start scrolling",
-      "pause": "Pause",
-      "speed": "Speed",
-      "fontSize": "Size",
-      "lineWidth": "Width",
-      "mirror": "Mirror",
-      "top": "Back to start",
-      "close": "Hide teleprompter",
-      "resize": "Drag to resize",
-      "less": "Decrease {{what}}",
-      "more": "Increase {{what}}",
-      "empty": "Click “Teleprompter” in the script toolbar and the text to read appears here.",
-      "follow": "Follow voice",
-      "followStop": "Stop following",
-      "followFailed": "Couldn't start following. Try again in a moment.",
-      "mark": "Mark retake",
-      "markPending_one": "{{count}} retake mark so far. It’s written into the script when you stop following or hide the teleprompter.",
-      "markPending": "{{count}} retake marks so far. They’re written into the script when you stop following or hide the teleprompter.",
-      "markHint": "Fluffed a line? Click to mark the current line. Marks are written into the script when you stop following or hide the teleprompter.",
-      "marksWritten_one": "Wrote {{count}} retake mark into the script.",
-      "marksWritten": "Wrote {{count}} retake marks into the script."
-    },
     "recording": {
       "check": "Before you record",
       "microphone": "Microphone",
@@ -1934,7 +1911,8 @@
       "hint": "Follow-along opens the teleprompter and keeps the line you are reading in view. Flubbed a line? Tap “Mark retake” on the teleprompter (or press the recording marker key); marks are written back to the script when you stop.",
       "retakes": "Retake marks",
       "noRetakes": "No retake marks in the script yet.",
-      "retakeHint": "Go to this line in the script"
+      "retakeHint": "Go to this line in the script",
+      "enableFollow": "Turn on follow-along and start"
     },
     "project": {
       "newTitle": "New video project",
@@ -2166,6 +2144,66 @@
       "podcast": "Apple Podcasts: say so in the episode notes if the episode contains AI-generated audio, such as a synthetic voice."
     }
   },
+  "teleprompter": {
+    "panel": {
+      "title": "Teleprompter",
+      "play": "Start scrolling",
+      "pause": "Pause",
+      "speed": "Speed",
+      "fontSize": "Size",
+      "lineWidth": "Width",
+      "mirror": "Mirror",
+      "top": "Back to start",
+      "close": "Hide teleprompter",
+      "resize": "Drag to resize",
+      "less": "Decrease {{what}}",
+      "more": "Increase {{what}}",
+      "empty": "Choose “Open in teleprompter” from any note and the text to read appears here.",
+      "follow": "Follow voice",
+      "followStop": "Stop following",
+      "followFailed": "Couldn't start following. Try again in a moment.",
+      "mark": "Mark retake",
+      "markPending_one": "{{count}} retake mark so far. It’s written into the script when you stop following or hide the teleprompter.",
+      "markPending": "{{count}} retake marks so far. They’re written into the script when you stop following or hide the teleprompter.",
+      "markHint": "Fluffed a line? Click to mark the current line. Marks are written into the script when you stop following or hide the teleprompter.",
+      "marksWritten_one": "Wrote {{count}} retake mark into the script.",
+      "marksWritten": "Wrote {{count}} retake marks into the script.",
+      "clock": "{{elapsed}} · ~{{remaining}} left",
+      "clockLabel": "Elapsed and estimated time left",
+      "more_menu": "More",
+      "menu": {
+        "follow": "Follow-along",
+        "camera": "Snap to camera",
+        "captureHidden": "Try to hide from screen recording",
+        "countdownOff": "No countdown",
+        "countdown": "{{secs}}-second countdown",
+        "remote": "Remote mode (clickers / foot pedals)"
+      },
+      "remoteOn": "Remote on",
+      "remoteHint": "Remote mode is on: while the teleprompter is shown, Space, the arrow keys, Page Up / Page Down, Home, B, C, = / - and Esc control it, so clickers and foot pedals work as-is. Turn it off from “···”.",
+      "followLocal": "On-device",
+      "followLocalHint": "Follow-along recognizes your voice only on this computer: nothing is recorded, no transcript is kept, and nothing is sent out even if live transcription is set to a server.",
+      "pauseMark": "Pause"
+    },
+    "home": {
+      "title": "Teleprompter",
+      "lede": "Open a script and it appears in a floating window beside the camera.",
+      "sendHint": "Press ⌘V on this page or drop a .txt / .md / .docx / .pdf file here to start prompting. In other apps, select text (in Google Docs, copy it first with ⌘C) and press the “Send to teleprompter” shortcut (⌃⌥P by default).",
+      "start": "Start prompting",
+      "startCurrent": "Continue “{{title}}”",
+      "startHint": "Opens the current or most recent script. From any note you can also run “Teleprompter: Open this note in the teleprompter”.",
+      "recent": "Recent",
+      "recentEmpty": "Nothing prompted yet.",
+      "open": "Prompt",
+      "newDraft": "New script",
+      "fromClipboard": "New from clipboard",
+      "draftHint": "Scripts are ordinary notes in the “{{dir}}” folder.",
+      "settings": "Follow-along",
+      "follow": "Follow-along",
+      "followDesc": "When on, following uses the microphone to recognize, on this device, where you are. Nothing is recorded and no transcript is kept. Off by default.",
+      "loading": "Loading…"
+    }
+  },
   "apps": {
     "lede": "Add features when you need them. Uninstalling or turning one off only removes its entries; nothing in your vault changes.",
     "byline": "By {{developer}} · Open source ({{license}})",
@@ -2284,6 +2322,37 @@
         "publish": {
           "title": "Export a publishing kit",
           "body": "Bilingual subtitles, chapters, and a title and description for every channel."
+        }
+      }
+    },
+    "teleprompter": {
+      "name": "Teleprompter",
+      "summary": "A teleprompter for talking to camera: it sits next to the lens, scrolls as you speak, and reads any note in your vault.",
+      "description": "Keeps your script in a floating window beside the camera without taking focus from your screen or video recorder. Edits apply as soon as you save, with nothing to re-import. Turn on follow-along and it recognizes, on this device, where you are and brings that line to the reading line; flubbed lines pick up where you restart.",
+      "contribution": {
+        "space": "“Teleprompter” in the activity bar: start prompting, recent scripts, new scripts and the follow-along switch; a “Teleprompter:” group in the command palette",
+        "windows": "The teleprompter window (shared with Create)",
+        "settings": "The teleprompter scripts folder under Settings › Note vault",
+        "editor_actions": "A “Teleprompter” group in the editor AI panel: turn into a spoken script, fit to 30 / 60 / 90 seconds, mark pauses and emphasis; results show as a diff and replace nothing until you accept",
+        "prompts": "AI prompts: the prompts for the spoken-script actions ship with the app and work offline; updating the app updates them"
+      },
+      "permission": {
+        "microphone": "Microphone: only after you turn on follow-along and start following; recognition runs on this device, nothing is recorded and no transcript is kept",
+        "vault_folder": "Files: new scripts are ordinary notes in your teleprompter scripts folder",
+        "ai": "AI: the spoken-script actions run according to your compute settings, on this device first; only the selected passage is sent"
+      },
+      "highlight": {
+        "any_note": {
+          "title": "Read any note",
+          "body": "Scripts are Markdown in your vault. Save an edit and it shows up, no re-import."
+        },
+        "follow": {
+          "title": "Scrolls as you speak",
+          "body": "Follow-along recognizes speech on this device and recovers from restarts. Off by default."
+        },
+        "camera": {
+          "title": "Never steals focus",
+          "body": "Your recorder stays in front while the prompter floats by the lens."
         }
       }
     },

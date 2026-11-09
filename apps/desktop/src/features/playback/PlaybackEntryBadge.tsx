@@ -22,7 +22,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands } from "../../ipc/bindings";
-import { ExpandIcon, PlayIcon } from "../../components/ui/Icon";
+import { ExpandIcon, PlayIcon } from "@lunarca/editor-core/Icon";
 import { usePlaybackHostOptional } from "./playback-host";
 import { goTo } from "../../lib/navigate";
 

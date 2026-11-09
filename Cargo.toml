@@ -30,13 +30,19 @@ members = [
     # 云客户端（账户/会话/Lease/目录/制品下载）——ADR-037 后为普通成员，无 feature 门；
     # 未登录且未配置计算服务时零云网络行为，由 src-tauri 的机器断言保护。
     "crates/luna-cloud",
+    # 口令登录（OPAQUE，ADR-158）的密码学与报文格式：零 IO 叶子，桌面与网页版共用（ADR-177 ⑥）。
+    "crates/luna-opaque",
+    # 同步与合并的纯逻辑（ADR-148、ADR-177 ⑥）：零 IO 叶子，原生编给桌面、WASM 编给网页版。
+    "crates/luna-sync-core",
     # 官方同步的客户端核心（ADR-148）：中层，网络与钥匙串经 trait 注入，不依赖 luna-cloud。
     "crates/luna-sync",
+    # 网页版笔记的 WASM 封装（ADR-177 ⑥）：只把上面两个零 IO 叶子交给浏览器，不另写规则。
+    "crates/luna-web",
     "src-tauri",
 ]
 
 [workspace.package]
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 license = "AGPL-3.0-only"
 repository = "https://github.com/johnnyzhao5619/lunarca-desktop"

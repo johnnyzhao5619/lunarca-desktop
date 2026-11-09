@@ -29,14 +29,15 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { MarkdownContent } from "../../components/markdown/MarkdownContent";
+import { MarkdownContent } from "@lunarca/editor-core/MarkdownContent";
+import { desktopMarkdownHost } from "../../components/markdown/markdown-host";
 import { IconButton } from "../../components/ui/IconButton";
-import { ExternalWindowIcon, PinFilledIcon } from "../../components/ui/Icon";
+import { ExternalWindowIcon, PinFilledIcon } from "@lunarca/editor-core/Icon";
 import {
   NO_COMPOSITION,
   isImeCompositionKey,
   type CompositionState,
-} from "../../lib/ime-composition";
+} from "@lunarca/editor-core/ime-composition";
 import { useWindowDrag } from "../../hooks/use-window-drag";
 import { usePanelTextEditing } from "../../hooks/use-panel-text-editing";
 import { commands, events, type DesktopNoteDto } from "../../ipc/bindings";
@@ -118,7 +119,7 @@ export function DesktopNoteWindow() {
    * 真→假被合并成「没变」，不触发重渲——点就停在「待存」上。落盘后显式推一下。
    */
   const [, setDiskVersion] = useState(0);
-  /** 正文框的组字边界（Esc 的输入法判据，`lib/ime-composition.ts`）。 */
+  /** 正文框的组字边界（Esc 的输入法判据，`@lunarca/editor-core/ime-composition`）。 */
   const compositionRef = useRef<CompositionState>({ ...NO_COMPOSITION });
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   // 正文在改（textarea）还是在看（渲染）。进编辑态的那一帧把焦点交给 textarea。
@@ -511,7 +512,7 @@ export function DesktopNoteWindow() {
               }}
               onFocus={() => setEditingBody(true)}
             >
-              <MarkdownContent content={body} />
+              <MarkdownContent host={desktopMarkdownHost} content={body} />
             </div>
           )}
           {/* 保存状态点（ADR-137 V5 的便签形态：便签没有回执线，一枚点就够）：已存 / 待存 /

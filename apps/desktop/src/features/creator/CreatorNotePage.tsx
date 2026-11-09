@@ -9,7 +9,7 @@ import { useEffect, type MouseEvent as ReactMouseEvent, type ReactNode } from "r
 import { useTranslation } from "react-i18next";
 
 import { IconButton } from "../../components/ui/IconButton";
-import { EllipsisIcon } from "../../components/ui/Icon";
+import { EllipsisIcon } from "@lunarca/editor-core/Icon";
 import { CreatorPageHeader } from "./CreatorPage";
 
 export interface CreatorNotePageProps {

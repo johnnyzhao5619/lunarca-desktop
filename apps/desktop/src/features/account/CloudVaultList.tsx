@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import { commands, type CloudVaultDto } from "../../ipc/bindings";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { formatDate, formatDateTime } from "../../lib/format-datetime";
 import { syncErrorText } from "./sync-error";
 import { downloadCloudVault, pickParentTitle } from "./cloud-vault-download";
@@ -148,12 +148,12 @@ function DeleteCloudVaultDialog({
   );
 }
 
-export function CloudVaultList({ linkedKey }: {
+export function CloudVaultList({ refreshKey }: {
   /**
-   * 这台设备此刻同步着哪些云端库（总览里的远端库 id 拼成的键）：变了就重取，「已同步到…」
-   * 与「不在这台设备上」跟着开关走。
+   * 这台设备同步着哪些云端库、各自上次同步到什么时候（总览拼成的键）：变了就重取，「已同步到…」
+   * 跟着开关走，云端大小与更新时间跟着同步走。
    */
-  linkedKey: string;
+  refreshKey: string;
 }) {
   const { t, i18n } = useTranslation("cloud");
   const [vaults, setVaults] = useState<CloudVaultDto[] | null>(null);
@@ -186,7 +186,7 @@ export function CloudVaultList({ linkedKey }: {
 
   useEffect(() => {
     void load();
-  }, [load, linkedKey]);
+  }, [load, refreshKey]);
 
   const download = useCallback(
     async (vault: CloudVaultDto) => {

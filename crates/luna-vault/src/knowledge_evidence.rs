@@ -486,9 +486,14 @@ fn unescape_markdown_text(text: &str) -> String {
 
 /// 声明块里一条出处链接指向的库内来源；越界、锚点或非 Markdown 目标不算。
 fn citation_source_path(topic_rel: &str, link: &str) -> Option<String> {
-    let decoded = crate::percent_decode(link);
+    let decoded = luna_sync_core::links::percent_decode(link);
     (decoded.ends_with(".md") && !decoded.starts_with('/') && !decoded.contains(['#', '?', '\\']))
-        .then(|| crate::normalize_vault_rel(crate::parent_dir(topic_rel), &decoded))
+        .then(|| {
+            luna_sync_core::links::normalize_vault_rel(
+                luna_sync_core::links::parent_dir(topic_rel),
+                &decoded,
+            )
+        })
         .flatten()
 }
 

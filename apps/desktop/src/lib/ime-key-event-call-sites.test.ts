@@ -5,14 +5,14 @@
  * 2026-10-04 盘点时有十几处输入框只判 `event.key === "Enter"`（或只判
  * `nativeEvent.isComposing`），WKWebView 里中文输入法上屏那一下就被当成了提交。
  * 本守护按文件判：源码里出现回车判定的文件，必须**导入**共享判据
- * （`lib/ime-key-event` 或 `lib/ime-composition`），否则必须在下面的白名单里写明理由。
+ * （`lib/ime-key-event` 或 `@lunarca/editor-core/ime-composition`），否则必须在下面的白名单里写明理由。
  *
  * 它证明的是「这份文件接入了判据」，不是「每一处回车都问过它」——同一文件里新增第二处
  * 回车而忘了问，本守护看不出来；那一层由各面的行为用例负责。
  */
 import { describe, expect, it } from "vitest";
 
-const SOURCES = import.meta.glob(["../**/*.{ts,tsx}", "!../**/*.test.{ts,tsx}"], {
+const SOURCES = import.meta.glob(["../**/*.{ts,tsx}", "../../../../packages/*/src/**/*.{ts,tsx}", "!../**/*.test.{ts,tsx}", "!../../../../packages/*/src/**/*.test.{ts,tsx}"], {
   eager: true,
   import: "default",
   query: "?raw",
@@ -30,7 +30,7 @@ const NOT_A_TEXT_INPUT: Record<string, string> = {
 };
 
 const ENTER_CHECK = /\bkey\s*[!=]==\s*"Enter"|case\s+"Enter"/;
-const IMPORTS_RULE = /^import[^;]*from\s+"[^"]*lib\/ime-(?:key-event|composition)";/m;
+const IMPORTS_RULE = /^import[^;]*from\s+"[^"]*(?:lib\/ime-key-event|ime-composition)";/m;
 
 /** 违规 = 判了回车、没导入判据、也不在白名单里。 */
 function enterHandlersWithoutImeRule(
@@ -74,6 +74,14 @@ describe("回车即动作的键盘处理经共享输入法判据", () => {
     const fixture = {
       "d.tsx":
         'import { isImeKeyEvent } from "../../lib/ime-key-event";\nonKeyDown={(e) => { if (isImeKeyEvent(e)) return; if (e.key === "Enter") submit(); }}',
+    };
+    expect(enterHandlersWithoutImeRule(fixture, {})).toEqual([]);
+  });
+
+  it("正向夹具：直接导入共享判据（包里的唯一定义处）同样放行", () => {
+    const fixture = {
+      "e.ts":
+        'import { isImeCompositionKey } from "@lunarca/editor-core/ime-composition";\nif (isImeCompositionKey(event)) return; if (event.key === "Enter") go();',
     };
     expect(enterHandlersWithoutImeRule(fixture, {})).toEqual([]);
   });

@@ -1,0 +1,10 @@
+{
+  "name": "@lunarca/styles",
+  "private": true,
+  "version": "1.0.0",
+  "license": "AGPL-3.0-only",
+  "description": "设计 Token 与共享渲染样式（TDD-15 §3、TDD-17 §2）：桌面与网页从这里导入，不各抄一份。",
+  "exports": {
+    "./*.css": "./src/*.css"
+  }
+}

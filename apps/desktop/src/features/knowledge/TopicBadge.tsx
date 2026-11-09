@@ -27,7 +27,7 @@ import {
   NotebookIcon,
   SparklesIcon,
   UserIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { noteStem } from "../../lib/note-path";
 
 import type { TopicStateDto } from "../../ipc/bindings";

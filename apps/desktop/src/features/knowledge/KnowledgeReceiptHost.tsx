@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { IconButton } from "../../components/ui/IconButton";
 import { useTranslation } from "react-i18next";
-import { CloseIcon } from "../../components/ui/Icon";
+import { CloseIcon } from "@lunarca/editor-core/Icon";
 import { events, type KnowledgeReceiptDto } from "../../ipc/bindings";
 import { upsertKnowledgeReceipt } from "./knowledge-receipts";
 import { openNote } from "../../lib/navigate";

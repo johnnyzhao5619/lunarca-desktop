@@ -18,7 +18,7 @@ import {
   type RetrievalInfoDto,
   type RetrievalSourceDto,
 } from "../../ipc/bindings";
-import { BookOpenIcon, ChevronDownIcon, CloseIcon } from "../../components/ui/Icon";
+import { BookOpenIcon, ChevronDownIcon, CloseIcon } from "@lunarca/editor-core/Icon";
 import type { ReaskOverrides } from "./use-chat-session";
 import { reportCitationOutcome, type CitationOutcomeDetail } from "../../lib/app-events";
 

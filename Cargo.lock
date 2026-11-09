@@ -225,9 +225,9 @@ dependencies = [
 
 [[package]]
 name = "async-executor"
-version = "1.14.0"
+version = "1.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c96bf972d85afc50bf5ab8fe2d54d1586b4e0b46c97c50a0c9e71e2f7bcd812a"
+checksum = "f426a31126c735126297bc5ea7a521263c9faff4f63ca415267ee625651c4f37"
 dependencies = [
  "async-task",
  "concurrent-queue",
@@ -688,9 +688,9 @@ dependencies = [
 
 [[package]]
 name = "calamine"
-version = "0.37.0"
+version = "0.38.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9ca341b94bc4b29e08970b1a03914fad2dfe177e2ecb67fcd6de9046004aafb"
+checksum = "f431b67cba6122a1f7d26b7adafc71bbdf07026095fe811f5efc025d8748e1d8"
 dependencies = [
  "atoi_simd",
  "byteorder",
@@ -745,6 +745,12 @@ dependencies = [
  "serde",
  "toml 1.1.2+spec-1.1.0",
 ]
+
+[[package]]
+name = "cast"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37b2a672a2cb129a2e41c10b1224bb368f9f37a2b16b612598138befd7b37eb5"
 
 [[package]]
 name = "cbc"
@@ -2290,8 +2296,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff2abc00be7fca6ebc474524697ae276ad847ad0a6b3faa4bcb027e9a4614ad0"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "wasi",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -2778,7 +2786,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.56.0",
+ "windows-core 0.62.2",
 ]
 
 [[package]]
@@ -3322,6 +3330,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "libm"
+version = "0.2.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
+
+[[package]]
 name = "libredox"
 version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3589,7 +3603,7 @@ dependencies = [
 
 [[package]]
 name = "luna-app"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -3621,6 +3635,7 @@ dependencies = [
  "luna-model-fetch",
  "luna-provider",
  "luna-sync",
+ "luna-sync-core",
  "luna-vault",
  "objc2",
  "objc2-app-kit",
@@ -3658,7 +3673,7 @@ dependencies = [
 
 [[package]]
 name = "luna-audio"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "cpal",
  "fs4",
@@ -3674,7 +3689,7 @@ dependencies = [
 
 [[package]]
 name = "luna-cli"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "chrono",
  "clap",
@@ -3687,6 +3702,7 @@ dependencies = [
  "luna-jobqueue",
  "luna-model-catalog",
  "luna-provider",
+ "luna-sync-core",
  "luna-vault",
  "serde",
  "serde_json",
@@ -3697,7 +3713,7 @@ dependencies = [
 
 [[package]]
 name = "luna-cloud"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "aes-gcm",
  "base64 0.22.1",
@@ -3706,13 +3722,13 @@ dependencies = [
  "ed25519-dalek",
  "gethostname",
  "hkdf",
- "icu_normalizer",
  "luna-core",
  "luna-model-catalog",
  "luna-model-fetch",
+ "luna-opaque",
+ "luna-sync-core",
  "native-tls",
  "opaque-ke",
- "rand_chacha",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
@@ -3732,7 +3748,7 @@ dependencies = [
 
 [[package]]
 name = "luna-config"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "aes-gcm",
  "base64 0.22.1",
@@ -3751,7 +3767,7 @@ dependencies = [
 
 [[package]]
 name = "luna-content"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "luna-content-schema",
  "sha2",
@@ -3761,7 +3777,7 @@ dependencies = [
 
 [[package]]
 name = "luna-content-schema"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -3773,7 +3789,7 @@ dependencies = [
 
 [[package]]
 name = "luna-core"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "async-trait",
  "futures-core",
@@ -3786,7 +3802,7 @@ dependencies = [
 
 [[package]]
 name = "luna-docimport"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "calamine",
  "chardetng",
@@ -3804,7 +3820,7 @@ dependencies = [
 
 [[package]]
 name = "luna-engine"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -3823,7 +3839,7 @@ dependencies = [
 
 [[package]]
 name = "luna-export"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "ferrous-opencc",
  "luna-core",
@@ -3835,7 +3851,7 @@ dependencies = [
 
 [[package]]
 name = "luna-fetch"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -3846,7 +3862,7 @@ dependencies = [
 
 [[package]]
 name = "luna-jobqueue"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -3859,7 +3875,7 @@ dependencies = [
 
 [[package]]
 name = "luna-metrics"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "rusqlite",
  "serde",
@@ -3871,7 +3887,7 @@ dependencies = [
 
 [[package]]
 name = "luna-model-catalog"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -3879,7 +3895,7 @@ dependencies = [
 
 [[package]]
 name = "luna-model-fetch"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "luna-model-catalog",
  "native-tls",
@@ -3892,8 +3908,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "luna-opaque"
+version = "1.1.0"
+dependencies = [
+ "aes-gcm",
+ "base64 0.22.1",
+ "getrandom 0.2.17",
+ "hkdf",
+ "icu_normalizer",
+ "opaque-ke",
+ "rand_chacha",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.18",
+ "zeroize",
+]
+
+[[package]]
 name = "luna-provider"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -3903,6 +3937,7 @@ dependencies = [
  "luna-audio",
  "luna-core",
  "luna-model-fetch",
+ "luna-sync-core",
  "luna-vault",
  "native-tls",
  "opusic-c",
@@ -3918,7 +3953,7 @@ dependencies = [
 
 [[package]]
 name = "luna-sync"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "aes-gcm",
  "async-trait",
@@ -3926,6 +3961,7 @@ dependencies = [
  "fastcdc",
  "hkdf",
  "hmac",
+ "luna-sync-core",
  "luna-vault",
  "rusqlite",
  "serde",
@@ -3939,13 +3975,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "luna-sync-core"
+version = "1.1.0"
+dependencies = [
+ "aes-gcm",
+ "base64 0.22.1",
+ "fastcdc",
+ "getrandom 0.2.17",
+ "hkdf",
+ "hmac",
+ "icu_normalizer",
+ "serde",
+ "serde_json",
+ "serde_yaml_ng",
+ "sha2",
+ "thiserror 2.0.18",
+ "uuid",
+ "zeroize",
+]
+
+[[package]]
 name = "luna-vault"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "chrono",
  "dom_query 0.27.0",
  "icu_normalizer",
  "luna-core",
+ "luna-sync-core",
  "notify-debouncer-full",
  "pinyin",
  "rusqlite",
@@ -3961,6 +4018,26 @@ dependencies = [
  "trash",
  "url",
  "uuid",
+]
+
+[[package]]
+name = "luna-web"
+version = "1.1.0"
+dependencies = [
+ "aes-gcm",
+ "base64 0.22.1",
+ "getrandom 0.2.17",
+ "js-sys",
+ "luna-opaque",
+ "luna-sync-core",
+ "opaque-ke",
+ "serde",
+ "serde_json",
+ "toml 0.8.2",
+ "uuid",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
+ "zeroize",
 ]
 
 [[package]]
@@ -4044,6 +4121,16 @@ name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
+
+[[package]]
+name = "minicov"
+version = "0.3.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3aa3aa12b448ac225b3102217d1ac5cc717908f02722926524b0599c933c7a0"
+dependencies = [
+ "cc",
+ "walkdir",
+]
 
 [[package]]
 name = "minimal-lexical"
@@ -4305,6 +4392,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "nu-ansi-term"
+version = "0.50.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
+dependencies = [
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "num-complex"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4346,6 +4442,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
+ "libm",
 ]
 
 [[package]]
@@ -4685,6 +4782,12 @@ name = "once_cell_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
+
+[[package]]
+name = "oorandom"
+version = "11.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6790f58c7ff633d8771f42965289203411a5e5c68388703c06e14f24770b41e"
 
 [[package]]
 name = "opaque-debug"
@@ -8022,6 +8125,45 @@ dependencies = [
 ]
 
 [[package]]
+name = "wasm-bindgen-test"
+version = "0.3.76"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a0d555ca874445df8d314f94f5c948a4e74e5418f332c89f660a3d8310a96f4"
+dependencies = [
+ "async-trait",
+ "cast",
+ "js-sys",
+ "libm",
+ "minicov",
+ "nu-ansi-term",
+ "num-traits",
+ "oorandom",
+ "serde",
+ "serde_json",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasm-bindgen-test-macro",
+ "wasm-bindgen-test-shared",
+]
+
+[[package]]
+name = "wasm-bindgen-test-macro"
+version = "0.3.76"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94eb68555b95bcea5e8cf4abe280b529049479fa995bfc23734af96a6aedc120"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.118",
+]
+
+[[package]]
+name = "wasm-bindgen-test-shared"
+version = "0.2.126"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c31d56021e873866c968588ed85ccdf56db5c426e44afdb4618c39895104b920"
+
+[[package]]
 name = "wasm-streams"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8264,7 +8406,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

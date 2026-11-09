@@ -1,6 +1,6 @@
 # Lunarca Design System
 
-> 本文是 Lunarca 当前界面语言的索引；可运行的 Token 事实源为 `apps/desktop/src/styles/tokens/` 目录（物理归属与层叠顺序见 TDD-15 §3.3），功能交互契约归各 PRD/TDD。页面规则不得复制或覆盖它们。
+> 本文是 Lunarca 当前界面语言的索引；可运行的 Token 事实源为 `packages/styles/src/tokens/` 目录（`@lunarca/styles`，桌面与网页共用；物理归属与层叠顺序见 TDD-15 §3.3），功能交互契约归各 PRD/TDD。页面规则不得复制或覆盖它们。
 
 ## 品牌
 

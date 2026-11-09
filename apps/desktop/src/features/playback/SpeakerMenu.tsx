@@ -20,7 +20,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import type { SpeakerScopeDto, SpeakerStatDto } from "../../ipc/bindings";
-import { CheckIcon, PencilIcon, PlusIcon } from "../../components/ui/Icon";
+import { CheckIcon, PencilIcon, PlusIcon } from "@lunarca/editor-core/Icon";
 import { cssVariables } from "../../lib/css-variables";
 import { speakerSlot } from "./speaker-view";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";

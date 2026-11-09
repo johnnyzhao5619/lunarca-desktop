@@ -6,7 +6,7 @@
  * 分类收成一处后组件只问「这一下是什么」，不再自己拼修饰键。
  *
  * **「这一下属于输入法吗」不在本文件里判**：那条规则与捕获输入框（`capture/capture-keys.ts`）
- * 逐字相同，唯一事实源是 `lib/ime-composition.ts`。本文件此前自带的
+ * 逐字相同，唯一事实源是 `@lunarca/editor-core/ime-composition`。本文件此前自带的
  * `isComposing || keyCode === 229` 是同一条规则的第二份定义，且**少了最要紧的第三条线索**：
  * WKWebView 里 `compositionend` 早于 `keydown`，上屏那一下身上 `isComposing = false`、
  * keyCode = 13，与用户敲的普通回车毫无区别——旧注释写的「WKWebView 可靠」已被 2026-09-09
@@ -18,7 +18,7 @@ import {
   NO_COMPOSITION,
   type CompositionState,
   type ImeCompositionKey,
-} from "../../lib/ime-composition";
+} from "@lunarca/editor-core/ime-composition";
 
 export type PopupInputKeyAction = "generate" | "newline" | "ignore";
 

@@ -10,7 +10,7 @@ import { useCallback, useEffect, useState, type MouseEvent as ReactMouseEvent } 
 import { useTranslation } from "react-i18next";
 import { commands, events, type VaultBookmarkDto } from "../../ipc/bindings";
 import { useVaultReload } from "../../hooks/use-vault-reload";
-import { ChevronDownIcon, ChevronRightIcon, FileIcon, FolderIcon } from "../../components/ui/Icon";
+import { ChevronDownIcon, ChevronRightIcon, FileIcon, FolderIcon } from "@lunarca/editor-core/Icon";
 import { useContextMenu } from "../../components/ContextMenuHost";
 import { buildMenu } from "../../lib/context-menu";
 import { vaultErrorText } from "../../lib/vault-error";

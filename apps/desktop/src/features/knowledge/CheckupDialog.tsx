@@ -16,7 +16,7 @@ import { useCallback, useEffect, useState } from "react";
 import { IconButton } from "../../components/ui/IconButton";
 import { useTranslation } from "react-i18next";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
-import { inlineMarkdownToText } from "../../lib/markdown";
+import { inlineMarkdownToText } from "@lunarca/editor-core/markdown";
 import {
   commands,
   events,
@@ -25,7 +25,7 @@ import {
   type CheckupProgress,
   type CheckupReportDto,
 } from "../../ipc/bindings";
-import { CloseIcon, SparklesIcon, StethoscopeIcon } from "../../components/ui/Icon";
+import { CloseIcon, SparklesIcon, StethoscopeIcon } from "@lunarca/editor-core/Icon";
 import {
   CHECKUP_EVENT,
   type CheckupDetail,

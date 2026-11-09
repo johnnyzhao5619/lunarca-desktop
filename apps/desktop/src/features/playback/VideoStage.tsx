@@ -39,8 +39,8 @@ import {
   MusicIcon,
   PictureInPictureIcon,
   SplitIcon,
-} from "../../components/ui/Icon";
-import { shouldStartDrag } from "../../lib/pointer-drag";
+} from "@lunarca/editor-core/Icon";
+import { shouldStartDrag } from "@lunarca/editor-core/drag-threshold";
 import {
   clampFloatPosition,
   defaultFloatPosition,

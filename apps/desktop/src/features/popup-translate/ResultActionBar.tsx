@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { CopyIcon, CheckIcon, NotebookIcon, ArrowClockwiseIcon, ReplaceIcon } from "../../components/ui/Icon";
+import { CopyIcon, CheckIcon, NotebookIcon, ArrowClockwiseIcon, ReplaceIcon } from "@lunarca/editor-core/Icon";
 import { HudActionMenu } from "../../components/ui/HudActionMenu";
 import { SpeakButton } from "../tts/SpeakButton";
 

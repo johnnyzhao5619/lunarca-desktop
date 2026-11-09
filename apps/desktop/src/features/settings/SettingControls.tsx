@@ -26,15 +26,10 @@ import {
   FileIcon,
   FolderIcon,
   LockIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { IconButton } from "../../components/ui/IconButton";
-import {
-  displayKey,
-  DOUBLE_TAP_PREFIX,
-  isReservedEditingCombo,
-  parseShortcutValue,
-} from "../../lib/shortcut-display";
-import { isModifierKey, mainKeyOf } from "../../lib/shortcut-keys";
+import { displayKey, DOUBLE_TAP_PREFIX, parseShortcutValue } from "@lunarca/editor-core/shortcut-display";
+import { isModifierKey, isReservedEditingCombo, mainKeyOf } from "../../lib/shortcut-keys";
 import { isImeKeyEvent } from "../../lib/ime-key-event";
 
 /** 成功时返回 Rust 已归一化的权威值；失败为 null。 */

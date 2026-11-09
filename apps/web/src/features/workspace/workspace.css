@@ -1,0 +1,256 @@
+/* 工作区：页头里的库名、侧栏（搜索 / 页签 / 树 / 列表）、阅读区与页脚；小屏单栏。 */
+
+.luna-web-header > .luna-web-header__vault {
+  flex-shrink: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  font-weight: var(--font-weight-medium);
+  text-overflow: ellipsis;
+}
+
+.luna-web-body {
+  display: flex;
+  flex: 1;
+  min-block-size: 0;
+}
+
+.luna-web-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  inline-size: var(--web-sidebar-inline);
+  min-inline-size: var(--web-sidebar-min-inline);
+  min-block-size: 0;
+  overflow: auto;
+  padding: var(--space-3);
+  border-inline-end: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-bg-panel);
+}
+
+.luna-web-sidebar__search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.luna-web-sidebar__query {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.luna-web-sidebar__create {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.luna-web-tree {
+  min-block-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.luna-web-visually-hidden {
+  position: absolute;
+  inline-size: var(--border-width-thin);
+  block-size: var(--border-width-thin);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.luna-web-tabs {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.luna-web-tabs__tab {
+  flex: 1;
+  padding-block: var(--space-1);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.luna-web-tabs__tab[aria-selected="true"] {
+  background: var(--color-bg-selected);
+  color: var(--color-text-primary);
+}
+
+.luna-web-tree__level {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.luna-web-tree__row,
+.luna-web-list__row {
+  display: flex;
+  inline-size: 100%;
+  padding-block: var(--space-1);
+  padding-inline: var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-web-tree__row:hover,
+.luna-web-list__row:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-web-tree__row[aria-current="page"],
+.luna-web-list__row[aria-current="page"] {
+  background: var(--color-bg-selected);
+}
+
+.luna-web-tree__row--dir {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.luna-web-tree__row[data-depth="1"] { padding-inline-start: var(--space-5); }
+.luna-web-tree__row[data-depth="2"] { padding-inline-start: var(--space-7); }
+.luna-web-tree__row[data-depth="3"] { padding-inline-start: calc(var(--space-7) + var(--space-3)); }
+.luna-web-tree__row[data-depth="4"] { padding-inline-start: calc(var(--space-7) + var(--space-5)); }
+.luna-web-tree__row[data-depth="5"] { padding-inline-start: calc(var(--space-7) * 2); }
+.luna-web-tree__row[data-depth="6"] { padding-inline-start: calc(var(--space-7) * 2 + var(--space-3)); }
+.luna-web-tree__row[data-depth="7"] { padding-inline-start: calc(var(--space-7) * 2 + var(--space-5)); }
+.luna-web-tree__row[data-depth="8"] { padding-inline-start: calc(var(--space-7) * 3); }
+
+.luna-web-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.luna-web-list__row {
+  flex-direction: column;
+  gap: var(--space-0-5);
+}
+
+.luna-web-list__row--disabled {
+  cursor: default;
+  opacity: var(--opacity-disabled);
+}
+
+.luna-web-list__name {
+  overflow-wrap: anywhere;
+}
+
+.luna-web-list__path {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.luna-web-vaults {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-inline-size: var(--web-account-max-inline);
+  margin-inline: auto;
+}
+
+.luna-web-vaults__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+.luna-web-reader {
+  background: var(--color-bg-surface);
+}
+
+.luna-web-reader__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+.luna-web-reader__back {
+  display: none;
+  margin-inline-end: auto;
+}
+
+.luna-web-reader__note {
+  min-inline-size: 0;
+}
+
+.luna-web-reader__placeholder,
+.luna-web-reader__image {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+}
+
+.luna-web-reader__file {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.luna-web-reader__picture {
+  max-inline-size: var(--size-full);
+  max-block-size: var(--editor-image-max-block);
+  object-fit: contain;
+}
+
+.luna-web-copy {
+  min-block-size: auto;
+  padding-block: var(--space-0-5);
+  padding-inline: var(--space-1-5);
+  font-size: var(--font-size-xs);
+}
+
+.luna-web-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  border-block-start: var(--border-width-thin) solid var(--color-border-subtle);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* 小屏单栏（PRD-21-051 的最低限度）：打开一篇时侧栏让位，「返回笔记列表」回去。媒体查询里写不了 Token。 */
+@media (max-width: 48rem) {
+  /* 小屏页头只留品牌、库名与两个按钮：邮箱在「账户与会话」页里。 */
+  .luna-web-header__account {
+    display: none;
+  }
+
+  .luna-web-body {
+    flex-direction: column;
+  }
+
+  .luna-web-sidebar {
+    inline-size: auto;
+    min-inline-size: 0;
+    border-inline-end: none;
+  }
+
+  .luna-web-shell[data-note-open="true"] .luna-web-sidebar {
+    display: none;
+  }
+
+  .luna-web-shell:not([data-note-open="true"]) .luna-web-reader {
+    display: none;
+  }
+
+  .luna-web-reader__back {
+    display: inline-flex;
+  }
+}

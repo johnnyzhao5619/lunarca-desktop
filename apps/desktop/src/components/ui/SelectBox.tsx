@@ -1,5 +1,5 @@
 import type { ReactNode, SelectHTMLAttributes } from "react";
-import { ChevronDownIcon } from "./Icon";
+import { ChevronDownIcon } from "@lunarca/editor-core/Icon";
 
 export interface SelectBoxProps
   extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "className" | "size"> {

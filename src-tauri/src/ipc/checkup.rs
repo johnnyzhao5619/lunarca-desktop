@@ -597,7 +597,7 @@ async fn run_deep(
             let Some(vault) = guard.as_ref() else { break };
             vault.read(&claim.source).ok().map(|doc| {
                 (
-                    luna_vault::title_of(&claim.source).to_owned(),
+                    luna_sync_core::links::title_of(&claim.source).to_owned(),
                     luna_vault::body_of(&doc.content).to_owned(),
                 )
             })

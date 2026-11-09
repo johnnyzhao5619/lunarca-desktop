@@ -623,6 +623,7 @@ mod tests {
         for hook in [
             "local_engine::forward_status_changes(",
             "local_engine::spawn_startup(",
+            "ipc::open_startup_vault_when_local(",
         ] {
             let at = lib
                 .find(hook)

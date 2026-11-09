@@ -19,7 +19,7 @@ import { canFinish, type OnboardingStepId } from "./onboarding-steps";
 import type { OnboardingController } from "./use-onboarding";
 import { useHardwareSummary } from "./use-hardware";
 import { useModels } from "../settings/use-settings";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { cssVariables } from "../../lib/css-variables";
 import { LunaLogo } from "../../components/ui/LunaLogo";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";

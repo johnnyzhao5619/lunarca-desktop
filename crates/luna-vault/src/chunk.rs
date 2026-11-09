@@ -29,8 +29,7 @@
 //! 都要跟着重来，而更大的片未必更准（未验）。超窗的兜底是引擎**如实拒绝**
 //! （`INPUT_TOO_LONG`）——宁可失败，不要一个只代表半片内容的向量。
 
-use crate::parse::is_scaffold_line;
-use crate::parse::timecode_spans;
+use luna_sync_core::scaffold::{is_scaffold_line, timecode_spans};
 
 /// 一个分片的目标正文字符数（S16 实测定值，见模块文档）。
 pub const CHUNK_TARGET_CHARS: usize = 1_200;
@@ -184,7 +183,7 @@ impl Accumulator {
 
 /// 一行的清洗：脚手架整行丢弃（返回空串占位），其余剥掉时间码标记。
 ///
-/// 判定两处都委托 [`crate::parse`]——与 `clean_for_fts` / `SearchableLine` 同一个答案。
+/// 判定两处都委托 [`luna_sync_core::scaffold`]——与 `clean_for_fts` / `SearchableLine` 同一个答案。
 fn clean_line(line: &str) -> String {
     if is_scaffold_line(line) {
         return String::new();

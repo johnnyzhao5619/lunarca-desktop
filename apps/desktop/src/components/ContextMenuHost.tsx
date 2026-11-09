@@ -26,7 +26,7 @@ import {
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { commands } from "../ipc/bindings";
-import { formatShortcut } from "../lib/shortcut-display";
+import { formatShortcut } from "@lunarca/editor-core/shortcut-display";
 import {
   buildMenu,
   editableKindOf,

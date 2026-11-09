@@ -1,9 +1,9 @@
 /**
  * 「这一下 keydown 属于输入法吗」的文档级接线（PRD-07-040 ①）。
  *
- * 判据只在 `ime-composition.ts`；本文件只替调用方记下合成边界——WKWebView 的
+ * 判据只在 `@lunarca/editor-core/ime-composition`；本文件只替调用方记下合成边界——WKWebView 的
  * `compositionend` 早于 `keydown`，上屏那一下的事件字段与普通回车无从区分，只能靠
- * 「刚刚结束过一次合成」这条时间线索（时序表见 `ime-composition.ts` 文件头）。
+ * 「刚刚结束过一次合成」这条时间线索（时序表见 `@lunarca/editor-core/ime-composition` 文件头）。
  *
  * 边界记在**文档**上而不是每个输入框上：合成事件会冒泡，在捕获阶段记一次，任何
  * keydown 处理（输入框自己的回车、列表的方向键、对话框挂在 `document` 上的 Esc）都能
@@ -14,7 +14,7 @@
  * 可能收不到 `compositionend`，若不这样收口，全应用的回车与 Esc 都会被永久判给输入法。
  */
 
-import { isImeCompositionKey, type CompositionState } from "./ime-composition";
+import { isImeCompositionKey, type CompositionState } from "@lunarca/editor-core/ime-composition";
 
 interface DocumentComposition {
   target: EventTarget | null;

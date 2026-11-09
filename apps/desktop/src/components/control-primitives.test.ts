@@ -24,13 +24,14 @@
 
 import { describe, expect, it } from "vitest";
 
-const TSX = import.meta.glob("../{app,features,components}/**/*.tsx", {
+const TSX = import.meta.glob(["../{app,features,components}/**/*.tsx", "../../../../packages/*/src/**/*.tsx"], {
   eager: true,
   import: "default",
   query: "?raw",
 }) as Record<string, string>;
 
-const CSS = import.meta.glob("../{styles,components,features}/**/*.css", {
+// 共享样式包里的 CSS 同样算在内：编辑面与阅读面的规则住在那里（`@lunarca/styles`）。
+const CSS = import.meta.glob(["../{styles,components,features}/**/*.css", "../../../../packages/*/src/**/*.css"], {
   eager: true,
   import: "default",
   query: "?raw",

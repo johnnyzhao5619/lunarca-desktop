@@ -8,19 +8,19 @@ LUNARCA_IDENTITY_NAME="Lunarca Code Signing"
 LUNARCA_BUNDLE_IDENTIFIER="app.lunarca.luna"
 
 # Tauri CLI 有两种装法，两种都行：`cargo install tauri-cli`（`cargo tauri`）与随前端依赖装的
-# JS 包（`apps/desktop/node_modules/.bin/tauri`，同一个原生二进制）。cargo 那一份不在
+# JS 包（npm workspaces 在仓库根装出的 `node_modules/.bin/tauri`，同一个原生二进制）。cargo 那一份不在
 # rustup 管辖内，清 ~/.cargo/bin 或换机器就会没有——那时不该让作业停在
 # 「no such command: tauri」上，直接用工作树里已有的那一份。结果放进数组 TAURI。
 resolve_tauri_cli() {
   local root_dir="$1"
-  local node_tauri="$root_dir/apps/desktop/node_modules/.bin/tauri"
+  local node_tauri="$root_dir/node_modules/.bin/tauri"
   if cargo tauri --version >/dev/null 2>&1; then
     TAURI=(cargo tauri)
   elif [[ -x "$node_tauri" ]]; then
     TAURI=("$node_tauri")
   else
     echo "找不到 Tauri CLI：装 cargo 那份（cargo install tauri-cli --version '^2' --locked）" >&2
-    echo "或在 apps/desktop 里 npm install 拿回 node_modules/.bin/tauri。" >&2
+    echo "或在仓库根 npm ci 拿回 node_modules/.bin/tauri。" >&2
     return 2
   fi
 }

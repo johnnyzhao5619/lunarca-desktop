@@ -22,11 +22,11 @@ function layout(overrides: Partial<Record<string, boolean>> = {}): RailLayoutIte
 }
 
 describe("兜底布局", () => {
-  it("与 IA 表同序、除创作外全部显示、锚点即锁定", () => {
+  it("与 IA 表同序、除两个一方应用空间外全部显示、锚点即锁定", () => {
     const items = fallbackRailLayout();
     expect(items.map((item) => item.space)).toEqual(PRIMARY_SPACES);
     // 创作空间默认隐藏（ADR-162 ①），与 Rust 词表 `RAIL_LAYOUT_DEFAULT` 同形。
-    expect(items.filter((item) => !item.visible).map((item) => item.space)).toEqual(["creator"]);
+    expect(items.filter((item) => !item.visible).map((item) => item.space)).toEqual(["creator", "teleprompter"]);
     expect(items.filter((item) => item.locked).map((item) => item.space)).toEqual([
       "notes",
       "knowledge",
@@ -71,9 +71,9 @@ describe("临时显示（PRD-07-003）", () => {
 
   it("隐藏候选 = 用户收起的那几格；锚点永远不会在里面", () => {
     const items = layout({ search: false, chat: false });
-    expect(hiddenRailItems(items).map((item) => item.space)).toEqual(["search", "chat", "creator"]);
-    // 兜底布局里唯一的隐藏候选就是默认隐藏的创作空间。
-    expect(hiddenRailItems(fallbackRailLayout()).map((item) => item.space)).toEqual(["creator"]);
+    expect(hiddenRailItems(items).map((item) => item.space)).toEqual(["search", "chat", "creator", "teleprompter"]);
+    // 兜底布局里的隐藏候选就是默认隐藏的两个一方应用空间。
+    expect(hiddenRailItems(fallbackRailLayout()).map((item) => item.space)).toEqual(["creator", "teleprompter"]);
   });
 
   it("分隔线按**画出来的**那几格的锁定态重算", () => {

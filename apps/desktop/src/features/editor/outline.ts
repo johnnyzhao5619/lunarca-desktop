@@ -3,10 +3,10 @@
 // 天然排除）；frontmatter 经阅读模式同源 `splitFrontmatter` 剥离（DRY），
 // 行号补偿回原文坐标，直接可用于编辑器跳转。
 
-import { lunaMarkdownParser } from "../../lib/markdown-dialect";
+import { lunaMarkdownParser } from "@lunarca/editor-core/markdown-dialect";
 import { syntaxTree } from "@codemirror/language";
 import type { EditorState } from "@codemirror/state";
-import { splitFrontmatter } from "./reading-view";
+import { splitFrontmatter } from "@lunarca/editor-core/reading-view";
 
 export interface OutlineHeading {
   level: 1 | 2 | 3 | 4 | 5 | 6;

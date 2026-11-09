@@ -793,7 +793,7 @@ mod tests {
         assert_eq!(sent, 72_000);
 
         // ② 丢窗（通道满 try_send 失败）：下一个快照是全量的，空洞自动补上。
-        //    ——这正是游标法比「只发 speech_delta」强的地方。
+        //    ——这正是游标法比「只发每窗新增的那一段」强的地方。
         let after_drop = take(&window(0, 120_000, 160_000), &mut sent);
         assert_eq!(after_drop, 48_000, "丢窗造成的空洞没有被补上");
 

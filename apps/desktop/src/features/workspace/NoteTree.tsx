@@ -35,7 +35,7 @@ import {
   SortIcon,
   TemplateIcon,
   TrashIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { useConfirm } from "../../components/ConfirmHost";
 import { useContextMenu } from "../../components/ContextMenuHost";
@@ -55,7 +55,9 @@ import { useDownloadPercent, useSyncCloudOnly, type DownloadProgress } from "./u
 import { useTreeViewState } from "./use-tree-view-state";
 import { noteStem } from "../../lib/note-path";
 import { distillFolderAction } from "../distill/distill-actions";
-import { classifyAssetTarget } from "../media/asset-kind";
+import { classifyAssetTarget } from "@lunarca/editor-core/asset-kind";
+// 同层显示顺序与网页版共用一份（PRD-21-011）。
+import { sortTreeChildren } from "@lunarca/editor-core/tree-sort";
 import { graphScopeSubmenu } from "../knowledge/graph-scope-menu";
 import { BookmarksSection, useVaultBookmarks } from "./BookmarksSection";
 import { useGraphTagExclusions } from "../knowledge/use-graph-tag-exclusions";
@@ -104,29 +106,6 @@ function CloudOnlyBadgeText({ progress, path }: { progress: DownloadProgress; pa
   const { t } = useTranslation("workspace");
   const percent = useDownloadPercent(progress, path);
   return <>{percent !== undefined ? t("cloud.sync_progress", { pct: percent }) : t("cloud.sync_badge")}</>;
-}
-
-/** 目录置顶 + 名称自然序；时间档下文件按该时间降序（目录仍按名称）。 */
-export function sortTreeChildren(
-  children: readonly NoteTreeDto[],
-  mode: TreeSortDto,
-): NoteTreeDto[] {
-  return [...children].sort((a, b) => {
-    if (a.is_dir !== b.is_dir) {
-      return a.is_dir ? -1 : 1;
-    }
-    if (mode !== "name" && !a.is_dir) {
-      const delta =
-        mode === "mtime" ? (b.mtime_ms ?? 0) - (a.mtime_ms ?? 0) : (b.created_ms ?? 0) - (a.created_ms ?? 0);
-      if (delta !== 0) {
-        return delta;
-      }
-    }
-    return a.name.localeCompare(b.name, undefined, {
-      numeric: true,
-      sensitivity: "base",
-    });
-  });
 }
 
 export function parentPathOf(path: string): string {

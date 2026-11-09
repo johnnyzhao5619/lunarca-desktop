@@ -1,5 +1,5 @@
 //! 测试用的假服务端：真跑 `opaque-ke` 的服务端一侧，按 TDD-16 §5.2a 作答（只给本 crate 的测试用；
-//! 真实服务端在商业仓按同一份契约实现，互通靠 `tests/fixtures/opaque-login-v16.json`）。
+//! 真实服务端在商业仓按同一份契约实现，互通靠 `luna-opaque` 的 `tests/fixtures/opaque-login-v16.json`）。
 //!
 //! 走明文 HTTP：首连的放宽客户端与钉住的客户端对 `http://` 都一样发，信任仍只来自握手与信任包。
 //! 每一条请求按 `(方法, 路径, 头, 体)` 记下，断言看的是线上真实发出去的字节。
@@ -17,7 +17,7 @@ use opaque_ke::{
 };
 use sha2::{Digest as _, Sha256};
 
-use crate::opaque_auth::{self, BundleTls, Suite, TrustBundle};
+use luna_opaque::{BundleTls, Suite, TrustBundle};
 
 /// 一条记下的请求。
 #[derive(Debug, Clone)]
@@ -124,7 +124,7 @@ impl MockServer {
     pub fn register(&self, email: &str, purpose: &str, secret: &str) {
         let mut state = self.state.lock().unwrap();
         let mut rng = aes_gcm::aead::OsRng;
-        let ksf = opaque_auth::ksf();
+        let ksf = luna_opaque::ksf();
         let start = ClientRegistration::<Suite>::start(&mut rng, secret.as_bytes()).unwrap();
         let response =
             ServerRegistration::<Suite>::start(&state.setup, start.message, email.as_bytes())
@@ -137,7 +137,7 @@ impl MockServer {
                 secret.as_bytes(),
                 response.message,
                 ClientRegistrationFinishParameters::new(
-                    opaque_auth::identifiers(email, &deployment),
+                    luna_opaque::identifiers(email, &deployment),
                     Some(&ksf),
                 ),
             )
@@ -273,7 +273,7 @@ impl State {
     }
 
     fn login_start(&mut self, email: &str, purpose: &str, request: &str) -> (u16, String) {
-        let Some(request) = opaque_auth::from_b64u(request)
+        let Some(request) = luna_opaque::from_b64u(request)
             .and_then(|bytes| CredentialRequest::<Suite>::deserialize(&bytes).ok())
         else {
             return (400, error("bad_request"));
@@ -292,12 +292,12 @@ impl State {
             request,
             email.as_bytes(),
             ServerLoginParameters {
-                context: Some(opaque_auth::CONTEXT),
-                identifiers: opaque_auth::identifiers(email, &deployment),
+                context: Some(luna_opaque::CONTEXT),
+                identifiers: luna_opaque::identifiers(email, &deployment),
             },
         )
         .unwrap();
-        let login_id = opaque_auth::b64u(&rand_bytes::<16>());
+        let login_id = luna_opaque::b64u(&rand_bytes::<16>());
         self.logins.insert(
             login_id.clone(),
             Login {
@@ -313,7 +313,7 @@ impl State {
             json(&serde_json::json!({
                 "login_id": login_id,
                 "deployment_id": deployment,
-                "credential_response": opaque_auth::b64u(&started.message.serialize()),
+                "credential_response": luna_opaque::b64u(&started.message.serialize()),
             })),
         )
     }
@@ -325,7 +325,7 @@ impl State {
         };
         let (Some(state), Some(finalization)) = (
             login.state.take(),
-            opaque_auth::from_b64u(finalization)
+            luna_opaque::from_b64u(finalization)
                 .and_then(|bytes| CredentialFinalization::<Suite>::deserialize(&bytes).ok()),
         ) else {
             return (401, error("invalid_credentials"));
@@ -334,14 +334,14 @@ impl State {
         let Ok(finished) = state.finish(
             finalization,
             ServerLoginParameters {
-                context: Some(opaque_auth::CONTEXT),
-                identifiers: opaque_auth::identifiers(&email, &deployment),
+                context: Some(luna_opaque::CONTEXT),
+                identifiers: luna_opaque::identifiers(&email, &deployment),
             },
         ) else {
             return (401, error("invalid_credentials"));
         };
-        let login_id_bytes = opaque_auth::from_b64u(login_id).unwrap();
-        let claim = opaque_auth::claim_key(&finished.session_key, &login_id_bytes);
+        let login_id_bytes = luna_opaque::from_b64u(login_id).unwrap();
+        let claim = luna_opaque::claim_key(&finished.session_key, &login_id_bytes);
         login.claim_sha256 = Some(Sha256::digest(claim.as_ref()).into());
         let bundle = TrustBundle {
             format_version: 1,
@@ -358,7 +358,7 @@ impl State {
         );
         (
             200,
-            json(&serde_json::json!({ "sealed_bundle": opaque_auth::b64u(&sealed) })),
+            json(&serde_json::json!({ "sealed_bundle": luna_opaque::b64u(&sealed) })),
         )
     }
 
@@ -370,7 +370,7 @@ impl State {
             return (410, error("login_expired"));
         }
         let presented =
-            opaque_auth::from_b64u(claim).map(|bytes| <[u8; 32]>::from(Sha256::digest(bytes)));
+            luna_opaque::from_b64u(claim).map(|bytes| <[u8; 32]>::from(Sha256::digest(bytes)));
         if login.claim_sha256.is_none() || presented != login.claim_sha256 {
             return (401, error("invalid_credentials"));
         }
@@ -398,20 +398,20 @@ impl State {
         let Some(email) = self.bearer_email(authorization) else {
             return (401, error("unauthorized"));
         };
-        let Some(request) = opaque_auth::from_b64u(request)
+        let Some(request) = luna_opaque::from_b64u(request)
             .and_then(|bytes| RegistrationRequest::<Suite>::deserialize(&bytes).ok())
         else {
             return (400, error("bad_request"));
         };
         let response =
             ServerRegistration::<Suite>::start(&self.setup, request, email.as_bytes()).unwrap();
-        let registration_id = opaque_auth::b64u(&rand_bytes::<16>());
+        let registration_id = luna_opaque::b64u(&rand_bytes::<16>());
         self.registrations.insert(registration_id.clone(), email);
         (
             200,
             json(&serde_json::json!({
                 "registration_id": registration_id,
-                "registration_response": opaque_auth::b64u(&response.message.serialize()),
+                "registration_response": luna_opaque::b64u(&response.message.serialize()),
             })),
         )
     }
@@ -427,7 +427,7 @@ impl State {
         }
         let (Some(email), Some(upload)) = (
             self.registrations.get(registration_id).cloned(),
-            opaque_auth::from_b64u(upload)
+            luna_opaque::from_b64u(upload)
                 .and_then(|bytes| RegistrationUpload::<Suite>::deserialize(&bytes).ok()),
         ) else {
             return (400, error("bad_request"));
@@ -447,7 +447,7 @@ fn seal_with_aad_of(
     session_key: &[u8],
     login_id: &[u8],
 ) -> Vec<u8> {
-    opaque_auth::seal_bundle_for(
+    luna_opaque::seal_bundle_for(
         bundle,
         handshake_deployment,
         session_key,

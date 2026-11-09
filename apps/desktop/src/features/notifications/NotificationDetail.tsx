@@ -11,7 +11,7 @@ import {
   visibleDetailFields,
   type DetailMetaField,
 } from "./notification-detail";
-import { CloseIcon } from "../../components/ui/Icon";
+import { CloseIcon } from "@lunarca/editor-core/Icon";
 import { HelpDetails } from "../../components/ui/HelpDetails";
 
 interface NotificationDetailProps {

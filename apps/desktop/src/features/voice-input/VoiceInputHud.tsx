@@ -22,7 +22,7 @@ import { HudHeader } from "../../components/ui/HudHeader";
 import { HudReceipt, type HudReceiptValue } from "../../components/ui/HudReceipt";
 import type { LandingMode, VoiceRefineMode } from "../../ipc/bindings";
 import { useTranslation } from "react-i18next";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import {
   langLabelKey,
   useSettingOptions,
@@ -43,7 +43,7 @@ import {
   SquareIcon,
   StopIcon,
   StickyNoteIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { HudActionMenu, type HudActionMenuItem } from "../../components/ui/HudActionMenu";
 import { compactVoiceLevels, voiceLevelBucket } from "./voice-waveform";
 import {
@@ -56,7 +56,7 @@ import {
 } from "./voice-hud-state";
 import { useVoiceInput } from "./use-voice-input";
 import { usePanelTextEditing } from "../../hooks/use-panel-text-editing";
-import { formatShortcut } from "../../lib/shortcut-display";
+import { formatShortcut } from "@lunarca/editor-core/shortcut-display";
 import { failureGuidance } from "../../i18n/failure";
 
 /** 胶囊里那段波形的柱数：一行里它只是「在听」的证据，不是频谱。 */

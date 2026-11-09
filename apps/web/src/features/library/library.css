@@ -1,0 +1,215 @@
+/*
+ * 数据功能：全文搜索的那道门与结果、标签、最近删除、版本历史（PRD-21-024 / 026 / 041 / 042）。都在窄屏单栏里
+ * 能用：长路径与长词一律可断行，按钮行可换行，不横向溢出（PRD-21-051）。
+ */
+
+.luna-web-fulltext {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.luna-web-fulltext__privacy {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.luna-web-fulltext__progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.luna-web-fulltext__bar {
+  flex: 1 1 100%;
+  inline-size: 100%;
+  accent-color: var(--color-accent);
+}
+
+.luna-web-hits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.luna-web-hits__summary {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-web-hits__line {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.luna-web-hits__mark {
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-surface);
+  color: var(--color-text-primary);
+}
+
+.luna-web-tags {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.luna-web-tags__back {
+  align-self: flex-start;
+}
+
+.luna-web-tags__heading {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.luna-web-tags__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  inline-size: 100%;
+  padding-block: var(--space-1);
+  padding-inline: var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-web-tags__row:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-web-tags__name {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.luna-web-tags__badge {
+  padding-inline: var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--color-status-ai-surface);
+  color: var(--color-status-ai);
+  font-size: var(--font-size-xs);
+}
+
+.luna-web-tags__count {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.luna-web-trash {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.luna-web-trash__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.luna-web-trash__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  padding-block-end: var(--space-2);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-web-trash__restore {
+  align-self: flex-start;
+}
+
+.luna-web-trash__expired {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.luna-web-history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.luna-web-history__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.luna-web-history__title {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.luna-web-history__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.luna-web-history__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  padding-block-end: var(--space-2);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-web-history__label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.luna-web-history__badge {
+  padding-inline: var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.luna-web-history__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.luna-web-history__preview {
+  min-inline-size: 0;
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  overflow-wrap: anywhere;
+}

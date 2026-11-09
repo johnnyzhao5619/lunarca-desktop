@@ -41,6 +41,30 @@
     "change_submit": "保存新密码",
     "changed": "密码已修改，其他设备上的登录已退出。"
   },
+  "web_sessions": {
+    "title": "已登录的浏览器",
+    "loading": "正在获取浏览器列表…",
+    "empty": "现在没有浏览器登录着 Lunarca。",
+    "unknown_browser": "未知浏览器",
+    "signed_in": "登录于 {{time}}",
+    "last_seen": "最近使用：{{time}}",
+    "retry": "重试",
+    "revoke": "退出",
+    "revoke_title": "让「{{name}}」退出？",
+    "revoke_description": "那个浏览器会立刻退出 Lunarca，页面上还没保存的改动会丢失。",
+    "revoke_all": "全部退出",
+    "revoke_all_title": "让所有浏览器退出？",
+    "revoke_all_description": "所有浏览器都会立刻退出 Lunarca，页面上还没保存的改动会丢失。网页访问仍然开着，可以重新登录。",
+    "revoke_all_confirm": "全部退出"
+  },
+  "web_access": {
+    "label": "允许在网页上访问我的笔记",
+    "loading": "正在获取网页访问设置…",
+    "retry": "重试",
+    "disable_title": "关闭网页访问？",
+    "disable_description": "关闭后，所有浏览器都会退出 Lunarca。重新开启网页访问前，无法在网页上登录。",
+    "disable_confirm": "关闭网页访问"
+  },
   "session": {
     "title": "账户",
     "email_label": "邮箱",
@@ -70,6 +94,12 @@
       "title": "退出登录？",
       "body": "这台设备上的云同步会立即停止，本地文件不受影响。再次登录同一账户会自动接着同步。",
       "confirm": "退出登录"
+    },
+    "switch_confirm": {
+      "title": "切换到另一台服务器？",
+      "body": "会先退出 {{account}}（{{server}}）。这台设备上的云同步随之停止，本地文件不受影响；笔记库仍连着这个账户，在新服务器登录后，可以选择让它同步到新账户，也可以不同步。",
+      "this_account": "当前账户",
+      "confirm": "退出并切换"
     }
   },
   "tier": {
@@ -101,6 +131,7 @@
   },
   "actions": {
     "logout": "退出登录",
+    "switch_server": "切换服务器",
     "logging_out": "正在退出…",
     "dismiss": "关闭"
   },
@@ -168,6 +199,7 @@
     "done": "账户已删除。计费与用量记录按法律要求保留 {{count}} 年，不含你的邮箱；这台设备上的笔记与录音都还在。"
   },
   "error": {
+    "web_access_unavailable": "这台服务器暂不提供网页访问设置。",
     "not_logged_in": "尚未登录。",
     "needs_relogin": "会话已失效，请重新登录。",
     "no_pending_login": "没有进行中的登录流程。",
@@ -211,6 +243,8 @@
     },
     "already_signed_in": "已经登录了一个账户。一次只能登录一个；要换服务器，请先退出登录。",
     "not_an_address": "请粘贴管理员发来的邀请链接，或填服务器地址（形如 https://ai.example.com:8443）。",
+    "no_server_at_address": "{{host}} 上没有 Lunarca 服务端。",
+    "no_server_at_address_action": "要登录 Lunarca 云，在「登录到」里选「Lunarca 云」；组织的服务器地址请向管理员要。",
     "link_rejected": {
       "not_connect_link": "这不是一条 Lunarca 邀请链接。",
       "unsupported_version": "这条邀请链接的格式比当前版本新，请先更新 Lunarca。",
@@ -348,7 +382,7 @@
       "syncing": "同步中…",
       "paused": "已暂停",
       "error": "同步出错",
-      "other_account": "已连接到另一个账户（{{account}}）"
+      "other_account": "已连接到另一个账户（{{account}} · {{server}}）"
     },
     "confirm_delete": {
       "open": "确认删除并继续",
@@ -376,6 +410,11 @@
       "loading_vaults": "正在读取账户里的云端库…",
       "new_desc": "上传到新云端库。",
       "join_desc": "合并本地与所选云端库：两侧独有文件互相补齐，同名差异保留冲突副本。",
+      "choice_download": "下载「{{vault}}」为新库，这份本地库不动",
+      "download_desc": "选一个位置，把云端库下载成一个新的本地库。这份本地库保持原样，不上传。",
+      "preview": "将下载 {{download}} 个文件，上传 {{upload}} 个（{{size}}），{{same}} 个相同，{{differ}} 个两边不同（保留两份）。不会删除任何文件。",
+      "recordings_stay": "录音放不下云端剩余空间，默认留在本机，可以在同步设置里改。",
+      "not_now": "暂不同步",
       "enabling": "正在创建云端库…",
       "joining": "正在加入…",
       "create": "开启同步",
@@ -540,7 +579,6 @@
     "title": "登录",
     "intro": "登录后，AI 与同步由你登录的服务器提供；不登录也能完整使用本机功能，笔记和录音始终保存在这台设备上。",
     "official": "Lunarca 云",
-    "remembered": "将登录到上次用过的服务器：{{name}}",
     "continue": "继续",
     "checking": "正在核对服务器…",
     "cancel": "取消",
@@ -553,10 +591,13 @@
     "browser": "用浏览器登录",
     "no_method": "这台服务器没有开放登录方式，请联系管理员。",
     "open_org_config": "导入组织配置文件…",
-    "use_other_server": "使用其他服务器",
-    "use_default_server": "按邮箱自动选择服务器",
     "server_input": "服务器地址或邀请链接",
     "server_placeholder": "https://主机:端口，或管理员发来的 lunarca:// 链接",
+    "server_choice": {
+      "label": "登录到",
+      "remembered": "上次用过：{{name}}",
+      "other": "其他服务器或邀请链接…"
+    },
     "change": "更改",
     "sso_needs_config": "这台服务器还没在本机登录过，登录前看不到它是否提供单点登录。用单点登录的话，请导入管理员给的组织配置文件；用密码或一次性码登录则无需任何准备。"
   },

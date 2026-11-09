@@ -5,7 +5,7 @@
 
 import { useTranslation } from "react-i18next";
 
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { isInstalled, ModelManagementPanel } from "./ModelManagementPanel";
 import { useModels } from "./use-settings";
 

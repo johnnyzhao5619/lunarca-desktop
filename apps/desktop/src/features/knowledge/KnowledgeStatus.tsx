@@ -15,7 +15,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands, type KnowledgeOverviewDto } from "../../ipc/bindings";
 import { useVaultReload } from "../../hooks/use-vault-reload";
-import { SparklesIcon } from "../../components/ui/Icon";
+import { SparklesIcon } from "@lunarca/editor-core/Icon";
 import { requestDistillBatch } from "../distill/distill-actions";
 import { goTo, openNote } from "../../lib/navigate";
 

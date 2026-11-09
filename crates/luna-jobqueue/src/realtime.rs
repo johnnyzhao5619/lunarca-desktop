@@ -6,8 +6,8 @@
 //!
 //! ## 职责
 //! - **持有会话生命周期**：采集停止回调 + ASR Job 取消令牌 + 可选译者。
-//! - **聚合 RTF**：`T_audio`（音频窗口时长）+ `T_inference`（ASR 内部结果通道，不污染
-//!   对外 `JobEvent`）→ 滑窗 RTF。
+//! - **聚合 RTF**：`T_inference`（ASR 内部结果通道，不污染对外 `JobEvent`）÷ 这段时间流过的
+//!   **会话时长**（含静音与被跳过的窗，TDD-02 §5.1）→ 滑窗 RTF = 解码器的忙碌占比。
 //! - **单实例滞后降级控制器**：仅此处持有 `DegradationController` 决策实例（TDD-02 §5.2
 //!   决策归属）；`luna-audio` 只产指标，不持有决策。降级的**执行**分两级，顺序是固定的
 //!   （ADR-078 ②）：**先停批式转写的准入**（`AsrLoadGauge` 的闸；它的音频已全量落盘、
@@ -87,6 +87,9 @@ pub struct RealtimeSession {
     degraded_tx: tokio::sync::watch::Sender<Option<DegradedEvent>>,
     /// ASR 内部推理耗时接收端（每窗 T_inference ms，非 JobEvent）。
     infer_rx: Option<std::sync::mpsc::Receiver<u64>>,
+    /// 上一次喂解码以来、被跳过 / 丢弃的窗带过来的会话时长（ms）——并进下一个
+    /// 真正喂解码的窗的分母（见 [`Self::on_skipped_window`]）。
+    pending_elapsed_ms: f32,
 }
 
 impl RealtimeSession {
@@ -114,6 +117,7 @@ impl RealtimeSession {
             load,
             degraded_tx,
             infer_rx,
+            pending_elapsed_ms: 0.0,
         };
         (session, degraded_rx)
     }
@@ -126,21 +130,39 @@ impl RealtimeSession {
     pub fn attach_infer(&mut self, infer_rx: Option<std::sync::mpsc::Receiver<u64>>) {
         self.infer_rx = infer_rx;
         self.rtf_tracker = RtfTracker::default_window();
+        self.pending_elapsed_ms = 0.0;
     }
 
-    /// 每个音频窗口送达时调用（`audio_ms` = 本窗口音频物理时长 ms）。
+    /// 一个窗**没有**喂解码（档位跳过 / 通道满丢弃）时调用，`elapsed_ms` 同
+    /// [`Self::on_audio_window`]。
     ///
-    /// 从 `infer_rx` 非阻塞拉取最新 `T_inference`；聚合 RTF；驱动降级控制器。
+    /// 这段时间解码器没在为它干活，但时间是真流过去了：不记下来，下一个喂解码的窗就只
+    /// 带着自己那一小段时长去除解码耗时——Yellow 跳快照后只剩终窗、Red 只剩探测窗，
+    /// RTF 永远被算高、档位降不回来。只累计，不驱动控制器（没有新的推理测量）。
+    pub fn on_skipped_window(&mut self, elapsed_ms: f32) {
+        self.pending_elapsed_ms += elapsed_ms;
+    }
+
+    /// 每个**喂进解码**的窗调用一次。`elapsed_ms` = 自上一个窗（不论喂没喂解码）以来流过的
+    /// **会话时长**（`SpeechWindow::elapsed_samples` 换算；含静音），**不是**窗里的语音时长。
+    ///
+    /// 为什么是会话时长（TDD-02 §5.1）：降级要答的是「解码器跟不跟得上实时」，即这段时间里
+    /// 它忙了多久。按语音时长算时，底噪峰值切出的 100–300 ms 短窗每个都付一次整窗解码
+    /// （tiny 档约 0.3 s），RTF 被算成 1–2.6、档位掉到 Yellow/Red、字幕停更，而解码器实际
+    /// 只忙了一成多的时间（2026-11-04 真机：-75 dBFS 底噪、几乎无人声）。连续语音时快照之间
+    /// 流过的正好是快照间隔，两种口径逐窗相等——正常说话的档位判定不变。
+    ///
+    /// 从 `infer_rx` 非阻塞拉取**全部**已完成的 `T_inference`（分子是这段时间里解码器
+    /// 忙的总时长，只取一条会让积压的测量永远滞后）；聚合 RTF；驱动降级控制器。
     /// 仅当档位**变化**时发出 [`DegradedEvent`]（低频；同档位重复调用返回 `None`）。
-    pub fn on_audio_window(&mut self, audio_ms: f32) -> Option<DegradedEvent> {
-        // 非阻塞拉取 ASR 内部推理耗时
+    pub fn on_audio_window(&mut self, elapsed_ms: f32) -> Option<DegradedEvent> {
         let infer_ms = self
             .infer_rx
             .as_ref()
-            .and_then(|rx| rx.try_recv().ok())
-            .map_or(0.0, |ms| ms as f32);
+            .map_or(0.0, |rx| rx.try_iter().map(|ms| ms as f32).sum::<f32>());
+        let elapsed_ms = elapsed_ms + std::mem::take(&mut self.pending_elapsed_ms);
 
-        self.rtf_tracker.add_measurement(infer_ms, audio_ms);
+        self.rtf_tracker.add_measurement(infer_ms, elapsed_ms);
         let rtf = self.rtf_tracker.current_rtf();
         // 控制器的输入是**本机 ASR 负载**，不是单条流的 RTF：只看 RTF 答不上
         // 「是谁让实时腿跟不上的」，而那正是决定该卸谁的唯一问题（ADR-078 ②）。
@@ -238,7 +260,7 @@ impl Drop for RealtimeSession {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use luna_audio::DegradationState;
+    use luna_audio::{DegradationState, SegmenterConfig, StreamSegmenter, VadLabel};
     use luna_core::CancelToken;
 
     fn noop_session() -> (
@@ -258,7 +280,7 @@ mod tests {
         let (mut session, _) =
             RealtimeSession::new(None, cancel, Some(infer_rx), AsrLoadGauge::new());
 
-        // T_inference = 600ms, T_audio = 1000ms → RTF ≈ 0.6
+        // T_inference = 600ms, 流过 1000ms → RTF ≈ 0.6
         infer_tx.send(600).unwrap();
         session.on_audio_window(1000.0);
 
@@ -363,6 +385,167 @@ mod tests {
             DegradationState::Red,
             "RTF=2.0 持续应升至 Red"
         );
+    }
+
+    // ── RTF 分母 = 流过的会话时长（TDD-02 §5.1）──────────────────────────────
+
+    /// 把一串 VAD 标签（每帧 20 ms）经真实分段器回放给会话：每个喂解码的窗付 `decode_ms`
+    /// 推理耗时；档位不是 Green 时按 `should_decode_window` 的语义跳窗（Yellow/Orange 跳
+    /// 快照、Red 全跳——不模拟探测配额，只会让 Red 更难恢复，是更严的条件）。
+    /// 返回途经的最高实时档位与喂解码的窗数。
+    fn replay(
+        labels: &[VadLabel],
+        snapshot_ms: usize,
+        decode_ms: u64,
+    ) -> (DegradationState, usize) {
+        let mut cfg = SegmenterConfig::new(16_000);
+        cfg.snapshot_interval_samples = 16 * snapshot_ms;
+        let mut seg = StreamSegmenter::new(cfg);
+        let (infer_tx, infer_rx) = std::sync::mpsc::sync_channel::<u64>(64);
+        let (mut session, _) = RealtimeSession::new(
+            None,
+            CancelToken::new(),
+            Some(infer_rx),
+            AsrLoadGauge::new(),
+        );
+        let frame = vec![0.01f32; 320];
+        let mut worst = DegradationState::Green;
+        let mut fed = 0;
+        for &label in labels {
+            for w in seg.push(&frame, label) {
+                let elapsed_ms = w.elapsed_samples as f32 / 16.0;
+                let skip = match session.realtime_decode_tier() {
+                    DegradationState::Green => false,
+                    DegradationState::Yellow | DegradationState::Orange => w.is_snapshot,
+                    DegradationState::Red => true,
+                };
+                if skip {
+                    session.on_skipped_window(elapsed_ms);
+                    continue;
+                }
+                fed += 1;
+                infer_tx.send(decode_ms).unwrap();
+                session.on_audio_window(elapsed_ms);
+                if session.current_tier() as u8 > worst as u8 {
+                    worst = session.current_tier();
+                }
+            }
+        }
+        (worst, fed)
+    }
+
+    /// 底噪峰值：0.3–3 s 的静音之间夹 60–300 ms 被 VAD 判成语音的尖峰，共 ~45 s
+    /// （确定性伪随机，复刻 2026-11-04 真机：-75 dBFS 底噪、峰值 -52 dBFS、几乎无人声）。
+    fn noise_floor_labels() -> Vec<VadLabel> {
+        let mut rng: u64 = 0x1234_5678;
+        let mut next = move || {
+            rng ^= rng << 13;
+            rng ^= rng >> 7;
+            rng ^= rng << 17;
+            rng
+        };
+        let mut labels = Vec::new();
+        while labels.len() < 45 * 50 {
+            let gap = 15 + (next() % 135) as usize;
+            labels.extend(std::iter::repeat_n(VadLabel::Silence, gap));
+            let burst = 3 + (next() % 12) as usize;
+            labels.extend(std::iter::repeat_n(VadLabel::Speech, burst));
+        }
+        labels
+    }
+
+    /// **底噪不得把实时档位推下 Green**（提词器跟读 / 实时字幕停更的根因回归锁）。
+    ///
+    /// 这串底噪切出 ~22 个 100–300 ms 的窗，每个都付一次整窗解码（tiny 档 ~0.3 s）：解码器
+    /// 45 s 里只忙了 ~7 s。旧口径（分母 = 窗里新增的语音时长）把同一串窗算成滑窗 RTF
+    /// 最高 2.59 → Red，真机上 1.5 s 节奏掉到 Yellow、1 s 节奏到过 Red；本用例在旧口径下红。
+    #[test]
+    fn noise_floor_blips_do_not_degrade_the_live_tier() {
+        let labels = noise_floor_labels();
+        for snapshot_ms in [1_500, 1_000] {
+            let (worst, fed) = replay(&labels, snapshot_ms, 300);
+            assert_eq!(
+                worst,
+                DegradationState::Green,
+                "底噪短窗不是负载：{snapshot_ms} ms 快照节奏下档位必须保持 Green"
+            );
+            assert!(
+                fed >= 15,
+                "夹具应切出足够多的短窗且全部喂解码（实得 {fed}）"
+            );
+        }
+    }
+
+    /// 连续语音时口径不变：快照之间流过的正好是快照间隔，RTF = 解码耗时 ÷ 快照间隔，
+    /// 真跟不上（每窗解码 > 快照间隔）仍然立刻升档——修法没有把真实过载藏起来。
+    #[test]
+    fn continuous_speech_keeps_its_rtf_and_real_overload_still_escalates() {
+        let speech = vec![VadLabel::Speech; 8 * 50];
+        let (worst, _) = replay(&speech, 1_000, 300);
+        assert_eq!(
+            worst,
+            DegradationState::Green,
+            "0.3 s 解码 / 1 s 快照 = RTF 0.3"
+        );
+
+        let (worst, _) = replay(&speech, 1_000, 1_200);
+        assert_eq!(
+            worst,
+            DegradationState::Red,
+            "每 1 s 快照要解 1.2 s = 真跟不上，必须升到 Red"
+        );
+    }
+
+    /// 被跳过的窗时间照样流过：降档后只剩终窗在解码，RTF 必须看得见这段空闲才能降回来。
+    ///
+    /// 反向验证：不调 `on_skipped_window`（旧行为）时，终窗只带自己 100 ms 去除 300 ms
+    /// 解码，RTF 恒为 3.0——跳快照这件事本身让档位永远降不回来。
+    #[test]
+    fn skipped_windows_let_the_tier_recover() {
+        let (infer_tx, infer_rx) = std::sync::mpsc::sync_channel::<u64>(64);
+        let (mut session, _) = RealtimeSession::new(
+            None,
+            CancelToken::new(),
+            Some(infer_rx),
+            AsrLoadGauge::new(),
+        );
+        for _ in 0..5 {
+            infer_tx.send(900).unwrap();
+            session.on_audio_window(1_000.0);
+        }
+        assert_eq!(session.current_tier(), DegradationState::Orange);
+
+        // 之后每 utterance：两个快照被跳（各流过 1 s），终窗喂解码（距上一窗 100 ms）。
+        for _ in 0..8 {
+            session.on_skipped_window(1_000.0);
+            session.on_skipped_window(1_000.0);
+            infer_tx.send(300).unwrap();
+            session.on_audio_window(100.0);
+        }
+        assert_eq!(
+            session.current_tier(),
+            DegradationState::Green,
+            "真实负载 300 ms / 2.1 s ≈ 0.14，档位必须能降回 Green（实得 RTF {:.2}）",
+            session.current_rtf()
+        );
+    }
+
+    /// 分子取这段时间里**全部**完成的推理：一次喂解码之间解码器可能交回多条测量
+    /// （跳窗期间、或解码追上积压时），只取一条会让 RTF 系统性偏低且测量永远滞后。
+    #[test]
+    fn all_completed_inference_counts_toward_the_numerator() {
+        let (infer_tx, infer_rx) = std::sync::mpsc::sync_channel::<u64>(8);
+        let (mut session, _) = RealtimeSession::new(
+            None,
+            CancelToken::new(),
+            Some(infer_rx),
+            AsrLoadGauge::new(),
+        );
+        infer_tx.send(300).unwrap();
+        infer_tx.send(300).unwrap();
+        session.on_audio_window(1_000.0);
+        let rtf = session.current_rtf();
+        assert!((rtf - 0.6).abs() < 1e-4, "两条测量都要计入（got {rtf:.4}）");
     }
 
     // ── 取消传播 ──────────────────────────────────────────────────────────────

@@ -34,7 +34,6 @@ const PAGE_CLASS_OWNERS: Record<string, readonly string[]> = {
   "luna-publish": ["PublishView.tsx", "ChaptersSection.tsx", "PackageSection.tsx"],
   "luna-extra-request": ["ExtraRequestField.tsx"],
   "luna-new-project": ["NewProjectDialog.tsx"],
-  "luna-teleprompter": ["TeleprompterPanel.tsx"],
   "luna-creator-setup": ["CreatorSetup.tsx"],
   "luna-distribute": ["DistributeView.tsx"],
   "luna-channel-picker": ["ChannelPicker.tsx"],
@@ -56,7 +55,6 @@ const I18N_SECTION_OWNERS: Record<string, readonly string[]> = {
   "creator.quotes": ["ScriptInspector.tsx"],
   "creator.shots": ["ScriptInspector.tsx"],
   "creator.recording": ["RecordingPanel.tsx"],
-  "creator.teleprompter": ["TeleprompterPanel.tsx"],
   "creator.publish": ["PublishView.tsx"],
   "creator.publish.common": ["PublishView.tsx", "ChaptersSection.tsx", "PackageSection.tsx"],
   // 「〈渠道〉包装」这一步的名字：步骤列与那一节的标题是同一个词。

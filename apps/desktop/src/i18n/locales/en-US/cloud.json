@@ -41,6 +41,30 @@
     "change_submit": "Save new password",
     "changed": "Password changed. Other devices have been signed out."
   },
+  "web_sessions": {
+    "title": "Signed-in browsers",
+    "loading": "Loading browsers…",
+    "empty": "No browsers are signed in to Lunarca right now.",
+    "unknown_browser": "Unknown browser",
+    "signed_in": "Signed in {{time}}",
+    "last_seen": "Last used: {{time}}",
+    "retry": "Retry",
+    "revoke": "Sign out",
+    "revoke_title": "Sign out “{{name}}”?",
+    "revoke_description": "That browser is signed out of Lunarca right away. Unsaved changes on the page are lost.",
+    "revoke_all": "Sign out all",
+    "revoke_all_title": "Sign out every browser?",
+    "revoke_all_description": "Every browser is signed out of Lunarca right away. Unsaved changes on those pages are lost. Web access stays on, so you can sign in again.",
+    "revoke_all_confirm": "Sign out all"
+  },
+  "web_access": {
+    "label": "Allow web access to my notes",
+    "loading": "Checking web access…",
+    "retry": "Try again",
+    "disable_title": "Turn off web access?",
+    "disable_description": "This signs you out of Lunarca in every browser and blocks new web sign-ins until you turn web access on again.",
+    "disable_confirm": "Turn off web access"
+  },
   "session": {
     "title": "Account",
     "email_label": "Email",
@@ -70,6 +94,12 @@
       "title": "Sign out?",
       "body": "Cloud sync on this device stops right away; your local files aren’t affected. Signing back in to the same account resumes syncing automatically.",
       "confirm": "Sign out"
+    },
+    "switch_confirm": {
+      "title": "Switch to another server?",
+      "body": "This signs out {{account}} ({{server}}) first. Cloud sync on this device stops; your local files are not affected. Your vaults stay connected to this account — after you sign in on the new server, you can choose whether they sync to the new account.",
+      "this_account": "the current account",
+      "confirm": "Sign out and switch"
     }
   },
   "tier": {
@@ -101,6 +131,7 @@
   },
   "actions": {
     "logout": "Sign out",
+    "switch_server": "Switch server",
     "logging_out": "Signing out…",
     "dismiss": "Dismiss"
   },
@@ -171,6 +202,7 @@
   },
   "error": {
     "not_logged_in": "Not signed in.",
+    "web_access_unavailable": "Web access settings are unavailable on this server.",
     "needs_relogin": "Your session has expired. Please sign in again.",
     "no_pending_login": "No sign-in in progress.",
     "login_expired": "This sign-in timed out. Please start again.",
@@ -213,6 +245,8 @@
     },
     "already_signed_in": "You are already signed in. Only one account can be signed in at a time; sign out first to switch servers.",
     "not_an_address": "Paste the invite link from your administrator, or enter a server address (for example https://ai.example.com:8443).",
+    "no_server_at_address": "There is no Lunarca server at {{host}}.",
+    "no_server_at_address_action": "To sign in to Lunarca Cloud, choose “Lunarca Cloud” under “Sign in to”. For your organization’s server, ask your administrator for its address.",
     "link_rejected": {
       "not_connect_link": "This is not a Lunarca invite link.",
       "unsupported_version": "This invite link uses a newer format than this version supports. Update Lunarca first.",
@@ -350,7 +384,7 @@
       "syncing": "Syncing…",
       "paused": "Paused",
       "error": "Sync error",
-      "other_account": "Connected to another account ({{account}})"
+      "other_account": "Connected to another account ({{account}} · {{server}})"
     },
     "confirm_delete": {
       "open": "Confirm deletions and continue",
@@ -378,6 +412,11 @@
       "loading_vaults": "Loading cloud vaults on your account…",
       "new_desc": "Upload to a new remote vault.",
       "join_desc": "Merge local and selected remote vaults. Files unique to either side are copied across; differing files with the same name produce conflict copies.",
+      "choice_download": "Download \"{{vault}}\" as a new vault and leave this one as it is",
+      "download_desc": "Pick a location to download the cloud vault as a new local vault. This local vault stays as it is and isn’t uploaded.",
+      "preview": "{{download}} files will download and {{upload}} will upload ({{size}}). {{same}} are identical and {{differ}} differ (both copies are kept). Nothing will be deleted.",
+      "recordings_stay": "Your recordings don’t fit in your remaining cloud space, so they stay on this device. You can change this in sync settings.",
+      "not_now": "Not now",
       "enabling": "Creating cloud vault…",
       "joining": "Joining…",
       "create": "Turn on sync",
@@ -542,7 +581,6 @@
     "title": "Sign in",
     "intro": "When you sign in, AI and sync come from the server you sign in to. Without signing in, everything on this device still works, and your notes and recordings always stay here.",
     "official": "Lunarca Cloud",
-    "remembered": "Signing in to the server you used last time: {{name}}",
     "continue": "Continue",
     "checking": "Checking the server…",
     "cancel": "Cancel",
@@ -555,10 +593,13 @@
     "browser": "Sign in with browser",
     "no_method": "This server has no sign-in method enabled. Contact your administrator.",
     "open_org_config": "Import organization config…",
-    "use_other_server": "Use another server",
-    "use_default_server": "Pick the server from my email",
     "server_input": "Server address or invite link",
     "server_placeholder": "https://host:port, or the lunarca:// link from your admin",
+    "server_choice": {
+      "label": "Sign in to",
+      "remembered": "Last used: {{name}}",
+      "other": "Another server or invite link…"
+    },
     "change": "Change",
     "sso_needs_config": "You haven't signed in to this server on this device yet, so its single sign-on options aren't visible before sign-in. For single sign-on, import the organization config file from your admin; signing in with a password or one-time code needs nothing extra."
   },

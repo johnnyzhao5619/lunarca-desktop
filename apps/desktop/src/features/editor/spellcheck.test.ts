@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { EditorState } from "@codemirror/state";
 import { placeMisspellings, spellingTargetAt } from "./spellcheck";
-import { fullyParsed } from "./syntax-tree-test-fixture";
+import { fullyParsed } from "@lunarca/editor-core/syntax-tree-test-fixture";
 
 const DOC = "---\ntitel: x\n---\nThe wrold is `teh` here.\n\n```\nfuntion foo\n```\nSee https://exmaple.com now\n";
 

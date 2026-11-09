@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands, type ExternalToolGuideDto } from "../ipc/bindings";
-import { CopyIcon, ExternalWindowIcon } from "./ui/Icon";
+import { CopyIcon, ExternalWindowIcon } from "@lunarca/editor-core/Icon";
 
 /**
  * 一件外部工具的**安装引导块**——全应用唯一实现（设置的「外部工具」面板与「从链接导入」

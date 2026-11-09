@@ -233,7 +233,7 @@ fn read_binding(conn: &Connection) -> Result<Option<Binding>, StateError> {
 /// 名字比较键（NFC + 小写）：同一路径两种写法、或大小写只差一处，都会撞到同一个键。
 #[must_use]
 pub fn path_key(path: &str) -> String {
-    luna_vault::pathutil::name_key(path)
+    luna_sync_core::path::name_key(path)
 }
 
 impl SyncState {

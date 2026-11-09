@@ -45,6 +45,9 @@ export function errorAction(error: CloudError, t: Translate): string | null {
       if (error.status === 404) return t("error.server_action.not_found");
       if (error.status === 401 || error.status === 403) return t("error.server_action.forbidden");
       return t("error.server_action.other");
+    // 多半是填了官网或别的网站：先指向「登录到 › Lunarca 云」，再说组织服务器去问谁（ADR-158 ①）。
+    case "no_server_at_address":
+      return t("error.no_server_at_address_action");
     default:
       return null;
   }

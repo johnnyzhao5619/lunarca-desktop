@@ -13,7 +13,7 @@
 
 import net from "node:net";
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { clearStaleBundle } from "./dev-stale-bundle.mjs";
@@ -27,7 +27,7 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
  *
  * 此前只认 `cargo tauri`，而 `cargo-tauri` 是一个装在 `~/.cargo/bin/` 的**机器级二进制**
  * （`cargo install tauri-cli`），版本**在本仓任何地方都没有钉死**。而 `@tauri-apps/cli` 就在
- * `apps/desktop/package.json` 里按 `^2.11.2` 钉着、随 `npm ci` 一起装好——两者并存时，
+ * `apps/desktop/package.json` 里钉着版本、在仓库根 `npm ci` 时一起装好——两者并存时，
  * 真正决定构建行为的却是那个没人管版本的。这与 `rust-toolchain.toml` 头注释写的
  * 「防"从第一天就环境漂"」是同一条纪律，只是当时漏掉了 tauri CLI 这一环。
  *
@@ -40,8 +40,10 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 function resolveTauriCli() {
   // 直接用 node 跑包入口，而不是 `.bin/tauri`：Windows 上那是 sh 脚本，不经 shell 无法
   // spawn；改走 `.cmd` 又得开 shell，`--config` 的 JSON 引号会被 cmd 拆坏。
-  const local = resolve(REPO_ROOT, "apps/desktop/node_modules/@tauri-apps/cli/tauri.js");
-  if (existsSync(local)) {
+  // 从声明它的工作区（apps/desktop）按 Node 解析规则找：npm workspaces 把它提升到仓库根的
+  // node_modules，但提升与否由 npm 决定，不写死目录。
+  const local = resolveWorkspaceModule("@tauri-apps/cli/tauri.js");
+  if (local) {
     return { command: process.execPath, prefix: [local], label: "@tauri-apps/cli（仓库钉版本）" };
   }
   const probe = spawnSync("cargo", ["tauri", "--version"], { stdio: "ignore" });
@@ -49,6 +51,15 @@ function resolveTauriCli() {
     return { command: "cargo", prefix: ["tauri"], label: "cargo-tauri（机器全局）" };
   }
   return null;
+}
+
+/** 按 apps/desktop 的解析视角找一个依赖文件；没装返回 null。 */
+function resolveWorkspaceModule(specifier) {
+  try {
+    return createRequire(resolve(REPO_ROOT, "apps/desktop/package.json")).resolve(specifier);
+  } catch {
+    return null;
+  }
 }
 
 /** 端口是否可被本机监听（回环）。listen 成功即空闲，失败即占用。 */
@@ -119,8 +130,8 @@ const cli = resolveTauriCli();
 if (!cli) {
   console.error(
     "[dev] 找不到 tauri CLI。\n" +
-      "  仓库自带的那个（推荐，版本随 package.json 钉死）：\n" +
-      "    npm --prefix apps/desktop ci\n" +
+      "  仓库自带的那个（推荐，版本随 package.json 钉死；在仓库根装全部前端工作区）：\n" +
+      "    npm ci\n" +
       "  或装机器全局的：\n" +
       "    cargo install tauri-cli --locked",
   );

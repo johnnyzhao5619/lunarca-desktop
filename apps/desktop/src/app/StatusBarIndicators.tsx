@@ -12,7 +12,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands, events } from "../ipc/bindings";
-import { BellIcon, CpuIcon } from "../components/ui/Icon";
+import { BellIcon, CpuIcon } from "@lunarca/editor-core/Icon";
 import { useComputeStatus } from "../hooks/use-compute-status";
 import { useIndexStatus } from "../hooks/use-index-status";
 import { useSyncOverviewSelector } from "../hooks/use-sync-overview";

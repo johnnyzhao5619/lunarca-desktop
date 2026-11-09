@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands, type NoteRefDto } from "../../ipc/bindings";
 import { notePathLabel } from "../../lib/note-path";
-import { LinkIcon } from "../../components/ui/Icon";
+import { LinkIcon } from "@lunarca/editor-core/Icon";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { useIndexStatus } from "../../hooks/use-index-status";
 

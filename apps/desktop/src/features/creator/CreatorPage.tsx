@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
-import { ChevronRightIcon, CloseIcon } from "../../components/ui/Icon";
+import { ChevronRightIcon, CloseIcon } from "@lunarca/editor-core/Icon";
 import { IconButton } from "../../components/ui/IconButton";
 
 export interface CreatorPageHeaderProps {

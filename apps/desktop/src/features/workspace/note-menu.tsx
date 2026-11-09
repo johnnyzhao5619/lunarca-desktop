@@ -42,7 +42,7 @@ import {
   StethoscopeIcon,
   StickyNoteIcon,
   TrashIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import {
   langLabelKey,
   TRANSLATE_TARGET_SETTING,

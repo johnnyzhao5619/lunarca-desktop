@@ -1,0 +1,11 @@
+/* 网页版自己的语义尺寸 Token（TDD-15 §3.1）：组件只引用这些名字，不写裸尺寸。 */
+:root {
+  --web-auth-card-max-inline: 26rem;
+  --web-sidebar-inline: 18rem;
+  --web-sidebar-min-inline: 14rem;
+  --web-account-max-inline: 40rem;
+  --web-dialog-max-inline: 30rem;
+  --web-editor-min-block: 16rem;
+  --web-compare-max-block: 24rem;
+  --web-menu-min-inline: 12rem;
+}

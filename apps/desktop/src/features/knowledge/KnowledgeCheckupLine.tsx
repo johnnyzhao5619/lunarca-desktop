@@ -15,7 +15,7 @@
  */
 
 import { useTranslation } from "react-i18next";
-import { StethoscopeIcon } from "../../components/ui/Icon";
+import { StethoscopeIcon } from "@lunarca/editor-core/Icon";
 import { requestKnowledgeCheckup } from "../../lib/app-events";
 import type { NextActionTone } from "../../lib/next-action-tone";
 

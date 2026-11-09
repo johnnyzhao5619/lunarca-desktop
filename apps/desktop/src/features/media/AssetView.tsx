@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands } from "../../ipc/bindings";
 import { vaultMediaStreamUrl, vaultFileAssetSrc } from "./media-src";
-import { ExternalWindowIcon, FileTextIcon, ImageIcon } from "../../components/ui/Icon";
-import type { AssetKind } from "./asset-kind";
+import { ExternalWindowIcon, FileTextIcon, ImageIcon } from "@lunarca/editor-core/Icon";
+import type { AssetKind } from "@lunarca/editor-core/asset-kind";
 import { fileNameOf } from "../../lib/note-path";
 
 interface AssetViewProps {

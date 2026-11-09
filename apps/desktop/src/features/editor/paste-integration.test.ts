@@ -5,7 +5,7 @@ import { EditorView } from "@codemirror/view";
 import { markdown } from "@codemirror/lang-markdown";
 import { commands, type HtmlPasteDto } from "../../ipc/bindings";
 import { pasteContent, pasteFromClipboard, type PasteAssetsContext } from "./paste-assets";
-import { pasteRangeField } from "./paste-range";
+import { pasteRangeField } from "@lunarca/editor-core/paste-range";
 vi.mock("../../ipc/bindings", () => ({ commands: { convertClipboardHtml: vi.fn(), readClipboardContent: vi.fn() } }));
 const views: EditorView[] = [];
 function mount(doc = "abcd", anchor = 2) {

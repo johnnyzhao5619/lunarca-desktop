@@ -54,7 +54,7 @@ async fn local_engine_translate_smoke() {
 }
 
 /// 虚构 E05 夹具经真实 `AIProvider` 走一次双项目/无关主题的初稿预览。
-/// 只读、不发布；`JobQueue`、应用库代际、增量计划及两名评审质量闸门仍须另验。
+/// 只读、不发布；`JobQueue`、应用库代际、增量计划及所有者语义验收仍须另验。
 ///
 /// ```sh
 /// LUNA_LLAMA_BIN_DIR=… LUNA_LLAMA_CHAT_GGUF=…/qwen3.5-4b-q4_k_m.gguf LUNA_LLAMA_CTX=16384 \
@@ -184,7 +184,7 @@ async fn topic_generation_provider_smoke() {
 
 /// 虚构增量夹具经真实 `AIProvider` 逐次打分：协议、范围、终态与分歧指向分别计数。
 /// 它是诊断探针而不是语义验收——不 panic 于语义失误，只在协议之外的环境故障时失败；
-/// 结果按行打印，供实施计划留证。`JobQueue`、应用库代际与两名评审仍须另验。
+/// 结果按行打印，供实施计划留证。`JobQueue`、应用库代际与所有者语义验收仍须另验。
 ///
 /// ```sh
 /// LUNA_LLAMA_BIN_DIR=… LUNA_LLAMA_CHAT_GGUF=…/qwen3.5-4b-q4_k_m.gguf LUNA_LLAMA_CTX=16384 \
@@ -495,7 +495,7 @@ async fn native_endpoint_lane_failures_are_server_side_never_bare_upstream() {
     }
 }
 
-/// 两名评审用的固定评测集（`evals/fixtures/topic_review_set.json`，60 组虚构样本）经真实
+/// 人工验收用的固定评测集（`evals/fixtures/topic_review_set.json`，60 组虚构样本）经真实
 /// `AIProvider` 逐组跑一次增量，导出评审 CSV：每条新声明一行，带所引片段与三项机器初筛
 /// （引用是否落在本主题范围、是否出现范围外字样、确定程度/否定词是否保留）；`relevant` /
 /// `supported` / `certainty_kept` / `conflict_kept` 四列留空给人工（标注办法见
@@ -524,7 +524,8 @@ async fn topic_review_set_export() {
         None,
         &[],
     );
-    let prompt_revision = luna_vault::ContentHash::of(instruction.as_bytes()).to_string();
+    let prompt_revision =
+        luna_sync_core::hashing::ContentHash::of(instruction.as_bytes()).to_string();
     let prompt_revision = &prompt_revision[..prompt_revision.len().min(16)];
     let strings = |value: &serde_json::Value| -> Vec<String> {
         value

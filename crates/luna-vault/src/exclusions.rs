@@ -229,7 +229,10 @@ mod tests {
         vault.set_excluded("归档", true).unwrap();
 
         let found = vault
-            .search_matches(&crate::SearchQuery::parse("季度目标", false))
+            .search_matches(&luna_sync_core::search::SearchQuery::parse(
+                "季度目标",
+                false,
+            ))
             .unwrap();
         let paths: Vec<_> = found.notes.iter().map(|note| note.path.as_str()).collect();
         assert_eq!(paths, vec!["计划.md"]);

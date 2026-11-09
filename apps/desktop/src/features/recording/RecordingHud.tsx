@@ -38,7 +38,7 @@ import {
   SettingsIcon,
   SquareIcon,
   StopIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { HudSurface } from "../../components/ui/HudSurface";
 import { HudHeader } from "../../components/ui/HudHeader";
 import { HudReceipt, type HudReceiptValue } from "../../components/ui/HudReceipt";

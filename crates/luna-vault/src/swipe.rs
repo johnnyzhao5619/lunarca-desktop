@@ -55,7 +55,7 @@ fn first_sentence(line: &str) -> String {
 #[must_use]
 pub fn pattern_names(content: &str, prefix: &str) -> Vec<String> {
     let branch = format!("{prefix}/").to_lowercase();
-    crate::parse::frontmatter_tags(content)
+    luna_sync_core::tags::frontmatter_tags(content)
         .into_iter()
         .filter_map(|tag| {
             tag.to_lowercase()
@@ -91,7 +91,7 @@ pub fn pattern_tag(prefix: &str, name: &str) -> Option<String> {
 #[must_use]
 pub fn set_pattern_tag(content: &str, prefix: &str, tag: &str) -> NoteTagEdit {
     let branch = format!("{prefix}/").to_lowercase();
-    let has_tags = crate::frontmatter_edit::read_properties(content)
+    let has_tags = luna_sync_core::frontmatter_edit::read_properties(content)
         .is_ok_and(|props| props.iter().any(|p| p.key == "tags"));
     if !has_tags {
         return add_tag_to_note(content, tag);
@@ -172,14 +172,20 @@ mod tests {
         let NoteTagEdit::Written(next) = set_pattern_tag(note, "套路", "套路/悬念") else {
             panic!("应当写入");
         };
-        assert_eq!(crate::parse::frontmatter_tags(&next), ["选题", "套路/悬念"]);
+        assert_eq!(
+            luna_sync_core::tags::frontmatter_tags(&next),
+            ["选题", "套路/悬念"]
+        );
         assert!(next.ends_with("正文\n"));
         // 没有 tags 键：新加一行，正文不动。
         let NoteTagEdit::Written(next) = set_pattern_tag("正文\n", "套路", "套路/反常识")
         else {
             panic!("应当写入");
         };
-        assert_eq!(crate::parse::frontmatter_tags(&next), ["套路/反常识"]);
+        assert_eq!(
+            luna_sync_core::tags::frontmatter_tags(&next),
+            ["套路/反常识"]
+        );
         assert_eq!(
             set_pattern_tag("---\ntags: [套路/悬念]\n---\n", "套路", "套路/悬念"),
             NoteTagEdit::Unchanged

@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronLeftIcon, ChevronRightIcon, SendIcon, TrashIcon } from "../../components/ui/Icon";
+import { ChevronLeftIcon, ChevronRightIcon, SendIcon, TrashIcon } from "@lunarca/editor-core/Icon";
 import { IconButton } from "../../components/ui/IconButton";
 import { isImeKeyEvent } from "../../lib/ime-key-event";
 

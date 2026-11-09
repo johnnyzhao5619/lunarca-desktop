@@ -13,6 +13,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::client::CloudClient;
 use crate::error::CloudError;
+use luna_sync_core::commit::{self, CommitItem, CommitReply};
 
 /// JSON 里的一段二进制（标准 base64）。
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -305,59 +306,6 @@ pub struct SyncManifestDto {
     pub entries: Vec<SyncEntryDto>,
 }
 
-/// 一个条目的改动。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
-pub enum SyncChangeInput {
-    Put {
-        entry_ct: Base64Bytes,
-        size_padded: i64,
-        chunk_ids: Vec<String>,
-    },
-    Delete,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct SyncCommitItem {
-    pub file_id: String,
-    pub base_rev: Option<i64>,
-    pub change: SyncChangeInput,
-}
-
-#[derive(Debug, Serialize)]
-struct CommitBody<'a> {
-    items: &'a [SyncCommitItem],
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
-#[serde(tag = "outcome", rename_all = "snake_case")]
-pub enum SyncItemResultDto {
-    Committed {
-        file_id: String,
-        rev: i64,
-        seq: i64,
-    },
-    StaleBase {
-        file_id: String,
-        current_rev: Option<i64>,
-    },
-    MissingBlobs {
-        file_id: String,
-        chunk_ids: Vec<String>,
-    },
-    /// 超过单文件上限（ADR-156 ④；服务端按引用块的密文字节求和判）：这一条没提交，其余照常。
-    TooLarge {
-        file_id: String,
-        max_bytes: i64,
-    },
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
-pub struct SyncCommitReplyDto {
-    pub head_seq: i64,
-    pub results: Vec<SyncItemResultDto>,
-}
-
 #[derive(Debug, Serialize)]
 struct MissingBody<'a> {
     chunk_ids: &'a [String],
@@ -625,16 +573,18 @@ impl CloudClient {
         &self,
         vault_id: &str,
         idempotency_key: &str,
-        items: &[SyncCommitItem],
-    ) -> Result<SyncCommitReplyDto, CloudError> {
-        let body = CommitBody { items };
+        items: &[CommitItem],
+    ) -> Result<CommitReply, CloudError> {
+        // 请求体只由 `luna-sync-core` 写出：网页版发的是同一份字节（ADR-177 ⑥）。
+        let body = commit::body_json(items);
         let response = self
             .authed_with(
                 reqwest::Method::POST,
                 &format!("/sync/v1/vaults/{vault_id}/commits"),
                 |r| {
                     r.header(IDEMPOTENCY_KEY_HEADER, idempotency_key)
-                        .json(&body)
+                        .header(reqwest::header::CONTENT_TYPE, "application/json")
+                        .body(body.clone())
                 },
             )
             .await?;
@@ -663,6 +613,7 @@ mod tests {
     use super::*;
     use crate::client::TokenResponse;
     use crate::store::MemoryStore;
+    use luna_sync_core::commit::{CommitChange, CommitResult};
 
     /// 一个按顺序回答的假服务端：记下每个请求（请求行 + 头 + 体），回给定的状态与体。
     /// 假服务端记下的请求：（请求行 + 头，请求体）。
@@ -743,7 +694,7 @@ mod tests {
             ("200 OK", br#"{"missing":["b"]}"#.to_vec(), JSON),
             ("201 Created", Vec::new(), JSON),
             ("200 OK", vec![1, 2, 3, 4], "application/octet-stream"),
-            ("200 OK", br#"{"head_seq":6,"results":[{"outcome":"committed","file_id":"f1","rev":3,"seq":6},{"outcome":"stale_base","file_id":"f2","current_rev":null}]}"#.to_vec(), JSON),
+            ("200 OK", format!(r#"{{"head_seq":6,"results":[{{"outcome":"committed","file_id":"{F1}","rev":3,"seq":6}},{{"outcome":"stale_base","file_id":"{F2}","current_rev":null}}]}}"#).into_bytes(), JSON),
             ("409 Conflict", br#"{"error":"sync_epoch_changed"}"#.to_vec(), JSON),
         ];
         let (base, seen, server) = fake_server(replies);
@@ -764,33 +715,33 @@ mod tests {
             client.sync_get_blob("v1", "b").await.unwrap(),
             vec![1, 2, 3, 4]
         );
+        let (f1, f2) = (
+            uuid::Uuid::parse_str(F1).unwrap(),
+            uuid::Uuid::parse_str(F2).unwrap(),
+        );
         let reply = client
             .sync_commit(
                 "v1",
                 "key-1",
                 &[
-                    SyncCommitItem {
-                        file_id: "f1".into(),
+                    CommitItem {
+                        file_id: f1,
                         base_rev: Some(2),
-                        change: SyncChangeInput::Put {
-                            entry_ct: Base64Bytes(vec![1; 3]),
+                        change: CommitChange::Put {
+                            entry_ct: vec![1; 3],
                             size_padded: 4096,
                             chunk_ids: vec!["b".into()],
                         },
                     },
-                    SyncCommitItem {
-                        file_id: "f2".into(),
-                        base_rev: Some(1),
-                        change: SyncChangeInput::Delete,
-                    },
+                    commit::delete(f2, 1),
                 ],
             )
             .await
             .unwrap();
         assert_eq!(
             reply.results[1],
-            SyncItemResultDto::StaleBase {
-                file_id: "f2".into(),
+            CommitResult::StaleBase {
+                file_id: f2,
                 current_rev: None
             }
         );
@@ -824,6 +775,9 @@ mod tests {
         assert_eq!(body, &vec![9, 9]);
         let (head, body) = &seen[4];
         assert!(head.to_ascii_lowercase().contains("idempotency-key: key-1"));
+        assert!(head
+            .to_ascii_lowercase()
+            .contains("content-type: application/json"));
         let json: serde_json::Value = serde_json::from_slice(body).unwrap();
         assert_eq!(json["items"][0]["change"]["kind"], "put");
         assert_eq!(
@@ -835,6 +789,93 @@ mod tests {
             serde_json::json!({"kind": "delete"})
         );
         assert_eq!(json["items"][1]["base_rev"], 1);
+    }
+
+    const F1: &str = "00000000-0000-7000-8000-0000000000f1";
+    const F2: &str = "00000000-0000-7000-8000-0000000000f2";
+
+    /// 桌面经本 crate 发出的提交体与网页版 WASM 的 `PreparedCommit::body()` 逐字节相同（ADR-177 ⑥）：
+    /// 两端都只由 `luna_sync_core::commit::body_json` 写出。这里把真正发到网线上的字节截下来，与它逐字节
+    /// 比对；条目密文与本 crate 的 [`Base64Bytes`] 同一口径（标准 base64、带填充）；除条目密文（随机 nonce）
+    /// 以外的部分与互通夹具逐项相同——`luna-web` 的 WASM 测试拿同一份夹具比 `PreparedCommit::body()`。
+    #[tokio::test]
+    async fn the_commit_body_on_the_wire_is_the_shared_one_byte_for_byte() {
+        use luna_sync_core::crypto::{Cmk, KeyRing};
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../../luna-sync-core/tests/fixtures/sync-interop-v1.json"
+        ))
+        .unwrap();
+        let cmk: [u8; 32] = STANDARD
+            .decode(fixture["cmk_b64"].as_str().unwrap())
+            .unwrap()
+            .try_into()
+            .unwrap();
+        let vault = uuid::Uuid::parse_str(fixture["vault_id"].as_str().unwrap()).unwrap();
+        let ring = KeyRing::new(vault, &[Cmk::from_bytes(1, cmk)]).unwrap();
+        let file_id = uuid::Uuid::parse_str(fixture["file_id"].as_str().unwrap()).unwrap();
+        let base = fixture["commit"]["base_rev"].as_i64().unwrap();
+        let prepared = luna_sync_core::manifest::prepare(
+            ring.current(),
+            fixture["path"].as_str().unwrap(),
+            fixture["plaintext"].as_str().unwrap().as_bytes(),
+            Some(0),
+        );
+        let put = commit::put(ring.current(), file_id, Some(base), &prepared);
+        // 长度不是 3 的倍数的密文：钉住填充。
+        let padded = CommitItem {
+            file_id,
+            base_rev: None,
+            change: CommitChange::Put {
+                entry_ct: vec![1; 4],
+                size_padded: 4096,
+                chunk_ids: Vec::new(),
+            },
+        };
+        let replies = vec![
+            ("200 OK", format!(r#"{{"head_seq":4,"results":[{{"outcome":"committed","file_id":"{file_id}","rev":4,"seq":4}}]}}"#).into_bytes(), JSON),
+            ("200 OK", format!(r#"{{"head_seq":5,"results":[{{"outcome":"committed","file_id":"{file_id}","rev":1,"seq":5}}]}}"#).into_bytes(), JSON),
+        ];
+        let (api, seen, server) = fake_server(replies);
+        let client = logged_in(&api);
+        client
+            .sync_commit("v1", "k1", std::slice::from_ref(&put))
+            .await
+            .unwrap();
+        client
+            .sync_commit("v1", "k2", std::slice::from_ref(&padded))
+            .await
+            .unwrap();
+        server.join().unwrap();
+        let seen = seen.lock().unwrap();
+
+        let wire = &seen[0].1;
+        assert_eq!(
+            wire.as_slice(),
+            commit::body_json(std::slice::from_ref(&put)).as_bytes(),
+            "发出的提交体必须就是共用的那一份（= PreparedCommit::body()）"
+        );
+        let mut json: serde_json::Value = serde_json::from_slice(wire).unwrap();
+        let ct = json["items"][0]["change"]
+            .as_object_mut()
+            .unwrap()
+            .remove("entry_ct")
+            .unwrap();
+        assert_eq!(json, fixture["commit"]["put_without_entry_ct"]);
+        let CommitChange::Put { entry_ct, .. } = &put.change else {
+            panic!("put");
+        };
+        assert_eq!(
+            serde_json::to_value(Base64Bytes(entry_ct.clone())).unwrap(),
+            ct,
+            "条目密文与 Base64Bytes 同一口径"
+        );
+
+        let wire = String::from_utf8(seen[1].1.clone()).unwrap();
+        assert!(wire.contains(r#""entry_ct":"AQEBAQ==""#), "{wire}");
+        assert_eq!(
+            serde_json::to_string(&Base64Bytes(vec![1; 4])).unwrap(),
+            r#""AQEBAQ==""#
+        );
     }
 
     fn vault_json(status: &str, extra: &str) -> String {

@@ -14,7 +14,7 @@
 //!
 //! 只有索引格式升级（`SCHEMA_VERSION` 变化）才整库重建，由打开索引时处理，不在这里。
 
-use crate::hashing::ContentHash;
+use luna_sync_core::hashing::ContentHash;
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
 

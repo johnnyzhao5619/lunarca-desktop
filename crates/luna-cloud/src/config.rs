@@ -2,7 +2,7 @@
 //!
 //! - API 根地址：账户记住的那一台服务器（[`crate::account`]）；从未登录过 = 内置官方后端
 //!   （release 为 `https://api.lunarca.app`，debug 为联调服务端，理由见 [`DEFAULT_API_BASE`]）。
-//! - Lease / 目录两把验签公钥：该服务器的信任锚钉住值；官方后端的目录公钥随应用编入。
+//! - Lease / 目录两把验签公钥：该服务器的信任锚钉住值；官方后端的两把都随应用编入。
 //!   公钥缺失时对应命令如实返回「未验签/无法验签」而不是假装验过。
 //! - 调试构建可用 env（`LUNARCA_API_BASE` / `LUNARCA_LEASE_PUBKEY` / `LUNARCA_CATALOG_PUBKEY`）
 //!   整体覆盖，供联调与排障；发行构建不认这三个变量。
@@ -57,10 +57,32 @@ pub const OFFICIAL_CATALOG_PUBKEY: &str = if cfg!(debug_assertions) {
     PRODUCTION_CATALOG_PUBKEY
 };
 
-/// 没配目录公钥、且地址就是内置官方后端时，用编入的官方公钥；别的地址一律不兜底——
-/// 拿官方的钥去验组织服务端的目录只会得到一句误导的 `bad_signature`。
-fn official_catalog_key(api_base: &str) -> Option<String> {
-    (api_base == DEFAULT_API_BASE).then(|| OFFICIAL_CATALOG_PUBKEY.to_owned())
+/// 联调后端（[`DEV_API_BASE`]）的 **Lease 验签公钥**：签离线租约 JWT 的那把（TDD-14 §3）。
+/// 与 `GET /v1/trust/keys` 公布的一致。
+const DEV_LEASE_PUBKEY: &str = "97e94e48506c0ba804e44404f11c1a95410fe8f867c1dd6e3ca664f3241c77b7";
+
+/// 生产后端（[`PRODUCTION_API_BASE`]）的 **Lease 验签公钥**，取自生产 `GET /v1/trust/keys`
+/// （2026-11-03）。官方后端不走钉住、也就不沿轮换链验（ADR-124），故生产换
+/// `LEASE_SIGNING_KEY` = 已发出的客户端一律验不过租约、断网即不可用——换钥前先发一个
+/// 编入新公钥的版本。
+const PRODUCTION_LEASE_PUBKEY: &str =
+    "990ecfc5a27374f874385c3c492695c4c54b0c96802e95a446baecc509b3a4a4";
+
+/// 内置官方后端的 Lease 验签公钥（ADR-158 ②：Lunarca 云的信任锚随应用编入）。
+/// 按构建档与 [`DEFAULT_API_BASE`] 成对，口径同 [`OFFICIAL_CATALOG_PUBKEY`]。
+///
+/// 它曾经缺席：官方后端跳过钉住，而派生只认 env 与钉住，于是正式包登录 Lunarca 云后
+/// 租约恒为 `no_pubkey`（真机 2026-11-03：「离线可用」一行写着本版应用没有内置验签公钥）。
+pub const OFFICIAL_LEASE_PUBKEY: &str = if cfg!(debug_assertions) {
+    DEV_LEASE_PUBKEY
+} else {
+    PRODUCTION_LEASE_PUBKEY
+};
+
+/// 地址就是内置官方后端时，给出编入的 `(lease, catalog)` 两把公钥；别的地址一律不兜底——
+/// 拿官方的钥去验组织服务端的租约或目录只会得到一句误导的 `bad_signature`。
+fn official_keys(api_base: &str) -> Option<(&'static str, &'static str)> {
+    (api_base == DEFAULT_API_BASE).then_some((OFFICIAL_LEASE_PUBKEY, OFFICIAL_CATALOG_PUBKEY))
 }
 
 /// env：覆盖 API 根地址（仅调试构建）。
@@ -69,6 +91,22 @@ pub const ENV_API_BASE: &str = "LUNARCA_API_BASE";
 pub const ENV_LEASE_PUBKEY: &str = "LUNARCA_LEASE_PUBKEY";
 /// env：目录根公钥（64 hex，ADR-169 ⑥；仅调试构建）。
 pub const ENV_CATALOG_PUBKEY: &str = "LUNARCA_CATALOG_PUBKEY";
+
+/// 内置官方后端此刻的地址：调试构建可被 `LUNARCA_API_BASE` 整体覆盖（与 [`CloudConfig::derive`] 同一口径——
+/// 握手、领取与之后的每个请求都落在同一台上），发行构建恒为 [`DEFAULT_API_BASE`]。
+#[must_use]
+pub fn official_api_base() -> String {
+    official_api_base_with(debug_env(ENV_API_BASE))
+}
+
+/// [`official_api_base`] 的纯逻辑：给了覆盖值就用它（去掉尾随 `/`），否则是编入的地址。
+#[must_use]
+pub fn official_api_base_with(override_base: Option<String>) -> String {
+    override_base.map_or_else(
+        || DEFAULT_API_BASE.to_owned(),
+        |base| base.trim_end_matches('/').to_owned(),
+    )
+}
 
 /// 读一个调试期覆盖变量；发行构建恒为 `None`（这三个变量不是用户配置入口）。
 #[must_use]
@@ -95,17 +133,20 @@ pub struct CloudConfig {
 impl CloudConfig {
     /// 由账户记住的服务器 + 该服务器的钉住公钥派生（调试构建下 env 整体优先）。
     ///
-    /// `pinned` = 信任锚钉住的 `(lease, catalog)` 小写 hex；官方后端没钉住时目录公钥取编入的那把。
+    /// `pinned` = 信任锚钉住的 `(lease, catalog)` 小写 hex；官方后端不钉住，两把都取编入的。
     #[must_use]
     pub fn derive(server_origin: &str, pinned: Option<(&str, &str)>) -> Self {
         let api_base = debug_env(ENV_API_BASE)
             .unwrap_or_else(|| server_origin.to_owned())
             .trim_end_matches('/')
             .to_owned();
-        let lease = debug_env(ENV_LEASE_PUBKEY).or_else(|| pinned.map(|(l, _)| l.to_owned()));
+        let official = official_keys(&api_base);
+        let lease = debug_env(ENV_LEASE_PUBKEY)
+            .or_else(|| pinned.map(|(l, _)| l.to_owned()))
+            .or_else(|| official.map(|(l, _)| l.to_owned()));
         let catalog = debug_env(ENV_CATALOG_PUBKEY)
             .or_else(|| pinned.map(|(_, c)| c.to_owned()))
-            .or_else(|| official_catalog_key(&api_base));
+            .or_else(|| official.map(|(_, c)| c.to_owned()));
         Self {
             lease_pubkey: lease.as_deref().and_then(parse_pubkey_hex),
             catalog_pubkey: catalog.as_deref().and_then(parse_pubkey_hex),
@@ -220,6 +261,60 @@ mod resolve_tests {
         assert!(cfg.lease_pubkey.is_some() && cfg.catalog_pubkey.is_some());
         let bare = CloudConfig::derive("https://org.example", None);
         assert!(bare.lease_pubkey.is_none() && bare.catalog_pubkey.is_none());
+    }
+
+    /// **官方地址派生出的配置必须带两把公钥。** 官方后端跳过钉住（`adopt_handshake`），
+    /// 编入值是它唯一的来源；缺了不会有任何别的用例变红，只会让正式包登录后
+    /// 「离线可用」恒写 `no_pubkey`（真机 2026-11-03）。
+    #[test]
+    fn official_backend_derives_both_keys() {
+        if std::env::var(ENV_API_BASE).is_ok()
+            || std::env::var(ENV_LEASE_PUBKEY).is_ok()
+            || std::env::var(ENV_CATALOG_PUBKEY).is_ok()
+        {
+            return;
+        }
+        let builtin = CloudConfig::derive(DEFAULT_API_BASE, None);
+        assert_eq!(
+            builtin.lease_pubkey,
+            parse_pubkey_hex(OFFICIAL_LEASE_PUBKEY),
+            "官方后端的租约公钥只能来自编入值"
+        );
+        assert!(builtin.lease_pubkey.is_some());
+        assert!(builtin.catalog_pubkey.is_some());
+        // 尾随斜杠不改变「这是官方后端」。
+        let slashed = CloudConfig::derive(&format!("{DEFAULT_API_BASE}/"), None);
+        assert!(slashed.lease_pubkey.is_some());
+        // 别的地址不兜底：拿官方的钥验组织服务端的租约只会得到误导的 bad_signature。
+        let org = CloudConfig::derive("https://org.example", None);
+        assert!(org.lease_pubkey.is_none());
+    }
+
+    /// 调试构建用 `LUNARCA_API_BASE` 指向别的服务端时，「Lunarca 云」这个登录目标也跟着指过去：
+    /// 否则握手发往编入的联调地址、领取发往覆盖地址，两台对不上，领取回 410（联调 2026-11-06）。
+    #[test]
+    fn the_official_backend_follows_the_debug_override() {
+        assert_eq!(official_api_base_with(None), DEFAULT_API_BASE);
+        assert_eq!(
+            official_api_base_with(Some("http://127.0.0.1:18282/".into())),
+            "http://127.0.0.1:18282"
+        );
+    }
+
+    /// 官方租约公钥与地址按构建档成对，release 绝不带联调后端那把。
+    #[test]
+    fn official_lease_key_is_paired_with_the_build_profile() {
+        if cfg!(debug_assertions) {
+            assert_eq!(OFFICIAL_LEASE_PUBKEY, DEV_LEASE_PUBKEY);
+        } else {
+            assert_eq!(OFFICIAL_LEASE_PUBKEY, PRODUCTION_LEASE_PUBKEY);
+        }
+        assert_ne!(DEV_LEASE_PUBKEY, PRODUCTION_LEASE_PUBKEY);
+        // 租约钥与目录根钥是两把独立的钥：抄串了会让一侧恒报 bad_signature。
+        assert_ne!(PRODUCTION_LEASE_PUBKEY, PRODUCTION_CATALOG_PUBKEY);
+        assert_ne!(DEV_LEASE_PUBKEY, DEV_CATALOG_PUBKEY);
+        assert!(parse_pubkey_hex(DEV_LEASE_PUBKEY).is_some());
+        assert!(parse_pubkey_hex(PRODUCTION_LEASE_PUBKEY).is_some());
     }
 
     /// 官方目录公钥只给内置官方后端兜底，且与地址按构建档成对。

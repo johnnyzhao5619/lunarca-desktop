@@ -426,6 +426,15 @@
         "creator.script.spoken",
         "creator.script.dictation"
       ]
+    },
+    {
+      "app": "teleprompter",
+      "scope": "editor",
+      "templates": [
+        "teleprompter.spoken",
+        "teleprompter.fit",
+        "teleprompter.cues"
+      ]
     }
   ]
 }

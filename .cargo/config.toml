@@ -22,3 +22,8 @@ CMAKE_GENERATOR_x86_64_pc_windows_msvc = "Ninja"
 # 随 `crt-static` 一起改用 /MT；顺带使发布物不依赖 VC++ 运行库。
 [target.x86_64-pc-windows-msvc]
 rustflags = ["-C", "target-feature=+crt-static"]
+
+# 网页版的 WASM 测试在 Node 里跑（ADR-177 ⑥，`cargo test -p luna-web --target wasm32-unknown-unknown`）。
+# 需要与 Cargo.lock 里 wasm-bindgen 同版本的 `wasm-bindgen-cli`（AGENTS.md §3 前置）。
+[target.wasm32-unknown-unknown]
+runner = "wasm-bindgen-test-runner"

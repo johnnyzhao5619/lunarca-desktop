@@ -11,7 +11,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useConfirm } from "../../components/ConfirmHost";
 import { commands, type OrphanReportDto } from "../../ipc/bindings";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { vaultErrorText } from "../../lib/vault-error";
 import { useDeleteConsequence } from "../../hooks/use-delete-mode";
 import { HelpDetails } from "../../components/ui/HelpDetails";

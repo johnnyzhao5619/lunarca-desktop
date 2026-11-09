@@ -13,6 +13,7 @@
 
 ```bash
 brew install meson ninja cmake  # macOS：AEC3 与 libopus 的随包 C/C++ 构建链
+npm ci                          # 前端依赖（npm workspaces，在仓库根装，唯一 lockfile 在根）
 node scripts/dev.mjs            # 启动开发环境（自动躲开被占端口）
 ```
 
@@ -30,6 +31,22 @@ npm --prefix apps/desktop run typecheck
 npm --prefix apps/desktop run lint
 npm --prefix apps/desktop run lint:css
 npm --prefix apps/desktop run build
+npm --prefix packages/editor-core run lint
+npm --prefix packages/editor-core run typecheck
+npm --prefix packages/editor-core run test
+npm --prefix packages/lint-config run lint
+npm --prefix packages/lint-config run typecheck
+```
+
+网页与共享包的改动还需按 [README](README.md#快速开始) 准备 WASM 工具链并生成绑定，再执行以下命令。
+
+```bash
+cargo test -p luna-web --target wasm32-unknown-unknown
+npm --prefix apps/web run lint
+npm --prefix apps/web run lint:css
+npm --prefix apps/web run typecheck
+npm --prefix apps/web run test
+npm --prefix apps/web run build
 ```
 
 改动了 Rust 侧的 command / event 类型，还要重新生成 TS 绑定，否则 CI 的无漂移检查会红：

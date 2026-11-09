@@ -8,6 +8,8 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+# 三路合并、行级 diff、frontmatter 定位与路径名比较口径的唯一实现（同步与网页版共用，ADR-177 ⑥）。
+luna-sync-core = { path = "../luna-sync-core" }
 luna-core = { path = "../luna-core" }
 serde.workspace = true
 # 建档时间戳（`Vault::create` 写 `created`）：已是 workspace 依赖，无新增 License 面（ADR-005）。

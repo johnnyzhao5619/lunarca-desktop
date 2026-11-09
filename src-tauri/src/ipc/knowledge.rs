@@ -834,7 +834,7 @@ fn emit_knowledge_receipt_facts(
         ReceiptStage::Committed => 1,
         ReceiptStage::Settled => 2,
     };
-    let receipt_id = luna_vault::ContentHash::of(
+    let receipt_id = luna_sync_core::hashing::ContentHash::of(
         format!("knowledge-receipt-v1|{operation_id}|{revision}|{outcome:?}").as_bytes(),
     )
     .to_string();
@@ -1473,7 +1473,7 @@ fn topic_evidence_detail_of(
     expected_revision: Option<&str>,
 ) -> Result<TopicEvidenceDetailDto, String> {
     let topic = vault.read(path).map_err(vault_err)?;
-    let revision = luna_vault::ContentHash::of(topic.content.as_bytes()).to_string();
+    let revision = luna_sync_core::hashing::ContentHash::of(topic.content.as_bytes()).to_string();
     if expected_revision.is_some_and(|expected| expected != revision) {
         return Err("TOPIC_EVIDENCE_STALE".into());
     }
@@ -1514,7 +1514,7 @@ fn topic_evidence_detail_of(
         None => (None, None, None),
     };
     let latest = vault.read(path).map_err(vault_err)?;
-    if luna_vault::ContentHash::of(latest.content.as_bytes()).as_str() != revision {
+    if luna_sync_core::hashing::ContentHash::of(latest.content.as_bytes()).as_str() != revision {
         return Err("TOPIC_EVIDENCE_STALE".into());
     }
     Ok(TopicEvidenceDetailDto {
@@ -1558,7 +1558,7 @@ pub(crate) fn topic_directory_rows(
                 .map_err(vault_err)?,
         };
         rows.push(TopicDirectoryRowDto {
-            title: luna_vault::title_of(&path).to_owned(),
+            title: luna_sync_core::links::title_of(&path).to_owned(),
             // **就是地图那一条规则**：不为目录另写一份摘要、也不落第二份缓存
             //（TDD-07 §4.1d）。两份实现分叉的表现是同一页在两处各有一句自称的摘要。
             summary: luna_vault::topic_summary(&doc.content),
@@ -1912,7 +1912,7 @@ pub(crate) async fn knowledge_next_action(
                         map_review: Some(KnowledgeMapReviewDto {
                             path: path.clone(),
                             current_hash,
-                            diff: luna_vault::diff_lines(current, expected).into(),
+                            diff: luna_sync_core::diff::diff_lines(current, expected).into(),
                         }),
                         topic: None,
                         tags: Vec::new(),
@@ -2380,7 +2380,7 @@ pub(crate) fn suggestion_token(
 ) -> String {
     let vault_identity =
         std::fs::canonicalize(vault_root).unwrap_or_else(|_| vault_root.to_owned());
-    luna_vault::ContentHash::of(
+    luna_sync_core::hashing::ContentHash::of(
         format!(
             "knowledge-suggestion-v1|{}|{kind}|{subject}|{revision}",
             vault_identity.display()
@@ -3029,7 +3029,7 @@ mod tests {
     fn suggestion_identity_matches_the_versioned_tdd_contract() {
         let vault = tempfile::tempdir().unwrap();
         let canonical = std::fs::canonicalize(vault.path()).unwrap();
-        let expected = luna_vault::ContentHash::of(
+        let expected = luna_sync_core::hashing::ContentHash::of(
             format!(
                 "knowledge-suggestion-v1|{}|topic|Planning|a.md\nb.md",
                 canonical.display()

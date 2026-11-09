@@ -5,7 +5,7 @@
 
 import { useTranslation } from "react-i18next";
 
-import { PauseIcon, PlayIcon, StopIcon } from "../../components/ui/Icon";
+import { PauseIcon, PlayIcon, StopIcon } from "@lunarca/editor-core/Icon";
 import type { TtsStateChanged } from "../../ipc/bindings";
 import { SelectBox } from "../../components/ui/SelectBox";
 

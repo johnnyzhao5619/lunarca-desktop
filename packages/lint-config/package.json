@@ -1,0 +1,26 @@
+{
+  "name": "@lunarca/lint-config",
+  "private": true,
+  "version": "1.0.0",
+  "license": "AGPL-3.0-only",
+  "description": "前端治理门禁的共用底座（TDD-15 §5）：ESLint 治理规则与配置、CSS 守护判据、语言文件键集取法。只在门禁里用、不进任何产物，故依赖一律记作开发依赖（前端归示只收生产闭包）。",
+  "type": "module",
+  "exports": {
+    "./eslint": "./eslint/config.js",
+    "./style-graph": "./src/style-graph.ts",
+    "./css-guards": "./src/css-guards.ts",
+    "./locale-keys": "./src/locale-keys.ts"
+  },
+  "scripts": {
+    "lint": "node --test eslint/governance-rule-tests.js && eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9",
+    "eslint": "^9",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^15",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8"
+  }
+}

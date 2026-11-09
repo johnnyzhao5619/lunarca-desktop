@@ -16,9 +16,9 @@ use std::path::{Path, PathBuf};
 
 use luna_cloud::client::CloudClient;
 use luna_cloud::sync_client::{Base64Bytes, SyncCreateVault, SyncEnvelopeInput};
-use luna_sync::crypto::{Cmk, KeyRing};
 use luna_sync::keystore::CmkStore;
 use luna_sync::state::{Binding, BindingOwner, SyncState};
+use luna_sync_core::crypto::{Cmk, KeyRing};
 use uuid::Uuid;
 
 use super::*;

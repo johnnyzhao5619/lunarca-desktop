@@ -23,7 +23,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { CloseIcon, MicIcon, PencilIcon } from "../../components/ui/Icon";
+import { CloseIcon, MicIcon, PencilIcon } from "@lunarca/editor-core/Icon";
 import { IconButton } from "../../components/ui/IconButton";
 import { CaptureStartButton } from "../../components/ui/CaptureStartButton";
 import { CaptureInput } from "./CaptureInput";

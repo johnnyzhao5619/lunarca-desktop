@@ -19,7 +19,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next";
 import { FactRow } from "../../components/ui/FactRow";
 import { useConfirm, type ConfirmOptions } from "../../components/ConfirmHost";
-import { ArrowClockwiseIcon } from "../../components/ui/Icon";
+import { ArrowClockwiseIcon } from "@lunarca/editor-core/Icon";
 import { useComputeStatus } from "../../hooks/use-compute-status";
 import { syncIsSelected, useSyncOverviewSelector } from "../../hooks/use-sync-overview";
 import {
@@ -34,14 +34,15 @@ import {
   type UsageDimensionDto,
   type UsageLedgerDto,
 } from "../../ipc/cloud-bindings";
-import { formatBytes, isByteDimension } from "../../lib/format-bytes";
+import { formatBytes, isByteDimension } from "@lunarca/editor-core/format-bytes";
 import { formatCount, formatInstant } from "../../lib/format-datetime";
 import { goTo } from "../../lib/navigate";
 import { errorMessage } from "../../lib/cloud-error";
 import { ServerIdentity } from "./ServerIdentity";
-import { SignIn } from "./SignIn";
+import { serverName, SignIn, type ServerChoice } from "./SignIn";
 import { ChangePassword } from "./ChangePassword";
 import { useAccount } from "../../hooks/use-account";
+import { WebAccessControl } from "./WebAccessControl";
 import {
   DEVICE_LIMIT_ENTITLEMENT,
   deviceLimitFrom,
@@ -138,6 +139,31 @@ export function logoutConfirmation(
   };
 }
 
+/**
+ * 「切换服务器」的确认：总要问——它不只是退出，还意味着这台设备接下来要连另一台服务器。说清
+ * 退出的是谁、在哪台服务器上，同步会停，库仍连着这个账户（ADR-158 ①、ADR-151）。
+ */
+export function switchServerConfirmation(
+  email: string | null,
+  server: AccountServerDto | null,
+  t: (key: string, options?: Record<string, unknown>) => string,
+): ConfirmOptions {
+  return {
+    title: t("session.switch_confirm.title"),
+    description: t("session.switch_confirm.body", {
+      account: email ?? t("session.switch_confirm.this_account"),
+      server: server ? serverName(server, t("signin.official")) : t("signin.official"),
+    }),
+    confirmLabel: t("session.switch_confirm.confirm"),
+    destructive: false,
+  };
+}
+
+/** 从哪台切走，「登录到」就默认另一侧：离开 Lunarca 云 → 填别的服务器；离开别的 → Lunarca 云。 */
+export function choiceAfterSwitchingFrom(server: AccountServerDto | null): ServerChoice {
+  return server?.kind === "official" ? "other" : "official";
+}
+
 export function AccountPanel() {
   const { t } = useTranslation("cloud");
   const { t: tCommon } = useTranslation("common");
@@ -176,6 +202,8 @@ export function AccountPanel() {
   const [exportError, setExportError] = useState<CloudError | null>(null);
   const [logoutNotice, setLogoutNotice] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
+  // 「切换服务器」退出之后，登录表单的「登录到」先选哪一档（`null` = 普通退出，按邮箱找）。
+  const [switchChoice, setSwitchChoice] = useState<ServerChoice | null>(null);
   const mounted = useRef(true);
   const ask = useConfirm();
   const signedIn = account?.phase.phase === "signed_in";
@@ -384,21 +412,43 @@ export function AccountPanel() {
    * 退出登录。**`server_revoked` 必须说出来**：网络不可达时本地凭据清了、服务端那边的会话
    * 还在。诚实边界不说出来，就等于没有。
    */
+  const signOut = useCallback(async (): Promise<boolean> => {
+    setLastError(null);
+    setLogoutNotice(null);
+    setLoggingOut(true);
+    const result = await commands.accountSignOut();
+    if (!mounted.current) return false;
+    setLoggingOut(false);
+    if (result.status === "error") {
+      setLastError(result.error);
+      return false;
+    }
+    if (!result.data.server_revoked) setLogoutNotice("session.logout_local_only");
+    return true;
+  }, []);
+
   const doLogout = useCallback(async () => {
     const confirmation = logoutConfirmation(syncing, t);
     if (confirmation) {
       const confirmed = await ask(confirmation);
       if (!confirmed || !mounted.current) return;
     }
-    setLastError(null);
-    setLogoutNotice(null);
-    setLoggingOut(true);
-    const result = await commands.accountSignOut();
-    if (!mounted.current) return;
-    setLoggingOut(false);
-    if (result.status === "error") setLastError(result.error);
-    else if (!result.data.server_revoked) setLogoutNotice("session.logout_local_only");
-  }, [ask, syncing, t]);
+    setSwitchChoice(null);
+    await signOut();
+  }, [ask, signOut, syncing, t]);
+
+  /**
+   * 切换服务器 = 确认 → 退出 → 回到登录第一步，「登录到」默认另一侧。一次仍只登录一个账户
+   * （ADR-155）；它只是把「退出、再找到另一台」这两步连起来（真机 2026-11-03：从测试服务器
+   * 切到 Lunarca 云总是失败）。
+   */
+  const doSwitchServer = useCallback(async () => {
+    const from = account?.server ?? null;
+    const email = account?.phase.phase === "signed_in" ? (account.phase.profile?.email ?? null) : null;
+    const confirmed = await ask(switchServerConfirmation(email, from, t));
+    if (!confirmed || !mounted.current) return;
+    if (await signOut()) setSwitchChoice(choiceAfterSwitchingFrom(from));
+  }, [account, ask, signOut, t]);
 
   /**
    * 导出我的账户数据（PRD-13-020 / PRD-13-041）：保存对话框、流式写盘都在 Rust；取消对话框什么都不发，
@@ -510,6 +560,7 @@ export function AccountPanel() {
           entitlements={entitlements}
           confirmingDelete={confirmingDelete}
           onLogout={() => void doLogout()}
+          onSwitchServer={() => void doSwitchServer()}
           loggingOut={loggingOut}
           onRevoke={(device) => void doRevoke(device)}
           onDeleteRequest={() => void requestDelete()}
@@ -534,6 +585,9 @@ export function AccountPanel() {
             onPortal: () => void openBilling({ kind: "portal" }),
           }}
           syncSection={<SyncSection />}
+          webAccess={account.server?.kind === "official" ? (
+            <WebAccessControl key={account.phase.profile?.account_id} />
+          ) : null}
           freeQuotaVerify={{
             pending: verifyPending,
             error: verifyError,
@@ -553,7 +607,12 @@ export function AccountPanel() {
         />
       ) : (
         <section className="luna-settings-panel__section" aria-label={t("signin.title")}>
-          <SignIn onOpenOrgConfig={openOrgConfig} />
+          <SignIn
+            // 换一次初始档就换一份表单状态：同一个挂载里 `useState` 的初值不会再读第二次。
+            key={switchChoice ?? "default"}
+            onOpenOrgConfig={openOrgConfig}
+            initialChoice={switchChoice ?? "default"}
+          />
         </section>
       )}
 
@@ -833,6 +892,7 @@ export function SignedInView({
   entitlements,
   confirmingDelete,
   onLogout,
+  onSwitchServer,
   loggingOut = false,
   onRevoke,
   onDeleteRequest,
@@ -841,6 +901,7 @@ export function SignedInView({
   onRefresh,
   billing = null,
   syncSection = null,
+  webAccess = null,
   spendCap = null,
   freeQuotaVerify = null,
   deletionPreview = null,
@@ -857,6 +918,8 @@ export function SignedInView({
   entitlements: EntitlementsDto | null;
   confirmingDelete: boolean;
   onLogout: () => void;
+  /** 「切换服务器」：确认后退出并回到登录第一步（宿主组装确认与退出）。 */
+  onSwitchServer?: () => void;
   /**
    * 登出在途。服务端吊销是尽力而为、最多等几秒（`CloudClient::logout`），这几秒里按钮
    * 必须说出它在做事——2026-09-27 真机：服务端卡住时按钮点下去毫无反馈，用户以为坏了。
@@ -874,6 +937,7 @@ export function SignedInView({
   billing?: Omit<Parameters<typeof BillingSection>[0], "error"> | null;
   /** 云同步一节自带订阅（`useSyncStatus`），由面板注入，本视图保持纯呈现。 */
   syncSection?: ReactNode;
+  webAccess?: ReactNode;
   /** 本月预付上限（PRD-13-040 ④，面板持有状态）；`null` = 不出现。 */
   spendCap?: Parameters<typeof SpendCapControl>[0] | null;
   /** 「验证付款方式（不扣费）」的状态与动作（纵切 3 C5，面板持有）。 */
@@ -952,6 +1016,16 @@ export function SignedInView({
           >
             {t(loggingOut ? "actions.logging_out" : "actions.logout")}
           </button>
+          {onSwitchServer ? (
+            <button
+              type="button"
+              className="luna-btn luna-btn--secondary"
+              disabled={loggingOut}
+              onClick={onSwitchServer}
+            >
+              {t("actions.switch_server")}
+            </button>
+          ) : null}
           {/* 刷新是低频动作，给图标不给文字：与「退出登录」并排两颗同宽同色的文字按钮时，
               真正要慎重的那一颗反而不突出。 */}
           <button
@@ -966,6 +1040,7 @@ export function SignedInView({
         </div>
         {/* 密码只在应用里改（ADR-158 ⑤）：这台保持登录，其余设备退出。 */}
         <ChangePassword />
+        {webAccess}
         {/* 访问权 / 可携带权（PRD-13-020 / PRD-13-041）：冻结的账户照样能导出。 */}
         <AccountExport control={accountExport} origin="account" />
       </section>

@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 
-import { SpeakIcon, SpeakingIcon } from "../../components/ui/Icon";
+import { SpeakIcon, SpeakingIcon } from "@lunarca/editor-core/Icon";
 import { useTts, useTtsAvailable } from "./use-tts";
 
 type SpeakButtonProps = {

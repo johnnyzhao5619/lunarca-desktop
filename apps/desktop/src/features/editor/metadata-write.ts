@@ -12,7 +12,7 @@
  * 或判据不成立，照旧走横幅——这里不替用户裁决任何正文冲突。
  */
 
-import { splitFrontmatter } from "./reading-view";
+import { splitFrontmatter } from "@lunarca/editor-core/reading-view";
 
 /** `incoming` 相对 `saved` 是不是只改了 frontmatter（正文逐字相同、且两者确有不同）。 */
 export function isMetadataOnlyWrite(saved: string, incoming: string): boolean {

@@ -145,7 +145,7 @@ describe("处理队列展示标签", () => {
 describe("进度读数按阶段分派单位（PRD-05-006）", () => {
   it("下载阶段的计数是 KiB，须格式化为可读体积", () => {
     // 后端以 KiB 上报（u32 装不下字节数）；裸显示会变成「12678 / 90234」这种没人看得懂的数。
-    // 单位与取整规则来自共用的 `lib/format-bytes`（IEC 单位 + 三位有效数字）——不为下载
+    // 单位与取整规则来自共用的 `@lunarca/editor-core/format-bytes`（IEC 单位 + 三位有效数字）——不为下载
     // 另造一套体积格式，也不在这里把 1024 进制的数标成 `MB`。
     const fetching = task({
       state: "running",

@@ -1,0 +1,40 @@
+{
+  "_comment": [
+    "提词器口播动作「teleprompter.spoken」（PRD-20-016，ADR-176 ⑧）。",
+    "判据同其它用例：must_contain 里的每一条都对应一次真实的失败。"
+  ],
+  "scope": "editor",
+  "template": "teleprompter.spoken",
+  "cases": [
+    {
+      "name": "改成口播稿：一口气说得完，事实与顺序不动",
+      "vars": {
+        "language_lock": "The output must stay in Chinese.",
+        "context": ""
+      },
+      "must_contain": [
+        "one breath",
+        "Keep every fact",
+        "do not add new points",
+        "must stay in Chinese",
+        "Output only"
+      ],
+      "why": "改口播最常见的失败是顺手加观点或把书面长句原样留下——念出来还是绕口"
+    },
+    {
+      "name": "口播记号原样保留",
+      "vars": {
+        "language_lock": "The output must stay in English.",
+        "context": ""
+      },
+      "must_contain": [
+        "[停顿]",
+        "**emphasis**",
+        "%% notes %%",
+        "> [!cue]",
+        "exactly as they are"
+      ],
+      "why": "改稿吃掉停顿 / 强调 / 动作提示，提词器上的记号与计时就全没了（PRD-20-014）"
+    }
+  ]
+}

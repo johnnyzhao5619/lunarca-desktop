@@ -42,13 +42,7 @@
   "keepLocal": "用本地改动覆盖文件",
   "error": "错误",
   "words": "字数",
-  "linkPlaceholder": "url",
   "tableEditing": {
-    "cell": "表格第 {{row}} 行，第 {{column}} 列",
-    "rowHandle": "第 {{row}} 行的操作",
-    "columnHandle": "第 {{column}} 列的操作",
-    "appendRow": "在末尾添加一行",
-    "appendColumn": "在最右添加一列",
     "menu": {
       "insert": "插入",
       "rowAbove": "在上方插入行",
@@ -79,53 +73,7 @@
       "toText": "表格转为文本（制表符分隔）",
       "aiSummarize": "让 AI 总结这张表",
       "aiFillColumn": "让 AI 填写这一列…"
-    },
-    "picker": {
-      "title": "插入表格：选择大小",
-      "size": "{{columns}} 列 × {{rows}} 行"
     }
-  },
-  "properties": {
-    "label": "属性",
-    "empty": "还没有属性",
-    "add": "添加属性",
-    "newKeyPlaceholder": "属性名",
-    "addItem": "添加一项",
-    "addItemTo": "给 {{key}} 添加一项",
-    "remove": "删除属性 {{key}}",
-    "removeItem": "移除 {{item}}",
-    "keyLabel": "属性名 {{key}}",
-    "valueLabel": "{{key}} 的值",
-    "typeLabel": "{{key}} 的类型",
-    "editSource": "在源码中编辑",
-    "kind": {
-      "text": "文本",
-      "number": "数字",
-      "checkbox": "勾选",
-      "date": "日期",
-      "date_time": "日期时间",
-      "list": "列表"
-    },
-    "skip": {
-      "unsupported_form": "这种写法不能在面板里改",
-      "inline_comment": "值里带注释，面板里改会丢掉它",
-      "multi_line": "跨行的写法，面板里改不了",
-      "nested": "嵌套的结构，面板里改不了",
-      "duplicate_key": "这个属性名写了不止一次",
-      "unclosed": "开头的 --- 没有闭合，先在源码里修好",
-      "key_exists": "已经有同名属性",
-      "invalid_key": "属性名不能为空，也不能含冒号或 #，不能叫 luna",
-      "not_found": "这个属性已经不在了，可能刚被改过",
-      "invalid_value": "值的写法不对：数字写成 12 或 1.5，日期写成 2026-10-04"
-    }
-  },
-  "frontmatter": {
-    "label": "元数据 (YAML)",
-    "labelCount": "元数据（{{count}} 项）",
-    "expandTitle": "点击展开元数据",
-    "collapseTitle": "点击折叠元数据",
-    "expandAction": "展开",
-    "collapseAction": "折叠"
   },
   "floating": {
     "title": "AI 操作",
@@ -179,7 +127,8 @@
       "background": "转入后台",
       "background_title": "交给处理队列继续跑，面板即刻关闭；跑完发通知，回到这篇笔记再决定怎么落地",
       "table_from_text": "整理成表格",
-      "script": "脚本"
+      "script": "脚本",
+      "prompter": "提词器"
     },
     "route": {
       "local": "本机 · 不联网",
@@ -280,6 +229,13 @@
       "hook": "重写开头",
       "spoken": "改成口语",
       "dictation": "整理口述"
+    },
+    "prompter": {
+      "spoken": "改成口播稿",
+      "fit": "压到 {{seconds}} 秒",
+      "cues": "标注停顿与强调",
+      "fit_ok": "约 {{secs}} 秒，在 {{target}} 秒以内",
+      "fit_over": "约 {{secs}} 秒，比 {{target}} 秒多 {{over}} 秒——没有替你硬删，可以再压一次或自己删几句"
     }
   },
   "version": {
@@ -300,29 +256,14 @@
     "restoreConfirmYes": "回滚",
     "restoreConfirmNo": "取消"
   },
-  "mode": {
-    "label": "视图模式",
-    "live": "实时预览（所见即所得）",
-    "source": "源码模式",
-    "reading": "阅读模式"
-  },
   "more": {
-    "label": "更多操作",
-    "formats": "更多格式"
-  },
-  "embed": {
-    "open": "打开",
-    "missing": "找不到嵌入的笔记或文件"
+    "label": "更多操作"
   },
   "linkPreview": {
     "label": "链接预览",
     "open": "打开",
     "loading": "正在读取…",
     "missing": "还没有这篇笔记"
-  },
-  "reading": {
-    "properties": "属性",
-    "openTag": "查看标签 #{{tag}}"
   },
   "paste": {
     "asMarkdown": "粘贴并转换为 Markdown",
@@ -381,42 +322,18 @@
     "binaryHint": "该文件类型暂不支持内嵌预览，可用外部程序打开。"
   },
   "table": {
-    "insert": "插入表格",
     "noColumns": "选中的文字看不出列：请用制表符、逗号或两个以上空格分隔各列"
   },
   "menu": {
-    "insertLink": "新增链接",
-    "insertWikiLink": "新增 wiki 链接",
     "textFormat": "文本格式",
     "paragraph": "段落设置",
     "insert": "插入",
-    "bold": "加粗",
-    "italic": "斜体",
-    "strike": "删除线",
-    "inlineCode": "行内代码",
-    "paragraphText": "正文",
-    "h1": "标题 1",
-    "h2": "标题 2",
-    "h3": "标题 3",
-    "quote": "引用",
-    "bulletList": "无序列表",
-    "orderedList": "有序列表",
-    "taskList": "任务列表",
-    "codeBlock": "代码块",
-    "callout": "标注块",
-    "hr": "分隔线",
     "tidyListLevels": "整理列表层级…",
-    "insertAttachment": "插入图片 / 附件…",
-    "insertTemplate": "插入模板…",
-    "aiActions": "AI 操作…",
     "textToTable": "将选中文字转为表格",
     "noSpellingGuesses": "没有拼写建议",
     "learnSpelling": "学习拼写"
   },
   "toolbar": {
-    "label": "格式工具栏",
-    "headingTitle": "段落样式",
-    "labelShortcut": "{{label}}（{{shortcut}}）",
     "show": "显示格式工具栏"
   },
   "writing": {
@@ -459,39 +376,8 @@
     "speed": "语速"
   },
   "empty": "从左侧选中一条内容细写，或直接开始写——整理好了再转成正式笔记",
-  "search": {
-    "find": "查找",
-    "replace": "替换为",
-    "next": "下一个",
-    "previous": "上一个",
-    "all": "全选",
-    "matchCase": "区分大小写",
-    "regexp": "正则",
-    "byWord": "整词",
-    "replaceOne": "替换",
-    "replaceAll": "全部替换",
-    "close": "关闭",
-    "currentMatch": "当前匹配",
-    "onLine": "所在行",
-    "goToLine": "跳到行",
-    "go": "跳转",
-    "replacedMatches": "已替换 $ 处",
-    "replacedOnLine": "已替换第 $ 行的匹配"
-  },
   "timecode": {
     "playFromHere": "从这一句开始听（⌘/Ctrl 点击整行同效）"
-  },
-  "image": {
-    "view": "查看大图",
-    "resize": "拖动调整宽度，双击还原",
-    "lightbox": "查看图片",
-    "close": "关闭",
-    "previous": "上一张",
-    "next": "下一张"
-  },
-  "fold": {
-    "fold": "折叠",
-    "unfold": "展开"
   },
   "conflictCopy": {
     "copyOf": "这是「{{name}}」的冲突副本（{{source}}）：两处同时改了这篇，同步时没能合并。",

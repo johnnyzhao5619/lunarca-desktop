@@ -15,13 +15,13 @@
 
 import { describe, expect, it } from "vitest";
 
-const TSX = import.meta.glob("../../{app,features,components}/**/*.tsx", {
+const TSX = import.meta.glob(["../../{app,features,components}/**/*.tsx", "../../../../../packages/*/src/**/*.tsx"], {
   eager: true,
   import: "default",
   query: "?raw",
 }) as Record<string, string>;
 
-const TS_SOURCES = import.meta.glob("../../{app,features,components}/**/*.{ts,tsx}", {
+const TS_SOURCES = import.meta.glob(["../../{app,features,components}/**/*.{ts,tsx}", "../../../../../packages/*/src/**/*.{ts,tsx}"], {
   eager: true,
   import: "default",
   query: "?raw",

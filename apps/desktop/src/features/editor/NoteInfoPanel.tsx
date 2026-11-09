@@ -10,7 +10,7 @@
 import { useTranslation } from "react-i18next";
 
 import { EmptyState } from "../../components/ui/EmptyState";
-import { InfoIcon } from "../../components/ui/Icon";
+import { InfoIcon } from "@lunarca/editor-core/Icon";
 import { formatDateTime } from "../../lib/format-datetime";
 import { noteTypeLabelKey } from "../../lib/note-type";
 import { useNoteFacts } from "./use-note-facts";

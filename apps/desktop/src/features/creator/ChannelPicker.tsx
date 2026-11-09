@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { commands, type ChannelDto } from "../../ipc/bindings";
 import { useContextMenu } from "../../components/ContextMenuHost";
 import { IconButton } from "../../components/ui/IconButton";
-import { CloseIcon, PlusIcon } from "../../components/ui/Icon";
+import { CloseIcon, PlusIcon } from "@lunarca/editor-core/Icon";
 import { buildMenu, type ContextMenuEntry } from "../../lib/context-menu";
 import { vaultErrorText } from "../../lib/vault-error";
 import { CHANNEL_FORMATS } from "./ChannelEditor";

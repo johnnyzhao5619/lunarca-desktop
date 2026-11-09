@@ -51,8 +51,57 @@ pub struct ModelAssignmentDto {
     /// 由 Rust 判定（前端零业务，ADR-003）：= 端点原生托管**且**清掉本槽后整条继承链不再有
     /// 本机显式立场；前端据此把那个空选项如实标成「服务端托管」而不是泛化的「跟随」。
     pub follow_is_server_managed: bool,
+    /// 转写槽位连着服务端、下拉里却选不到「服务端托管」的原因（真机 2026-11-03：开关在上方
+    /// 算力卡，下拉一句不提，用户以为是选择器坏了）。其余槽位、没连服务端、已经选得到时为 `None`。
+    /// 只在模型管理快照里填（[`asr_server_gate`]）：它要问端点与组织开放清单，
+    /// [`model_assignment_dtos`] 是不碰 `AppState` 的纯函数。
+    pub server_gate: Option<AsrServerGate>,
     /// 已由 Rust 按安装、实测能力与运行条件裁决的可选目标；前端不得再次筛选。
     pub candidates: Vec<ModelAssignmentCandidateDto>,
+}
+
+/// 转写为什么选不到服务端（见 [`ModelAssignmentDto::server_gate`]）。
+///
+/// 两种性质不同：`ConsentOff` 是用户还没给那次同意（ADR-038 ④），去开关那里打开即可；
+/// `Blocked` 是同意项本身此刻勾不动，原因与算力卡同一份（[`TranscriptionServerBlocker`]）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum AsrServerGate {
+    ConsentOff,
+    Blocked { blocker: TranscriptionServerBlocker },
+}
+
+/// 转写槽位的 [`AsrServerGate`]：同意项勾不动 → 照搬那条原因；勾得动但没勾 → `ConsentOff`。
+/// 根本没有服务端（未登录 / 严格本地）时不说话——下拉里没有服务端是不言自明的。
+pub(crate) fn asr_server_gate(
+    blocker: Option<TranscriptionServerBlocker>,
+    settings: &Settings,
+) -> Option<AsrServerGate> {
+    match blocker {
+        Some(TranscriptionServerBlocker::NoServer) => None,
+        Some(blocker) => Some(AsrServerGate::Blocked { blocker }),
+        None if !remote_asr_available(settings) => Some(AsrServerGate::ConsentOff),
+        None => None,
+    }
+}
+
+/// 服务端转写此刻用不了的原因——算力卡的同意项与转写槽位的下拉共用这一处判定。
+pub(crate) fn transcription_server_blocker(
+    location: crate::cloud::ComputeLocation,
+    local_only: bool,
+    transcribe_offer: crate::ipc::ServerOffer,
+) -> Option<TranscriptionServerBlocker> {
+    // 账户会话是转写这条路的凭据来源（`CloudBearer`）；没有它，勾上也只会拿到
+    // `not_logged_in`。判据落在 Rust 是因为「凭据从哪来」是装配知识，不是界面知识。
+    if !location.is_server() {
+        Some(TranscriptionServerBlocker::NoServer)
+    } else if local_only {
+        Some(TranscriptionServerBlocker::LocalOnlyStrategy)
+    } else if transcribe_offer == crate::ipc::ServerOffer::NotConfigured {
+        Some(TranscriptionServerBlocker::ServerNotConfigured)
+    } else {
+        None
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
@@ -513,9 +562,24 @@ pub(crate) fn model_assignment_dtos(
             // 清掉本槽 → 落到服务端托管吗？= 端点原生托管 且 清掉本槽后继承链不再有本机
             // 显式立场（对话/嵌入三槽才有「服务端托管」这一模式；转写走独立的「服务端转写」
             // 通道，不在此列）。前端据此把空选项如实标成「服务端托管」，而不是泛化的「跟随」。
-            let follow_is_server_managed = native_managed
-                && matches!(*slot, "default_llm" | "realtime_llm" | "default_embedding")
-                && parent.is_none_or(|ancestor| !assignment_chain_configured(settings, ancestor));
+            let follow_is_server_managed = match *slot {
+                "default_llm" | "realtime_llm" | "default_embedding" => {
+                    native_managed
+                        && parent
+                            .is_none_or(|ancestor| !assignment_chain_configured(settings, ancestor))
+                }
+                // 转写不走托管模式，但清掉本槽后落到的若就是服务端转写通道，空选项同样叫
+                // 「服务端托管」——一个状态一个名字（ADR-059 ④）。此前同意后的空选项仍写
+                // 「自动选择」，旁边的「当前生效」却是「服务端托管」。
+                "realtime_asr" | "batch_asr" => parent
+                    .map_or_else(
+                        || super::device_policy_target(settings, installed, slot),
+                        |ancestor| effective_assignment_target_with(settings, installed, ancestor),
+                    )
+                    .as_deref()
+                    .is_some_and(is_remote_asr_target),
+                _ => false,
+            };
             // 判的是**整条继承链**而不是本槽的空值：实时 LLM 未配置而默认 LLM 显式
             // 指向本机时，实时任务继承的是那个本机模型，标成「服务端托管」就是屏幕与
             // 字节去向相反（`assignment_chain_configured` 的注释）。
@@ -615,6 +679,7 @@ pub(crate) fn model_assignment_dtos(
                 required_capability: (*required_capability).to_owned(),
                 selection_mode,
                 follow_is_server_managed,
+                server_gate: None,
                 candidates,
             }
         })
@@ -1063,17 +1128,11 @@ pub(crate) fn compute_status(
         } else {
             ChatRouteKind::OnDevice
         },
-        // 账户会话是转写这条路的凭据来源（`CloudBearer`）；没有它，勾上也只会拿到
-        // `not_logged_in`。判据落在 Rust 是因为「凭据从哪来」是装配知识，不是界面知识。
-        transcription_server_blocker: if !location.is_server() {
-            Some(TranscriptionServerBlocker::NoServer)
-        } else if local_only {
-            Some(TranscriptionServerBlocker::LocalOnlyStrategy)
-        } else if transcribe_offer == crate::ipc::ServerOffer::NotConfigured {
-            Some(TranscriptionServerBlocker::ServerNotConfigured)
-        } else {
-            None
-        },
+        transcription_server_blocker: transcription_server_blocker(
+            location,
+            local_only,
+            transcribe_offer,
+        ),
         outbound_blocked_by_strategy: local_only,
         server_setup_incomplete: location.is_server() && state.server_setup_incomplete(),
     })
@@ -1225,15 +1284,29 @@ pub(crate) async fn model_management_snapshot(
 ) -> Result<ModelManagementSnapshotDto, String> {
     let store = ModelStore::load(state.models_root(&app));
     let settings = state.settings_snapshot();
-    let target = compute_endpoint_source(crate::cloud::evaluate_for(&app), &state.cloud_server());
+    let availability = crate::cloud::evaluate_for(&app);
+    let target = compute_endpoint_source(availability, &state.cloud_server());
     let installed = state.engine_models_snapshot();
-    let assignments = model_assignment_dtos(
+    let mut assignments = model_assignment_dtos(
         &settings,
         &store,
         &installed,
         target.is_server(),
         ServerManagedFacts::snapshot(&state),
     );
+    let gate = asr_server_gate(
+        transcription_server_blocker(
+            crate::cloud::compute_location(availability, &target),
+            route_strategy(&settings) == luna_provider::RouteStrategy::LocalOnly,
+            state.server_offer("transcribe"),
+        ),
+        &settings,
+    );
+    for assignment in &mut assignments {
+        if matches!(assignment.slot.as_str(), "realtime_asr" | "batch_asr") {
+            assignment.server_gate = gate;
+        }
+    }
     let mut models = store.list_with_assignments(&assignment_slots_by_target(&assignments));
     let location = current_chat_compute_location(&app, &state);
     let hardware = tokio::task::spawn_blocking(move || crate::hardware::probe(location))

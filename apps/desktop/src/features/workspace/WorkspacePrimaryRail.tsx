@@ -17,6 +17,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   FilmIcon,
+  ScrollTextIcon,
   FolderIcon,
   LayoutGridIcon,
   MessageIcon,
@@ -26,7 +27,7 @@ import {
   SparklesIcon,
   StickyNoteIcon,
   TrashIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { useContextMenu } from "../../components/ContextMenuHost";
 import { buildMenu } from "../../lib/context-menu";
 import type { RailLayoutItemDto } from "../../ipc/bindings";
@@ -66,6 +67,8 @@ const SPACE_ICONS: Record<WorkspaceSpace, ReactNode> = {
   chat: <MessageIcon />,
   // 创作 = 做视频（ADR-162）：胶片，而不是笔或纸——那是「笔记」与「速记」的语义。
   creator: <FilmIcon />,
+  // 提词器 = 卷起的稿子（ADR-176 ①）。
+  teleprompter: <ScrollTextIcon />,
   // 应用 = 一组可启用的能力（ADR-165 ⑤）：四宫格，与「设置」的齿轮区分开。
   apps: <LayoutGridIcon />,
   trash: <TrashIcon />,

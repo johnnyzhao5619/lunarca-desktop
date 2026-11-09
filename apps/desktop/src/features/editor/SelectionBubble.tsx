@@ -9,9 +9,9 @@ import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { cssVariables } from "../../lib/css-variables";
 import { useBoxSize } from "../../hooks/use-resize-observer";
-import { QuoteIcon, SearchIcon, SparklesIcon, SpeakIcon } from "../../components/ui/Icon";
-import type { EditorFormatAction } from "./editor-actions";
-import type { FormatState } from "./format-commands";
+import { QuoteIcon, SearchIcon, SparklesIcon, SpeakIcon } from "@lunarca/editor-core/Icon";
+import type { EditorFormatAction } from "@lunarca/editor-core/editor-actions";
+import type { FormatState } from "@lunarca/editor-core/format-commands";
 import { placeSelectionBubble, type EditorBox, type SelectionBox } from "./floating-menu-position";
 import { SelectionFormatBar } from "./SelectionFormatBar";
 

@@ -631,6 +631,66 @@ async fn discovery_prefers_the_remembered_server_then_falls_back_to_official() {
     assert_eq!(expected, None);
 }
 
+/// 一个只会回 404 的「网站」（官网那种）：每个连接都回 404，连接数不限。
+fn website_that_404s() -> String {
+    use std::io::{Read, Write};
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let base = format!("http://{}", listener.local_addr().unwrap());
+    std::thread::spawn(move || {
+        for stream in listener.incoming() {
+            let Ok(mut stream) = stream else { return };
+            let mut buffer = [0_u8; 4096];
+            let _ = stream.read(&mut buffer);
+            let _ = stream.write_all(
+                b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+            );
+        }
+    });
+    base
+}
+
+/// 「其他服务器」里填的是网站而不是服务端（真机 2026-11-03：填 `lunarca.app`）：按主机名回查
+/// `.well-known/lunarca`，找到就去它发布的那台，并要求部署与发布的一致；找不到如实说「没有服务端」，
+/// 而不是那句让人去问管理员的 404。
+#[tokio::test]
+async fn a_typed_website_address_falls_back_to_its_well_known() {
+    let published = MockServer::start(DEPLOYMENT);
+    let client = discovering(&published);
+    let step = client
+        .sign_in_begin(SignInTarget::Server {
+            email: EMAIL.to_owned(),
+            input: website_that_404s(),
+        })
+        .await
+        .unwrap();
+    let SignInStepDto::Ready { server, .. } = step else {
+        panic!("回查到的是首次连的服务端，不该要求确认变更");
+    };
+    assert_eq!(server.origin, published.base, "要去 .well-known 发布的那台");
+    assert_eq!(
+        client
+            .sign_in_context()
+            .unwrap()
+            .expected_deployment
+            .as_deref(),
+        Some(DEPLOYMENT),
+        "发布物给的部署 id 要记成本次必须一致的那个"
+    );
+
+    let nothing = client_with_dead_discovery();
+    let err = nothing
+        .sign_in_begin(SignInTarget::Server {
+            email: EMAIL.to_owned(),
+            input: website_that_404s(),
+        })
+        .await
+        .unwrap_err();
+    assert!(
+        matches!(&err, CloudError::NoServerAtAddress { host } if host == "127.0.0.1"),
+        "{err:?}"
+    );
+}
+
 fn client_with_dead_discovery() -> CloudClient {
     let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
     let port = listener.local_addr().unwrap().port();

@@ -73,3 +73,34 @@ export function mainKeyOf(event: Pick<KeyboardEvent, "code" | "key">): string | 
   }
   return CODE_TO_KEY[code] ?? null;
 }
+
+/**
+ * **首屏三键**：引导的「快捷键」一步与启动概览的速查表列的是同一组，按同一顺序。
+ *
+ * 此前引导与概览各写一遍同样的三个 key，要改哪三个键全靠人记得同时改。各自的标签仍归各自的 i18n：
+ * 引导列的是设置项标签（那一行可编辑），概览列的是它自己的速查文案——共用的是"哪三个键、什么顺序"，
+ * 不是怎么称呼它们。
+ */
+export const HEADLINE_SHORTCUT_KEYS = [
+  "shortcuts.popup_translate",
+  "shortcuts.voice_input",
+  "shortcuts.quick_chat",
+] as const;
+
+/** 保留编辑主键（Cmd/Ctrl + 之一，无额外修饰键时仅允许双击模式，与 Rust 判定对齐）。 */
+const RESERVED_EDITING_KEYS = new Set(["c", "v", "x", "a", "z"]);
+
+/**
+ * 组合是否为「保留编辑键」（Cmd/Ctrl + 单编辑键，无 Shift/Alt）。普通模式作全局热键会劫持
+ * 系统复制/粘贴等，故这些组合只允许双击模式（与 Rust `is_reserved_editing_combo` 对齐）。
+ */
+export function isReservedEditingCombo(parts: string[]): boolean {
+  const modifiers = parts.filter((p) => p === "cmd_or_ctrl" || p === "shift" || p === "alt");
+  const keys = parts.filter((p) => p !== "cmd_or_ctrl" && p !== "shift" && p !== "alt");
+  return (
+    modifiers.length === 1 &&
+    modifiers[0] === "cmd_or_ctrl" &&
+    keys.length === 1 &&
+    RESERVED_EDITING_KEYS.has(keys[0])
+  );
+}

@@ -7,11 +7,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CloseIcon } from "../../components/ui/Icon";
+import { CloseIcon } from "@lunarca/editor-core/Icon";
 import { IconButton } from "../../components/ui/IconButton";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import { requestEditorCommand } from "../../lib/app-events";
-import { formatShortcut } from "../../lib/shortcut-display";
+import { formatShortcut } from "@lunarca/editor-core/shortcut-display";
 import { FilteredList } from "./FilteredList";
 import { highlightParts } from "./fuzzy";
 import {
@@ -79,6 +79,7 @@ export function CommandPalette({
       .filter((command) => command.id !== "command_palette")
       .filter((command) => !(command.space && unavailableSpaces.has(command.space)))
       .filter((command) => !command.needsCreatorProject || hasCreatorProject)
+      .filter((command) => !command.needsActiveNote || hasActiveEditor)
       .map((command): PaletteItem => {
         const title = t(command.titleKey);
         const shortcut = commandShortcut(command, bindings);

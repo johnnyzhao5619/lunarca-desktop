@@ -19,7 +19,7 @@ import { commands, type ProjectCardDto, type ProjectStageDto, type SearchHitDto 
 import { CaptureStartButton } from "../../components/ui/CaptureStartButton";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { IconButton } from "../../components/ui/IconButton";
-import { BookOpenIcon, BookmarkIcon, ChevronRightIcon, EllipsisIcon, FilmIcon, PlusIcon } from "../../components/ui/Icon";
+import { BookOpenIcon, BookmarkIcon, ChevronRightIcon, EllipsisIcon, FilmIcon, PlusIcon } from "@lunarca/editor-core/Icon";
 import { SelectBox } from "../../components/ui/SelectBox";
 import { formatDateTime } from "../../lib/format-datetime";
 import { ListLoadMore } from "../workspace/ListLoadMore";

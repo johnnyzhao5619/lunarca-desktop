@@ -11,6 +11,8 @@ rust-version.workspace = true
 publish = false
 
 [dependencies]
+# 加解密、分块、清单与合并的纯逻辑（与网页版共用，ADR-177 ⑥）。
+luna-sync-core = { path = "../luna-sync-core" }
 # 远端接口是异步的（实现走 HTTP）；本 crate 不依赖任何运行时。
 async-trait = { workspace = true }
 # 路径 NFC、三路合并、基线钉住、「不见了 ≠ 删了」判定（ADR-148 的本地前置）。

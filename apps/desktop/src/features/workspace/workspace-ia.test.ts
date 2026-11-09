@@ -54,7 +54,7 @@ function labelExists(locale: string, labelKey: string): boolean {
 }
 
 describe("一级结构（PRD-07-002 / PRD-07-002b）", () => {
-  it("活动栏默认顺序：搜索 → 笔记 → 知识库 → 速记 → 录音 → 转写 → AI 对话 → 创作", () => {
+  it("活动栏默认顺序：搜索 → 笔记 → 知识库 → 速记 → 录音 → 转写 → AI 对话 → 创作 → 提词器", () => {
     expect(PRIMARY_SPACES).toEqual([
       "search",
       "notes",
@@ -64,11 +64,12 @@ describe("一级结构（PRD-07-002 / PRD-07-002b）", () => {
       "transcripts",
       "chat",
       "creator",
+      "teleprompter",
     ]);
   });
 
-  it("只有创作空间默认隐藏（ADR-162 ①，与 Rust 词表的 default_visible 同一事实）", () => {
-    expect(PRIMARY_SPACES.filter((space) => isHiddenByDefault(space))).toEqual(["creator"]);
+  it("只有一方应用的空间默认隐藏（创作 ADR-162 ①、提词器 ADR-176 ①；与 Rust 词表的 default_visible 同一事实）", () => {
+    expect(PRIMARY_SPACES.filter((space) => isHiddenByDefault(space))).toEqual(["creator", "teleprompter"]);
   });
 
   it("系统维护区贴底且只有三项：应用 → 回收站 → 设置（ADR-165 ⑤）", () => {
@@ -102,7 +103,7 @@ describe("一级结构（PRD-07-002 / PRD-07-002b）", () => {
 
   it("锚点：笔记与知识库不可隐藏；速记 / 录音 / 转写 / 搜索 / AI 对话 / 创作可隐藏（PRD-07-003）", () => {
     const configurable = PRIMARY_SPACES.filter((space) => !isAnchor(space));
-    expect(configurable).toEqual(["search", "quick_notes", "recordings", "transcripts", "chat", "creator"]);
+    expect(configurable).toEqual(["search", "quick_notes", "recordings", "transcripts", "chat", "creator", "teleprompter"]);
     for (const anchor of ["notes", "knowledge"] as const) {
       expect(isAnchor(anchor)).toBe(true);
     }
@@ -322,6 +323,7 @@ describe("名字（每个目的地只有一个名字键）", () => {
       "nav.transcripts": { zh: "转写", en: "Transcripts" },
       "chat:title": { zh: "AI 对话", en: "AI Chat" },
       "nav.creator": { zh: "创作", en: "Create" },
+      "nav.teleprompter": { zh: "提词器", en: "Teleprompter" },
       "nav.apps": { zh: "应用", en: "Apps" },
       "nav.trash": { zh: "回收站", en: "Trash" },
       "nav.settings": { zh: "设置", en: "Settings" },

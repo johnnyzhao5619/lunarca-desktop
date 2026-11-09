@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import { useTranslation } from "react-i18next";
-import { CameraIcon, CheckIcon, CloseIcon, CropIcon } from "../../components/ui/Icon";
+import { CameraIcon, CheckIcon, CloseIcon, CropIcon } from "@lunarca/editor-core/Icon";
 import { IconButton } from "../../components/ui/IconButton";
 import { commands } from "../../ipc/bindings";
 import { vaultErrorText } from "../../lib/vault-error";

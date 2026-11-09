@@ -2,7 +2,7 @@
  * 捕获键盘判据（PRD-06-058 B / B″）。
  *
  * 它的全部价值在于：中文用户按回车上屏时不落一篇半截笔记。三种运行时给出的事实各不
- * 相同（表见 `lib/ime-composition.ts`），2026-09-09 真机栽的是 WKWebView 那一行。
+ * 相同（表见 `@lunarca/editor-core/ime-composition`），2026-09-09 真机栽的是 WKWebView 那一行。
  */
 
 import { describe, expect, it } from "vitest";
@@ -10,7 +10,7 @@ import {
   COMPOSITION_COMMIT_WINDOW_MS,
   NO_COMPOSITION,
   type CompositionState,
-} from "../../lib/ime-composition";
+} from "@lunarca/editor-core/ime-composition";
 import { classifyCaptureKey, type CaptureKey } from "./capture-keys";
 
 function key(overrides: Partial<CaptureKey> = {}): CaptureKey {

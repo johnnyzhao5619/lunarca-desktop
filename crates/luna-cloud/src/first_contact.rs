@@ -8,7 +8,7 @@
 //! 故放宽校验的客户端只在这里构造一次，且只发 [`ALLOWED_PATHS`] 里的四条：
 //!
 //! - `login/start`、`login/finish`：OPAQUE 两段式，结果当场用会话密钥解开信任包并核对
-//!   `deployment_id`（[`opaque_auth::open_bundle`] / [`opaque_auth::ensure_same_deployment`]）；
+//!   `deployment_id`（[`luna_opaque::open_bundle`] / [`luna_opaque::ensure_same_deployment`]）；
 //! - `password/forgot`、`signup/start`：只带邮箱（`login/start` 本就要发）、只看状态码，
 //!   响应体一个字节都不读——中间人最多吞掉这封信，拿不到任何秘密。
 //!
@@ -23,7 +23,7 @@ use serde::Deserialize;
 use zeroize::Zeroizing;
 
 use crate::error::{CloudError, LoginRejection};
-use crate::opaque_auth::{self, Suite, TrustBundle};
+use luna_opaque::{Suite, TrustBundle};
 
 /// OPAQUE 第一段。
 pub const LOGIN_START_PATH: &str = "/v1/auth/opaque/login/start";
@@ -119,7 +119,7 @@ struct FinishResponse {
 
 /// 跑一次 OPAQUE 登录并解开信任包。
 ///
-/// `email` 须已规整（[`opaque_auth::normalize_email`]）；`secret` 是口令或规整后的一次性码。
+/// `email` 须已规整（[`luna_opaque::normalize_email`]）；`secret` 是口令或规整后的一次性码。
 /// `expected_deployment` = `.well-known/lunarca` 给的部署（若有）：握手与信任包都必须是它。
 ///
 /// # Errors
@@ -143,7 +143,7 @@ pub async fn login(
         LOGIN_START_PATH,
         &serde_json::json!({
             "email": email,
-            "credential_request": opaque_auth::b64u(&start.message.serialize()),
+            "credential_request": luna_opaque::b64u(&start.message.serialize()),
             "purpose": purpose.wire(),
         }),
     )
@@ -155,10 +155,10 @@ pub async fn login(
     if expected_deployment.is_some_and(|expected| expected != started.deployment_id) {
         return Err(CloudError::ServerIdentityRejected);
     }
-    let credential_response = opaque_auth::from_b64u(&started.credential_response)
+    let credential_response = luna_opaque::from_b64u(&started.credential_response)
         .and_then(|bytes| CredentialResponse::<Suite>::deserialize(&bytes).ok())
         .ok_or_else(|| unreadable(origin, "credential_response"))?;
-    let ksf = opaque_auth::ksf();
+    let ksf = luna_opaque::ksf();
     // 口令不对、或对端不是这个账户注册时的那台部署（身份绑定不同）：客户端在这里就解不开。
     let finished = start
         .state
@@ -167,8 +167,8 @@ pub async fn login(
             secret,
             credential_response,
             ClientLoginFinishParameters::new(
-                Some(opaque_auth::CONTEXT),
-                opaque_auth::identifiers(email, &started.deployment_id),
+                Some(luna_opaque::CONTEXT),
+                luna_opaque::identifiers(email, &started.deployment_id),
                 Some(&ksf),
             ),
         )
@@ -181,7 +181,7 @@ pub async fn login(
         LOGIN_FINISH_PATH,
         &serde_json::json!({
             "login_id": started.login_id,
-            "credential_finalization": opaque_auth::b64u(&finished.message.serialize()),
+            "credential_finalization": luna_opaque::b64u(&finished.message.serialize()),
         }),
     )
     .await?;
@@ -189,23 +189,23 @@ pub async fn login(
         .json::<FinishResponse>()
         .await
         .map_err(|err| CloudError::body(&err, origin))?;
-    let sealed = opaque_auth::from_b64u(&sealed.sealed_bundle)
+    let sealed = luna_opaque::from_b64u(&sealed.sealed_bundle)
         .ok_or_else(|| unreadable(origin, "sealed_bundle"))?;
     let login_id =
-        opaque_auth::from_b64u(&started.login_id).ok_or_else(|| unreadable(origin, "login_id"))?;
+        luna_opaque::from_b64u(&started.login_id).ok_or_else(|| unreadable(origin, "login_id"))?;
     let session_key = Zeroizing::new(finished.session_key.to_vec());
     // 信任包用会话密钥解开、且写的正是握手那台部署，才算数；任一不成立整次丢弃。
-    let bundle = opaque_auth::open_bundle(&sealed, &session_key, &login_id, &started.deployment_id)
+    let bundle = luna_opaque::open_bundle(&sealed, &session_key, &login_id, &started.deployment_id)
         .map_err(|err| {
             eprintln!("[account] 信任包不可信，已丢弃：{err}");
             CloudError::ServerIdentityRejected
         })?;
     if let Some(expected) = expected_deployment {
-        opaque_auth::ensure_same_deployment(&bundle, expected)
+        luna_opaque::ensure_same_deployment(&bundle, expected)
             .map_err(|_| CloudError::ServerIdentityRejected)?;
     }
-    let claim = Zeroizing::new(opaque_auth::b64u(
-        opaque_auth::claim_key(&session_key, &login_id).as_ref(),
+    let claim = Zeroizing::new(luna_opaque::b64u(
+        luna_opaque::claim_key(&session_key, &login_id).as_ref(),
     ));
     Ok(Handshake {
         login_id: started.login_id,

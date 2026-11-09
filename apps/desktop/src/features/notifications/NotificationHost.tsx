@@ -11,7 +11,7 @@
 
 import { useTranslation } from "react-i18next";
 import { IconButton } from "../../components/ui/IconButton";
-import { CloseIcon } from "../../components/ui/Icon";
+import { CloseIcon } from "@lunarca/editor-core/Icon";
 import type { NotificationEventDto } from "../../ipc/bindings";
 import {
   collapseNotificationStack,

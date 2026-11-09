@@ -198,6 +198,19 @@ export const WORKSPACE_IA = [
     anchor: false,
   },
   {
+    // 提词器空间（ADR-176 ① ②）：一页首页——开始提词、最近提词的稿子、新建提词稿与跟读开关；
+    // 没有侧栏。归一方应用「提词器」，安装后才出现。
+    space: "teleprompter",
+    surface: "canvas",
+    labelKey: "nav.teleprompter",
+    slot: "primary",
+    sections: [],
+    defaultSection: null,
+    hasSidebar: false,
+    hiddenByDefault: true,
+    anchor: false,
+  },
+  {
     // 「应用」（ADR-165 ⑤）：一方应用的列表与详情、启用与停用。贴底在回收站之上。
     space: "apps",
     surface: "canvas",

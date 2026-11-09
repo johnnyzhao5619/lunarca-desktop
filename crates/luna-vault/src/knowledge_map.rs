@@ -3,7 +3,9 @@
 //! 本模块不调用模型、不读设置：相同主题页集合必得相同字节。地图只做路由，摘要取主题页
 //! 首个有意义段落；问答检索不得把地图本身作为事实来源。
 
-use crate::{body_of, markdown_link, title_of};
+use crate::{body_of, markdown_link};
+
+use luna_sync_core::links::title_of;
 
 pub const SUMMARY_CHARS: usize = 120;
 
@@ -201,7 +203,7 @@ fn cited_sources<'a>(
         .map(|topic| {
             let cited = crate::parse::extract_links(body_of(topic.content))
                 .iter()
-                .map(|link| crate::pathutil::canonical_link_target(topic.path, link))
+                .map(|link| luna_sync_core::links::canonical_link_target(topic.path, link))
                 .filter(|target| !pages.contains(target.as_str()))
                 .collect();
             (topic.path, cited)

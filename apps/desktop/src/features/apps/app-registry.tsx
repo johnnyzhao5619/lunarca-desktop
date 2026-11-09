@@ -9,7 +9,7 @@
 import type { ComponentType, ReactNode } from "react";
 
 import { FIRST_PARTY_APP_IDS, type AppId } from "../../ipc/bindings";
-import { FilmIcon, LinkIcon } from "../../components/ui/Icon";
+import { FilmIcon, LinkIcon, ScrollTextIcon } from "@lunarca/editor-core/Icon";
 import { CreatorSetup } from "../creator/CreatorSetup";
 import { LinkImportComponents } from "./LinkImportComponents";
 
@@ -27,6 +27,11 @@ export const APP_UI: Record<AppId, AppUi> = {
     icon: (size) => <FilmIcon size={size} />,
     Components: null,
     Setup: CreatorSetup,
+  },
+  teleprompter: {
+    icon: (size) => <ScrollTextIcon size={size} />,
+    Components: null,
+    Setup: null,
   },
   link_import: {
     icon: (size) => <LinkIcon size={size} />,

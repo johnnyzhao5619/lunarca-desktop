@@ -15,13 +15,17 @@ import { describe, expect, it } from "vitest";
  *   它们各自有专属守护（图谱类型过滤器、体检卡、队列阶段…），静态扫描看不到也不该假装看得到。
  */
 
-const SOURCES = import.meta.glob("../features/**/*.tsx", {
-  eager: true,
-  query: "?raw",
-  import: "default",
-}) as Record<string, string>;
+// 共享包里不是组件的模块也要查：编辑器的组装（`markdown-editor.ts`）以带前缀的字面量取包自带的文案。
+const SOURCES = import.meta.glob(
+  ["../features/**/*.tsx", "../../../../packages/*/src/**/*.{ts,tsx}", "!../../../../packages/*/src/**/*.test.{ts,tsx}"],
+  {
+    eager: true,
+    query: "?raw",
+    import: "default",
+  },
+) as Record<string, string>;
 
-const LOCALES = import.meta.glob("./locales/*/*.json", { eager: true }) as Record<
+const LOCALES = import.meta.glob(["./locales/*/*.json", "../../../../packages/*/src/locales/*/*.json"], { eager: true }) as Record<
   string,
   { default: Record<string, unknown> }
 >;
@@ -36,7 +40,7 @@ function bundles(): Map<string, Map<string, Set<string>>> {
         : [`${prefix}${key}`],
     );
   for (const [path, mod] of Object.entries(LOCALES)) {
-    const match = /\.\/locales\/([^/]+)\/([^/]+)\.json$/.exec(path);
+    const match = /\/locales\/([^/]+)\/([^/]+)\.json$/.exec(path);
     if (!match) {
       continue;
     }
@@ -84,6 +88,9 @@ describe("组件里写死的 i18n key 必须在两个语言文件里都存在", 
     // 静态用法在本仓是几百条量级；扫不到说明 glob 或正则坏了，而那会让这条守护
     // 变成一个永远绿的摆设。
     expect(usages.length).toBeGreaterThan(200);
+    // 共享渲染包里的组件同样要查（它的文案在包自带的 `editor-core` 命名空间里）。
+    expect(usages.some((usage) => usage.ns === "editor-core"), "共享渲染包不在扫描面里").toBe(true);
+    expect(usages.some((usage) => usage.key.startsWith("editor.") && usage.ns === "editor-core"), "编辑器组装的文案不在扫描面里").toBe(true);
   });
 
   it("每一处静态 key 都能查到文案", () => {

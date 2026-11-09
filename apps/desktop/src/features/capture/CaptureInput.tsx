@@ -11,7 +11,7 @@
  * - `Enter` 存下并留在框里（清空 + 焦点不走），连续捕获零决策；
  * - `Shift+Enter` 换行，交给 textarea 原生行为；
  * - `⌘/Ctrl+Enter` 存下并打开（`open: true`，「打开」是什么由调用方定）；
- * - 输入法上屏那一下不算提交（判据在 `capture-keys.ts` → `lib/ime-composition.ts`）；
+ * - 输入法上屏那一下不算提交（判据在 `capture-keys.ts` → `@lunarca/editor-core/ime-composition`）；
  * - 没存成就不清空——用户刚敲的那段字是他仅有的一份。
  *
  * `preventDefault()` 只在真的要提交时才调（2026-09-09 真机修复）：判「这一下是什么」与
@@ -33,8 +33,8 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton } from "../../components/ui/IconButton";
-import { SendIcon } from "../../components/ui/Icon";
-import { type CompositionState, NO_COMPOSITION } from "../../lib/ime-composition";
+import { SendIcon } from "@lunarca/editor-core/Icon";
+import { type CompositionState, NO_COMPOSITION } from "@lunarca/editor-core/ime-composition";
 import { classifyCaptureKey } from "./capture-keys";
 
 export interface CaptureInputProps {
@@ -84,7 +84,7 @@ export function CaptureInput({
   const localRef = useRef<HTMLTextAreaElement>(null);
   const ref = inputRef ?? localRef;
   /**
-   * 合成边界（`lib/ime-composition.ts` 的判据之一）。
+   * 合成边界（`@lunarca/editor-core/ime-composition` 的判据之一）。
    *
    * 存 ref 不存 state：它只在按键那一刻被读一次，而中文输入每敲一个字母都会走一遍组字
    * 事件，做成 state 就是每个字母重渲一次。

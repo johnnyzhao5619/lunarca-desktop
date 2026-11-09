@@ -13,7 +13,7 @@ import {
   events,
   type LocalEngineStatusDto,
 } from "../../ipc/bindings";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { FactRow } from "../../components/ui/FactRow";
 import { InlineDetails } from "../../components/ui/InlineDetails";
 import { HfImportSection } from "./HfImportSection";

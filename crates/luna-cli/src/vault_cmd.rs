@@ -9,11 +9,11 @@
 //! （ADR-141 ⑥）。
 
 use clap::{Args, Subcommand};
+use luna_sync_core::search::{NoteMatch, SearchQuery};
 use luna_vault::registry::VaultEntry;
 use luna_vault::scan::Drift;
-use luna_vault::search::NoteMatch;
 use luna_vault::NoteListEntry;
-use luna_vault::{SearchQuery, Vault, VaultError};
+use luna_vault::{Vault, VaultError};
 use serde::Serialize;
 use std::io::{IsTerminal as _, Write as _};
 use std::path::{Path, PathBuf};

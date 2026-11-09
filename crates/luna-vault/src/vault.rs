@@ -9,21 +9,15 @@
 //! 扫描绝不改写既有文件；仅 `.luna/` 私有目录与 `.gitignore` 的幂等 Lunarca 块是合法附加写。
 
 use crate::atomic::write_atomic;
-use crate::diff::{diff_lines, LineDiff};
 use crate::error::{Result, VaultError};
 use crate::frontmatter::{
     body_of, read_luna, update_luna, LunaMeta, MediaRef, NoteStage, NoteType,
 };
-use crate::hashing::ContentHash;
 use crate::index::{Index, Query, SearchHit, TagCount, TagSummary};
 use crate::pathutil::markdown_link;
 use crate::retrieve::{
     allows_grounding, pack_passages, question_terms, resolve_anchor, score_note, Anchor, AnchorHit,
     Retrieval, RetrieveOptions, CANDIDATES_PER_TERM, MAX_CANDIDATES,
-};
-use crate::search::{
-    match_note, replace_in_note, NoteMatch, ReplaceNote, ReplacePlan, SearchQuery, SearchResults,
-    CANDIDATE_LIMIT, MAX_LINES_PER_NOTE, MAX_RESULT_NOTES,
 };
 use crate::sidecar::{
     read_sidecar_for_media, sidecar_path_for, write_sidecar, Sidecar, SidecarLoad,
@@ -35,6 +29,12 @@ use crate::timecode::format_timecode;
 use crate::topic::{ownership_of, TopicOwnership};
 use crate::usage::UsageStore;
 use luna_core::Segment;
+use luna_sync_core::diff::{diff_lines, LineDiff};
+use luna_sync_core::hashing::ContentHash;
+use luna_sync_core::search::{
+    match_note, replace_in_note, NoteMatch, ReplaceNote, ReplacePlan, SearchQuery, SearchResults,
+    CANDIDATE_LIMIT, MAX_LINES_PER_NOTE, MAX_RESULT_NOTES,
+};
 use serde::{Deserialize, Serialize};
 use std::path::{Component, Path, PathBuf};
 use std::sync::Mutex;
@@ -131,7 +131,7 @@ pub struct NoteTree {
     /// 被哪条排除规则覆盖（[`crate::exclusions`]，V4a）；没被排除为 `None`。树行据此淡显，
     /// 右键据此判勾选态或「已随上级排除」——前端不自己拿规则去比路径（ADR-003）。
     pub excluded_by: Option<String>,
-    /// 隐藏项（自己或某一级上级以 `.` 开头，[`crate::is_hidden_rel`]）：只在「显示隐藏文件」
+    /// 隐藏项（自己或某一级上级以 `.` 开头，[`luna_sync_core::links::is_hidden_rel`]）：只在「显示隐藏文件」
     /// 打开时出现在树里（V4b），树行淡显；它们不进索引、搜索与链接解析。
     pub hidden: bool,
     /// 子节点（目录才有）。
@@ -373,21 +373,6 @@ pub struct WikiLinkHit {
     pub line: Option<u32>,
     /// 片段是标题时，它是正文里第几个标题（0 起）——阅读视图按标题序号定位。
     pub heading_index: Option<u32>,
-}
-
-/// 一条 `[[` 补全候选（[`Vault::wikilink_candidates`]）。
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct WikiLinkCandidate {
-    /// 笔记标题（= 文件名去扩展名）。
-    pub title: String,
-    /// 选中后写进 `[[ ]]` 的文字。
-    pub insert: String,
-    /// 按 frontmatter 别名命中时的那个别名（写成 `[[insert|别名]]`）；按标题命中为 `None`。
-    pub alias: Option<String>,
-    /// 所在目录（库根为空串），同名笔记靠它区分。
-    pub folder: String,
-    /// 库内相对路径。
-    pub path: String,
 }
 
 impl Vault {
@@ -1148,7 +1133,7 @@ impl Vault {
             .collect();
         names.sort();
         for name in names {
-            let rel = crate::join_vault_rel(folder, &name);
+            let rel = luna_sync_core::attachment::join_vault_rel(folder, &name);
             let Ok(doc) = self.read(&rel) else {
                 continue;
             };
@@ -3172,8 +3157,8 @@ impl Vault {
     /// 新目录的哪里（落点被占则取唯一名）。**只算不搬**——在动磁盘之前与改写计划一起定下，
     /// 链接交给改名重构一次算清。同目录移动（纯重命名）不搬。
     fn plan_exclusive_attachments(&self, from: &str, to: &str) -> Result<Vec<(String, String)>> {
-        let from_dir = crate::pathutil::parent_dir(from).to_owned();
-        let to_dir = crate::pathutil::parent_dir(to).to_owned();
+        let from_dir = luna_sync_core::links::parent_dir(from).to_owned();
+        let to_dir = luna_sync_core::links::parent_dir(to).to_owned();
         if from_dir == to_dir {
             return Ok(Vec::new());
         }
@@ -3197,7 +3182,7 @@ impl Vault {
             let suffix = old_vrel
                 .strip_prefix(&format!("{from_dir}/"))
                 .unwrap_or(&old_vrel);
-            let wanted = crate::pathutil::join_vault_rel(&to_dir, suffix);
+            let wanted = luna_sync_core::attachment::join_vault_rel(&to_dir, suffix);
             let mut new_vrel = wanted.clone();
             let mut n = 1u32;
             while self.root.join(&new_vrel).exists()
@@ -3393,8 +3378,8 @@ impl Vault {
     }
 
     fn relocate_note_media(&self, from: &str, to: &str, files_moved: bool) -> Result<()> {
-        let from_dir = crate::pathutil::parent_dir(from).to_owned();
-        let to_dir = crate::pathutil::parent_dir(to).to_owned();
+        let from_dir = luna_sync_core::links::parent_dir(from).to_owned();
+        let to_dir = luna_sync_core::links::parent_dir(to).to_owned();
         if from_dir == to_dir {
             return Ok(()); // 同目录（纯重命名）：附件相对结构不变。
         }
@@ -3411,7 +3396,7 @@ impl Vault {
             let suffix = old_vrel
                 .strip_prefix(&format!("{from_dir}/"))
                 .unwrap_or(&old_vrel);
-            let new_vrel = crate::pathutil::join_vault_rel(&to_dir, suffix);
+            let new_vrel = luna_sync_core::attachment::join_vault_rel(&to_dir, suffix);
             if new_vrel == old_vrel {
                 continue;
             }
@@ -4412,7 +4397,7 @@ impl Vault {
             created: doc.meta.created.clone(),
             modified_ms: entry.map(|entry| entry.modified_ms),
             tags: self.index.note_tags(rel_path)?,
-            removable_tags: crate::parse::frontmatter_tags(&doc.content),
+            removable_tags: luna_sync_core::tags::frontmatter_tags(&doc.content),
         })
     }
 
@@ -4428,7 +4413,7 @@ impl Vault {
             .iter()
             .map(|n| (n.path.as_str(), n.title.as_str()))
             .collect();
-        let index = crate::graph::LinkIndex::build(pairs).with_aliases(
+        let index = luna_sync_core::links::LinkIndex::build(pairs).with_aliases(
             rows.aliases
                 .iter()
                 .map(|(path, alias)| (path.as_str(), alias.as_str())),
@@ -4676,7 +4661,7 @@ impl Vault {
         &self.index
     }
 
-    /// [`crate::graph::LinkIndex`] 的两张输入表：`(路径, 标题)` 与 `(路径, 别名)`。
+    /// [`luna_sync_core::links::LinkIndex`] 的两张输入表：`(路径, 标题)` 与 `(路径, 别名)`。
     pub(crate) fn link_rows(&self) -> Result<(PathPairs, PathPairs)> {
         let mut notes = self.index.note_identities()?;
         // iCloud 未下载的笔记不在索引里（读不到正文），但它是在的：指向它的链接不是断链。
@@ -4684,7 +4669,7 @@ impl Vault {
             if path.to_lowercase().ends_with(".md")
                 && !notes.iter().any(|(known, _)| known == &path)
             {
-                let title = crate::parse::title_of(&path);
+                let title = luna_sync_core::links::title_of(&path);
                 notes.push((path, title));
             }
         }
@@ -4694,15 +4679,15 @@ impl Vault {
     /// 一批 wikilink 目标（`|` 之前的部分，可带 `#片段`）各自指向哪一篇；指不到为 `None`。
     ///
     /// 编辑器与阅读视图据此给链接着色、决定点击是打开还是新建。「指向哪一篇」与图谱、
-    /// 反链、体检同一份 [`crate::graph::LinkIndex`]：前端按文件名比对一遍就是第二个答案，
+    /// 反链、体检同一份 [`luna_sync_core::links::LinkIndex`]：前端按文件名比对一遍就是第二个答案，
     /// 而它的表现正是子目录里的笔记点不开（2026-10-03）。只有片段的 `[[#标题]]` 指向本篇。
     pub fn resolve_wikilinks(&self, src: &str, targets: &[String]) -> Result<Vec<Option<String>>> {
         let (notes, aliases) = self.link_rows()?;
-        let index = crate::graph::LinkIndex::from_rows(&notes, &aliases);
+        let index = luna_sync_core::links::LinkIndex::from_rows(&notes, &aliases);
         Ok(targets
             .iter()
             .map(
-                |target| match crate::parse::split_wikilink_target(target).0 {
+                |target| match luna_sync_core::links::split_wikilink_target(target).0 {
                     "" => Some(src.to_owned()),
                     note => index.resolve(src, note).map(str::to_owned),
                 },
@@ -4710,66 +4695,19 @@ impl Vault {
             .collect())
     }
 
-    /// `[[` 补全候选：标题或 frontmatter 别名包含 `query` 的笔记（不分大小写），以它开头的
-    /// 排前、短的排前。按别名命中的候选带上 `alias`，选中后写成 `[[名字|别名]]`（Obsidian
-    /// 同一写法）：链接指向真名、正文里显示用户想写的那个叫法；改名时只改 `|` 之前那段。
-    ///
-    /// `insert` 是要写进 `[[ ]]` 的文字：按名字能解析回这一篇就写名字，否则写不带 `.md`
-    /// 的路径——同名笔记各有一个指得回自己的写法，补全选中哪篇，点开就是哪篇。
+    /// `[[` 补全候选：排序、别名与同名消歧的规则只在 `luna_sync_core::links::wikilink_candidates`
+    /// 一处（网页版共用，ADR-177 ⑥）；这里只把索引里的标题与别名两张表交给它。按别名命中的候选选中后
+    /// 写成 `[[名字|别名]]`（Obsidian 同一写法）。
     pub fn wikilink_candidates(
         &self,
         src: &str,
         query: &str,
         limit: usize,
-    ) -> Result<Vec<WikiLinkCandidate>> {
+    ) -> Result<Vec<luna_sync_core::links::WikiLinkCandidate>> {
         let (notes, aliases) = self.link_rows()?;
-        let index = crate::graph::LinkIndex::from_rows(&notes, &aliases);
-        let titles: std::collections::BTreeMap<&str, &str> = notes
-            .iter()
-            .map(|(path, title)| (path.as_str(), title.as_str()))
-            .collect();
-        let wanted = crate::pathutil::name_key(query.trim());
-        // (路径, 标题, 命中的文字, 别名)
-        let mut hits: Vec<(&str, &str, &str, Option<&str>)> = notes
-            .iter()
-            .filter(|(path, title)| {
-                path != src && crate::pathutil::name_key(title).contains(&wanted)
-            })
-            .map(|(path, title)| (path.as_str(), title.as_str(), title.as_str(), None))
-            .collect();
-        hits.extend(aliases.iter().filter_map(|(path, alias)| {
-            let title = *titles.get(path.as_str())?;
-            (path != src && crate::pathutil::name_key(alias).contains(&wanted)).then_some((
-                path.as_str(),
-                title,
-                alias.as_str(),
-                Some(alias.as_str()),
-            ))
-        }));
-        hits.sort_by_key(|(path, _, matched, alias)| {
-            (
-                !crate::pathutil::name_key(matched).starts_with(&wanted),
-                matched.chars().count(),
-                path.matches('/').count(),
-                *path,
-                alias.is_some(),
-            )
-        });
-        Ok(hits
-            .into_iter()
-            .take(limit)
-            .map(|(path, title, _, alias)| WikiLinkCandidate {
-                insert: if index.resolve(src, title) == Some(path) {
-                    title.to_owned()
-                } else {
-                    path.strip_suffix(".md").unwrap_or(path).to_owned()
-                },
-                title: title.to_owned(),
-                alias: alias.map(str::to_owned),
-                folder: crate::pathutil::parent_dir(path).to_owned(),
-                path: path.to_owned(),
-            })
-            .collect())
+        Ok(luna_sync_core::links::wikilink_candidates(
+            &notes, &aliases, src, query, limit,
+        ))
     }
 
     /// 点击一条 wikilink 的落点：指向的笔记、第几行（1 起，含 frontmatter）、正文第几个
@@ -4779,7 +4717,7 @@ impl Vault {
     /// `#标题` 按标题文字匹配（忽略大小写与首尾空白），`#^块` 按行尾的 ` ^块` 标记匹配；
     /// 片段找不到时仍打开那一篇，只是不跳行——笔记在，就不该因为标题改了名而点不开。
     pub fn resolve_wikilink(&self, src: &str, target: &str) -> Result<WikiLinkHit> {
-        let (note, fragment) = crate::parse::split_wikilink_target(target);
+        let (note, fragment) = luna_sync_core::links::split_wikilink_target(target);
         let resolved = self
             .resolve_wikilinks(src, &[target.to_owned()])?
             .into_iter()
@@ -5075,7 +5013,7 @@ impl Vault {
             }
             if let Some(mut passage) = score_note(
                 &target,
-                &crate::parse::title_of(&target),
+                &luna_sync_core::links::title_of(&target),
                 doc.meta.note_type,
                 doc.meta.stage(),
                 &doc.content,
@@ -5084,7 +5022,7 @@ impl Vault {
             .or_else(|| {
                 crate::retrieve::passage_at_line(
                     &target,
-                    &crate::parse::title_of(&target),
+                    &luna_sync_core::links::title_of(&target),
                     doc.meta.note_type,
                     doc.meta.stage(),
                     &doc.content,
@@ -5356,7 +5294,7 @@ impl Vault {
                     }
                     if let Some(passage) = crate::retrieve::passage_at_line(
                         &target,
-                        &crate::parse::title_of(&target),
+                        &luna_sync_core::links::title_of(&target),
                         target_doc.meta.note_type,
                         target_doc.meta.stage(),
                         &target_doc.content,
@@ -5397,7 +5335,7 @@ impl Vault {
             }
             if let Some(passage) = crate::retrieve::passage_at_line(
                 &hit.path,
-                &crate::parse::title_of(&hit.path),
+                &luna_sync_core::links::title_of(&hit.path),
                 note_type,
                 stage,
                 &content,
@@ -5822,7 +5760,7 @@ fn find_unlinked_mentions(
 ) -> Vec<UnlinkedMention> {
     let body = body_of(content);
     let base_line = crate::frontmatter::body_base_line(content);
-    let self_title = crate::parse::title_of(self_path).to_lowercase();
+    let self_title = luna_sync_core::links::title_of(self_path).to_lowercase();
 
     let mut out = Vec::new();
     for (offset, raw) in body.split('\n').enumerate() {
@@ -5830,12 +5768,12 @@ fn find_unlinked_mentions(
             break;
         }
         let line = raw.strip_suffix('\r').unwrap_or(raw);
-        if crate::parse::is_scaffold_line(line) {
+        if luna_sync_core::scaffold::is_scaffold_line(line) {
             continue;
         }
         // 已经是链接的区间不再提议（含 wikilink、md 链接与行内代码）。
         let mut taken: Vec<(usize, usize)> = crate::parse::link_spans(line);
-        taken.extend(crate::parse::timecode_spans(line));
+        taken.extend(luna_sync_core::scaffold::timecode_spans(line));
         let lowered = line.to_lowercase();
 
         for entry in titles {
@@ -6565,10 +6503,8 @@ fn replace_timed_text_line(content: &str, start_ms: u64, next_text: &str) -> Str
 
 // ─── 录音转写正文块（哨兵定界，可整块替换）─────────────────────────────────────
 
-/// 转写块起始哨兵（HTML 注释，渲染不可见；`rewrite_recording_transcript` 据此整块替换）。
-pub(crate) const TRANSCRIPT_BEGIN: &str = "<!-- luna:transcript -->";
-/// 转写块结束哨兵。
-pub(crate) const TRANSCRIPT_END: &str = "<!-- /luna:transcript -->";
+// 转写块的起止哨兵（`rewrite_recording_transcript` 据此整块替换）与搜索、索引共用一份定义。
+use luna_sync_core::scaffold::{TRANSCRIPT_BEGIN, TRANSCRIPT_END};
 
 /// 把正文切成「便签可编辑的那一段」与「机器段」：机器段从第一个转写块哨兵开始（它前面的
 /// 尾部空白一并归机器段），到正文结束。没有转写块时整段都可编辑、机器段为空。
@@ -7847,7 +7783,7 @@ mod tests {
         let (_dir, v) = open_vault();
         v.write("锁住/甲.md", "季度复盘的要点").unwrap();
         v.write("乙.md", "季度复盘的另一篇").unwrap();
-        let query = crate::SearchQuery::parse("季度复盘", false);
+        let query = SearchQuery::parse("季度复盘", false);
         std::fs::remove_file(v.root().join("乙.md")).unwrap();
         std::fs::set_permissions(
             v.root().join("锁住"),
@@ -8233,7 +8169,7 @@ mod tests {
         let body = body_of(&v.read(&note).unwrap().content).to_owned();
         let hits = v
             .retrieve(
-                &format!("{} {body}", crate::title_of(&note)),
+                &format!("{} {body}", luna_sync_core::links::title_of(&note)),
                 &RetrieveOptions::default(),
             )
             .unwrap();
@@ -8835,7 +8771,7 @@ mod tests {
             let meta = v.read(path).unwrap().meta;
             if let Some(passage) = score_note(
                 path,
-                &crate::parse::title_of(path),
+                &luna_sync_core::links::title_of(path),
                 meta.note_type,
                 meta.stage(),
                 &content,
@@ -10697,7 +10633,7 @@ luna:
             .unwrap();
         v.write("b.md", "正文 B 也关于产品评审").unwrap();
         let tags = vec!["产品/评审".to_string()];
-        let hash = crate::hashing::ContentHash::of("正文".as_bytes());
+        let hash = luna_sync_core::hashing::ContentHash::of("正文".as_bytes());
         let written = v.set_ai_tags("a.md", &tags, hash.as_str()).unwrap();
         let content = written.expect("首次写入应发生");
         assert!(content.contains("tags: [用户]"), "用户 tags 逐字保留");
@@ -10726,7 +10662,7 @@ luna:
         // 指纹一致 = fresh、不一致或从未生成 = stale、正文为空 = empty（不参与）。
         let (_dir, v) = open_vault();
         v.write("fresh.md", "正文未再改动").unwrap();
-        let hash = crate::hashing::ContentHash::of(body_of("正文未再改动").as_bytes());
+        let hash = luna_sync_core::hashing::ContentHash::of(body_of("正文未再改动").as_bytes());
         v.set_ai_tags("fresh.md", &["主题".to_string()], hash.as_str())
             .unwrap();
         v.write("never.md", "从未生成过标签").unwrap();

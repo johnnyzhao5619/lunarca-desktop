@@ -45,7 +45,7 @@ import {
   SparklesIcon,
   StopCircleIcon,
   BookOpenIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { ChatMarkdown } from "./ChatMarkdown";
 import { ChatSources, citationTextRenderer, useSourceOpener } from "./ChatSources";
 import { DistillBadge } from "../distill/DistillBadge";
@@ -60,7 +60,7 @@ import { activeMention, applyMention } from "./chat-mentions";
 import type { ChatController } from "./use-chat-controller";
 import { useChatSession, type ChatUiMessage, type ReaskOverrides } from "./use-chat-session";
 import { useStickToBottom } from "./use-stick-to-bottom";
-import { formatShortcut } from "../../lib/shortcut-display";
+import { formatShortcut } from "@lunarca/editor-core/shortcut-display";
 import { noteStem } from "../../lib/note-path";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { useContextMenu } from "../../components/ContextMenuHost";

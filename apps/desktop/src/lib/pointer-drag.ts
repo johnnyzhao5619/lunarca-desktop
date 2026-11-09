@@ -14,20 +14,14 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-
-/** 起拖阈值（px）：位移小于它视作点击，绝不把单击变成误拖。 */
-export const DRAG_THRESHOLD_PX = 4;
+// 起拖阈值与编辑器表格把手共用一处（`@lunarca/editor-core/drag-threshold`）。
+import { shouldStartDrag } from "@lunarca/editor-core/drag-threshold";
 
 /** 拖影相对指针的偏移（px）：不遮住指针下的落点，各消费方同一个值。 */
 export const DRAG_GHOST_OFFSET_PX = 12;
 
 /** 可放置元素的标记属性；值即落点 id（空串合法，表示"根"）。 */
 export const DROP_ID_ATTR = "data-drop-id";
-
-/** 位移是否已达起拖阈值（纯函数，可 headless 测试）。 */
-export function shouldStartDrag(dx: number, dy: number, threshold = DRAG_THRESHOLD_PX): boolean {
-  return Math.hypot(dx, dy) >= threshold;
-}
 
 /**
  * 从屏幕坐标解析落点 id：取该点最上层元素，向上找最近的 `data-drop-id`。

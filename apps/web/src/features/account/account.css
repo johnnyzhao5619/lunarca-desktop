@@ -1,0 +1,71 @@
+/* 「账户与会话」页。 */
+
+.luna-web-account {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-inline-size: var(--web-account-max-inline);
+  margin-inline: auto;
+}
+
+.luna-web-account__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.luna-web-account__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+.luna-web-account__subtitle {
+  margin: 0;
+  font-size: var(--font-size-md);
+}
+
+.luna-web-account__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+}
+
+.luna-web-sessions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.luna-web-sessions__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block-end: var(--space-2);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.luna-web-sessions__name {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+.luna-web-sessions__badge {
+  padding-block: var(--space-0-5);
+  padding-inline: var(--space-1-5);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-surface);
+  color: var(--color-accent);
+  font-size: var(--font-size-xs);
+}

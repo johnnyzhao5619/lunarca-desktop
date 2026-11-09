@@ -1,0 +1,45 @@
+{
+  "_comment": [
+    "提词器按时长压缩「teleprompter.fit」（PRD-20-016，ADR-176 ⑧）。",
+    "目标字数 / 词数由 Rust 按本人语速算好填进 {target}；判据同其它用例。"
+  ],
+  "scope": "editor",
+  "template": "teleprompter.fit",
+  "cases": [
+    {
+      "name": "压到 60 秒：给出目标与现状，先删水分",
+      "vars": {
+        "seconds": "60",
+        "target": "260 Chinese characters",
+        "current_seconds": "95",
+        "language_lock": "The output must stay in Chinese.",
+        "context": ""
+      },
+      "must_contain": [
+        "about 60 seconds",
+        "about 260 Chinese characters",
+        "about 95 seconds",
+        "Cut filler",
+        "Never invent anything",
+        "Output only"
+      ],
+      "why": "不给模型目标字数它只会轻删几个字；不写「不编造」它会把删掉的要点换成更短的新说法"
+    },
+    {
+      "name": "压缩时口播记号原样保留",
+      "vars": {
+        "seconds": "30",
+        "target": "75 words",
+        "current_seconds": "48",
+        "language_lock": "The output must stay in English.",
+        "context": ""
+      },
+      "must_contain": [
+        "about 75 words",
+        "> [!cue]",
+        "exactly as they are"
+      ],
+      "why": "动作提示行被当成「次要细节」删掉，录的时候就漏了举产品那一下"
+    }
+  ]
+}

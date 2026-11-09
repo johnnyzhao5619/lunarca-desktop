@@ -121,7 +121,12 @@ impl PipelineConfig {
             input_sample_rate,
             mode,
             endpoint: EndpointConfig::new(TARGET_SAMPLE_RATE),
-            segmenter: SegmenterConfig::new(TARGET_SAMPLE_RATE),
+            segmenter: SegmenterConfig {
+                snapshot_interval_samples: (TARGET_SAMPLE_RATE as usize)
+                    * (tuning.stream_snapshot_interval_ms.max(100) as usize)
+                    / 1000,
+                ..SegmenterConfig::new(TARGET_SAMPLE_RATE)
+            },
             vad_sensitivity: tuning.vad_sensitivity,
             emit_level: true,
             waveform_fps: tuning.waveform_fps,
@@ -540,7 +545,7 @@ fn speech_window_event(win: crate::segmenter::SpeechWindow) -> SpeechEvent {
     SpeechEvent::Window {
         abs_start: win.abs_start,
         speech_len: win.speech_len,
-        speech_delta: win.speech_delta,
+        elapsed_samples: win.elapsed_samples,
         is_snapshot: win.is_snapshot,
         samples: win.samples,
     }

@@ -10,6 +10,9 @@
 //! `tags`（顶层，用户拥有）MVP 只读不写（§2.3），本模块不提供其写入路径。
 
 use crate::error::{Result, VaultError};
+use luna_sync_core::frontmatter::{
+    find_frontmatter, has_unclosed_frontmatter, line_at, trim_cr, FmSpan,
+};
 use serde::{Deserialize, Serialize};
 
 /// 当前 `luna:` 块结构版本（§4.5）。旧 `luna:` 块不会被读取或迁移。
@@ -507,11 +510,11 @@ pub struct LunaMeta {
     pub speakers: std::collections::BTreeMap<String, String>,
     /// AI 生成的关系标签（PRD-06-035）：LLM 从正文提炼的主题标签，服务关系图谱/标签索引。
     /// 与用户顶层 `tags` 分离存放——顶层 `tags` 用户拥有、只读不写（PRD-06-032），AI 标签
-    /// 归 Lunarca 自有 `luna:` 块；索引层把两者合并（`crate::parse::extract_tags`），标签面板
+    /// 归 Lunarca 自有 `luna:` 块；索引层把两者合并（`luna_sync_core::tags::extract_tags`），标签面板
     /// 与关系图谱同源受益。重新生成时整体替换本列表，绝不触碰用户标签。
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub ai_tags: Vec<String>,
-    /// `ai_tags` 生成时的正文指纹（[`crate::hashing::ContentHash`] 口径，对 `body_of` 字节）。
+    /// `ai_tags` 生成时的正文指纹（[`luna_sync_core::hashing::ContentHash`] 口径，对 `body_of` 字节）。
     /// 幂等门控：正文未变则不重复调用 LLM（保存/二次转写自动触发的去抖依据）。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ai_tags_src: Option<String>,
@@ -672,81 +675,6 @@ impl LunaMeta {
     }
 }
 
-/// frontmatter 区段的字节定位（内部）。
-struct FmSpan {
-    /// 内部内容起点（开头 `---\n` 之后）。
-    inner_start: usize,
-    /// 内部内容止点（闭合 `---` 行起点）。
-    inner_end: usize,
-    /// 正文起点（闭合 `---\n` 之后）。
-    body_start: usize,
-}
-
-/// 取一行（不含换行符）及其结束偏移（含换行符的下一字节，或 EOF）。
-fn line_at(s: &str, start: usize) -> (&str, usize) {
-    match s[start..].find('\n') {
-        Some(rel) => {
-            let nl = start + rel;
-            (&s[start..nl], nl + 1)
-        }
-        None => (&s[start..], s.len()),
-    }
-}
-
-/// 去掉一行末尾可能的 `\r`（CRLF 兼容），用于内容比较——不改写原字节。
-fn trim_cr(line: &str) -> &str {
-    line.strip_suffix('\r').unwrap_or(line)
-}
-
-/// frontmatter 内部（两条 `---` 之间）的字节区间；无 frontmatter 为 `None`。标签写入器
-/// （ADR-135）与 `luna:` 块写入共用同一个定位口径。
-pub(crate) fn frontmatter_inner_range(content: &str) -> Option<std::ops::Range<usize>> {
-    find_frontmatter(content).map(|span| span.inner_start..span.inner_end)
-}
-
-/// frontmatter 的四段原文：开头分隔行（含换行）、内部、闭合分隔行（含换行）、正文。三路合并
-/// 按这四段拆开再拼回，每一段都是原字节。无 frontmatter（含未闭合）为 `None`。
-pub(crate) fn frontmatter_parts(content: &str) -> Option<[&str; 4]> {
-    find_frontmatter(content).map(|span| {
-        [
-            &content[..span.inner_start],
-            &content[span.inner_start..span.inner_end],
-            &content[span.inner_end..span.body_start],
-            &content[span.body_start..],
-        ]
-    })
-}
-
-/// 定位 frontmatter 区段。必须在文件最开头：第一行恰为 `---`，其后有闭合 `---` 行。
-fn find_frontmatter(content: &str) -> Option<FmSpan> {
-    let (first, after_first) = line_at(content, 0);
-    if trim_cr(first) != "---" {
-        return None;
-    }
-    let mut cursor = after_first;
-    while cursor < content.len() {
-        let (line, after) = line_at(content, cursor);
-        if trim_cr(line) == "---" {
-            return Some(FmSpan {
-                inner_start: after_first,
-                inner_end: cursor,
-                body_start: after,
-            });
-        }
-        cursor = after;
-    }
-    None // 无闭合分隔符：视为无 frontmatter（保守，整体当正文）。
-}
-
-/// 第一行是 `---` 却找不到闭合行：frontmatter 写了一半或被改坏（真机 2026-09-27：用户在
-/// 编辑器里删掉了闭合 `---` 后的换行，成了 `---# 标题`）。解析上它「没有 frontmatter」，
-/// 但写入器若照「无 frontmatter」在前面再新建一份，就会叠出两段、把用户那半段挤进正文。
-/// 所有写入器遇到它都拒绝改写，等用户把它修好（同 Obsidian `processFrontMatter` 的做法）。
-#[must_use]
-pub(crate) fn has_unclosed_frontmatter(content: &str) -> bool {
-    trim_cr(line_at(content, 0).0) == "---" && find_frontmatter(content).is_none()
-}
-
 /// 在 frontmatter 内部 `[inner_start, inner_end)` 定位 `luna:` 块的字节范围。
 ///
 /// 块 = `luna:` 行 + 其后所有缩进行（含中间空行），**尾部空行不并入**（保留用户排版）。
@@ -883,7 +811,7 @@ pub fn body_of(content: &str) -> &str {
 /// 否则「正文已变即放弃陈旧意图」这条守卫就名存实亡。
 #[must_use]
 pub fn knowledge_body_hash(body: &str) -> String {
-    crate::ContentHash::of(body.trim_matches('\n').as_bytes()).to_string()
+    luna_sync_core::hashing::ContentHash::of(body.trim_matches('\n').as_bytes()).to_string()
 }
 
 /// 正文第一行**在整篇文件里**的 0-based 行号（= frontmatter 占掉的行数）。

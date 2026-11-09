@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "r
 import { IconButton } from "../../components/ui/IconButton";
 import { useTranslation } from "react-i18next";
 import { commands, events } from "../../ipc/bindings";
-import { CloseIcon } from "../../components/ui/Icon";
+import { CloseIcon } from "@lunarca/editor-core/Icon";
 import { QueryBox } from "../../components/ui/QueryBox";
 import { HelpDetails } from "../../components/ui/HelpDetails";
 

@@ -17,7 +17,7 @@
  */
 
 import type { TFunction } from "i18next";
-import { SparklesIcon } from "../../components/ui/Icon";
+import { SparklesIcon } from "@lunarca/editor-core/Icon";
 import type { ContextMenuEntry } from "../../lib/context-menu";
 import {
   DISTILL_BATCH_EVENT,

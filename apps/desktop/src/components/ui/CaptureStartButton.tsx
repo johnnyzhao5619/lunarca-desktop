@@ -9,7 +9,7 @@
  * 「不切回 Lunarca 也能按」，与空态要讲的事不同，挤在一起谁也讲不清。
  *
  * **`shortcut` 收已经格式化好的展示串**（`formatShortcut`），不收原始注册表值：
- * 「什么算一个可读的组合」在 `lib/shortcut-display.ts` 有唯一实现，这里再解析一次就是
+ * 「什么算一个可读的组合」在 `@lunarca/editor-core/shortcut-display` 有唯一实现，这里再解析一次就是
  * 第二处会漂的定义。未绑定就传空串——不显示，也不在名字里提。
  */
 

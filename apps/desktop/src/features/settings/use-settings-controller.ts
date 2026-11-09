@@ -74,6 +74,9 @@ export function useSettingsController(enabled: boolean): SettingsController {
   const [rawSpecs, setRawSpecs] = useState<SettingSpecDto[]>([]);
   const [diagnostics, setDiagnostics] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  // 注册表至少成功读回过一次。在此之前 `pages` 只剩面板型页（它们不靠设置行也照常呈现），
+  // 拿它挑「首页」会落到「AI 服务」而不是「通用」（真机 2026-11-03）。
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<
     Record<string, { message: string; attempted: SettingValueDto }>
@@ -100,6 +103,7 @@ export function useSettingsController(enabled: boolean): SettingsController {
     if (sequence !== refreshSequence.current || atRevision !== revision.current) return;
     if (list.status === "ok") {
       setRawSpecs(list.data);
+      setLoaded(true);
       setError((current) => current === "SETTING_RESET_STALE" ? current : null);
     } else {
       setError(vaultErrorText(list.error));
@@ -164,13 +168,14 @@ export function useSettingsController(enabled: boolean): SettingsController {
   const modifiedByPage = useMemo(() => modifiedCountByPage(specs), [specs]);
 
   // 首次载入落到第一页；当前页消失（如关掉高级模式后「系统」整页退出标准投影）时回落，
-  // 绝不停在空白页。
+  // 绝不停在空白页。**等注册表读回来再挑**：控制器随工作区一起挂载，早于第一次取数，
+  // 那时的页面清单不是真的清单。
   useEffect(() => {
-    if (pages.length === 0) return;
+    if (!loaded || pages.length === 0) return;
     if (!pages.includes(activePage as SettingsPageId)) {
       setActivePage(pages[0]);
     }
-  }, [pages, activePage]);
+  }, [loaded, pages, activePage]);
 
   const selectPage = useCallback((page: SettingsPageId) => {
     setActivePage(page);

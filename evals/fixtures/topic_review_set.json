@@ -1,10 +1,10 @@
 {
   "_comment": [
-    "两名评审用的固定评测集（PRD-16 §4；标注办法见 evals/README.md「两名评审的标注办法」）。",
+    "人工验收用的固定评测集（PRD-16 §4；标注办法见 evals/README.md「语义质量的人工验收」）。",
     "全部为虚构内容，不含任何用户正文（ADR-018）。每组都走「既有主题增量」路径：existing 是主题页已有声明（引自一份基线来源），sources 是新来源。",
     "kind：note（正式笔记）/ quick_note（速记整理后的知识笔记，口语短句）/ recording（录音权威转写）/ transcript（导入媒体的权威转写）。录音与转写的 sources 只写带时间码的转写行，跑批用例套上权威转写外壳。",
     "expect.status：claims 或 no_new；expect.action：append / conflict / replace / none；keep_words：新声明应保留的原文措辞（确定程度、否定）；must_not：新声明不应出现的范围外内容。",
-    "allowed_quotes：属于本主题范围的片段（按包含关系匹配提取出的证据），范围外引用由跑批用例自动标出；语义是否支持、是否夸大仍由两名评审判定。"
+    "allowed_quotes：属于本主题范围的片段（按包含关系匹配提取出的证据），范围外引用由跑批用例自动标出；语义是否支持、是否夸大仍由所有者判定。"
   ],
   "groups": [
     {"id": "N01", "kind": "note", "traits": ["in_scope"], "topic": "项目 甲", "tag": "项目/甲",

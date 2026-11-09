@@ -64,7 +64,7 @@ const DELETED = cloudVault({
 });
 
 function mount() {
-  return render(withI18n(<CloudVaultList linkedKey="" />));
+  return render(withI18n(<CloudVaultList refreshKey="" />));
 }
 
 beforeEach(() => {

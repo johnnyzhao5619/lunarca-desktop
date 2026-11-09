@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import { IconButton } from "../../components/ui/IconButton";
-import { CloseIcon } from "../../components/ui/Icon";
+import { CloseIcon } from "@lunarca/editor-core/Icon";
 import { EXPORT_OPTIONS_EVENT } from "../../lib/app-events";
 import { useSettings } from "../settings/use-settings";
 import { HAN_VARIANTS, updateExportOptions, useExportOptions } from "./export-options";

@@ -18,6 +18,11 @@ Lunarca 云客户端：账户与登录、设备管理、账户数据导出与注
 - `allow-account-sign-out`
 - `allow-devices-list`
 - `allow-device-revoke`
+- `allow-account-web-access`
+- `allow-account-set-web-access`
+- `allow-account-web-sessions`
+- `allow-account-revoke-web-session`
+- `allow-account-revoke-all-web-sessions`
 - `allow-account-deletion-preview`
 - `allow-account-delete`
 - `allow-account-export`
@@ -143,6 +148,84 @@ Enables the account_export command without any pre-configured scope.
 <td>
 
 Denies the account_export command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`luna-cloud:allow-account-revoke-all-web-sessions`
+
+</td>
+<td>
+
+Enables the account_revoke_all_web_sessions command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`luna-cloud:deny-account-revoke-all-web-sessions`
+
+</td>
+<td>
+
+Denies the account_revoke_all_web_sessions command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`luna-cloud:allow-account-revoke-web-session`
+
+</td>
+<td>
+
+Enables the account_revoke_web_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`luna-cloud:deny-account-revoke-web-session`
+
+</td>
+<td>
+
+Denies the account_revoke_web_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`luna-cloud:allow-account-set-web-access`
+
+</td>
+<td>
+
+Enables the account_set_web_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`luna-cloud:deny-account-set-web-access`
+
+</td>
+<td>
+
+Denies the account_set_web_access command without any pre-configured scope.
 
 </td>
 </tr>
@@ -429,6 +512,58 @@ Enables the account_state command without any pre-configured scope.
 <td>
 
 Denies the account_state command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`luna-cloud:allow-account-web-access`
+
+</td>
+<td>
+
+Enables the account_web_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`luna-cloud:deny-account-web-access`
+
+</td>
+<td>
+
+Denies the account_web_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`luna-cloud:allow-account-web-sessions`
+
+</td>
+<td>
+
+Enables the account_web_sessions command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`luna-cloud:deny-account-web-sessions`
+
+</td>
+<td>
+
+Denies the account_web_sessions command without any pre-configured scope.
 
 </td>
 </tr>

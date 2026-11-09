@@ -8,19 +8,19 @@
 
 import { describe, expect, it } from "vitest";
 
-const readingFace = import.meta.glob("../../components/markdown.css", {
+const readingFace = import.meta.glob("../../../../../packages/styles/src/markdown.css", {
   eager: true,
   import: "default",
   query: "?raw",
 }) as Record<string, string>;
 
-const editorFace = import.meta.glob("./editor-core.css", {
+const editorFace = import.meta.glob("../../../../../packages/styles/src/editor.css", {
   eager: true,
   import: "default",
   query: "?raw",
 }) as Record<string, string>;
 
-const tokens = import.meta.glob("../../styles/tokens/base.css", {
+const tokens = import.meta.glob("../../../../../packages/styles/src/tokens/base.css", {
   eager: true,
   import: "default",
   query: "?raw",
@@ -42,7 +42,7 @@ const SHARED_TOKENS = [
 ];
 
 const LIVE_PREVIEW = Object.values(
-  import.meta.glob("./live-preview.ts", {
+  import.meta.glob("../../../../../packages/editor-core/src/editor/live-preview.ts", {
     eager: true,
     import: "default",
     query: "?raw",

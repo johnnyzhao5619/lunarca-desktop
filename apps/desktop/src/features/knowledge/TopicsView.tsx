@@ -52,7 +52,7 @@ import {
   FolderIcon,
   SparklesIcon,
   UserIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { useContextMenu } from "../../components/ContextMenuHost";
 import { buildMenu } from "../../lib/context-menu";
 import { formatRelativeTime } from "../../lib/format-relative-time";

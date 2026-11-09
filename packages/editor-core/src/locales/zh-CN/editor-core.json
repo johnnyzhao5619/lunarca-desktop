@@ -1,0 +1,137 @@
+{
+  "markdown": {
+    "plainText": "纯文本",
+    "diagramError": "图表画不出来：{{message}}",
+    "diagramImage": "Mermaid 图表"
+  },
+  "reading": {
+    "properties": "属性",
+    "openTag": "查看标签 #{{tag}}",
+    "embedOpen": "打开",
+    "embedMissing": "找不到嵌入的笔记或文件",
+    "lightbox": {
+      "dialog": "查看图片",
+      "close": "关闭",
+      "previous": "上一张",
+      "next": "下一张"
+    }
+  },
+  "editor": {
+    "search": {
+      "find": "查找",
+      "replace": "替换为",
+      "next": "下一个",
+      "previous": "上一个",
+      "all": "全选",
+      "matchCase": "区分大小写",
+      "regexp": "正则",
+      "byWord": "整词",
+      "replaceOne": "替换",
+      "replaceAll": "全部替换",
+      "close": "关闭",
+      "currentMatch": "当前匹配",
+      "onLine": "所在行",
+      "goToLine": "跳到行",
+      "go": "跳转",
+      "replacedMatches": "已替换 $ 处",
+      "replacedOnLine": "已替换第 $ 行的匹配"
+    },
+    "tablePicker": {
+      "title": "插入表格：选择大小",
+      "size": "{{columns}} 列 × {{rows}} 行"
+    },
+    "table": {
+      "cell": "表格第 {{row}} 行，第 {{column}} 列",
+      "rowHandle": "第 {{row}} 行的操作",
+      "columnHandle": "第 {{column}} 列的操作",
+      "appendRow": "在末尾添加一行",
+      "appendColumn": "在最右添加一列",
+      "insert": "插入表格"
+    },
+    "fold": {
+      "fold": "折叠",
+      "unfold": "展开"
+    },
+    "frontmatter": {
+      "label": "元数据 (YAML)",
+      "labelCount": "元数据（{{count}} 项）",
+      "expandTitle": "点击展开元数据",
+      "collapseTitle": "点击折叠元数据",
+      "expandAction": "展开",
+      "collapseAction": "折叠"
+    },
+    "image": {
+      "view": "查看大图",
+      "resize": "拖动调整宽度，双击还原"
+    },
+    "linkPlaceholder": "url",
+    "mode": {
+      "label": "视图模式",
+      "live": "实时预览（所见即所得）",
+      "source": "源码模式",
+      "reading": "阅读模式"
+    },
+    "menu": {
+      "bold": "加粗",
+      "italic": "斜体",
+      "strike": "删除线",
+      "inlineCode": "行内代码",
+      "paragraphText": "正文",
+      "h1": "标题 1",
+      "h2": "标题 2",
+      "h3": "标题 3",
+      "quote": "引用",
+      "bulletList": "无序列表",
+      "orderedList": "有序列表",
+      "taskList": "任务列表",
+      "codeBlock": "代码块",
+      "callout": "标注块",
+      "hr": "分隔线",
+      "insertLink": "新增链接",
+      "insertWikiLink": "新增 wiki 链接",
+      "insertAttachment": "插入图片 / 附件…",
+      "insertTemplate": "插入模板…",
+      "aiActions": "AI 操作…"
+    },
+    "toolbar": {
+      "label": "格式工具栏",
+      "headingTitle": "段落样式",
+      "labelShortcut": "{{label}}（{{shortcut}}）",
+      "moreFormats": "更多格式"
+    },
+    "properties": {
+      "label": "属性",
+      "empty": "还没有属性",
+      "add": "添加属性",
+      "newKeyPlaceholder": "属性名",
+      "addItem": "添加一项",
+      "addItemTo": "给 {{key}} 添加一项",
+      "remove": "删除属性 {{key}}",
+      "removeItem": "移除 {{item}}",
+      "keyLabel": "属性名 {{key}}",
+      "valueLabel": "{{key}} 的值",
+      "typeLabel": "{{key}} 的类型",
+      "editSource": "在源码中编辑",
+      "kind": {
+        "text": "文本",
+        "number": "数字",
+        "checkbox": "勾选",
+        "date": "日期",
+        "date_time": "日期时间",
+        "list": "列表"
+      },
+      "skip": {
+        "unsupported_form": "这种写法不能在面板里改",
+        "inline_comment": "值里带注释，面板里改会丢掉它",
+        "multi_line": "跨行的写法，面板里改不了",
+        "nested": "嵌套的结构，面板里改不了",
+        "duplicate_key": "这个属性名写了不止一次",
+        "unclosed": "开头的 --- 没有闭合，先在源码里修好",
+        "key_exists": "已经有同名属性",
+        "invalid_key": "属性名不能为空，也不能含冒号或 #，不能叫 luna",
+        "not_found": "这个属性已经不在了，可能刚被改过",
+        "invalid_value": "值的写法不对：数字写成 12 或 1.5，日期写成 2026-10-04"
+      }
+    }
+  }
+}

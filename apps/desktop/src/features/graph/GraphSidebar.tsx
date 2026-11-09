@@ -23,7 +23,7 @@ import {
   CloseIcon,
   StethoscopeIcon,
   TagsIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { QueryBox } from "../../components/ui/QueryBox";
 import { requestKnowledgeCheckup } from "../../lib/app-events";
 import { useProcessingQueueSelector } from "../processing/use-processing-queue";

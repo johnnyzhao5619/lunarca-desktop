@@ -18,8 +18,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands, events, type EmbedPreflightDto, type EmbedProgress } from "../../ipc/bindings";
-import { DownloadIcon, SparklesIcon } from "../../components/ui/Icon";
-import { formatBytes } from "../../lib/format-bytes";
+import { DownloadIcon, SparklesIcon } from "@lunarca/editor-core/Icon";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { vaultErrorText } from "../../lib/vault-error";
 import { goTo } from "../../lib/navigate";
 

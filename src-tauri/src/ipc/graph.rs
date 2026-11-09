@@ -170,7 +170,7 @@ fn topic_network_of(vault: &luna_vault::Vault) -> luna_vault::Result<VaultGraphD
             .iter()
             .map(|doc| GraphNodeDto {
                 id: doc.path.clone(),
-                label: luna_vault::title_of(&doc.path).to_owned(),
+                label: luna_sync_core::links::title_of(&doc.path).to_owned(),
                 kind: "topic".to_owned(),
                 note_type: None,
                 draft: false,
@@ -447,7 +447,7 @@ async fn generate_and_apply_once(
             ));
         }
         let body = luna_vault::body_of(&doc.content).to_owned();
-        let hash = luna_vault::ContentHash::of(body.as_bytes())
+        let hash = luna_sync_core::hashing::ContentHash::of(body.as_bytes())
             .as_str()
             .to_owned();
         // **先按语言过滤再取上限**，不是先截断再过滤：反过来的话，一个中英分裂的库
@@ -465,7 +465,7 @@ async fn generate_and_apply_once(
         .take(GRAPH_TAGS_VOCAB_LIMIT)
         .collect();
         (
-            luna_vault::title_of(&doc.path),
+            luna_sync_core::links::title_of(&doc.path),
             body,
             hash,
             doc.meta.ai_tags.clone(),
@@ -592,7 +592,8 @@ async fn run_extract_job(
         let guard = state.vault.lock().map_err(|_| "Vault 锁中毒".to_string())?;
         let vault = guard.as_ref().ok_or_else(|| state.vault_not_open())?;
         let doc = vault.read(note_rel).map_err(vault_err)?;
-        let now_hash = luna_vault::ContentHash::of(luna_vault::body_of(&doc.content).as_bytes());
+        let now_hash =
+            luna_sync_core::hashing::ContentHash::of(luna_vault::body_of(&doc.content).as_bytes());
         if now_hash.as_str() != src_hash {
             if mode == TagRefreshMode::Manual {
                 return Err(coded_error(app, "GRAPH_TAGS_STALE", "graph-tags-stale"));

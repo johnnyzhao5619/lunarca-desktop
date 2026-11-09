@@ -1,0 +1,29 @@
+/*
+ * 网页版唯一样式入口（TDD-15 §3.3）：与桌面同一套层叠顺序与 Token 子层；设计 Token、reset 与
+ * Markdown 呈现与编辑面来自共享样式包 `@lunarca/styles`，不各抄一份。浅色 / 深色跟随系统
+ * （`themes.generated.css` 的 `prefers-color-scheme`，根节点不设 `data-theme`）。
+ */
+@layer reset, tokens, base, primitives, layout, integrations, features;
+@layer tokens.primitive, tokens.base, tokens.family, tokens.accessibility;
+
+@import "@lunarca/styles/reset.css" layer(reset);
+@import "@lunarca/styles/tokens/primitive.css" layer(tokens.primitive);
+@import "@lunarca/styles/tokens/base.css" layer(tokens.base);
+@import "@lunarca/styles/tokens/themes.generated.css" layer(tokens.family);
+@import "@lunarca/styles/tokens/density.css" layer(tokens.base);
+@import "./tokens/web.css" layer(tokens.base);
+@import "@lunarca/styles/tokens/accessibility.css" layer(tokens.accessibility);
+@import "./base.css" layer(base);
+@import "./controls.css" layer(primitives);
+@import "@lunarca/styles/markdown.css" layer(primitives);
+@import "./shell.css" layer(layout);
+@import "@lunarca/styles/codemirror.css" layer(integrations);
+@import "@lunarca/styles/reading.css" layer(features);
+@import "@lunarca/styles/editor.css" layer(features);
+@import "@lunarca/styles/editor-chrome.css" layer(features);
+@import "../features/session/session.css" layer(features);
+@import "../features/workspace/workspace.css" layer(features);
+@import "../features/account/account.css" layer(features);
+@import "../features/editor/editor.css" layer(features);
+@import "../features/dialog/dialog.css" layer(features);
+@import "../features/library/library.css" layer(features);

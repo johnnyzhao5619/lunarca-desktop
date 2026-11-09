@@ -23,8 +23,8 @@ use std::path::{Path, PathBuf};
 use luna_cloud::client::CloudClient;
 use luna_cloud::error::CloudError;
 use luna_cloud::sync_client::{SyncVaultDto, SyncVaultStateDto};
-use luna_sync::crypto::{Cmk, KeyRing};
 use luna_sync::keystore::CmkStore;
+use luna_sync_core::crypto::{Cmk, KeyRing};
 use luna_vault::registry::VaultEntry;
 use uuid::Uuid;
 

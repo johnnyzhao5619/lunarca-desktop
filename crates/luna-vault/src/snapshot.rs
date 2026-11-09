@@ -12,7 +12,7 @@
 
 use crate::atomic::write_atomic_batched as write_atomic;
 use crate::error::{Result, VaultError};
-use crate::hashing::ContentHash;
+use luna_sync_core::hashing::ContentHash;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};

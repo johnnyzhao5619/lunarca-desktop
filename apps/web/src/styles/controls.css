@@ -1,0 +1,193 @@
+/* 网页版的控件原语（TDD-15 §3.3a）：按钮、输入框、字段、勾选、提示与错误。 */
+
+.luna-web-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-block-size: var(--control-height-md);
+  padding-block: var(--space-1);
+  padding-inline: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-control);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.luna-web-button:hover {
+  background: var(--color-bg-hover);
+}
+
+.luna-web-button:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: default;
+}
+
+.luna-web-button--primary {
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+}
+
+.luna-web-button--danger {
+  border-color: var(--color-status-error);
+  background: var(--color-status-error);
+  color: var(--color-bg-surface);
+}
+
+.luna-web-button--quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.luna-web-input {
+  inline-size: 100%;
+  min-block-size: var(--control-height-md);
+  padding-block: var(--space-1);
+  padding-inline: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-control);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  color: var(--color-text-primary);
+  font: inherit;
+}
+
+.luna-web-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.luna-web-field__label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.luna-web-check {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.luna-web-hint {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.luna-web-error {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-status-error);
+}
+
+/* 嵌在面板里的小号输入框与下拉（属性面板，`web-editor-ui.tsx`）。 */
+.luna-web-input--sm {
+  min-block-size: var(--control-height-sm);
+  padding-block: var(--space-0-5);
+  font-size: var(--font-size-sm);
+}
+
+/* 只承载一枚图标的按钮：方形、幽灵底；名字同时是可访问名与提示。破坏性动作常态不显红，hover 才显。 */
+.luna-web-icon-button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.luna-web-icon-button:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.luna-web-icon-button[data-tone="danger"]:hover {
+  background: var(--color-status-error-surface);
+  color: var(--color-status-error);
+}
+
+/* 菜单按钮与它就地展开的下拉（格式工具条的段落样式与「更多格式」）：下拉贴着按钮出现，图标按钮的那种向内对齐。 */
+.luna-web-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.luna-web-menu__list {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-start: 0;
+  z-index: var(--z-context-menu);
+  display: flex;
+  flex-direction: column;
+  min-inline-size: var(--web-menu-min-inline);
+  margin-block-start: var(--space-1);
+  padding: var(--space-1);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  box-shadow: var(--shadow-md);
+}
+
+.luna-web-menu[data-align="end"] .luna-web-menu__list {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+
+.luna-web-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-1);
+  padding-inline: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-align: start;
+  cursor: pointer;
+}
+
+.luna-web-menu__item:hover,
+.luna-web-menu__item:focus-visible {
+  background: var(--color-bg-hover);
+}
+
+.luna-web-menu__item[aria-checked="true"] {
+  color: var(--color-accent);
+}
+
+.luna-web-menu__icon {
+  display: inline-flex;
+  inline-size: var(--space-4);
+  color: var(--color-text-secondary);
+}
+
+.luna-web-menu__label {
+  flex: 1 1 auto;
+}
+
+.luna-web-menu__shortcut {
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+}
+
+.luna-web-menu__separator {
+  block-size: var(--border-width-thin);
+  margin-block: var(--space-1);
+  background: var(--color-border-subtle);
+}

@@ -28,6 +28,8 @@ function context(overrides: Partial<CommandContext> = {}): CommandContext {
     openSwipeLibrary: vi.fn(),
     openCreatorProjectTeleprompter: vi.fn(),
     openCreatorProjectPublish: vi.fn(),
+    openActiveNoteInTeleprompter: vi.fn(),
+    createTeleprompterDraft: vi.fn(),
     ...overrides,
   };
 }

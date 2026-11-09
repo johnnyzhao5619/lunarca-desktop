@@ -17,7 +17,7 @@
 import { useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { type ChatHistoryEntryDto } from "../../ipc/bindings";
-import { FolderPlusIcon, MessageIcon, NotebookIcon, PlusIcon, TrashIcon } from "../../components/ui/Icon";
+import { FolderPlusIcon, MessageIcon, NotebookIcon, PlusIcon, TrashIcon } from "@lunarca/editor-core/Icon";
 import { CaptureStartButton } from "../../components/ui/CaptureStartButton";
 import { IconButton } from "../../components/ui/IconButton";
 import { EmptyState } from "../../components/ui/EmptyState";

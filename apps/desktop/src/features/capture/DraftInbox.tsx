@@ -24,7 +24,7 @@ import {
   PencilIcon,
   SparklesIcon,
   StickyNoteIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import type { NoteSelection } from "../workspace/use-note-selection";
 import { formatClock } from "../../lib/format-duration";
 import { formatRelativeTime } from "../../lib/format-relative-time";

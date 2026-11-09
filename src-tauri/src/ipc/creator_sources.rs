@@ -7,6 +7,7 @@
 
 use super::creator_quote::{link_material, material_target, research_note_rel, unlink_material};
 use super::*;
+use luna_sync_core::naming::sanitized_file_stem;
 
 /// 粘贴的文字最长多少字（再长就该作为文件导入）。
 const PASTED_TEXT_MAX_CHARS: usize = 200_000;

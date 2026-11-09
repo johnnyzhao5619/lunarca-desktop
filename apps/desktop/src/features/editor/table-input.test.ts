@@ -5,9 +5,9 @@ import { syntaxTree } from "@codemirror/language";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { history, undo } from "@codemirror/commands";
 import { EditorView, runScopeHandlers } from "@codemirror/view";
-import { tableCellTargetOf, tablePreviewExtension } from "./table-preview";
+import { tableCellTargetOf, tablePreviewExtension } from "@lunarca/editor-core/table-preview";
 import { tableMenuItems, type TableMenuLabels } from "./table-menu";
-import { applyTableSpec, insertTableCommand, separateFromTableAboveSpec, tableAdvanceSpec } from "./table-edit";
+import { applyTableSpec, insertTableCommand, separateFromTableAboveSpec, tableAdvanceSpec } from "@lunarca/editor-core/table-edit";
 
 /** 菜单文案替身：键名即文案，断言按 id 找条目。 */
 const LABELS = new Proxy({}, { get: (_target, key) => String(key) }) as TableMenuLabels;

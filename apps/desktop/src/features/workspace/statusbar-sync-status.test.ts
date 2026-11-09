@@ -59,7 +59,7 @@ describe("projectStatusBarSync", () => {
   });
 
   it("连在另一个账户下的库不算选中：不占底栏、不计数（ADR-151 修订 2026-10-15）", () => {
-    const elsewhere = vault({ path: "/v/home", phase: "other_account", bound_account: "jo***@gmail.com" });
+    const elsewhere = vault({ path: "/v/home", phase: "other_account", bound_account: { label: "jo***@gmail.com", server_host: "api.lunarca.app", server_official: true } });
     expect(projectStatusBarSync(overview([elsewhere])).kind).toBe("hidden");
     expect(projectStatusBarSync(overview([vault(), elsewhere]))).toEqual({ kind: "synced", count: 1 });
   });

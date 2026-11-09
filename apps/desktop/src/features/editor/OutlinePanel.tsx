@@ -13,7 +13,7 @@ import { useVaultReload } from "../../hooks/use-vault-reload";
 import { parseOutline, type OutlineHeading } from "./outline";
 
 import { EmptyState } from "../../components/ui/EmptyState";
-import { BookOpenIcon } from "../../components/ui/Icon";
+import { BookOpenIcon } from "@lunarca/editor-core/Icon";
 
 interface OutlinePanelProps {
   path: string | null;

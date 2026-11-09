@@ -41,6 +41,7 @@ export const SURFACE_OF: Record<DestinationKey, WorkspaceMetricSurfaceDto> = {
   transcripts: "transcripts",
   chat: "chat",
   creator: "creator",
+  teleprompter: "teleprompter",
   apps: "apps",
   trash: "trash",
   settings: "settings",

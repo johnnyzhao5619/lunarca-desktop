@@ -28,7 +28,8 @@ import { projectSetupBanner, useSetupStatusContext } from "../onboarding/use-set
 import { nextActionTones } from "./next-actions";
 import { isActionable, useKnowledgePulse } from "./use-knowledge-pulse";
 import { useCheckupCount } from "../knowledge/use-checkup-count";
-import { formatShortcut, HEADLINE_SHORTCUT_KEYS } from "../../lib/shortcut-display";
+import { formatShortcut } from "@lunarca/editor-core/shortcut-display";
+import { HEADLINE_SHORTCUT_KEYS } from "../../lib/shortcut-keys";
 import { useModels, useSettings } from "../settings/use-settings";
 import { useCreateActionStates } from "../capture/AddContentPopover";
 import { recordCreateEntry } from "../workspace/use-workspace-metrics";
@@ -57,7 +58,7 @@ import { goTo, openNote } from "../../lib/navigate";
 import {
   FileIcon,
   ShieldIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import {
   projectDashboardEngines,
   type DashboardEngineItem,

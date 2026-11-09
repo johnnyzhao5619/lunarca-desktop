@@ -405,7 +405,7 @@
   },
   "signed_in": {
     "title": "已登录",
-    "body": "浏览器里的登录已完成，服务端能力现在可以使用。",
+    "body": "登录已完成，服务端能力现在可以使用。",
     "action": "查看连接"
   },
   "trust_rotated": {
@@ -422,6 +422,21 @@
     "title": "没能存为速记",
     "body": "选中的文字没有存下来。请打开 Lunarca，确认已经打开了笔记库，再试一次。",
     "action": "打开 Lunarca"
+  },
+  "teleprompter_send_empty": {
+    "title": "没有可送进提词器的文字",
+    "body": "没有读到选中的文字，剪贴板里也没有文字。先选中或复制（⌘C）一段，再按「送进提词器」。",
+    "action": "打开 Lunarca"
+  },
+  "teleprompter_send_failed": {
+    "title": "没能送进提词器",
+    "body": "文字没有存成提词稿。请打开 Lunarca，确认已经打开了笔记库，再试一次。",
+    "action": "打开 Lunarca"
+  },
+  "teleprompter_app_missing": {
+    "title": "还没有安装「提词器」",
+    "body": "在「应用」里安装「提词器」后，就能把选中的文字送进提词器。",
+    "action": "去安装"
   },
   "app_release_ask": {
     "title": "要在启动时检查更新吗？",

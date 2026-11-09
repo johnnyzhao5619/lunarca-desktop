@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import { useRef } from "react";
 import { FilteredList } from "./FilteredList";
-import { COMPOSITION_COMMIT_WINDOW_MS } from "../../lib/ime-composition";
+import { COMPOSITION_COMMIT_WINDOW_MS } from "@lunarca/editor-core/ime-composition";
 
 afterEach(cleanup);
 

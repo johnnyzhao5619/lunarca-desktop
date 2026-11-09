@@ -14,9 +14,17 @@ pub(crate) fn install_quick_note_service(app: &tauri::AppHandle) {
     #[cfg(target_os = "macos")]
     {
         let handle = app.clone();
-        crate::platform::macos::services::register(Box::new(move |text| {
+        crate::platform::macos::services::register(Box::new(move |kind, text| {
             let app = handle.clone();
-            std::thread::spawn(move || save_service_text(&app, text.unwrap_or_default()));
+            match kind {
+                crate::platform::macos::services::ServiceKind::QuickNote => {
+                    std::thread::spawn(move || save_service_text(&app, text.unwrap_or_default()));
+                }
+                // 提词器（ADR-176 ⑨）：服务消息本就在主线程投递；建稿很快，开窗要在主线程。
+                crate::platform::macos::services::ServiceKind::Teleprompter => {
+                    super::send_text_to_teleprompter(&app, text);
+                }
+            }
         }));
     }
     #[cfg(not(target_os = "macos"))]
@@ -57,13 +65,31 @@ mod tests {
         let plist = read("Info.plist");
         let provider = read("src/platform/macos/services.rs");
         let conf = read("tauri.conf.json");
-        assert!(plist.contains("<string>saveAsQuickNote</string>"));
-        assert!(provider.contains("method(saveAsQuickNote:userData:error:)"));
-        let default = "Save to Lunarca as Quick Note";
-        assert!(plist.contains(&format!("<string>{default}</string>")));
+        for (message, default) in [
+            ("saveAsQuickNote", "Save to Lunarca as Quick Note"),
+            ("showInTeleprompter", "Show in Lunarca Teleprompter"),
+        ] {
+            assert!(
+                plist.contains(&format!("<string>{message}</string>")),
+                "{message}"
+            );
+            assert!(
+                provider.contains(&format!("method({message}:userData:error:)")),
+                "{message}"
+            );
+            assert!(
+                plist.contains(&format!("<string>{default}</string>")),
+                "{default}"
+            );
+            for lang in ["zh-Hans", "en"] {
+                let strings = read(&format!("macos/{lang}.lproj/ServicesMenu.strings"));
+                assert!(
+                    strings.contains(&format!("\"{default}\" = ")),
+                    "{lang} {default}"
+                );
+            }
+        }
         for lang in ["zh-Hans", "en"] {
-            let strings = read(&format!("macos/{lang}.lproj/ServicesMenu.strings"));
-            assert!(strings.contains(&format!("\"{default}\" = ")), "{lang}");
             assert!(
                 conf.contains(&format!(
                     "\"Resources/{lang}.lproj/ServicesMenu.strings\": \"macos/{lang}.lproj/ServicesMenu.strings\""

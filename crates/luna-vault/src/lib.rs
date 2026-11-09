@@ -21,7 +21,6 @@ pub mod checkup;
 pub mod chunk;
 pub mod conflicts;
 pub mod creator;
-pub mod diff;
 pub mod diskusage;
 pub mod duplicate;
 pub mod embed;
@@ -31,10 +30,8 @@ pub mod exclusions;
 pub mod external_rename;
 pub mod file_import;
 pub mod frontmatter;
-pub mod frontmatter_edit;
 pub mod gfm_table;
 pub mod graph;
-pub mod hashing;
 pub mod html_paste;
 pub mod icloud;
 pub mod identity;
@@ -47,7 +44,6 @@ pub mod knowledge_plan;
 pub mod knowledge_reading;
 pub mod knowledge_upgrade;
 pub mod merge;
-pub mod merge3;
 pub mod meta;
 pub mod obsidian;
 pub mod open;
@@ -63,7 +59,6 @@ pub mod research;
 pub mod retrieve;
 pub mod scan;
 pub mod script;
-pub mod search;
 pub mod semantic;
 pub mod sidecar;
 pub mod snapshot;
@@ -96,7 +91,6 @@ pub use creator::{
     NextAction, OverviewGroup, OverviewItem, ProjectCard, ProjectChild, ProjectDeletion,
     ProjectLayout, ProjectOverview, ProjectStage, PublishSource, SourceKind, PUBLISH_DATE_FORMAT,
 };
-pub use diff::{diff_lines, DiffKind, DiffLine, LineDiff};
 pub use embedding_profile::{
     embedding_profile, engine_entry_profile_key, normalize_embedding_vectors, profile_texts,
     EmbeddingProfile, VectorContract, BGE_M3_PROFILE, QWEN3_EMBED_06_PROFILE,
@@ -112,9 +106,8 @@ pub use frontmatter::{
 };
 pub use graph::{
     build_graph, is_tag_excluded, scope_covers, GraphEdge, GraphEdgeKind, GraphNode, GraphNodeKind,
-    LinkIndex, VaultGraph,
+    VaultGraph,
 };
-pub use hashing::ContentHash;
 pub use identity::VaultId;
 pub use index::{
     DraftFilter, DraftInboxEntry, DraftInboxQuery, EmbeddingIndexIdentity, EmbeddingRow, Index,
@@ -157,20 +150,14 @@ pub use merge::{
     dedup_by_object, merge_block, merge_input, MergeBlock, MergeFingerprint, MergeSource,
     MergeSourceError,
 };
-pub use merge3::{merge3, MergeOutcome};
 pub use meta::{read_meta, write_meta};
 pub use obsidian::{AttachmentSetting, ObsidianSuggestion};
 pub use open::{ObjectId, VaultFile, VaultOpenError};
 pub use orphans::{OrphanAsset, OrphanRemoval};
 pub use parse::{
-    clean_for_fts, due_state, extract_links, extract_tags, link_spans, timecode_spans, title_of,
-    todo_stats, DueState, TodoStats,
+    clean_for_fts, due_state, extract_links, link_spans, todo_stats, DueState, TodoStats,
 };
-pub use pathutil::{
-    canonical_link_target, encode_link_target, is_hidden_rel, join_vault_rel, markdown_link,
-    normalize_vault_rel, parent_dir, percent_decode, relative_link_path, relative_vault_path,
-    sanitize_vault_rel_dir,
-};
+pub use pathutil::{encode_link_target, markdown_link};
 pub use pinyin_keys::pinyin_keys;
 pub use presets::{parse_pack_preset, AiPreset};
 pub use retrieve::{
@@ -178,13 +165,11 @@ pub use retrieve::{
     AnchorHit, ClaimNotices, Passage, QueryTerms, Retrieval, RetrieveOptions, RetrieveScope,
 };
 pub use script::{
-    broll_shots, insert_retake_marks, move_section, prompter_blocks, retake_notes, script_outline,
-    section_body, set_broll_done, upsert_section, BrollShot, PrompterBlock, PrompterLine,
-    RetakeMark, RetakeNote, ScriptOutline, ScriptSection, SpeakingRate, RETAKE_CALLOUT,
-};
-pub use search::{
-    match_note, replace_in_note, Filter, FilterField, LineMatch, MatchSegment, NoteMatch,
-    NoteReplacement, ReplaceLine, ReplaceNote, ReplacePlan, SearchQuery, SearchResults, Term,
+    broll_shots, insert_retake_marks, move_section, normalize_pasted_script, parse_cues,
+    prompter_blocks, relocate_line, retake_notes, script_language, script_outline, script_title_of,
+    section_body, set_broll_done, spoken_millis, upsert_section, BrollShot, PrompterBlock,
+    PrompterLine, PrompterSpan, RetakeMark, RetakeNote, ScriptOutline, ScriptSection, SpeakingRate,
+    CUE_CALLOUT, PAUSE_MILLIS, RETAKE_CALLOUT,
 };
 pub use semantic::{
     dot, near_duplicates, rrf_fuse, NearDuplicate, SemanticHit, VectorMatrix, VectorRow,
@@ -219,7 +204,7 @@ pub use vault::{
     MentionScope, NoteDoc, NoteFacts, NoteSave, NoteTree, PurgeOutcome, QuickNoteProducts,
     RecordingPart, RelatedNotes, RelocationNoteChange, RelocationReceipt, RelocationUndo,
     RestoreConflict, SegmentEdit, TopicSuggestion, TranscriptAuthority, TrashEntry, TrashListEntry,
-    TrashPreview, TrashPreviewKind, UnlinkedMention, UserTemplateInfo, Vault, WikiLinkCandidate,
-    WikiLinkHit, QUICK_NOTE_RAW_HEADINGS, QUICK_NOTE_REFINED_HEADINGS, TOPIC_SUGGESTION_MIN_NOTES,
+    TrashPreview, TrashPreviewKind, UnlinkedMention, UserTemplateInfo, Vault, WikiLinkHit,
+    QUICK_NOTE_RAW_HEADINGS, QUICK_NOTE_REFINED_HEADINGS, TOPIC_SUGGESTION_MIN_NOTES,
 };
 pub use watcher::{watch, AssetChange, VaultChange, VaultWatcher};

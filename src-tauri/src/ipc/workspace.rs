@@ -7,6 +7,11 @@
 
 use super::*;
 use crate::device_state::DeviceStateKind;
+// 附件放在哪、叫什么、链接怎么写：与网页上传同一份规则（ADR-177 ⑥）。
+use luna_sync_core::attachment::{
+    asset_ext_from_mime, asset_stamp, attachment_target, free_asset_name, join_vault_rel,
+    named_asset_name, pasted_asset_name, pasted_asset_prefix, DOWNLOADED_IMAGE_PREFIX,
+};
 
 /// 启动就绪事件（低频 typed event）。
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
@@ -87,6 +92,8 @@ const WORKSPACE_ROUTE_PREFIXES: &[&str] = &[
     "notes://",
     // 创作空间（ADR-162）：`creator://` 落看板；`creator://<项目主页路径>` 打开那篇主页。
     "creator://",
+    // 提词器空间（ADR-176 ①）：`teleprompter://` 落提词器首页。
+    "teleprompter://",
     // 「应用」目的地（ADR-165 ⑤）：`apps://` 落列表，`apps://<id>` 落那个应用的详情页。
     "apps://",
     // **知识库分区的两条**（ADR-088）：`topics://` 是主题页目录那一格，
@@ -157,6 +164,9 @@ pub(crate) fn open_note_window(
     state: tauri::State<'_, AppState>,
     path: String,
 ) -> Result<(), String> {
+    if !crate::editor_exit::accepts_new_editor_windows() {
+        return Err(coded_error(&app, "APP_RESTARTING", "app-restarting"));
+    }
     // 仅接受 Vault 内既有的 .md（挡路径穿越与非笔记目标）。
     if !path.ends_with(".md") {
         return Err(coded_error(&app, "NOT_A_NOTE", "not-a-note"));
@@ -206,6 +216,9 @@ pub(crate) fn open_vault_window(
     path: String,
 ) -> Result<(), String> {
     use tauri::Manager as _;
+    if !crate::editor_exit::accepts_new_editor_windows() {
+        return Err(coded_error(&app, "APP_RESTARTING", "app-restarting"));
+    }
     let root = PathBuf::from(&path);
     if !root.is_dir() {
         return Err(coded_error_args(
@@ -325,47 +338,6 @@ pub(crate) fn note_window_path(
         .cloned())
 }
 
-/// 附件落盘目标（`attachment_target` 纯逻辑推导，PRD-06-012 四模式）。
-pub(crate) struct AttachmentTarget {
-    /// 库内落盘目录（相对 vault root；`""` = 仓库根）。
-    pub(crate) dir_rel: String,
-    /// 回填到正文的**笔记相对**链接（如 `assets/x.png` / `../Attachments/x.png` / `x.png`）。
-    pub(crate) link: String,
-}
-
-/// 附件位置策略（PRD-06-012 四模式）→ 落盘目录 + 笔记相对链接（纯逻辑，单一事实源）。
-/// `mode` ∈ vault_root / note_folder / note_subfolder / specified_folder（未知回退子目录）。
-/// 路径推导复用 `luna_vault::pathutil`（与附件跟随移动同源，DRY）。
-pub(crate) fn attachment_target(
-    mode: &str,
-    folder: &str,
-    note_rel: &str,
-    filename: &str,
-) -> AttachmentTarget {
-    let note_dir = luna_vault::parent_dir(note_rel);
-    let folder = luna_vault::sanitize_vault_rel_dir(folder);
-    let dir_rel = match mode {
-        "vault_root" => String::new(),
-        "note_folder" => note_dir.to_owned(),
-        "specified_folder" => {
-            if folder.is_empty() {
-                "Attachments".to_owned()
-            } else {
-                folder
-            }
-        }
-        // note_subfolder（默认）：笔记同级子目录。
-        _ => {
-            luna_vault::join_vault_rel(note_dir, if folder.is_empty() { "assets" } else { &folder })
-        }
-    };
-    let file_vault_rel = luna_vault::join_vault_rel(&dir_rel, filename);
-    AttachmentTarget {
-        link: luna_vault::relative_vault_path(note_dir, &file_vault_rel),
-        dir_rel,
-    }
-}
-
 /// 采集调参：把设置里的四个旋钮投影为 [`luna_audio::CaptureTuning`]。
 ///
 /// **三条采集入口共用同一条投影**：录音（[`super::recording`]）、实时字幕
@@ -410,6 +382,7 @@ pub(crate) fn capture_tuning(settings: &Settings) -> luna_audio::CaptureTuning {
                 .unwrap_or_default()
                 .as_str(),
         ),
+        stream_snapshot_interval_ms: defaults.stream_snapshot_interval_ms,
     }
 }
 
@@ -482,20 +455,20 @@ fn write_asset_to_note_folder(
         .join(attachment_target(&mode, &folder, note_path, "x").dir_rel);
     std::fs::create_dir_all(&target_dir).map_err(|e| format!("MKDIR_FAILED: {e}"))?;
 
-    let stamp = chrono::Local::now().format("%Y%m%d-%H%M%S");
-    let mut name = format!("{prefix}-{stamp}.{ext}");
-    let mut counter = 1u32;
-    while target_dir.join(&name).exists() {
-        name = format!("{prefix}-{stamp}-{counter}.{ext}");
-        counter += 1;
-    }
+    // 名字的规则（前缀-时间戳.扩展名、同名加序号）与网页上传同一份（ADR-177 ⑥）。
+    let stamp = asset_stamp(&super::civil_now());
+    let name = free_asset_name(
+        |attempt| pasted_asset_name(prefix, &stamp, ext, attempt),
+        |name| target_dir.join(name).exists(),
+    )
+    .ok_or_else(|| "WRITE_FAILED: no free name".to_owned())?;
     let target = attachment_target(&mode, &folder, note_path, &name);
     std::fs::write(target_dir.join(&name), bytes).map_err(|e| format!("WRITE_FAILED: {e}"))?;
 
     // 新附件即出现在文件树（新建的 assets 目录/文件；watcher 可能有延迟，显式广播确保即刷）。
     emit_vault_changed_in_scope(
         app,
-        &luna_vault::join_vault_rel(&target.dir_rel, &name),
+        &join_vault_rel(&target.dir_rel, &name),
         false,
         dest.scope,
     );
@@ -529,16 +502,11 @@ pub(crate) fn save_pasted_asset(
     }
 
     let dest = asset_destination(&state, window.label())?;
-    let prefix = if mime.starts_with("image/") {
-        "Pasted-image"
-    } else {
-        "Pasted-file"
-    };
     write_asset_to_note_folder(
         &app,
         &dest,
         &note_path,
-        prefix,
+        pasted_asset_prefix(mime),
         &asset_ext_from_mime(mime),
         &bytes,
     )
@@ -574,11 +542,14 @@ pub(crate) fn discard_pasted_assets(
 
 /// 笔记相对链接（可能转义过空格、可能带 `../`）→ 库内路径；越出库根的丢掉。
 fn pasted_asset_vault_paths(note_path: &str, links: &[String]) -> Vec<String> {
-    let note_dir = luna_vault::parent_dir(note_path);
+    let note_dir = luna_sync_core::links::parent_dir(note_path);
     links
         .iter()
         .filter_map(|link| {
-            luna_vault::normalize_vault_rel(note_dir, &luna_vault::percent_decode(link))
+            luna_sync_core::links::normalize_vault_rel(
+                note_dir,
+                &luna_sync_core::links::percent_decode(link),
+            )
         })
         .collect()
 }
@@ -675,7 +646,7 @@ pub(crate) async fn download_remote_asset(
         &app,
         &dest,
         &note_path,
-        "Downloaded-image",
+        DOWNLOADED_IMAGE_PREFIX,
         &asset_ext_from_mime(&mime),
         &bytes,
     )
@@ -709,46 +680,25 @@ fn copy_asset_to_note_folder(
         .join(attachment_target(&mode, &folder, note_path, "x").dir_rel);
     std::fs::create_dir_all(&target_dir).map_err(|e| format!("MKDIR_FAILED: {e}"))?;
 
-    let stem = source
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .map(portable_asset_name)
-        .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| "Attachment".to_owned());
-    let ext = source
-        .extension()
-        .and_then(|e| e.to_str())
-        .map(|e| e.to_ascii_lowercase())
-        .filter(|e| !e.is_empty() && e.chars().all(|c| c.is_ascii_alphanumeric()));
-    let with_ext = |base: &str| match &ext {
-        Some(ext) => format!("{base}.{ext}"),
-        None => base.to_owned(),
-    };
-    let mut name = with_ext(&stem);
-    let mut counter = 1u32;
-    while target_dir.join(&name).exists() {
-        name = with_ext(&format!("{stem}-{counter}"));
-        counter += 1;
-    }
+    // 保留用户给的名字（可移植化、扩展名小写、同名加序号）：与网页拖入上传同一份规则（ADR-177 ⑥）。
+    let file_name = source
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or_default();
+    let name = free_asset_name(
+        |attempt| named_asset_name(file_name, attempt),
+        |name| target_dir.join(name).exists(),
+    )
+    .ok_or_else(|| "COPY_FAILED: no free name".to_owned())?;
     let target = attachment_target(&mode, &folder, note_path, &name);
     std::fs::copy(source, target_dir.join(&name)).map_err(|e| format!("COPY_FAILED: {e}"))?;
     emit_vault_changed_in_scope(
         app,
-        &luna_vault::join_vault_rel(&target.dir_rel, &name),
+        &join_vault_rel(&target.dir_rel, &name),
         false,
         dest.scope,
     );
     Ok(target.link)
-}
-
-/// 可移植的附件文件名主干：空白 → 连字符，路径分隔符与控制字符剔除（PRD-06-030）。
-fn portable_asset_name(raw: &str) -> String {
-    raw.chars()
-        .map(|c| if c.is_whitespace() { '-' } else { c })
-        .filter(|c| !matches!(c, '/' | '\\' | ':') && !c.is_control())
-        .collect::<String>()
-        .trim_matches('-')
-        .to_owned()
 }
 
 /// 「插入图片 / 附件」（PRD-06-012）：原生**多选**文件对话框（Rust 侧，前端零业务）→ 逐个复制
@@ -807,24 +757,6 @@ pub(crate) fn import_asset_paths(
         .filter(|source| source.is_file())
         .map(|source| copy_asset_to_note_folder(&app, &dest, &note_path, &source))
         .collect()
-}
-
-/// MIME → 文件扩展名（附件命名用）；未知 image/* 取子类型，非图片回退 `bin`。
-pub(crate) fn asset_ext_from_mime(mime: &str) -> String {
-    match mime {
-        "image/png" => "png",
-        "image/jpeg" | "image/jpg" => "jpg",
-        "image/gif" => "gif",
-        "image/webp" => "webp",
-        "image/svg+xml" => "svg",
-        "image/bmp" => "bmp",
-        "image/tiff" => "tiff",
-        other => other
-            .strip_prefix("image/")
-            .filter(|s| s.chars().all(|c| c.is_ascii_alphanumeric()) && !s.is_empty())
-            .unwrap_or("bin"),
-    }
-    .to_owned()
 }
 
 /// 编辑器标签视图模式（PRD-06-010/011/017：Live Preview / 源码 / 阅读）。

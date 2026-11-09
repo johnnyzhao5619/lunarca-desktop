@@ -24,7 +24,7 @@
 import { describe, expect, it } from "vitest";
 import { reachableStyleSources, sourcePathLocation } from "./style-source";
 
-const TSX = import.meta.glob("../{app,features,components}/**/*.tsx", {
+const TSX = import.meta.glob(["../{app,features,components}/**/*.tsx", "../../../../packages/*/src/**/*.tsx"], {
   eager: true,
   import: "default",
   query: "?raw",

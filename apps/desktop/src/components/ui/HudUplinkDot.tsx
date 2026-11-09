@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { CloudUploadIcon } from "./Icon";
+import { CloudUploadIcon } from "@lunarca/editor-core/Icon";
 
 /**
  * 联网指示（ADR-038 ④ / ADR-111 ⑤⑴）：音频正在（或将会）离开本机。

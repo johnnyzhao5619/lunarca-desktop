@@ -8,15 +8,15 @@
 // 前端零业务：动作清单按作用域摆放；建议落地方式、执行位置、发送字数都是 Rust 随流首
 // 事实下发的投影（`use-floating-menu.ts`）。
 
-import { useEffect, useRef, useState, type MutableRefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { cssVariables } from "../../lib/css-variables";
 import { useBoxSize } from "../../hooks/use-resize-observer";
-import { useNoteTypeToolsAvailable } from "../../hooks/use-apps";
+import { useAppEnabled, useNoteTypeToolsAvailable } from "../../hooks/use-apps";
 import { useTemplateMarket } from "../../hooks/use-template-market";
 import { APPS_TEMPLATES_ROUTE } from "../../lib/app-route";
 import { goTo } from "../../lib/navigate";
-import { formatShortcut } from "../../lib/shortcut-display";
+import { formatShortcut } from "@lunarca/editor-core/shortcut-display";
 import {
   commands,
   type FloatingMenuAction,
@@ -39,12 +39,13 @@ import {
   LanguagesIcon,
   PencilIcon,
   PlusIcon,
+  ScrollTextIcon,
   SearchIcon,
   SparklesIcon,
   SpeakIcon,
   TableIcon,
   TagsIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { sentenceAround, type DiffChange } from "./ai-diff";
 import { AiComposer, type ComposerItem } from "./AiComposer";
 import { AiResultPanel, orderedLandings } from "./AiResultPanel";
@@ -110,7 +111,15 @@ type GraphTagsState =
   | { status: "failed"; message: string };
 
 /** 无子菜单选择（跟随设置）。 */
-const NO_OPTIONS: FloatingMenuOptionsDto = { target_lang: null, summary_style: null, table_column: null };
+const NO_OPTIONS: FloatingMenuOptionsDto = {
+  target_lang: null,
+  summary_style: null,
+  table_column: null,
+  target_seconds: null,
+};
+
+/** 「压到 N 秒」的几档目标时长（ADR-176 ⑧；Shorts 60 秒以内、口播开场常见 30 / 90 秒）。 */
+const PROMPTER_FIT_SECONDS = [30, 60, 90] as const;
 
 /** 首帧占位尺寸（layout effect 量到真实值后同帧重算）。 */
 const FALLBACK_SIZE = { width: 420, height: 240 };
@@ -142,6 +151,8 @@ export function FloatingMenu({
 }: FloatingMenuProps) {
   const { t } = useTranslation("editor");
   const scriptActionsAvailable = useNoteTypeToolsAvailable(noteType);
+  // 提词器的 AI 口播动作归「提词器」应用：任何笔记都能用，应用停用时整组不出现（ADR-176 ⑧）。
+  const prompterActionsAvailable = useAppEnabled("teleprompter");
   const {
     result,
     lastInstruction,
@@ -278,6 +289,23 @@ export function FloatingMenu({
     }
     throw new Error(outcome.error);
   }
+
+  // 「压到 N 秒」这一轮的目标与估时（ADR-176 ⑧）；身份随目标秒数变，结果面板据此重估。
+  const fitSecondsTarget =
+    result.action === "prompter_fit" ? backgroundOptions.target_seconds : null;
+  const fitTarget = useMemo(
+    () =>
+      fitSecondsTarget === null
+        ? null
+        : {
+            seconds: fitSecondsTarget,
+            estimate: async (text: string) => {
+              const outcome = await commands.teleprompterEstimateSeconds(text);
+              return outcome.status === "ok" ? outcome.data : null;
+            },
+          },
+    [fitSecondsTarget],
+  );
 
   function deletePreset(id: string) {
     void commands.floatingPresetDelete(id).then((outcome) => {
@@ -561,6 +589,37 @@ export function FloatingMenu({
       })),
     });
   }
+  if (scope === "selection" && prompterActionsAvailable) {
+    items.push({
+      id: "prompter",
+      group: "edit",
+      label: t("floating.action.prompter"),
+      icon: <ScrollTextIcon size={14} />,
+      children: [
+        {
+          id: "prompter-spoken",
+          group: "edit" as const,
+          label: t("floating.prompter.spoken"),
+          icon: <ScrollTextIcon size={14} />,
+          run: () => runAction("prompter_spoken"),
+        },
+        ...PROMPTER_FIT_SECONDS.map((seconds) => ({
+          id: `prompter-fit-${seconds}`,
+          group: "edit" as const,
+          label: t("floating.prompter.fit", { seconds }),
+          icon: <ScrollTextIcon size={14} />,
+          run: () => runAction("prompter_fit", { ...NO_OPTIONS, target_seconds: seconds }),
+        })),
+        {
+          id: "prompter-cues",
+          group: "edit" as const,
+          label: t("floating.prompter.cues"),
+          icon: <ScrollTextIcon size={14} />,
+          run: () => runAction("prompter_cues"),
+        },
+      ],
+    });
+  }
   if (scope !== "doc") {
     items.push({
       id: "continue",
@@ -581,7 +640,7 @@ export function FloatingMenu({
         group: "understand" as const,
         label: t(`floating.summary.${style}`),
         icon: <SparklesIcon size={14} />,
-        run: () => runAction("summarize", { target_lang: null, summary_style: style, table_column: null }),
+        run: () => runAction("summarize", { ...NO_OPTIONS, summary_style: style }),
       })),
     });
   }
@@ -605,7 +664,7 @@ export function FloatingMenu({
             group: "understand" as const,
             label: t(`common:lang.${code}`),
             icon: <LanguagesIcon size={14} />,
-            run: () => runAction("translate", { target_lang: code, summary_style: null, table_column: null }),
+            run: () => runAction("translate", { ...NO_OPTIONS, target_lang: code }),
           })),
         ],
       },
@@ -754,6 +813,7 @@ export function FloatingMenu({
           onSavePreset={lastInstruction && result.action === "ask" ? savePreset : null}
           onExplain={explainChange}
           onBackground={scope === "doc" && notePath ? moveToBackground : null}
+          fitTarget={fitTarget}
         />
       ) : searchActive ? null : (
         <AiComposer

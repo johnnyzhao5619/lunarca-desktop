@@ -1,0 +1,79 @@
+/* 已登录的外壳：页头 + 主区。 */
+
+.luna-web-shell {
+  display: flex;
+  flex-direction: column;
+  block-size: var(--size-full);
+  min-block-size: 0;
+}
+
+.luna-web-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+  background: var(--color-bg-surface);
+}
+
+.luna-web-header__brand {
+  flex-shrink: 0;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.luna-web-header__home {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--font-weight-semibold);
+}
+
+.luna-web-header__logo {
+  inline-size: var(--control-height-sm);
+  block-size: var(--control-height-sm);
+}
+
+/* 右侧一组（邮箱、账户与会话、退出）靠右；按钮不折行、不被挤压，放不下时邮箱与库名省略号截断（悬停看全文）。 */
+.luna-web-header__end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  margin-inline-start: auto;
+}
+
+.luna-web-header__end > .luna-web-button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.luna-web-header__account {
+  min-inline-size: 0;
+  overflow: hidden;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-web-main {
+  flex: 1;
+  min-block-size: 0;
+  overflow: auto;
+  padding: var(--space-4);
+}
+
+/* 图表渲染沙箱的框架（TDD-17 §6.1，`lib/diagram-sandbox.ts`）：看不见、点不着，但照常排版——Mermaid 要在
+   里面量字宽，`display: none` 的框架量出来是 0。宽度取阅读面正文宽，按容器宽排版的图表与正文一样宽。 */
+.luna-web-render-sandbox {
+  position: fixed;
+  inset-block-start: var(--space-0);
+  inset-inline-start: var(--space-0);
+  inline-size: var(--editor-content-max-inline);
+  block-size: var(--space-0);
+  border: none;
+  visibility: hidden;
+  pointer-events: none;
+}

@@ -32,7 +32,7 @@ import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { commands } from "../../ipc/bindings";
 import { t, withI18n } from "../../i18n/i18n-test-fixture";
 import { CANVAS_DESTINATIONS } from "../workspace/workspace-ia";
-import { COMPOSITION_COMMIT_WINDOW_MS } from "../../lib/ime-composition";
+import { COMPOSITION_COMMIT_WINDOW_MS } from "@lunarca/editor-core/ime-composition";
 import { CaptureBox } from "./CaptureBox";
 
 const LOCALES = import.meta.glob("../../i18n/locales/*/*.json", {
@@ -229,7 +229,7 @@ describe("捕获框：真实渲染下的占位与键盘契约（PRD-06-058 P0-2�
   it("WKWebView 顺序：`compositionend` 先于 `keydown`，那一下仍然不算提交", () => {
     // 真机 2026-09-09 的原样复现（侧栏与全局面板同时中招）：合成在 keydown 之前结束，
     // 于是那一下身上 `isComposing` 是假、keyCode 是 13——单看事件它就是一次普通回车，
-    // 一段还没打完的拼音被落成了笔记。判据改由组件记下的合成边界补齐（`lib/ime-composition.ts`）。
+    // 一段还没打完的拼音被落成了笔记。判据改由组件记下的合成边界补齐（`@lunarca/editor-core/ime-composition`）。
     const { input, onCapture } = mount();
     fireEvent.change(input, { target: { value: "zhong" } });
     fireEvent.compositionEnd(input, { data: "zhong" });

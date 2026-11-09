@@ -17,7 +17,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import { commands, type UserTemplateDto } from "../../ipc/bindings";
-import { PlusIcon, TrashIcon } from "../../components/ui/Icon";
+import { PlusIcon, TrashIcon } from "@lunarca/editor-core/Icon";
 import { vaultErrorText } from "../../lib/vault-error";
 
 /** 空模板草稿（新建时的起点：一个区块，让用户立刻看到该填什么）。 */

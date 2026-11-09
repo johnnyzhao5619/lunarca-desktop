@@ -48,18 +48,7 @@ fn wait_until_local_with(
     in_cloud: impl Fn(&Path) -> bool,
     fetch: impl Fn(PathBuf),
 ) -> bool {
-    let pending = || -> Vec<PathBuf> {
-        std::fs::read_dir(dir)
-            .map(|entries| {
-                entries
-                    .filter_map(Result::ok)
-                    .filter(|entry| entry.file_type().is_ok_and(|t| t.is_file()))
-                    .map(|entry| entry.path())
-                    .filter(|path| in_cloud(path))
-                    .collect()
-            })
-            .unwrap_or_default()
-    };
+    let pending = || files_in_cloud(dir, &in_cloud);
     let first = pending();
     if first.is_empty() {
         return true;
@@ -75,6 +64,65 @@ fn wait_until_local_with(
         }
         std::thread::sleep(Duration::from_millis(100));
     }
+}
+
+/// 在后台一直等到目录第一层的文件都回到本机，然后调一次 `on_local`。
+///
+/// [`wait_until_local`] 只等几秒；没等到时库停在空状态「还在从 iCloud 下载」。取回可能很慢、甚至
+/// 卡住很久（磁盘紧张时 iCloud 下载会停在 0%），让用户自己估时机反复点「重试」不合理：这里不设
+/// 上限地等，回来了由调用方自动打开库。每隔 `poll` 只看一次标记，并把仍在云端的文件再交一次取回
+/// （同一个文件已在取回中不会另起线程）。同一个目录已经有人在等就不再另起。
+pub fn notify_when_local(dir: PathBuf, poll: Duration, on_local: impl FnOnce() + Send + 'static) {
+    static WATCHING: std::sync::Mutex<Vec<PathBuf>> = std::sync::Mutex::new(Vec::new());
+    let Ok(mut watching) = WATCHING.lock() else {
+        return;
+    };
+    if watching.contains(&dir) {
+        return;
+    }
+    watching.push(dir.clone());
+    drop(watching);
+    let spawned = std::thread::Builder::new()
+        .name("icloud-watch".to_owned())
+        .spawn(move || {
+            poll_until_local(&dir, poll, is_dataless, fetch_in_background);
+            if let Ok(mut watching) = WATCHING.lock() {
+                watching.retain(|d| d != &dir);
+            }
+            on_local();
+        });
+    if spawned.is_err() {
+        eprintln!("[vault] 起 iCloud 等待线程失败");
+    }
+}
+
+fn poll_until_local(
+    dir: &Path,
+    poll: Duration,
+    in_cloud: impl Fn(&Path) -> bool,
+    fetch: impl Fn(PathBuf),
+) {
+    loop {
+        let pending = files_in_cloud(dir, &in_cloud);
+        if pending.is_empty() {
+            return;
+        }
+        pending.into_iter().for_each(&fetch);
+        std::thread::sleep(poll);
+    }
+}
+
+fn files_in_cloud(dir: &Path, in_cloud: impl Fn(&Path) -> bool) -> Vec<PathBuf> {
+    std::fs::read_dir(dir)
+        .map(|entries| {
+            entries
+                .filter_map(Result::ok)
+                .filter(|entry| entry.file_type().is_ok_and(|t| t.is_file()))
+                .map(|entry| entry.path())
+                .filter(|path| in_cloud(path))
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 fn fetch_in_background(path: PathBuf) {
@@ -317,6 +365,38 @@ mod tests {
         let local = wait_until_local_with(dir.path(), Duration::from_millis(300), |_| true, |_| {});
         assert!(!local);
         assert!(started.elapsed() < Duration::from_secs(3));
+    }
+
+    /// 后台等待不设上限：取回一直没到就接着等、每一轮把仍在云端的文件再交一次取回，到了才返回。
+    #[test]
+    fn polls_until_the_cloud_files_land_and_asks_again_each_round() {
+        use std::sync::Mutex;
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("settings.toml"), "").unwrap();
+        let rounds = Mutex::new(0_u32);
+        poll_until_local(
+            dir.path(),
+            Duration::from_millis(1),
+            |_| *rounds.lock().unwrap() < 3,
+            |_| *rounds.lock().unwrap() += 1,
+        );
+        assert_eq!(*rounds.lock().unwrap(), 3);
+    }
+
+    /// 目录已经都在本机：后台线程第一轮就调回调。
+    #[test]
+    fn notifies_once_when_the_directory_is_already_local() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("settings.toml"), "").unwrap();
+        let (tx, rx) = std::sync::mpsc::channel();
+        notify_when_local(
+            dir.path().to_path_buf(),
+            Duration::from_millis(1),
+            move || {
+                tx.send(()).unwrap();
+            },
+        );
+        assert!(rx.recv_timeout(Duration::from_secs(5)).is_ok());
     }
 
     /// 普通文件不是「移到云端」的文件；不存在的路径也不是。

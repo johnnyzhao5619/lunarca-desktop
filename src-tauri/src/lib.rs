@@ -79,7 +79,7 @@ pub const BINDINGS_PATH: &str = concat!(
 /// `ipc::themes` 的测试判红；随 `export-bindings` 一起重新生成。
 pub const THEMES_CSS_PATH: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/../apps/desktop/src/styles/tokens/themes.generated.css"
+    "/../packages/styles/src/tokens/themes.generated.css"
 );
 
 // 非激活 HUD 的首帧/最小几何集中定义。首帧须在前端异步布局前完整容纳默认界面；
@@ -255,6 +255,86 @@ enum GlobalShortcutAction {
     RecordingToggle,
     RecordingBookmark,
     LiveCaption,
+    /// 立即隐藏 / 显示提词器（ADR-176 ⑤）。
+    TeleprompterToggle,
+    /// 把选中的文字（没有就剪贴板里的）送进提词器（ADR-176 ⑨）。
+    TeleprompterSend,
+    /// 提词器浮窗上的一个按键（ADR-176 ⑥）：只在浮窗显示时注册。
+    TeleprompterPanel(TeleprompterKey),
+}
+
+/// 提词器浮窗的按键动作（ADR-176 ⑥，PRD-20-011 / 012）。Rust 只负责注册与转交，动作本身是浮窗
+/// 的呈现（滚动、换行、调速），由浮窗执行。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum TeleprompterKey {
+    Play,
+    LineUp,
+    LineDown,
+    BlockPrev,
+    BlockNext,
+    Faster,
+    Slower,
+    Current,
+    Top,
+    Close,
+    Mark,
+}
+
+impl TeleprompterKey {
+    /// 交给浮窗的稳定名（`window.__lunaTeleprompterKey(name)`）。
+    const fn as_str(self) -> &'static str {
+        match self {
+            Self::Play => "play",
+            Self::LineUp => "line_up",
+            Self::LineDown => "line_down",
+            Self::BlockPrev => "block_prev",
+            Self::BlockNext => "block_next",
+            Self::Faster => "faster",
+            Self::Slower => "slower",
+            Self::Current => "current",
+            Self::Top => "top",
+            Self::Close => "close",
+            Self::Mark => "mark",
+        }
+    }
+}
+
+/// 遥控模式的键（ADR-176 ⑥，PRD-20-012）：不带修饰，蓝牙翻页器（多发 PageUp / PageDown 或方向键）
+/// 与脚踏板不用配置即可用。不进设置——它们就是翻页器发的那几个键；只在浮窗显示且遥控模式开着时注册。
+const TELEPROMPTER_REMOTE_KEYS: &[(&str, TeleprompterKey)] = &[
+    ("space", TeleprompterKey::Play),
+    ("up", TeleprompterKey::LineUp),
+    ("down", TeleprompterKey::LineDown),
+    ("left", TeleprompterKey::BlockPrev),
+    ("right", TeleprompterKey::BlockNext),
+    ("pageup", TeleprompterKey::BlockPrev),
+    ("pagedown", TeleprompterKey::BlockNext),
+    ("home", TeleprompterKey::Top),
+    ("equal", TeleprompterKey::Faster),
+    ("minus", TeleprompterKey::Slower),
+    ("c", TeleprompterKey::Current),
+    ("b", TeleprompterKey::Mark),
+    ("escape", TeleprompterKey::Close),
+];
+
+/// 浮窗此刻显示着没有（显示 / 收起时各写一次）：浮窗按键据此注册或解绑。
+static TELEPROMPTER_VISIBLE: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
+/// 录快捷键期间全局键整体收起（[`suspend_global_shortcuts`]）：这时浮窗开合不得把键装回去。
+static GLOBAL_SHORTCUTS_SUSPENDED: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
+/// 浮窗按键此刻该不该在：浮窗显示着 ∧「提词器」应用生效（扩展能力，ADR-176 ③）。
+fn teleprompter_keys_active(app: &tauri::AppHandle) -> bool {
+    TELEPROMPTER_VISIBLE.load(std::sync::atomic::Ordering::SeqCst) && teleprompter_extended(app)
+}
+
+/// 浮窗开合或遥控模式改了：重注册全局键（录快捷键期间不动）。
+pub(crate) fn refresh_teleprompter_shortcuts(app: &tauri::AppHandle) {
+    if !GLOBAL_SHORTCUTS_SUSPENDED.load(std::sync::atomic::Ordering::SeqCst) {
+        register_global_shortcuts(app);
+    }
 }
 
 /// 全局快捷键「设置键 → 动作」映射。键值取自 `luna-config` 注册表与用户设置（默认见
@@ -295,6 +375,54 @@ const GLOBAL_SHORTCUT_SETTINGS: &[(&str, GlobalShortcutAction)] = &[
         GlobalShortcutAction::RecordingBookmark,
     ),
     ("shortcuts.live_caption", GlobalShortcutAction::LiveCaption),
+    (
+        "shortcuts.teleprompter_toggle",
+        GlobalShortcutAction::TeleprompterToggle,
+    ),
+    (
+        "shortcuts.teleprompter_send",
+        GlobalShortcutAction::TeleprompterSend,
+    ),
+    (
+        "shortcuts.teleprompter_play",
+        GlobalShortcutAction::TeleprompterPanel(TeleprompterKey::Play),
+    ),
+    (
+        "shortcuts.teleprompter_line_up",
+        GlobalShortcutAction::TeleprompterPanel(TeleprompterKey::LineUp),
+    ),
+    (
+        "shortcuts.teleprompter_line_down",
+        GlobalShortcutAction::TeleprompterPanel(TeleprompterKey::LineDown),
+    ),
+    (
+        "shortcuts.teleprompter_block_prev",
+        GlobalShortcutAction::TeleprompterPanel(TeleprompterKey::BlockPrev),
+    ),
+    (
+        "shortcuts.teleprompter_block_next",
+        GlobalShortcutAction::TeleprompterPanel(TeleprompterKey::BlockNext),
+    ),
+    (
+        "shortcuts.teleprompter_faster",
+        GlobalShortcutAction::TeleprompterPanel(TeleprompterKey::Faster),
+    ),
+    (
+        "shortcuts.teleprompter_slower",
+        GlobalShortcutAction::TeleprompterPanel(TeleprompterKey::Slower),
+    ),
+    (
+        "shortcuts.teleprompter_current",
+        GlobalShortcutAction::TeleprompterPanel(TeleprompterKey::Current),
+    ),
+    (
+        "shortcuts.teleprompter_top",
+        GlobalShortcutAction::TeleprompterPanel(TeleprompterKey::Top),
+    ),
+    (
+        "shortcuts.teleprompter_close",
+        GlobalShortcutAction::TeleprompterPanel(TeleprompterKey::Close),
+    ),
 ];
 
 /// 某设置键是否为**全局**快捷键（改它需在 Rust 侧重注册；应用内快捷键由前端命令注册表管，不在此列）。
@@ -436,6 +564,7 @@ fn register_global_shortcuts(app: &tauri::AppHandle) {
     let gs = app.global_shortcut();
     let _ = gs.unregister_all();
 
+    let panel_keys = teleprompter_keys_active(app);
     let mut bindings = Vec::new();
     // 注册失败表（每次重注册整体重建，绝不残留上一轮的旧诊断）。
     let mut failures: std::collections::BTreeMap<String, &'static str> =
@@ -446,6 +575,14 @@ fn register_global_shortcuts(app: &tauri::AppHandle) {
             GlobalShortcutAction::DesktopLensToggle | GlobalShortcutAction::DesktopLensCapture
         ) && !state.desktop_lens_enabled()
         {
+            continue;
+        }
+        // 归一方应用的快捷键（提词器的立即隐藏 / 显示，ADR-176 ⑤）：应用没生效就不占这个键。
+        if !luna_config::apps::setting_available(&settings, key) {
+            continue;
+        }
+        // 浮窗按键只在浮窗显示着时占（ADR-176 ⑥）：收起即还给别的应用。
+        if matches!(action, GlobalShortcutAction::TeleprompterPanel(_)) && !panel_keys {
             continue;
         }
         // 设置快照已含注册表默认（未改键即默认 TDD-05 §3）；空串视为未绑定，跳过。
@@ -482,6 +619,28 @@ fn register_global_shortcuts(app: &tauri::AppHandle) {
         }
     }
 
+    // 遥控模式（ADR-176 ⑥）：浮窗显示着且开了遥控，另占一组不带修饰的键。占不到的（别的应用
+    // 抢先占了）记在遥控模式这个设置名下。
+    if panel_keys
+        && settings
+            .get_bool("teleprompter.remote_enabled")
+            .unwrap_or(false)
+    {
+        for &(spec, key) in TELEPROMPTER_REMOTE_KEYS {
+            let Some(shortcut) = parse_shortcut(spec) else {
+                eprintln!("[shortcut] 无法解析遥控键 {spec}");
+                continue;
+            };
+            match gs.register(shortcut) {
+                Ok(()) => bindings.push((shortcut, GlobalShortcutAction::TeleprompterPanel(key))),
+                Err(e) => {
+                    eprintln!("[shortcut] 遥控键 {spec} 注册失败：{e}");
+                    failures.insert("teleprompter.remote_enabled".to_owned(), "unavailable");
+                }
+            }
+        }
+    }
+
     if let Some(slot) = app.try_state::<ShortcutRegistrationStatus>() {
         if let Ok(mut guard) = slot.0.lock() {
             *guard = failures;
@@ -508,6 +667,7 @@ pub fn reregister_global_shortcuts(app: &tauri::AppHandle) {
 pub fn suspend_global_shortcuts(app: &tauri::AppHandle) {
     use tauri::Manager as _;
     use tauri_plugin_global_shortcut::GlobalShortcutExt as _;
+    GLOBAL_SHORTCUTS_SUSPENDED.store(true, std::sync::atomic::Ordering::SeqCst);
     let _ = app.global_shortcut().unregister_all();
     if let Some(double_tap) = app.try_state::<DoubleTapState>() {
         double_tap.0.set_bindings(Vec::new());
@@ -521,6 +681,7 @@ pub fn suspend_global_shortcuts(app: &tauri::AppHandle) {
 
 /// 录制结束：按当前设置把两条路都装回去（与启动、改键走同一对函数，不另写一份）。
 pub fn resume_global_shortcuts(app: &tauri::AppHandle) {
+    GLOBAL_SHORTCUTS_SUSPENDED.store(false, std::sync::atomic::Ordering::SeqCst);
     register_global_shortcuts(app);
     apply_double_tap_settings(app);
 }
@@ -676,6 +837,69 @@ fn dispatch_shortcut_action(app: &tauri::AppHandle, action: GlobalShortcutAction
                 toggle_live_caption(&app);
             });
         }
+        GlobalShortcutAction::TeleprompterToggle => {
+            let app = app.clone();
+            let _ = app.clone().run_on_main_thread(move || {
+                toggle_teleprompter_visible(&app);
+            });
+        }
+        GlobalShortcutAction::TeleprompterPanel(key) => {
+            let app = app.clone();
+            let _ = app.clone().run_on_main_thread(move || {
+                if let Some(panel) = app.get_webview_window(ipc::TELEPROMPTER_LABEL) {
+                    let _ = panel.eval(format!(
+                        "window.__lunaTeleprompterKey?.({:?})",
+                        key.as_str()
+                    ));
+                }
+            });
+        }
+        GlobalShortcutAction::TeleprompterSend => {
+            // 读选区走辅助功能接口（可能慢），不卡快捷键回调；建稿与开窗回主线程。
+            let app = app.clone();
+            std::thread::spawn(move || {
+                let text = text_to_send_to_teleprompter();
+                let handle = app.clone();
+                let _ = app.run_on_main_thread(move || {
+                    ipc::send_text_to_teleprompter(&handle, text);
+                });
+            });
+        }
+    }
+}
+
+/// 「送进提词器」要送的文字（ADR-176 ⑨，PRD-20-021）：前台选中的文字优先（辅助功能接口直读，
+/// 不模拟复制、不动剪贴板）；读不到（没授权、没选中，或 Google Docs 这类画布渲染的页面）就取
+/// 剪贴板里的文字。文字不写日志。
+fn text_to_send_to_teleprompter() -> Option<String> {
+    #[cfg(target_os = "macos")]
+    let selected = platform::macos::selection::read_selected_text();
+    #[cfg(not(target_os = "macos"))]
+    let selected: Option<String> = None;
+    selected.or_else(|| {
+        ipc::read_clipboard_text()
+            .ok()
+            .flatten()
+            .filter(|text| !text.trim().is_empty())
+    })
+}
+
+/// 立即隐藏 / 显示提词器（ADR-176 ⑤）：被录进去时一键藏起，录完再一键叫回。只隐藏，不停跟读、
+/// 不写回标记（那是「收起提词器」的事）。
+fn toggle_teleprompter_visible(app: &tauri::AppHandle) {
+    use tauri::Manager as _;
+    let Some(win) = app.get_webview_window(ipc::TELEPROMPTER_LABEL) else {
+        return;
+    };
+    if win.is_visible().unwrap_or(false) {
+        hide_teleprompter(app);
+        return;
+    }
+    let available = app.try_state::<ipc::AppState>().is_some_and(|state| {
+        luna_config::apps::window_available(&state.settings_snapshot(), ipc::TELEPROMPTER_LABEL)
+    });
+    if available {
+        show_teleprompter(app);
     }
 }
 
@@ -830,8 +1054,8 @@ pub fn default_assembly() -> AppAssembly {
         if logged_in && previous != 2 {
             cloud::spawn_catalog_refresh_on_sign_in(app);
         }
-        // 刚在浏览器里批准完：把应用亮回前台并确认一次（Slack / GitHub Desktop 同一做法），
-        // 否则用户停在浏览器那句「可以关闭本页了」上，不知道客户端已经继续了。
+        // 刚登录完成（应用内口令或浏览器批准）：把应用亮回前台并确认一次（Slack / GitHub Desktop
+        // 同一做法），否则走浏览器的用户停在「可以关闭本页了」上，不知道客户端已经继续了。
         if logged_in && previous == 1 {
             show_main_window(app);
             if let Some(center) = app.try_state::<notifications::NotificationCenter>() {
@@ -1197,6 +1421,8 @@ pub fn run_with(context: tauri::Context, assembly: AppAssembly) {
                 }),
             ));
             app.manage(state);
+            // 库还在 iCloud 上、这次启动没开：后台等它取回后自动打开（同样须在 `manage` 之后）。
+            ipc::open_startup_vault_when_local(app.handle());
             // 随包推理引擎（ADR-143）：状态变化转发给前端；按已装 GGUF 编排一次——
             // 一个都没装时什么也不起（不为「也许会用」常驻一个进程）。两者都经
             // `app.state::<AppState>()` 取监管器，**必须在 `app.manage(state)` 之后**——
@@ -1433,8 +1659,8 @@ pub fn run_with(context: tauri::Context, assembly: AppAssembly) {
                 tauri::async_runtime::block_on(engine.stop());
             }
             // 字幕窗的位置与尺寸平时在收起时记下；直接退出不经过收起，这里补记一次。
-            if let tauri::RunEvent::ExitRequested { api, .. } = event {
-                editor_exit::request(app, &api);
+            if let tauri::RunEvent::ExitRequested { code, api, .. } = event {
+                editor_exit::request(app, code, &api);
                 remember_open_caption_windows(app);
                 if let Some(win) = app.get_webview_window(ipc::TELEPROMPTER_LABEL) {
                     remember_caption_window(app, &win);
@@ -2963,13 +3189,69 @@ pub(crate) fn show_teleprompter(app: &tauri::AppHandle) -> bool {
             });
         match remembered {
             Some(rect) => apply_caption_rect(&win, rect),
+            // 没记过位置：装了「提词器」就贴近镜头（ADR-176 ⑤），只装创作时照旧。
+            None if teleprompter_extended(app) => snap_teleprompter_to_camera(&win),
             None => position_teleprompter_window(&win),
         }
     }
+    apply_teleprompter_capture(app);
     let shown = win.show().is_ok();
+    // 浮窗按键随浮窗显示注册（ADR-176 ⑥）。
+    TELEPROMPTER_VISIBLE.store(shown, std::sync::atomic::Ordering::SeqCst);
+    refresh_teleprompter_shortcuts(app);
     // 常驻面板只挂载一次：换脚本时请它重读（与桌面便签的 `__lunaReload*` 同一做法）。
     let _ = win.eval("window.__lunaReloadTeleprompter?.()");
     shown
+}
+
+/// 「提词器」应用生效没有：扩展能力（防录屏、贴近镜头、倒计时……）只归它（ADR-176 ③）。
+pub(crate) fn teleprompter_extended(app: &tauri::AppHandle) -> bool {
+    use tauri::Manager as _;
+    app.try_state::<ipc::AppState>().is_some_and(|state| {
+        luna_config::apps::is_enabled(
+            &state.settings_snapshot(),
+            luna_config::apps::TELEPROMPTER_APP.id,
+        )
+    })
+}
+
+/// 按设置给面板上 / 撤内容保护（ADR-176 ⑤）：提词器生效 ∧ 「尽量不被录屏」开着才保护。
+/// 显示前与改设置时各调一次。尽力而为——ScreenCaptureKit 不一定遵守，界面不做承诺。
+pub(crate) fn apply_teleprompter_capture(app: &tauri::AppHandle) {
+    use tauri::Manager as _;
+    let Some(win) = app.get_webview_window(ipc::TELEPROMPTER_LABEL) else {
+        return;
+    };
+    let hidden = teleprompter_extended(app)
+        && app.try_state::<ipc::AppState>().is_some_and(|state| {
+            state
+                .settings_snapshot()
+                .get_bool("teleprompter.capture_hidden")
+                .unwrap_or(true)
+        });
+    if let Err(e) = win.set_content_protected(hidden) {
+        eprintln!("[teleprompter] 设置内容保护失败：{e}");
+    }
+}
+
+/// 贴近镜头（ADR-176 ⑤，PRD-20-008）：放到面板所在显示器工作区的上沿、水平居中，并收成一条
+/// 窄条——内建屏的摄像头在屏幕上沿正中（带刘海的屏工作区上沿即刘海下沿），外接屏先放上沿居中，
+/// 再由用户拖到自己的摄像头旁。几何是纯函数（`popup::camera_strip_rect`），落位后记住。
+pub(crate) fn snap_teleprompter_to_camera(win: &tauri::WebviewWindow) {
+    let Ok(Some(monitor)) = win.current_monitor().or_else(|_| win.primary_monitor()) else {
+        return;
+    };
+    let work = monitor.work_area();
+    let rect = popup::camera_strip_rect(
+        popup::ScreenRect::new(
+            f64::from(work.position.x),
+            f64::from(work.position.y),
+            f64::from(work.size.width),
+            f64::from(work.size.height),
+        ),
+        monitor.scale_factor(),
+    );
+    apply_caption_rect(win, rect);
 }
 
 /// 提词器没记过位置时的落位：镜头多在屏幕上沿，所以水平居中、离屏顶约十分之一屏高。
@@ -2997,6 +3279,9 @@ pub(crate) fn hide_teleprompter(app: &tauri::AppHandle) {
         remember_caption_window(app, &win);
         let _ = win.hide();
     }
+    // 收起即把浮窗按键还给别的应用（ADR-176 ⑥）。
+    TELEPROMPTER_VISIBLE.store(false, std::sync::atomic::Ordering::SeqCst);
+    refresh_teleprompter_shortcuts(app);
 }
 
 /// 切换录音 HUD 显示/隐藏（Cmd+Shift+R 热键响应）。
@@ -3292,7 +3577,7 @@ fn hide_caption_window(app: &tauri::AppHandle, label: &str) {
 
 /// 记下一扇**正显示着**的字幕窗的位置与尺寸。隐藏着的窗不记：它的几何是上一次收起时
 /// 的，那时已经记过了。
-fn remember_caption_window(app: &tauri::AppHandle, win: &tauri::WebviewWindow) {
+pub(crate) fn remember_caption_window(app: &tauri::AppHandle, win: &tauri::WebviewWindow) {
     use tauri::Manager as _;
     if !win.is_visible().unwrap_or(false) {
         return;
@@ -3855,9 +4140,9 @@ mod tests {
     use super::{
         is_global_shortcut_setting, is_reserved_editing_combo, luna_tray_icon,
         luna_tray_icon_as_template, normalize_to_accelerator, parse_shortcut, place_lens_trigger,
-        HudWindowGeometry, GLOBAL_SHORTCUT_SETTINGS, LIVE_CAPTION_HUD_GEOMETRY,
-        POPUP_TRANSLATE_HUD_GEOMETRY, QUICK_CHAT_HUD_GEOMETRY, RECORDING_HUD_GEOMETRY,
-        VOICE_INPUT_HUD_GEOMETRY,
+        GlobalShortcutAction, HudWindowGeometry, GLOBAL_SHORTCUT_SETTINGS,
+        LIVE_CAPTION_HUD_GEOMETRY, POPUP_TRANSLATE_HUD_GEOMETRY, QUICK_CHAT_HUD_GEOMETRY,
+        RECORDING_HUD_GEOMETRY, TELEPROMPTER_REMOTE_KEYS, VOICE_INPUT_HUD_GEOMETRY,
     };
     use tauri_plugin_global_shortcut::{Code, Modifiers, Shortcut};
 
@@ -4160,6 +4445,38 @@ mod tests {
         assert!(!is_global_shortcut_setting("recording.format"));
         for (key, _) in GLOBAL_SHORTCUT_SETTINGS {
             assert!(is_global_shortcut_setting(key));
+        }
+    }
+
+    #[test]
+    fn teleprompter_keys_parse_and_remote_keys_carry_no_modifier() {
+        // 遥控键（ADR-176 ⑥）：翻页器发的就是这些裸键，解析不出来就等于遥控模式静默失效。
+        for (spec, _) in TELEPROMPTER_REMOTE_KEYS {
+            let shortcut = parse_shortcut(spec).unwrap_or_else(|| panic!("解析不了遥控键 {spec}"));
+            assert!(shortcut.mods.is_empty(), "{spec} 不该带修饰");
+        }
+        assert_eq!(
+            parse_shortcut("pagedown"),
+            Some(Shortcut::new(None, Code::PageDown))
+        );
+        assert_eq!(
+            parse_shortcut("space"),
+            Some(Shortcut::new(None, Code::Space))
+        );
+        // 浮窗按键的默认值都能解析（注册表默认改了而解析不了，键就静默不生效）。
+        for (key, action) in GLOBAL_SHORTCUT_SETTINGS {
+            if !matches!(action, GlobalShortcutAction::TeleprompterPanel(_)) {
+                continue;
+            }
+            let luna_config::SettingValue::Str(spec) = luna_config::registry::spec(key)
+                .expect("已登记")
+                .default
+                .to_value()
+            else {
+                panic!("{key} 默认值不是字符串");
+            };
+            let shortcut = parse_shortcut(&spec).unwrap_or_else(|| panic!("{key}={spec} 解析不了"));
+            assert!(!shortcut.mods.is_empty(), "{key} 常驻组必须带修饰");
         }
     }
 

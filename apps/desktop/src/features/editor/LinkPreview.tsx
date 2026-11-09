@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next";
 import { commands } from "../../ipc/bindings";
 import { cssVariables } from "../../lib/css-variables";
 import { ReadingView } from "./ReadingView";
-import { readingHeadings } from "./reading-view";
+import { readingHeadings } from "@lunarca/editor-core/reading-view";
 
 export interface LinkRef {
   kind: "wiki" | "md";

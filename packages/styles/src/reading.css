@@ -1,0 +1,330 @@
+/*
+ * 阅读视图（`@lunarca/editor-core/ReadingView`）的样式：版式、属性块、库内图片、嵌入、看大图，以及编辑面
+ * 与阅读面共用的 wiki-link 与行内 #tag 装饰。桌面与网页从这里导入（TDD-17 §2），宿主各自在
+ * `features` 层导入它。
+ */
+
+/* 阅读版式：文档级排版（对话气泡的紧凑级距在这里放大为文档级距）。 */
+.luna-reading {
+  max-inline-size: var(--editor-content-max-inline);
+  margin-inline: auto;
+  padding: var(--space-6) var(--space-6) calc(var(--space-6) * 2);
+}
+
+/* 正文字号与标题阶梯**与编辑面消费同一组 Token**（`--editor-*`，定义在
+   `styles/tokens/base.css`）：此前这里显式写 15px、编辑面一路继承到外壳的 13px，
+   于是 ⌘E 切一次模式字号就跳一次。纪律见 TDD-15 §3.4a。 */
+.luna-reading .luna-markdown {
+  font-size: var(--editor-font-size);
+  line-height: var(--editor-line-height);
+}
+
+/* 文档级纵向节奏：与编辑面同一组 Token、同一「间距挂在块之上」的模型（编辑面是行装饰的
+   `padding-block-start`，这里是块的 `margin-block-start`）。`.luna-markdown` 原语自带的
+   块尾紧凑级距（对话气泡口径）在文档面归零——两种模型叠加会在块之间累加出两份间距。 */
+.luna-reading .luna-markdown > * {
+  margin-block: var(--editor-block-gap) var(--space-0);
+}
+
+.luna-reading .luna-markdown > :first-child {
+  margin-block-start: var(--space-0);
+}
+
+.luna-reading .luna-markdown h1,
+.luna-reading .luna-markdown h2,
+.luna-reading .luna-markdown h3,
+.luna-reading .luna-markdown h4,
+.luna-reading .luna-markdown h5,
+.luna-reading .luna-markdown h6 {
+  /* 章节留白叠在块间距之上（编辑面：空行 + `--editor-heading-gap`，这里没有空行，故两份都由 margin 给）。 */
+  margin-block-start: calc(var(--editor-block-gap) + var(--editor-heading-gap));
+  /* 与编辑面同一档（`.luna-markdown` 原语自带的 `--line-height-base` 是对话气泡口径）。 */
+  line-height: var(--editor-heading-line-height);
+}
+
+.luna-reading .luna-markdown h1 {
+  font-size: var(--editor-h1-font-size);
+}
+
+.luna-reading .luna-markdown h2 {
+  font-size: var(--editor-h2-font-size);
+}
+
+.luna-reading .luna-markdown h3 {
+  font-size: var(--editor-h3-font-size);
+}
+
+.luna-reading .luna-markdown h4 {
+  font-size: var(--editor-h4-font-size);
+}
+
+.luna-reading .luna-markdown h5 {
+  font-size: var(--editor-h5-font-size);
+}
+
+/* h6 与编辑面同一收束：不再靠字号，退到次级色（`.luna-md-h6` 的对应做法）。 */
+.luna-reading .luna-markdown h6 {
+  font-size: var(--editor-h6-font-size);
+  color: var(--color-text-secondary);
+}
+
+/* 列表项之间不留呼吸（与编辑面同形）：`.luna-markdown` 原语给项间 4px `gap`、段尾再 4px，
+   那是对话气泡的口径；文档面的列表项在编辑面是紧挨的行，阅读面再撑开就是 ⌘E 一切一跳
+   （真机 2026-09-04）。项内的嵌套列表随之归零。 */
+.luna-reading .luna-markdown ul,
+.luna-reading .luna-markdown ol {
+  gap: var(--space-0);
+}
+
+.luna-reading .luna-markdown li > p {
+  margin-block-end: var(--space-0);
+}
+
+/* frontmatter 属性块（Obsidian Properties 对标，只读）。 */
+.luna-reading__props {
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-block-end: var(--space-5);
+  background: var(--color-bg-panel);
+}
+
+.luna-reading__props-title {
+  margin: var(--space-0) var(--space-0) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.luna-reading__props dl {
+  margin: var(--space-0);
+  display: grid;
+  gap: var(--space-1);
+}
+
+.luna-reading__prop {
+  display: grid;
+  grid-template-columns: minmax(96px, 160px) 1fr;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.luna-reading__prop dt {
+  color: var(--color-text-muted);
+}
+
+.luna-reading__prop dd {
+  margin: var(--space-0);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+/* 阅读模式内 wiki-link / #tag 按钮化（继承编辑器装饰同款视觉）。 */
+.luna-reading__wiki,
+.luna-reading__tag {
+  border: 0;
+  background: transparent;
+  padding: var(--space-0);
+  font: inherit;
+  cursor: pointer;
+}
+
+.luna-reading__tag {
+  padding: var(--space-0-5) var(--space-1-5);
+  background: var(--color-accent-surface);
+  font-size: var(--font-size-sm);
+}
+
+/* Vault 相对图片就地渲染（PRD-06-013）。显示上限与编辑面同 Token（TDD-15 §3.4a）——
+   此前这一面纵向不封顶，同一张长图两个模式差着整整一屏。 */
+.luna-reading__image {
+  cursor: zoom-in;
+  max-inline-size: min(var(--size-full), var(--editor-image-max-inline));
+  max-block-size: var(--editor-image-max-block);
+  border-radius: var(--radius-sm);
+  display: block;
+  margin-block: var(--space-3);
+}
+
+.luna-reading__image-missing {
+  color: var(--color-text-muted);
+  font-style: italic;
+  border-block-end: var(--border-width-thin) dashed var(--color-border-default);
+}
+
+/* 嵌入 `![[笔记]]`（对标方案 D5）：被嵌入的内容是一块左侧带竖线的引文式卡片，页头是名字与
+   「打开」。导出与打印同一份样式（`note-export-html.ts` 收集 `.luna-embed`）。 */
+.luna-embed {
+  margin-block: var(--space-3);
+  padding-inline-start: var(--space-3);
+  border-inline-start: var(--border-width-thick) solid var(--color-border-strong);
+}
+
+.luna-embed__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-end: var(--space-1);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.luna-embed__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.luna-embed__open {
+  padding: var(--space-0-5) var(--space-1-5);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  background: transparent;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.luna-embed__open:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+/* 嵌入里的阅读视图（被嵌入的笔记、实时预览的嵌入部件）只是一段内容，不是一整页：去掉页面版心与
+   页边距，跟着所在的那一栏走。 */
+.luna-embed .luna-reading {
+  max-inline-size: none;
+  margin: var(--space-0);
+  padding: var(--space-0);
+}
+
+/* 指不到的嵌入：照原文显示、淡一档（悬停说明原因），不画成能点的样子。 */
+.luna-embed-missing {
+  color: var(--color-text-muted);
+}
+
+.luna-reading__image-loading {
+  display: inline-block;
+  inline-size: var(--space-6);
+  block-size: var(--space-4);
+  border-radius: var(--radius-xs);
+  background: var(--color-bg-muted);
+}
+
+/* 写了宽度（`![说明|300]`，对标方案 D4）就按它显示：放开默认的显示上限，只保留不超出正文列。
+   与编辑面 `.luna-md-image-embed .luna-md-image[width]` 同一口径（TDD-15 §3.4a）。 */
+.luna-reading__image[width] {
+  max-inline-size: var(--size-full);
+  max-block-size: none;
+}
+
+/* 看大图（`@lunarca/editor-core/image-lightbox`）：整窗遮罩，图按窗口大小居中。 */
+.luna-lightbox {
+  position: fixed;
+  inset: var(--space-0);
+  z-index: var(--z-overlay);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-7);
+  background: var(--color-scrim);
+  outline: none;
+}
+
+.luna-lightbox__image {
+  max-inline-size: var(--size-full);
+  max-block-size: var(--size-full);
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  min-block-size: var(--space-0);
+}
+
+.luna-lightbox__caption {
+  margin: var(--space-0);
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-panel);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.luna-lightbox__button {
+  position: absolute;
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-panel);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xl);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.luna-lightbox__close {
+  inset-block-start: var(--space-3);
+  inset-inline-end: var(--space-3);
+}
+
+.luna-lightbox__previous {
+  inset-inline-start: var(--space-3);
+}
+
+.luna-lightbox__next {
+  inset-inline-end: var(--space-3);
+}
+
+/* 内联 #tag 胶囊（点击跳标签视图，PRD-06-033）。 */
+.luna-inline-tag {
+  padding: var(--space-0-5) var(--space-1-5);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-surface);
+  color: var(--color-accent);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.luna-inline-tag:hover {
+  background: var(--color-bg-selected);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* 打印与导出：块不跨页。 */
+@media print {
+  .luna-reading pre,
+  .luna-reading blockquote,
+  .luna-reading table,
+  .luna-reading img {
+    break-inside: avoid;
+  }
+}
+
+/* ─── Wiki-link decorations (PRD-06-031 P1) ───────────────────────────────── */
+.luna-wiki-link {
+  color: var(--color-accent);
+  background: var(--color-accent-surface);
+  border-radius: var(--radius-xs);
+  padding: 0 0.15em;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.luna-wiki-link:hover {
+  text-decoration: underline;
+  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+}
+
+.luna-wiki-link--unresolved {
+  color: var(--color-text-muted);
+  background: var(--color-status-muted-surface);
+  border-block-end: var(--border-width-thin) dashed var(--color-text-muted);
+}
+
+.luna-wiki-link--unresolved:hover {
+  background: var(--color-status-error-surface);
+}

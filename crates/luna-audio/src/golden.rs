@@ -9,7 +9,7 @@
 //!
 //! - `voice_input_16k`：语音输入路径，16k 单声道，两段语音夹底噪 → 起音 / utterance / 诊断；
 //! - `realtime_48k_stereo`：实时转录路径，48k 立体声（现场最常见的设备格式）→ 流式窗序列
-//!   （`abs_start` / `speech_len` / `speech_delta`），顺带钉住重采样后的电平指纹；
+//!   （`abs_start` / `speech_len` / `elapsed_samples`），顺带钉住重采样后的电平指纹；
 //! - `silence_16k`：只有底噪 → 不得产 utterance，且要出「疑似静音」诊断。
 //!
 //! 信号全部由 [`crate::testsig`] 解析式 / 伪随机合成——确定性、无真机、无版权文件。
@@ -120,12 +120,12 @@ fn render(events: &[CaptureEvent]) -> String {
                 samples,
                 abs_start,
                 speech_len,
-                speech_delta,
+                elapsed_samples,
                 ..
             }) => {
                 let _ = writeln!(
                     out,
-                    "window abs_start={abs_start} speech_len={speech_len} speech_delta={speech_delta} {}",
+                    "window abs_start={abs_start} speech_len={speech_len} elapsed_samples={elapsed_samples} {}",
                     fingerprint(samples)
                 );
             }

@@ -795,17 +795,14 @@ export const commands = {
 	 */
 	clearVaultCache: () => typedError<null, string>(__TAURI_INVOKE("clear_vault_cache")),
 	/**
-	 *  重置应用（PRD-09-026 / TDD-12 §11）：备份旧 `config.toml` → 设备级设置全部回默认 →
-	 *  清应用缓存目录与启动诊断文件。返回备份路径（内存态配置时为空串）。之后调用方重启。
-	 */
-	resetApp: () => typedError<string, string>(__TAURI_INVOKE("reset_app")),
-	/**
-	 *  重启应用（重置后由前端在确认页调用）。
+	 *  重置应用（PRD-09-026 / TDD-12 §11）：全部编辑窗口保存成功后，备份旧 `config.toml` → 设备级设置
+	 *  全部回默认 → 清应用缓存目录与启动诊断文件 → 重启。重置不可逆，所以闸门在它之前：录音进行中或
+	 *  保存不成功时什么都不动，留在当前应用。只有失败才返回。
 	 *
-	 *  在主线程上重启：`restart` = 拉起新进程 + `exit`，从 IPC 工作线程直接 `exit` 时主线程
-	 *  与各常驻线程（事件 tap、采集）还在跑，真机 2026-09-06 就是这样撞出 SIGABRT 的。
+	 *  # Errors
+	 *  重启闸门拦下（`restart_*`，见 `restart_guard`）或备份、写设置失败。
 	 */
-	restartApp: () => __TAURI_INVOKE<void>("restart_app"),
+	resetApp: () => typedError<null, string>(__TAURI_INVOKE("reset_app")),
 	/**
 	 *  导出设置（PRD-09-050）：设备级必带，`include_vault` 时附带当前库的 Vault 级值；
 	 *  密钥被注册表 `secret` 标志结构化排除。返回写入路径；用户取消返回 `None`。
@@ -1507,7 +1504,12 @@ export const commands = {
 	 *  # Errors
 	 *  库未打开或脚本读不出时返回错误。
 	 */
-	teleprompterContent: () => typedError<TeleprompterDto, string>(__TAURI_INVOKE("teleprompter_content")),
+	teleprompterContent: (anchor: {
+	path: string,
+	block: number,
+	line: number,
+	text: string,
+} | null) => typedError<TeleprompterDto, string>(__TAURI_INVOKE("teleprompter_content", { anchor })),
 	/**  收起提词器（记下位置与尺寸；面板只隐藏不关闭），攒下的录制标记随之写回脚本。 */
 	teleprompterHide: () => __TAURI_INVOKE<void>("teleprompter_hide"),
 	/**
@@ -1522,6 +1524,11 @@ export const commands = {
 	/**  跟读时「回到开头」：对齐器也从头对起（不在跟读时什么都不做）。 */
 	teleprompterFollowReset: () => __TAURI_INVOKE<void>("teleprompter_follow_reset"),
 	/**
+	 *  跟读时从某一行接着跟（ADR-176 ⑥，PRD-20-013）：点了浮窗上的一行，或按键换行换段。不在
+	 *  跟读时什么都不做（没跟读时位置只是浮窗的滚动，归浮窗）。
+	 */
+	teleprompterFollowSeek: (at: PrompterAtDto) => __TAURI_INVOKE<void>("teleprompter_follow_seek", { at }),
+	/**
 	 *  标记「这一句重来」（ADR-162 ⑤ C4c）：`at` 是面板报来的那一行；不给时取跟读念到的位置
 	 *  （快捷键路径）。标记先攒在本机，停止跟读 / 收起提词器 / 换脚本时一次写回。返回攒了几次。
 	 *
@@ -1532,6 +1539,42 @@ export const commands = {
 	block: number,
 	line: number,
 } | null) => typedError<number, string>(__TAURI_INVOKE("teleprompter_mark", { at })),
+	/**
+	 *  提词器首页（ADR-176 ②）。
+	 *
+	 *  # Errors
+	 *  「提词器」没启用（`APP_DISABLED`）或库未打开时返回错误。
+	 */
+	teleprompterHome: () => typedError<TeleprompterHomeDto, string>(__TAURI_INVOKE("teleprompter_home")),
+	/**
+	 *  新建一篇提词稿并用提词器打开，返回新稿路径。剪贴板或粘贴里没有文字时报错、不建空稿。
+	 *
+	 *  # Errors
+	 *  「提词器」没启用、没有文字（`TELEPROMPTER_CLIPBOARD_EMPTY`）、库未打开或写入失败时返回错误。
+	 */
+	teleprompterNewDraft: (source: TeleprompterDraftSourceDto) => typedError<string, string>(__TAURI_INVOKE("teleprompter_new_draft", { source })),
+	/**
+	 *  贴近镜头（ADR-176 ⑤，PRD-20-008）：面板放到所在显示器工作区的上沿居中、收成窄条，并记住。
+	 *
+	 *  # Errors
+	 *  「提词器」应用没生效时返回 `APP_DISABLED`（贴近镜头是它的扩展能力）。
+	 */
+	teleprompterSnapToCamera: () => typedError<null, string>(__TAURI_INVOKE("teleprompter_snap_to_camera")),
+	/**
+	 *  拖到首页或浮窗上的文件（PRD-20-022）：每个文件转成一篇提词稿，打开第一篇，返回各稿路径。
+	 *
+	 *  # Errors
+	 *  「提词器」没启用，或没有一个文件能转成提词稿时返回第一个文件的错误。
+	 */
+	teleprompterImportFiles: (paths: string[]) => typedError<string[], string>(__TAURI_INVOKE("teleprompter_import_files", { paths })),
+	/**
+	 *  一段稿子按本人语速约念多少秒（含停顿，与脚本时长估算同一口径）：AI「按时长压缩」的结果旁边
+	 *  写明「约多少秒、比目标多 / 少多少」（ADR-176 ⑧，PRD-20-016：说清多出几秒，不替你删）。
+	 *
+	 *  # Errors
+	 *  库未打开时返回错误。
+	 */
+	teleprompterEstimateSeconds: (text: string) => typedError<number, string>(__TAURI_INVOKE("teleprompter_estimate_seconds", { text })),
 	/**
 	 *  用这个库里最近的本机录音校准口播语速（PRD-19-012）。读最多 200 条录音的分段，放在阻塞
 	 *  线程池里跑，不占界面线程；样本够才保存，只存聚合出的数字。
@@ -1649,10 +1692,12 @@ needs_switch: boolean; action: VaultLinkActionDto } | { kind: "rejected"; reason
 	date: string | null,
 } | null, string>(__TAURI_INVOKE("app_release_check")),
 	/**
-	 *  **下载并安装**刚查到的那一版，装好后重启进入新版本。验签不过、下载失败都不装，旧版本照常运行。
+	 *  **下载并安装**刚查到的那一版，全部编辑窗口保存成功后才安装并重启。验签不过、下载失败都不装；
+	 *  保存不成功就留在当前应用，这一版继续留着，处理完可以再点一次。
 	 *
 	 *  # Errors
-	 *  严格本地拦截、没有待装的版本（`no_pending_update`，先检查更新）、下载或验签失败（`update_install_failed`）。
+	 *  严格本地拦截、没有待装的版本（`no_pending_update`，先检查更新）、重启闸门拦下
+	 *  （`restart_*`，见 `restart_guard`）、下载或验签失败（`update_install_failed`）。
 	 */
 	appReleaseInstall: () => typedError<null, string>(__TAURI_INVOKE("app_release_install")),
 	/**  提问卡显示与否（判定在 Rust，ADR-003）。 */
@@ -3029,6 +3074,19 @@ needs_switch: boolean; action: VaultLinkActionDto } | { kind: "rejected"; reason
 	syncOverview: () => typedError<SyncOverviewDto, string>(__TAURI_INVOKE("sync_overview")),
 	/**  本账户的远端库（加入已有库时选），带解开的库名。 */
 	syncRemoteVaults: () => typedError<RemoteVaultDto[], string>(__TAURI_INVOKE("sync_remote_vaults")),
+	/**  登录后要不要弹那一屏；不弹 = `None`（没有任何失败要告诉用户：账户页随时能手动开）。 */
+	syncFirstLoginOffer: () => typedError<{
+	vault_path: string,
+	vault_name: string,
+	/**  同步范围的本地总字节。 */
+	local_bytes: number | null,
+	/**  其中音视频的字节（放不下时默认不上传）。 */
+	recording_bytes: number | null,
+} | null, string>(__TAURI_INVOKE("sync_first_login_offer")),
+	/**  用户对那一屏作了回应（选了什么都算）：这个库不再问。 */
+	syncFirstLoginDecided: (vaultPath: string) => typedError<null, string>(__TAURI_INVOKE("sync_first_login_decided", { vaultPath })),
+	/**  加入一个云端库会做什么：与同步轮同一份判定，不写盘、不落绑定（ADR-178 ④）。 */
+	syncMergePreview: (vaultPath: string, remoteVaultId: string) => typedError<MergePreviewDto, string>(__TAURI_INVOKE("sync_merge_preview", { vaultPath, remoteVaultId })),
 	/**
 	 *  为一个已知库新建云端库并开启同步。库主密钥在本机生成，作为账户托管信封交给服务端
 	 *  （ADR-150 ①）——不设密码，没有恢复密钥。`take_over` = 这个库连在另一个账户下、用户确认了
@@ -3130,8 +3188,8 @@ export const events = {
 	vaultLinkReceived: makeEvent<VaultLinkReceived>("vault-link://received"),
 	vaultChanged: makeEvent<VaultChanged>("vault://changed"),
 	vaultExternalRenames: makeEvent<ExternalRenamesChanged>("vault://external-renames"),
-	vaultFollowedAccount: makeEvent<VaultFollowedAccount>("vault://followed-account"),
 	vaultSwitched: makeEvent<VaultSwitched>("vault://switched"),
+	vaultSwitchedByApp: makeEvent<VaultSwitchedByApp>("vault://switched-by-app"),
 	vaultsChanged: makeEvent<VaultsChanged>("vaults://changed"),
 	voiceInputHudOpened: makeEvent<VoiceInputHudOpened>("voice-input://hud-opened"),
 	workspaceMetricsAvailability: makeEvent<WorkspaceMetricsAvailabilityChanged>("workspace-metrics://availability"),
@@ -3348,6 +3406,14 @@ export type AppReleaseDto = {
 	date: string | null,
 };
 
+/**
+ *  转写为什么选不到服务端（见 [`ModelAssignmentDto::server_gate`]）。
+ *
+ *  两种性质不同：`ConsentOff` 是用户还没给那次同意（ADR-038 ④），去开关那里打开即可；
+ *  `Blocked` 是同意项本身此刻勾不动，原因与算力卡同一份（[`TranscriptionServerBlocker`]）。
+ */
+export type AsrServerGate = { kind: "consent_off" } | { kind: "blocked"; blocker: TranscriptionServerBlocker };
+
 /**  音频输入设备 DTO（HUD 设备选择）。 */
 export type AudioInputDeviceDto = {
 	/**  设备名（即 `recording.input_device` 设置值）。 */
@@ -3363,6 +3429,21 @@ export type AudioInputDeviceDto = {
 export type BookmarkDto = {
 	ms: number | null,
 	note: string | null,
+};
+
+/**
+ *  库连着的那个别的账户：打码名 + 它所在的服务器。
+ *
+ *  只写打码名不够（真机 2026-11-03）：同一个邮箱在测试服务器与 Lunarca 云上各有一个账户时，
+ *  「已连接到另一个账户（jo…19@gmail.com）」与此刻登录的邮箱一字不差，读起来像是自相矛盾。
+ */
+export type BoundAccountDto = {
+	/**  绑定时账户名的打码写法（`jo…88@gmail.com`，`account_scope::mask_account_name`）。 */
+	label: string,
+	/**  那台服务器的主机与端口（分桶名）。 */
+	server_host: string,
+	/**  是不是本构建的 Lunarca 云：界面据此写「Lunarca 云」而不是主机名。 */
+	server_official: boolean,
 };
 
 /**  脚本里的一个 B-roll 镜头（PRD-19-026）：`broll` 代码块。 */
@@ -4705,6 +4786,16 @@ export type FetchToolUpdateDto = {
 	js_runtime: ComponentUpdateDto | null,
 };
 
+/**  登录后要问的那个库。 */
+export type FirstLoginOfferDto = {
+	vault_path: string,
+	vault_name: string,
+	/**  同步范围的本地总字节。 */
+	local_bytes: number | null,
+	/**  其中音视频的字节（放不下时默认不上传）。 */
+	recording_bytes: number | null,
+};
+
 /**  笔记内 AI 悬浮菜单动作。 */
 export type FloatingMenuAction =
 /**  总结选区（无选区时前端传整篇正文，PRD-06-020）。 */
@@ -4744,7 +4835,9 @@ export type FloatingMenuAction =
 /**  视频脚本：改成口语——短句、日常用词、直接对观众说。 */
 "script_spoken" |
 /**  视频脚本（PRD-19-013）：整理口述——去掉口头禅、重复与说错重说，保留本人的话。 */
-"script_dictation";
+"script_dictation" |
+/**  提词器的 AI 口播动作（ADR-176 ⑧，PRD-20-016）：改成口播稿 / 按时长压缩 / 标注停顿与强调。 */
+"prompter_spoken" | "prompter_fit" | "prompter_cues";
 
 /**  选区前后段落的原样切片（前端只切、不裁；裁剪与拼装在 Rust）。 */
 export type FloatingMenuContextDto = {
@@ -4792,6 +4885,8 @@ export type FloatingMenuOptionsDto = {
 	summary_style: FloatingSummaryStyle | null,
 	/**  「按列填充」填哪一列（0 起）；其它动作不读。 */
 	table_column: number | null,
+	/**  「按时长压缩」的目标秒数（ADR-176 ⑧）；其它动作不读。 */
+	target_seconds: number | null,
 };
 
 /**
@@ -5723,6 +5818,15 @@ export type MentionScopeDto = {
 	value: string,
 };
 
+/**  合并预览（文件数与将上传的字节）。 */
+export type MergePreviewDto = {
+	download: number,
+	upload: number,
+	upload_bytes: number | null,
+	same: number,
+	differ: number,
+};
+
 export type MetricRatioDto = {
 	numerator: number,
 	denominator: number,
@@ -5797,6 +5901,13 @@ export type ModelAssignmentDto = {
 	 *  本机显式立场；前端据此把那个空选项如实标成「服务端托管」而不是泛化的「跟随」。
 	 */
 	follow_is_server_managed: boolean,
+	/**
+	 *  转写槽位连着服务端、下拉里却选不到「服务端托管」的原因（真机 2026-11-03：开关在上方
+	 *  算力卡，下拉一句不提，用户以为是选择器坏了）。其余槽位、没连服务端、已经选得到时为 `None`。
+	 *  只在模型管理快照里填（[`asr_server_gate`]）：它要问端点与组织开放清单，
+	 *  [`model_assignment_dtos`] 是不碰 `AppState` 的纯函数。
+	 */
+	server_gate: AsrServerGate | null,
 	/**  已由 Rust 按安装、实测能力与运行条件裁决的可选目标；前端不得再次筛选。 */
 	candidates: ModelAssignmentCandidateDto[],
 };
@@ -6821,6 +6932,17 @@ export type ProjectWorkspaceDto = {
 	stage_hint: ProjectStageDto | null,
 };
 
+/**
+ *  面板重读时带上的「刚才那一行」（改稿前的段号行号与要念的文字，PRD-20-015）。`path` 是面板
+ *  刚才显示的那一篇：此刻换成了别的稿子就不找回、不动跟读。
+ */
+export type PrompterAnchorDto = {
+	path: string,
+	block: number,
+	line: number,
+	text: string,
+};
+
 /**  面板报来的「此刻那一行」（跟读时是高亮行，没跟读时是阅读线上的那一行）。 */
 export type PrompterAtDto = {
 	block: number,
@@ -6835,10 +6957,26 @@ export type PrompterBlockDto = {
 
 /**  提词器上的一行。 */
 export type PrompterLineDto = {
+	/**  要念的文字（口播记号已去掉；跟读对齐、录制标记都按它）。 */
 	text: string,
 	/**  行首形式标记（`口播` / `出镜` / `VO` / `CAM`），显示成小标签，不念。 */
 	marker: string | null,
+	/**  这一行约念多少毫秒（本人语速 + 停顿，与脚本时长估算同一口径）：面板据此给「预计剩余」。 */
+	millis: number,
+	/**  显示用的各段（ADR-176 ⑦）。 */
+	spans: PrompterSpanDto[],
+	/**  动作提示行（`> [!cue] …`）：整行不念，显示成彩色条。 */
+	cue: boolean,
 };
+
+/**  提词器一行里的一段（口播记号，ADR-176 ⑦）。 */
+export type PrompterSpanDto = { kind: "text"; text: string } |
+/**  强调：要念，加粗加色。 */
+{ kind: "emphasis"; text: string } |
+/**  停一拍：不念。 */
+{ kind: "pause" } |
+/**  不念的提示：灰色小字。 */
+{ kind: "note"; text: string };
 
 /**  属性类型（改类型时的目标）。 */
 export type PropertyKindDto = "text" | "number" | "checkbox" | "date" | "date_time" | "list";
@@ -8438,11 +8576,40 @@ export type TagUndoReceiptDto = {
 	kept: string[],
 };
 
+/**  新建提词稿的正文从哪来。 */
+export type TeleprompterDraftSourceDto =
+/**  空稿（「新建提词稿」：建好后在编辑器里写）。 */
+{ kind: "empty" } |
+/**  剪贴板里的文字（「从剪贴板新建」）。 */
+{ kind: "clipboard" } |
+/**  界面交来的文字（首页 ⌘V：粘贴事件里的那段）。 */
+{ kind: "text"; text: string };
+
 /**  提词器此刻要显示的脚本。`path` 为 `None` = 还没打开过任何脚本。 */
 export type TeleprompterDto = {
 	path: string | null,
 	title: string,
 	blocks: PrompterBlockDto[],
+	/**  「提词器」应用生效没有：倒计时、计时、贴近镜头、防录屏等扩展只在它生效时出现（ADR-176 ③）。 */
+	extended: boolean,
+	/**  改稿重读时找回的那一行（PRD-20-015）：面板请求里带了 `anchor` 才有。 */
+	anchor: PrompterAtDto | null,
+};
+
+/**  提词器首页要显示的东西。 */
+export type TeleprompterHomeDto = {
+	/**  面板此刻打开的是哪一篇（没打开过为 `None`）。 */
+	current: string | null,
+	/**  最近提词过的稿子（新的在前；已不在库里的不列）。 */
+	recent: TeleprompterRecentDto[],
+	/**  新建的提词稿落在哪个目录（库相对）。 */
+	draft_dir: string,
+};
+
+/**  最近提词过的一篇。 */
+export type TeleprompterRecentDto = {
+	path: string,
+	title: string,
 };
 
 /**  一份笔记模板指向哪里（新建与插入时交回来）。 */
@@ -9551,12 +9718,6 @@ export type VaultEntryDto = {
 	section: VaultSectionDto,
 };
 
-/**
- *  换了账户、主窗口因此换了库（或交出了库、回到空状态）。主窗口工作区据此整体重挂载——切库
- *  由 Rust 发起，不经界面的切换控制器。
- */
-export type VaultFollowedAccount = Record<string, never>;
-
 /**  全库关系图谱 DTO。 */
 export type VaultGraphDto = {
 	nodes: GraphNodeDto[],
@@ -9659,6 +9820,12 @@ export type VaultSwitchPreflightDto = {
  */
 export type VaultSwitched = Record<string, never>;
 
+/**
+ *  主窗口的库由 Rust 换了（或交出了库、回到空状态）：换了账户跟着换库，或启动时还在 iCloud 上的库
+ *  取回后自动打开。主窗口工作区据此整体重挂载——切库由 Rust 发起，不经界面的切换控制器。
+ */
+export type VaultSwitchedByApp = Record<string, never>;
+
 /**  一个已知库的同步状态（账户页每行一个）。 */
 export type VaultSyncDto = {
 	/**  库根路径（库注册表的唯一键；命令都按它指认库）。 */
@@ -9689,8 +9856,8 @@ export type VaultSyncDto = {
 	local_bytes: number | null,
 	/**  对应云端库此刻占用的密文字节（含历史版本）；没选中 = `None`。 */
 	cloud_bytes: number | null,
-	/**  连在另一个账户下时，那个账户名的打码写法（`jo…88@gmail.com`，`account_scope::mask_account_name`）；其余为 `None`。 */
-	bound_account: string | null,
+	/**  连在另一个账户下时是哪个账户（打码名 + 所在服务器）；其余为 `None`。 */
+	bound_account: BoundAccountDto | null,
 };
 
 /**
@@ -9702,8 +9869,8 @@ export type VaultSyncLinkDto =
 { kind: "none" } |
 /**  此刻登录的账户正同步它：移除后这台设备停止同步它，云端副本保留。 */
 { kind: "syncing" } |
-/**  连在别的账户下（或此刻没登录）：移除时这份连接一并解除。`account` 是那个账户的打码名。 */
-{ kind: "linked"; account: string };
+/**  连在别的账户下（或此刻没登录）：移除时这份连接一并解除。 */
+{ kind: "linked"; account: BoundAccountDto };
 
 /**
  *  库清单变了（注册、移除、改名、开库、绑定变化、换列表账户）。载荷为空：界面据此重取
@@ -10023,7 +10190,7 @@ export type WorkspaceMetricRatioDto = {
 export type WorkspaceMetricStatusSurfaceDto = "notifications" | "queue" | "usage";
 
 /**  用户去过的界面（封闭维度，与 `WORKSPACE_IA` 的位置一一对应）。 */
-export type WorkspaceMetricSurfaceDto = "search" | "notes" | "knowledge_topics" | "knowledge_tags" | "knowledge_network" | "quick_notes" | "recordings" | "transcripts" | "chat" | "creator" | "apps" | "trash" | "settings";
+export type WorkspaceMetricSurfaceDto = "search" | "notes" | "knowledge_topics" | "knowledge_tags" | "knowledge_network" | "quick_notes" | "recordings" | "transcripts" | "chat" | "creator" | "teleprompter" | "apps" | "trash" | "settings";
 
 /**
  *  观测存储的状态变了（`workspace-metrics://availability`，TDD-12 §2.1 末条）。
@@ -10135,6 +10302,8 @@ export type WorkspacePaneDto = {
 export type WorkspaceSpaceDto = "search" | "notes" | "knowledge" | "quick_notes" | "recordings" | "transcripts" | "chat" |
 /**  创作空间（ADR-162）：归一方应用「创作」，应用未启用时不在活动栏上（ADR-165 ③）。 */
 "creator" |
+/**  提词器空间（ADR-176 ①）：归一方应用「提词器」，应用未生效时不在活动栏上。 */
+"teleprompter" |
 /**  「应用」目的地（ADR-165 ⑤）：系统区，贴底在回收站之上。 */
 "apps" | "trash" | "settings";
 
@@ -10188,5 +10357,5 @@ export const SETTINGS_PAGES = ["general","appearance","shortcuts","ai_services",
 
 export const SETTINGS_PAGE_DESCRIPTION_INLINE = {"account":true,"ai_services":false,"appearance":false,"general":false,"glossary":false,"local_models":false,"notes":false,"privacy":true,"recording":false,"shortcuts":false,"translate":false,"voice_input":false} as const;
 
-export const FIRST_PARTY_APP_IDS = ["creator","link_import"] as const;
+export const FIRST_PARTY_APP_IDS = ["creator","teleprompter","link_import"] as const;
 export type AppId = (typeof FIRST_PARTY_APP_IDS)[number];

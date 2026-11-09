@@ -24,7 +24,7 @@ quick-xml = "0.41"
 dom_query = "=0.27.0"
 # Excel（.xlsx / .xls）与 OpenDocument 表格（.ods）：calamine（MIT，纯 Rust），只读保存时的值、
 # 不重算公式（ADR-164 ⑨）。
-calamine = "0.37"
+calamine = "0.38"
 # PDF（有文字层）：pdf-extract（MIT，基于 lopdf），依赖闭包约 70 个 crate；比 pdf_oxide 轻一半有余，
 # 且保留中文与数字之间的空格（ADR-164 ⑧ 的样本比对）。康熙部首 / 连字的逐字 NFKC 用
 # unicode-normalization（MIT / Apache，已随 pdf-extract 入锁）。

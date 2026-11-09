@@ -39,7 +39,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 
 CHANGELOG_MD = "CHANGELOG.md"
-ALWAYS_LOADED = ("CLAUDE.md", "AGENTS.md")
+ALWAYS_LOADED = ("CLAUDE.md", "AGENTS.md", "docs/agents/coding/hard-rules.md")
 
 # 表格结构在**所有** Markdown 上校验：断裂是渲染事故，与文件是谁无关。
 TABLE_GLOBS = ("*.md", "docs/**/*.md")

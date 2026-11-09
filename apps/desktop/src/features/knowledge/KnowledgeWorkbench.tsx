@@ -15,7 +15,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { IndexingNotice } from "../../components/ui/IndexingNotice";
-import { NotebookIcon, SparklesIcon } from "../../components/ui/Icon";
+import { NotebookIcon, SparklesIcon } from "@lunarca/editor-core/Icon";
 import { useIndexStatus } from "../../hooks/use-index-status";
 import type { KnowledgeNextActionCommand } from "../../ipc/bindings";
 import { KnowledgeCheckupLine } from "./KnowledgeCheckupLine";

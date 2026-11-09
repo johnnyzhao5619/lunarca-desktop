@@ -7,6 +7,7 @@
 # AI agent 指引：写的是开发仓的内部分工、环境与流程；构建与提交前自检的命令在 README。
 AGENTS.md
 CLAUDE.md
+docs/agents
 
 # CI 跑在维护者的自托管 runner 上，公开仓不开 Actions。
 .github

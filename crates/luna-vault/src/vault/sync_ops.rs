@@ -13,8 +13,8 @@ use std::path::Path;
 
 use crate::absence::{classify_absence, Absence};
 use crate::error::{Result, VaultError};
-use crate::hashing::ContentHash;
 use crate::vault::{file_mtime_ms, normalize_rel, DeleteMode, Vault};
+use luna_sync_core::hashing::ContentHash;
 
 /// 参与同步的一个文件。
 #[derive(Debug, Clone, PartialEq, Eq)]

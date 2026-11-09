@@ -31,6 +31,8 @@ lingua.workspace = true
 luna-audio = { path = "../luna-audio" }
 # 主题生成实时冒烟要用隔离 Vault 的真实片段提取、封闭解析与预览契约。
 luna-vault = { path = "../luna-vault" }
+# 提示词修订号用的内容指纹（与库内指纹同一份实现）。
+luna-sync-core = { path = "../luna-sync-core" }
 tempfile = "3"
 uuid.workspace = true
 # 原生 Provider 的隐私契约测试要起真实 loopback TCP 流，验证的是“门关后零 HTTP 请求”，

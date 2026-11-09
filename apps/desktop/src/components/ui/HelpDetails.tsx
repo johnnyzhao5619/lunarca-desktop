@@ -1,7 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cssVariables } from "../../lib/css-variables";
-import { HelpCircleIcon } from "./Icon";
+import { HelpCircleIcon } from "@lunarca/editor-core/Icon";
 import { IconButton } from "./IconButton";
 
 const useMeasuredLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;

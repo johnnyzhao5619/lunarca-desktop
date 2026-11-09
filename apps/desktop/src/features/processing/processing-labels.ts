@@ -3,7 +3,7 @@
  */
 
 import type { ProcTaskDto } from "../../ipc/bindings";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 
 /**
  * 是否**未终态**（排队 / 运行中）——顶栏角标、spinner、互斥按钮态的唯一口径。

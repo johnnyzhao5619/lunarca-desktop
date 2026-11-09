@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // 前端第三方许可归示聚合（TDD-04 §5、TDD-13 §2 的前端半边；Rust 侧由 cargo-about 承担）。
 //
-// 从 apps/desktop/package-lock.json（lockfileVersion >= 2）取**生产依赖闭包**
-// （排除 dev 标记条目——发行 .app 只含打进 bundle 的运行时依赖），对每个包聚合
-// license 字段与包内许可文本，输出单一 Markdown 归示文件。
+// 从仓库根的 package-lock.json（npm workspaces 的唯一 lockfile，lockfileVersion >= 2）取
+// 全部前端工作区的**生产依赖闭包**（排除 dev 标记条目——发行物只含打进 bundle 的运行时依赖；
+// 工作区自身是本仓 AGPL 代码，不在归示之列），对每个包聚合 license 字段与包内许可文本，
+// 输出单一 Markdown 归示文件。
 //
 // 用法：
 //   node scripts/generate-frontend-licenses.mjs                  # 输出到 stdout
@@ -13,8 +14,8 @@ import { readFileSync, existsSync, readdirSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const appRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "apps", "desktop");
-const lock = JSON.parse(readFileSync(join(appRoot, "package-lock.json"), "utf8"));
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+const lock = JSON.parse(readFileSync(join(repoRoot, "package-lock.json"), "utf8"));
 if (!lock.packages || lock.lockfileVersion < 2) {
   console.error(`需要 lockfileVersion >= 2 的 package-lock.json（当前：${lock.lockfileVersion}）`);
   process.exit(1);
@@ -25,13 +26,15 @@ const checkMode = args.includes("--check");
 const outIdx = args.indexOf("-o");
 const outPath = outIdx >= 0 ? args[outIdx + 1] : null;
 
-// 生产闭包：packages 里排除根条目与 dev 标记；嵌套重复（a/node_modules/b）按 name@version 去重。
+// 生产闭包：packages 里只取装进某个 node_modules 的条目（工作区根与工作区本身不算），排除 dev
+// 标记与工作区软链接；提升到根的（node_modules/b）、嵌套的（node_modules/a/node_modules/b）与留在
+// 工作区里的（apps/desktop/node_modules/b）按 name@version 去重。
 const entries = new Map();
 for (const [path, meta] of Object.entries(lock.packages)) {
-  if (!path.startsWith("node_modules/") || meta.dev) continue;
+  if (!/(?:^|\/)node_modules\//.test(path) || meta.dev || meta.link) continue;
   const name = path.replace(/^.*node_modules\//, "");
   const key = `${name}@${meta.version}`;
-  if (!entries.has(key)) entries.set(key, { name, version: meta.version, dir: join(appRoot, path), lockLicense: meta.license });
+  if (!entries.has(key)) entries.set(key, { name, version: meta.version, dir: join(repoRoot, path), lockLicense: meta.license });
 }
 
 const LICENSE_FILE = /^(licen[cs]e|copying|notice)(\.(md|txt|markdown))?$/i;
@@ -70,7 +73,7 @@ if (checkMode) {
 }
 
 const out =
-  `# 前端第三方依赖许可归示（apps/desktop 生产依赖闭包）\n\n` +
+  `# 前端第三方依赖许可归示（前端工作区生产依赖闭包）\n\n` +
   `> 由 scripts/generate-frontend-licenses.mjs 从 package-lock.json 生成；共 ${sections.length} 个包。\n\n` +
   sections.join("\n\n---\n\n") +
   "\n";

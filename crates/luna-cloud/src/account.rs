@@ -9,8 +9,9 @@
 //!
 //! # 服务器与验签公钥从哪来
 //!
-//! - 服务器：本模块持久化的那一台；从未选过 = 内置官方地址（[`DEFAULT_API_BASE`]）。
-//! - 两把验签公钥：信任锚钉住值（[`crate::trust`]）。官方后端的目录公钥随应用编入。
+//! - 服务器：本模块持久化的那一台；从未选过 = 内置官方地址（[`crate::config::official_api_base`]，调试构建可被
+//!   `LUNARCA_API_BASE` 覆盖）。
+//! - 两把验签公钥：信任锚钉住值（[`crate::trust`]）。官方后端的两把都随应用编入。
 //! - 调试构建可用 env 整体覆盖（[`crate::config`]），发行构建不认。
 //!
 //! 设置里**没有**第二份地址或公钥：同一事实两处存放，迟早一处说 A、一处验 B。
@@ -21,7 +22,6 @@ use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
 
 use crate::client::ProfileDto;
-use crate::config::DEFAULT_API_BASE;
 
 /// 应用数据目录下的账户状态文件名。
 pub const ACCOUNT_STATE_FILE: &str = "account.json";
@@ -40,7 +40,7 @@ impl AccountServer {
     #[must_use]
     pub fn official() -> Self {
         Self {
-            origin: DEFAULT_API_BASE.to_owned(),
+            origin: crate::config::official_api_base(),
             display_name: None,
         }
     }
@@ -48,7 +48,7 @@ impl AccountServer {
     /// 是不是内置官方后端（判据只有地址，与目录公钥兜底同一口径）。
     #[must_use]
     pub fn is_official(&self) -> bool {
-        self.origin == DEFAULT_API_BASE
+        self.origin == crate::config::official_api_base()
     }
 
     #[must_use]
@@ -273,12 +273,16 @@ pub struct SignInProviderDto {
     pub kind: crate::protocol::LoginProviderKind,
 }
 
-/// 从哪开始登录。第一步只问邮箱（ADR-158 ①）；服务器由 Rust 按邮箱找，或由用户点「使用其他服务器」给。
+/// 从哪开始登录。第一步只问邮箱（ADR-158 ①）；服务器默认由 Rust 按邮箱找，「登录到」那一格可改成
+/// Lunarca 云或用户自己给的服务器。
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum SignInTarget {
     /// 按邮箱找服务器：这台设备记住的 → 邮箱域名上的 `.well-known/lunarca` → Lunarca 云。
     Discover { email: String },
+    /// 就是 Lunarca 云：越过记住的那台。记住的是测试或组织服务器时，这是不用知道 API 地址就能
+    /// 回到 Lunarca 云的唯一一步（真机 2026-11-03）。
+    Official { email: String },
     /// 「使用其他服务器」：一格输入既收地址也收连接链接。
     Server { email: String, input: String },
     /// 经 URL scheme 送达、此刻挂着的那条链接。

@@ -24,19 +24,20 @@ use std::collections::{HashMap, HashSet};
 
 use uuid::Uuid;
 
-use crate::chunk::{pad, stream_chunks, unpad, WHOLE_FILE_MAX};
 use crate::core::{
     decide, deletions_need_confirmation, Action, FileView, LocalFile, LocalSide, Note, RemoteSide,
 };
-use crate::crypto::{CryptoError, KeyRing};
-use crate::manifest::{
-    assemble, content_hash, open_entry, prepare, seal_entry, EntryPlain, ManifestError,
-};
 use crate::ports::{
-    Expect, LocalError, LocalVault, Remote, RemoteChange, RemoteCommitItem, RemoteEntry,
-    RemoteError, RemoteItemResult, Staged, WriteOutcome,
+    Expect, LocalError, LocalVault, Remote, RemoteEntry, RemoteError, Staged, WriteOutcome,
 };
 use crate::state::{path_key, Activity, BaseChange, BaseFile, Cursor, StateError, SyncState};
+use luna_sync_core::chunk::{pad, stream_chunks, unpad, WHOLE_FILE_MAX};
+use luna_sync_core::commit::{self, CommitChange, CommitItem, CommitResult};
+use luna_sync_core::crypto::{CryptoError, KeyRing};
+use luna_sync_core::manifest::{
+    assemble, content_hash, open_entry, prepare, EntryPlain, ManifestError,
+};
+use luna_sync_core::naming::{conflict_copy_path, CONFLICT_COPY_ATTEMPTS};
 
 /// 变更流一页拉多少。
 const PAGE: u32 = 500;
@@ -53,14 +54,14 @@ const COMMIT_BYTES: usize = 6 * 1024 * 1024;
 
 /// 一个上传条目在提交请求里大约占多少字节：密文条目 base64 后约 4/3，块 id 在条目里与
 /// `chunk_ids` 里各出现一次（每个约 70 字节 JSON）。
-fn commit_item_bytes(file: &crate::manifest::PreparedFile) -> usize {
+fn commit_item_bytes(file: &luna_sync_core::manifest::PreparedFile) -> usize {
     file.entry.chunks.len() * 200 + file.entry.path.len() * 2 + 1024
 }
 
 /// 把要提交的上传按条数与请求体预算分批（一个文件本身超预算时独占一批）。
 fn commit_batches(
     puts: &[usize],
-    prepared: &[Option<crate::manifest::PreparedFile>],
+    prepared: &[Option<luna_sync_core::manifest::PreparedFile>],
 ) -> Vec<Vec<usize>> {
     let mut batches: Vec<Vec<usize>> = Vec::new();
     let mut current: Vec<usize> = Vec::new();
@@ -78,6 +79,32 @@ fn commit_batches(
         batches.push(current);
     }
     batches
+}
+
+/// 一波上传的字节上限：满额时最多白传这么多，已提交的波次不受影响。
+const UPLOAD_WAVE_BYTES: u64 = 32 * 1024 * 1024;
+
+/// 把要上传的文件分波（ADR-178 ④）：笔记在前，其余从小到大，每波传完就提交。容量不够时笔记已经
+/// 落地，停在大文件上；不分波的话一个放不下的录音会让整轮一个文件都提交不了。
+pub(crate) fn upload_waves(mut puts: Vec<(usize, bool, u64)>) -> Vec<Vec<usize>> {
+    puts.sort_by_key(|&(_, is_note, size)| (!is_note, size));
+    let mut waves: Vec<Vec<usize>> = Vec::new();
+    let mut current: Vec<usize> = Vec::new();
+    let mut bytes = 0u64;
+    let mut note_wave = true;
+    for (index, is_note, size) in puts {
+        if !current.is_empty() && (is_note != note_wave || bytes + size > UPLOAD_WAVE_BYTES) {
+            waves.push(std::mem::take(&mut current));
+            bytes = 0;
+        }
+        note_wave = is_note;
+        current.push(index);
+        bytes += size;
+    }
+    if !current.is_empty() {
+        waves.push(current);
+    }
+    waves
 }
 
 /// 一轮的参数。时间与文案由调用方给，核心不读时钟、不认识界面语言。
@@ -323,24 +350,6 @@ impl Body {
     }
 }
 
-/// 冲突副本的路径：`名字 (说明 日期).扩展名`，重名时在日期后加序号。
-#[must_use]
-pub fn conflict_copy_path(path: &str, label: &str, date: &str, attempt: u32) -> String {
-    let (dir, name) = match path.rfind('/') {
-        Some(at) => (&path[..=at], &path[at + 1..]),
-        None => ("", path),
-    };
-    let (stem, ext) = match name.rfind('.') {
-        Some(at) if at > 0 => (&name[..at], &name[at..]),
-        _ => (name, ""),
-    };
-    if attempt <= 1 {
-        format!("{dir}{stem} ({label} {date}){ext}")
-    } else {
-        format!("{dir}{stem} ({label} {date} {attempt}){ext}")
-    }
-}
-
 fn is_markdown(path: &str) -> bool {
     path.rsplit('.')
         .next()
@@ -374,7 +383,8 @@ struct Ledger {
 }
 
 impl Engine<'_> {
-    /// 跑一轮。`Err` = 整轮中止，什么都没落账。
+    /// 跑一轮。`Err` = 整轮中止，什么都没落账；唯一的例外是容量满（`QuotaExceeded`）：已提交的波次
+    /// 照常落账，这一轮仍以这个错误结束，界面照旧提示满了（ADR-178 ④）。
     pub async fn run_round(&self, state: &mut SyncState) -> Result<RoundReport, SyncAbort> {
         let binding = state.binding()?.ok_or(SyncAbort::NotBound)?;
         if self.local.vault_id().as_deref() != Some(binding.local_vault_id.as_str()) {
@@ -486,10 +496,15 @@ impl Engine<'_> {
         // 已经落到本地，照常落账；没推上去的本地改动不进基线，下一轮还会再推（服务端一解冻就
         // 自愈，不等客户端重取权益）。游标不前进：合并后待推的那几份引用着这一段云端改动，
         // 下一轮要重拉同一段才认得出它们（已落地的那些重拉是无害的）。
+        let mut quota_exceeded = false;
         match self.push_all(vault, &mut ledger).await {
             Ok(()) => {}
             Err(SyncAbort::Remote(RemoteError::AccountFrozen)) => {
                 ledger.report.account_frozen = true;
+                ledger.remote_incomplete = true;
+            }
+            Err(SyncAbort::Remote(RemoteError::QuotaExceeded)) => {
+                quota_exceeded = true;
                 ledger.remote_incomplete = true;
             }
             Err(err) => return Err(err),
@@ -509,6 +524,9 @@ impl Engine<'_> {
                 file_id: *file_id,
                 detail_code: None,
             })?;
+        }
+        if quota_exceeded {
+            return Err(SyncAbort::Remote(RemoteError::QuotaExceeded));
         }
         Ok(ledger.report)
     }
@@ -1005,7 +1023,7 @@ impl Engine<'_> {
     /// 本机某个路径上此刻的内容哈希（流式；不在 = `None`）。
     fn local_hash(&self, path: &str) -> Option<String> {
         let reader = self.local.open(path).ok()?;
-        luna_vault::hashing::ContentHash::of_reader(reader)
+        luna_sync_core::hashing::ContentHash::of_reader(reader)
             .ok()
             .map(|h| h.as_str().to_owned())
     }
@@ -1136,18 +1154,18 @@ impl Engine<'_> {
     /// 大文件推送的第一遍：流式切块算出条目。读不到或内容已不是扫描时那一份 → `None`（下一轮再推）。
     fn prepare_on_disk(
         &self,
-        keys: &crate::crypto::VaultKeys,
+        keys: &luna_sync_core::crypto::VaultKeys,
         path: &str,
         src: &str,
         hash: &str,
         size: u64,
         mtime_ms: Option<i64>,
-    ) -> Result<Option<crate::manifest::PreparedFile>, SyncAbort> {
+    ) -> Result<Option<luna_sync_core::manifest::PreparedFile>, SyncAbort> {
         let Ok(reader) = self.local.open(src) else {
             return Ok(None);
         };
         Ok(
-            crate::manifest::prepare_streamed(keys, path, reader, size, mtime_ms)
+            luna_sync_core::manifest::prepare_streamed(keys, path, reader, size, mtime_ms)
                 .ok()
                 .filter(|file| file.entry.content_hash == hash),
         )
@@ -1158,7 +1176,7 @@ impl Engine<'_> {
     async fn upload_on_disk(
         &self,
         vault: Uuid,
-        keys: &crate::crypto::VaultKeys,
+        keys: &luna_sync_core::crypto::VaultKeys,
         src: &str,
         hash: &str,
         size: u64,
@@ -1386,8 +1404,8 @@ impl Engine<'_> {
             std::str::from_utf8(&theirs),
         ) {
             (Some(Ok(base)), Ok(ours), Ok(theirs)) => {
-                match luna_vault::merge3::merge3(base, ours, theirs) {
-                    luna_vault::merge3::MergeOutcome::Merged(text) => Some(text),
+                match luna_sync_core::merge3::merge3(base, ours, theirs) {
+                    luna_sync_core::merge3::MergeOutcome::Merged(text) => Some(text),
                     _ => None,
                 }
             }
@@ -1475,7 +1493,7 @@ impl Engine<'_> {
         Ok(())
     }
 
-    /// 把一个本地文件挪到冲突副本名下，返回新路径（源文件已变或 20 个名字都被占 → `None`）。
+    /// 把一个本地文件挪到冲突副本名下，返回新路径（源文件已变或 [`CONFLICT_COPY_ATTEMPTS`] 个名字都被占 → `None`）。
     fn move_to_copy(
         &self,
         from: &str,
@@ -1484,7 +1502,7 @@ impl Engine<'_> {
         owner: Uuid,
         taken: &mut Claims,
     ) -> Result<Option<String>, SyncAbort> {
-        for attempt in 1..=20 {
+        for attempt in 1..=CONFLICT_COPY_ATTEMPTS {
             let path = conflict_copy_path(
                 near,
                 &self.config.conflict_label,
@@ -1502,7 +1520,7 @@ impl Engine<'_> {
         Ok(None)
     }
 
-    /// 写一个冲突副本，返回它的路径（连试 20 个名字都被占着 → `None`）。
+    /// 写一个冲突副本，返回它的路径（[`CONFLICT_COPY_ATTEMPTS`] 个名字都被占着 → `None`）。
     ///
     /// 名字上已有**内容相同**的孤立文件就认回它：那是上一轮写下、但那一轮没走完（基线没落盘）的
     /// 同一份副本。只认孤立文件——属于别的视图的文件这一轮还要认领自己的路径（万种子仿真）。否则每次重试都另造一份，20 个名字用完才停（2026-10-11 真机：一个文件
@@ -1516,7 +1534,7 @@ impl Engine<'_> {
         taken: &mut Claims,
     ) -> Result<Option<String>, SyncAbort> {
         let hash = body.hash();
-        for attempt in 1..=20 {
+        for attempt in 1..=CONFLICT_COPY_ATTEMPTS {
             let path = conflict_copy_path(
                 near,
                 &self.config.conflict_label,
@@ -1562,7 +1580,7 @@ impl Engine<'_> {
             (0..pushes.len()).partition(|&i| matches!(pushes[i].kind, PushKind::Delete));
 
         // 切块：小文件整份加密；大文件流式算出块 id（第一遍），读不到或已变的留给下一轮。
-        let mut prepared: Vec<Option<crate::manifest::PreparedFile>> =
+        let mut prepared: Vec<Option<luna_sync_core::manifest::PreparedFile>> =
             Vec::with_capacity(pushes.len());
         let mut oversize: HashSet<usize> = HashSet::new();
         for (index, push) in pushes.iter().enumerate() {
@@ -1647,10 +1665,52 @@ impl Engine<'_> {
             .await?;
         }
 
-        // 问服务端缺哪些块（大小文件一起问），小文件的缺块直接补传。
+        let waves = upload_waves(
+            puts.iter()
+                .filter_map(|&i| {
+                    let entry = &prepared[i].as_ref()?.entry;
+                    Some((i, is_markdown(&entry.path), entry.size))
+                })
+                .collect(),
+        );
+        for wave in &waves {
+            self.push_wave(vault, wave, &pushes, &prepared, &sealed, ledger, &mut retry)
+                .await?;
+        }
+        if !retry.is_empty() {
+            let mut again = Vec::new();
+            self.commit_batch(
+                vault,
+                &retry,
+                &pushes,
+                &prepared,
+                |_| Some(None),
+                ledger,
+                &mut again,
+            )
+            .await?;
+            ledger.report.deferred += again.len();
+        }
+        Ok(())
+    }
+
+    /// 传一波并提交（[`upload_waves`]）：问服务端缺哪些块，小文件的缺块直接补传，大文件流式补传，
+    /// 然后分批提交。
+    #[allow(clippy::too_many_arguments)]
+    async fn push_wave(
+        &self,
+        vault: Uuid,
+        wave: &[usize],
+        pushes: &[PendingPush],
+        prepared: &[Option<luna_sync_core::manifest::PreparedFile>],
+        sealed: &HashMap<String, (&[u8], [u8; 32])>,
+        ledger: &mut Ledger,
+        retry: &mut Vec<usize>,
+    ) -> Result<(), SyncAbort> {
+        let keys = self.ring.current();
         let mut wanted: Vec<String> = Vec::new();
         let mut asked: HashSet<&str> = HashSet::new();
-        for file in puts.iter().filter_map(|&i| prepared[i].as_ref()) {
+        for file in wave.iter().filter_map(|&i| prepared[i].as_ref()) {
             for id in &file.entry.chunks {
                 if asked.insert(id) {
                     wanted.push(id.clone());
@@ -1661,14 +1721,16 @@ impl Engine<'_> {
         for batch in wanted.chunks(MISSING_BATCH) {
             missing.extend(self.remote.missing_blobs(vault, batch).await?);
         }
-        for (id, (bytes, sha)) in &sealed {
-            if missing.remove(id) {
-                self.remote.put_blob(vault, id, bytes, *sha).await?;
+        for id in &wanted {
+            if let Some((bytes, sha)) = sealed.get(id) {
+                if missing.remove(id) {
+                    self.remote.put_blob(vault, id, bytes, *sha).await?;
+                }
             }
         }
         // 大文件逐个流式补传（断网后下一轮重问缺哪些，已传的不再传）。
         let mut changed: Vec<usize> = Vec::new();
-        for &i in &puts {
+        for &i in wave {
             let PushKind::Put {
                 body:
                     Body::OnDisk {
@@ -1692,36 +1754,15 @@ impl Engine<'_> {
                 changed.push(i);
             }
         }
-        if !changed.is_empty() {
-            ledger.report.deferred += changed.len();
-            puts.retain(|i| !changed.contains(i));
-        }
-
-        for batch in commit_batches(&puts, &prepared) {
-            self.commit_batch(
-                vault,
-                &batch,
-                &pushes,
-                &prepared,
-                |_| None,
-                ledger,
-                &mut retry,
-            )
-            .await?;
-        }
-        if !retry.is_empty() {
-            let mut again = Vec::new();
-            self.commit_batch(
-                vault,
-                &retry,
-                &pushes,
-                &prepared,
-                |_| Some(None),
-                ledger,
-                &mut again,
-            )
-            .await?;
-            ledger.report.deferred += again.len();
+        ledger.report.deferred += changed.len();
+        let ready: Vec<usize> = wave
+            .iter()
+            .copied()
+            .filter(|i| !changed.contains(i))
+            .collect();
+        for batch in commit_batches(&ready, prepared) {
+            self.commit_batch(vault, &batch, pushes, prepared, |_| None, ledger, retry)
+                .await?;
         }
         Ok(())
     }
@@ -1732,7 +1773,7 @@ impl Engine<'_> {
         vault: Uuid,
         batch: &[usize],
         pushes: &[PendingPush],
-        prepared: &[Option<crate::manifest::PreparedFile>],
+        prepared: &[Option<luna_sync_core::manifest::PreparedFile>],
         override_base: impl Fn(usize) -> Option<Option<i64>>,
         ledger: &mut Ledger,
         retry: &mut Vec<usize>,
@@ -1742,23 +1783,15 @@ impl Engine<'_> {
         for &i in batch {
             let push = &pushes[i];
             let base_rev = override_base(i).unwrap_or(push.base_rev);
-            let change = match (&push.kind, &prepared[i]) {
-                (PushKind::Put { .. }, Some(file)) => RemoteChange::Put {
-                    entry_ct: seal_entry(
-                        keys,
-                        push.file_id,
-                        base_rev.unwrap_or(0) + 1,
-                        &file.entry,
-                    ),
-                    size_padded: file.size_padded,
-                    chunk_ids: file.entry.chunks.clone(),
+            items.push(match (&push.kind, &prepared[i]) {
+                (PushKind::Put { .. }, Some(file)) => {
+                    commit::put(keys, push.file_id, base_rev, file)
+                }
+                _ => CommitItem {
+                    file_id: push.file_id,
+                    base_rev,
+                    change: CommitChange::Delete,
                 },
-                _ => RemoteChange::Delete,
-            };
-            items.push(RemoteCommitItem {
-                file_id: push.file_id,
-                base_rev,
-                change,
             });
         }
         let key = Uuid::now_v7().to_string();
@@ -1766,7 +1799,7 @@ impl Engine<'_> {
         for (&i, result) in batch.iter().zip(reply.results) {
             let push = &pushes[i];
             match result {
-                RemoteItemResult::Committed { rev, .. } => {
+                CommitResult::Committed { rev, .. } => {
                     match (&push.kind, &prepared[i]) {
                         (PushKind::Put { path, body, .. }, Some(file)) => {
                             let pin = if is_markdown(path) {
@@ -1804,16 +1837,16 @@ impl Engine<'_> {
                         ledger.changes.push(BaseChange::Remove(old));
                     }
                 }
-                RemoteItemResult::StaleBase {
+                CommitResult::StaleBase {
                     current_rev: None, ..
                 } if push.base_rev.is_some() && matches!(push.kind, PushKind::Put { .. }) => {
                     retry.push(i);
                 }
-                RemoteItemResult::StaleBase { .. } | RemoteItemResult::MissingBlobs { .. } => {
+                CommitResult::StaleBase { .. } | CommitResult::MissingBlobs { .. } => {
                     ledger.report.deferred += 1;
                 }
                 // 服务端按引用块的密文字节判超了单文件上限（客户端没取到上限、或刚被调低）。
-                RemoteItemResult::TooLarge { .. } => {
+                CommitResult::TooLarge { .. } => {
                     if let PushKind::Put { path, .. } = &push.kind {
                         ledger.report.too_large.push(path.clone());
                     }
@@ -1857,27 +1890,5 @@ fn tombstone(view: &FileView) -> BaseChange {
             cloud_only: false,
         }),
         None => BaseChange::Remove(view.file_id),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn conflict_copy_names_keep_the_extension_and_folder() {
-        assert_eq!(
-            conflict_copy_path("notes/周报.md", "冲突副本", "2026-10-09", 1),
-            "notes/周报 (冲突副本 2026-10-09).md"
-        );
-        assert_eq!(
-            conflict_copy_path("a.md", "conflict", "2026-10-09", 3),
-            "a (conflict 2026-10-09 3).md"
-        );
-        assert_eq!(
-            conflict_copy_path("Makefile", "c", "d", 1),
-            "Makefile (c d)"
-        );
-        assert_eq!(conflict_copy_path(".env", "c", "d", 1), ".env (c d)");
     }
 }

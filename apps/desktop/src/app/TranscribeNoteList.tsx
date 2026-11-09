@@ -1,7 +1,7 @@
 import { type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { ListSortDto, SearchHitDto } from "../ipc/bindings";
-import { FilmIcon, LinkIcon, SearchIcon } from "../components/ui/Icon";
+import { FilmIcon, LinkIcon, SearchIcon } from "@lunarca/editor-core/Icon";
 import { IconButton } from "../components/ui/IconButton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { FilteredNoteList } from "../features/workspace/FilteredNoteList";

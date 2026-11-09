@@ -3,7 +3,8 @@
  * 登录（ADR-155 统一登录，ADR-158 邮箱优先）：像常见应用那样「邮箱 → 将登录到 X → 密码 → 进入」。
  *
  * 钉这些事：
- * 1. 第一站只问邮箱，没有「Lunarca 云 / 我的组织」两个页签；服务器由 Rust 按邮箱找，「使用其他服务器」才填地址；
+ * 1. 第一站只问邮箱，没有「Lunarca 云 / 我的组织」两个页签；「登录到」默认是 Rust 按邮箱找的那台，
+ *    记住的是别的服务器时可一键选回 Lunarca 云，选「其他服务器」才填地址；
  * 2. 密码那一站只交密码（邮箱与服务器上一站已在 Rust 里选定）；登录方式不知道时给密码与一次性码；
  * 3. 忘记密码 / 创建账户 / 手上有码，都是「码 → 设密码」同一条路，码与新密码各只发一次；
  * 4. 文案只说「邮箱」，中英齐备。
@@ -80,10 +81,10 @@ describe("登录 · 第一站只问邮箱", () => {
     expect(await screen.findByText("alice@corp.example")).toBeTruthy();
   });
 
-  it("「使用其他服务器」才给地址框，交给 Rust 的是邮箱 + 地址", async () => {
+  it("「登录到」选其他服务器才给地址框，交给 Rust 的是邮箱 + 地址", async () => {
     setCommandReply("accountSignInBegin", ready());
     mount();
-    fireEvent.click(screen.getByRole("button", { name: t("cloud:signin.use_other_server") }));
+    fireEvent.change(screen.getByLabelText(t("cloud:signin.server_choice.label")), { target: { value: "other" } });
     fireEvent.change(screen.getByLabelText(t("cloud:signin.server_input")), {
       target: { value: "https://10.0.0.62:8443" },
     });
@@ -97,10 +98,33 @@ describe("登录 · 第一站只问邮箱", () => {
     );
   });
 
-  it("记住的服务器只做提示；送达的邀请链接优先，继续时带上邮箱", async () => {
+  it("记住的是别的服务器：默认去它，也能一键选回 Lunarca 云（不必知道 API 地址）", async () => {
+    setCommandReply("accountSignInBegin", ready());
     mount({ ...signedOut, server: corp });
-    expect(screen.getByText(t("cloud:signin.remembered", { name: "测试服务端" }))).toBeTruthy();
+    const picker = screen.getByLabelText(t("cloud:signin.server_choice.label"));
+    expect(screen.getByRole("option", { name: t("cloud:signin.server_choice.remembered", { name: "测试服务端" }) })).toBeTruthy();
+    fireEvent.change(picker, { target: { value: "official" } });
+    enterEmail("a@b.c");
+    await waitFor(() =>
+      expect(commandMock("accountSignInBegin")).toHaveBeenCalledWith({ kind: "official", email: "a@b.c" }),
+    );
+  });
+
+  it("切换服务器退出后：「登录到」一开始就落在另一侧", () => {
+    render(withI18n(createElement(SignInFlow, { account: { ...signedOut, server: corp }, embedded: false, initialChoice: "official" })));
+    expect((screen.getByLabelText(t("cloud:signin.server_choice.label")) as HTMLSelectElement).value).toBe("official");
     cleanup();
+    // 没有单列的 Lunarca 云一项时落回默认档（它此刻就是 Lunarca 云）。
+    render(withI18n(createElement(SignInFlow, { account: signedOut, embedded: false, initialChoice: "official" })));
+    expect((screen.getByLabelText(t("cloud:signin.server_choice.label")) as HTMLSelectElement).value).toBe("default");
+  });
+
+  it("没记住别的服务器时不重复列出 Lunarca 云", () => {
+    mount({ ...signedOut, server: { origin: "https://api.lunarca.app", display_name: null, kind: "official" } });
+    expect(screen.getAllByRole("option", { name: t("cloud:signin.official") })).toHaveLength(1);
+  });
+
+  it("送达的邀请链接优先：不给「登录到」，继续时带上邮箱", async () => {
     setCommandReply("accountSignInBegin", ready({ invite: true }));
     mount({
       ...signedOut,
@@ -108,11 +132,24 @@ describe("登录 · 第一站只问邮箱", () => {
       incoming_link: { server: "https://new.example:8443", display_name: "新组织", has_invite: true },
     });
     expect(screen.getByText(t("cloud:signin.incoming", { name: "新组织" }))).toBeTruthy();
-    expect(screen.queryByText(t("cloud:signin.remembered", { name: "测试服务端" }))).toBeNull();
+    expect(screen.queryByLabelText(t("cloud:signin.server_choice.label"))).toBeNull();
     enterEmail("a@b.c");
     await waitFor(() =>
       expect(commandMock("accountSignInBegin")).toHaveBeenCalledWith({ kind: "incoming_link", email: "a@b.c" }),
     );
+  });
+
+  it("其他服务器里填的是网站：说清那里没有服务端，并指向「登录到 › Lunarca 云」", async () => {
+    setCommandReply("accountSignInBegin", {
+      status: "error",
+      error: { code: "no_server_at_address", host: "lunarca.app" },
+    });
+    mount();
+    fireEvent.change(screen.getByLabelText(t("cloud:signin.server_choice.label")), { target: { value: "other" } });
+    fireEvent.change(screen.getByLabelText(t("cloud:signin.server_input")), { target: { value: "lunarca.app" } });
+    enterEmail("a@b.c");
+    expect(await screen.findByText(t("cloud:error.no_server_at_address", { host: "lunarca.app" }))).toBeTruthy();
+    expect(screen.getByText(t("cloud:error.no_server_at_address_action"))).toBeTruthy();
   });
 
   it("出错就地说原因（邮箱形状由 Rust 判）", async () => {
@@ -282,8 +319,11 @@ describe("登录 · 一次性码 → 设密码", () => {
 describe("登录 · 文案", () => {
   it("中英齐备；中文只说「邮箱」", () => {
     for (const locale of [cloudZh, cloudEn]) {
-      for (const key of ["use_other_server", "server_input", "sso_needs_config", "change"] as const) {
+      for (const key of ["server_input", "sso_needs_config", "change"] as const) {
         expect(locale.signin[key].length).toBeGreaterThan(0);
+      }
+      for (const key of ["label", "remembered", "other"] as const) {
+        expect(locale.signin.server_choice[key].length).toBeGreaterThan(0);
       }
       for (const key of ["have_code", "create_account", "set_title", "invite_accept"] as const) {
         expect(locale.password[key].length).toBeGreaterThan(0);

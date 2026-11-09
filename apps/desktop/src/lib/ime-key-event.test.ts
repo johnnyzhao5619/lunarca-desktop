@@ -2,7 +2,7 @@
 /// <reference types="vite/client" />
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { isImeKeyEvent } from "./ime-key-event";
-import { COMPOSITION_COMMIT_WINDOW_MS } from "./ime-composition";
+import { COMPOSITION_COMMIT_WINDOW_MS } from "@lunarca/editor-core/ime-composition";
 
 function at<T extends Event>(event: T, timeStamp: number): T {
   Object.defineProperty(event, "timeStamp", { value: timeStamp });

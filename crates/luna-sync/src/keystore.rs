@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use zeroize::Zeroize;
 
-use crate::crypto::Cmk;
+use luna_sync_core::crypto::Cmk;
 
 /// 凭据存储里条目名的前缀（与会话凭据同一个命名空间）。
 pub const KEYCHAIN_ENTRY_PREFIX: &str = "sync-cmk/";

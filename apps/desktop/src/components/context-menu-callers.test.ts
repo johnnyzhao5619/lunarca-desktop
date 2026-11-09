@@ -13,7 +13,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-const SOURCES = import.meta.glob(["../**/*.tsx", "!../**/*.test.tsx"], {
+const SOURCES = import.meta.glob(["../**/*.tsx", "../../../../packages/*/src/**/*.tsx", "!../**/*.test.tsx", "!../../../../packages/*/src/**/*.test.tsx"], {
   eager: true,
   import: "default",
   query: "?raw",

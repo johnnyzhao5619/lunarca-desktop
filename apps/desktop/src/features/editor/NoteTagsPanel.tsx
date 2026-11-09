@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { commands, type NoteTagEditDto } from "../../ipc/bindings";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { IconButton } from "../../components/ui/IconButton";
-import { CloseIcon, TagsIcon } from "../../components/ui/Icon";
+import { CloseIcon, TagsIcon } from "@lunarca/editor-core/Icon";
 import { useNoteFacts } from "./use-note-facts";
 
 interface NoteTagsPanelProps {

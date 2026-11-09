@@ -2,7 +2,7 @@
  * 笔记 → 自包含 HTML（PRD-11-011 / TDD-10 §1.2）。
  *
  * 「导出的样子 = 编辑器里看到的样子」只有一条路：用**同一份**阅读视图渲染（仓库里只有
- * `components/markdown` 这一份 Markdown→渲染实现，Rust 侧不另写解析器）。这里做两件事：
+ * 共享渲染包 `@lunarca/editor-core` 这一份 Markdown→渲染实现，Rust 侧不另写解析器）。这里做两件事：
  * 1. 把 `ReadingView` 静态渲染成 HTML 片段（`staticExport` 形态：图片保留笔记相对 src，
  *    wiki-link / 标签退成文本）；
  * 2. 从**当前页面的样式表**收集阅读视图用到的规则与它们引用的设计 Token 的**已解析值**
@@ -16,7 +16,7 @@ import { commands } from "../../ipc/bindings";
 import { i18n } from "../../i18n/i18n";
 import { ReadingView, resolveEmbedsFor } from "./ReadingView";
 import type { EmbedHitDto } from "../../ipc/bindings";
-import { prepareRichContent } from "../../lib/rich-content";
+import { prepareRichContent } from "@lunarca/editor-core/rich-content";
 
 /** 阅读视图会用到的选择器片段：命中任一即收进导出样式。 */
 const EXPORT_SELECTOR_HINTS = [

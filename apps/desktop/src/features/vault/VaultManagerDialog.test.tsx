@@ -92,13 +92,16 @@ describe("管理库：移除与云同步", () => {
   it("连在另一个账户下的库：写出那个账户，说明连接一并解除", async () => {
     setCommandReply("forgetVaultPreflight", {
       status: "ok",
-      data: { kind: "linked", account: "jo***@gmail.com" },
+      data: {
+        kind: "linked",
+        account: { label: "jo***@gmail.com", server_host: "api.lunarca.app", server_official: true },
+      },
     });
     const view = mount();
     fireEvent.click(await view.findByText(t("workspace:vault.forget")));
     await waitFor(() => expect(confirmDialog()).not.toBeNull());
     expect(confirmDialog()!.textContent).toContain(
-      t("workspace:vault.forgetLinked", { account: "jo***@gmail.com" }),
+      t("workspace:vault.forgetLinked", { account: "jo***@gmail.com", server: t("cloud:signin.official") }),
     );
     fireEvent.click(lastButton(confirmDialog()!));
     await waitFor(() => expect(commandMock("forgetVault")).toHaveBeenCalledWith("/v/read"));

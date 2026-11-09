@@ -9,8 +9,8 @@
  * 与 `format-relative-time` 同一取舍：本地化交给 `Intl`，**不新增一套要逐语言维护的
  * i18n 键**。`now` / `locale` 由调用方注入，故这里全是纯函数、可 headless 测试。
  *
- * 体积不在此列：`formatBytes` 曾寄居在本文件里（名不副实，且与 `lib/format-bytes.ts`
- * 那份口径相左），现已并入 [`lib/format-bytes`](./format-bytes.ts) 唯一一份。
+ * 体积不在此列：`formatBytes` 曾寄居在本文件里（名不副实，且与 `format-bytes`
+ * 那份口径相左），现已并入 `@lunarca/editor-core/format-bytes` 唯一一份。
  */
 
 /** epoch 毫秒 → 本地化的「日期 + 时间」。非有限/非正 → 空串（调用方据此不渲染那一行）。 */

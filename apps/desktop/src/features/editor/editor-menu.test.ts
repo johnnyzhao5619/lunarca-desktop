@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { editorContextMenuItems } from "./editor-actions";
-import type { FormatState } from "./format-commands";
+import { editorContextMenuItems } from "./editor-context-menu";
+import type { FormatState } from "@lunarca/editor-core/format-commands";
 import type { ContextMenuAction, ContextMenuItem } from "../../lib/context-menu";
 
 const PLAIN: FormatState = {
@@ -128,7 +128,7 @@ describe("「标记为记录」（PRD-06-058 D）", () => {
 describe("editor context menu · AI 入口", () => {
   it("lists AI actions first, enabled with or without a selection", () => {
     const withSelection = build(PLAIN, true);
-    expect(withSelection[0]).toMatchObject({ id: "aiActions", label: "editor:menu.aiActions" });
+    expect(withSelection[0]).toMatchObject({ id: "aiActions", label: "editor-core:editor.menu.aiActions" });
     expect(actionById(withSelection, "aiActions").disabled).toBeFalsy();
     expect(actionById(build(PLAIN, false), "aiActions").disabled).toBeFalsy();
   });

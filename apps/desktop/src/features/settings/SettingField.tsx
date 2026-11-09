@@ -1,7 +1,7 @@
 import { useContext, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { commands, type SettingSpecDto } from "../../ipc/bindings";
-import { ArrowClockwiseIcon, CheckIcon, ClockIcon, CopyIcon } from "../../components/ui/Icon";
+import { ArrowClockwiseIcon, CheckIcon, ClockIcon, CopyIcon } from "@lunarca/editor-core/Icon";
 import { HelpDetails } from "../../components/ui/HelpDetails";
 import { useContextMenu } from "../../components/ContextMenuHost";
 import { buildMenu, separator } from "../../lib/context-menu";

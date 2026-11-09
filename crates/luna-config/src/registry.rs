@@ -713,9 +713,7 @@ impl SettingSpec {
             || settings
                 .get_bool("labs.translate_space_enabled")
                 .unwrap_or(false);
-        lab_ready
-            && crate::apps::setting_owner(self.key)
-                .is_none_or(|app| crate::apps::is_enabled(settings, app.id))
+        lab_ready && crate::apps::setting_available(settings, self.key)
     }
     /// 设置中心的显示层级。它只影响同一份配置快照的投影，绝不表示功能是否运行。
     #[must_use]
@@ -2557,6 +2555,19 @@ pub static SETTINGS: &[SettingSpec] = &[
         requires_restart: false,
         i18n_key: "settings:vault.creator_dir",
     },
+    // 提词稿目录（ADR-176 ②，PRD-20-004）：「新建提词稿」「从剪贴板新建」落在这里；归提词器应用。
+    SettingSpec {
+        key: "vault.teleprompter_dir",
+        group: SettingGroup::Storage,
+        section: Some("dirs"),
+        scope: SettingScope::Vault,
+        default: SettingDefault::Str("Teleprompter"),
+        control: SettingControl::Path {
+            kind: PathKind::VaultRelativeDir,
+        },
+        requires_restart: false,
+        i18n_key: "settings:vault.teleprompter_dir",
+    },
     SettingSpec {
         key: "vault.translate_space_dir",
         group: SettingGroup::Storage,
@@ -3228,6 +3239,84 @@ pub static SETTINGS: &[SettingSpec] = &[
         requires_restart: false,
         i18n_key: "settings:shortcuts.recording_bookmark",
     },
+    // 立即隐藏 / 显示提词器（ADR-176 ⑤，PRD-20-007）：归「提词器」应用，应用没生效时不注册。
+    SettingSpec {
+        key: "shortcuts.teleprompter_toggle",
+        group: SettingGroup::Shortcuts,
+        section: None,
+        scope: SettingScope::Device,
+        default: SettingDefault::Str("ctrl+alt+h"),
+        control: SettingControl::Shortcut {
+            scope: ShortcutScope::Global,
+        },
+        requires_restart: false,
+        i18n_key: "settings:shortcuts.teleprompter_toggle",
+    },
+    // 送进提词器（ADR-176 ⑨，PRD-20-021）：选中的文字，没有就剪贴板里的；归「提词器」应用。
+    SettingSpec {
+        key: "shortcuts.teleprompter_send",
+        group: SettingGroup::Shortcuts,
+        section: None,
+        scope: SettingScope::Device,
+        default: SettingDefault::Str("ctrl+alt+p"),
+        control: SettingControl::Shortcut {
+            scope: ShortcutScope::Global,
+        },
+        requires_restart: false,
+        i18n_key: "settings:shortcuts.teleprompter_send",
+    },
+    // 提词器浮窗的按键（ADR-176 ⑥，PRD-20-011）：只在浮窗显示时注册，收起即解绑；带修饰，
+    // 避开系统的输入法切换（⌃Space / ⌃⌥Space）与切换桌面（⌃← / ⌃→）。
+    teleprompter_shortcut(
+        "shortcuts.teleprompter_play",
+        "settings:shortcuts.teleprompter_play",
+        "ctrl+alt+s",
+    ),
+    teleprompter_shortcut(
+        "shortcuts.teleprompter_line_up",
+        "settings:shortcuts.teleprompter_line_up",
+        "ctrl+alt+up",
+    ),
+    teleprompter_shortcut(
+        "shortcuts.teleprompter_line_down",
+        "settings:shortcuts.teleprompter_line_down",
+        "ctrl+alt+down",
+    ),
+    teleprompter_shortcut(
+        "shortcuts.teleprompter_block_prev",
+        "settings:shortcuts.teleprompter_block_prev",
+        "ctrl+alt+pageup",
+    ),
+    teleprompter_shortcut(
+        "shortcuts.teleprompter_block_next",
+        "settings:shortcuts.teleprompter_block_next",
+        "ctrl+alt+pagedown",
+    ),
+    teleprompter_shortcut(
+        "shortcuts.teleprompter_faster",
+        "settings:shortcuts.teleprompter_faster",
+        "ctrl+alt+equal",
+    ),
+    teleprompter_shortcut(
+        "shortcuts.teleprompter_slower",
+        "settings:shortcuts.teleprompter_slower",
+        "ctrl+alt+minus",
+    ),
+    teleprompter_shortcut(
+        "shortcuts.teleprompter_current",
+        "settings:shortcuts.teleprompter_current",
+        "ctrl+alt+c",
+    ),
+    teleprompter_shortcut(
+        "shortcuts.teleprompter_top",
+        "settings:shortcuts.teleprompter_top",
+        "ctrl+alt+0",
+    ),
+    teleprompter_shortcut(
+        "shortcuts.teleprompter_close",
+        "settings:shortcuts.teleprompter_close",
+        "ctrl+alt+escape",
+    ),
     SettingSpec {
         key: "shortcuts.live_caption",
         group: SettingGroup::Shortcuts,
@@ -3418,6 +3507,54 @@ pub static SETTINGS: &[SettingSpec] = &[
     caption_window_geometry("teleprompter.window_y"),
     caption_window_geometry("teleprompter.window_width"),
     caption_window_geometry("teleprompter.window_height"),
+    // 尽量不被录屏 / 屏幕共享捕获（ADR-176 ⑤，PRD-20-007）：默认开；只在「提词器」应用生效时起作用。
+    SettingSpec {
+        key: "teleprompter.capture_hidden",
+        group: SettingGroup::General,
+        section: None,
+        scope: SettingScope::Device,
+        default: SettingDefault::Bool(true),
+        control: SettingControl::Toggle,
+        requires_restart: false,
+        i18n_key: "teleprompter.capture_hidden",
+    },
+    // 开始前倒计时秒数（ADR-176 ⑤，PRD-20-009）：倒计时结束才开始滚动与跟读。
+    SettingSpec {
+        key: "teleprompter.countdown_secs",
+        group: SettingGroup::General,
+        section: None,
+        scope: SettingScope::Device,
+        default: SettingDefault::Str("3"),
+        control: SettingControl::Select {
+            options: &["0", "3", "5"],
+            style: SelectStyle::Segmented,
+        },
+        requires_restart: false,
+        i18n_key: "teleprompter.countdown_secs",
+    },
+    // 遥控模式（ADR-176 ⑥，PRD-20-012）：浮窗显示时另注册一组不带修饰的键，给翻页器与脚踏板；
+    // 默认关，开着时浮窗上常亮「遥控中」。
+    SettingSpec {
+        key: "teleprompter.remote_enabled",
+        group: SettingGroup::General,
+        section: None,
+        scope: SettingScope::Device,
+        default: SettingDefault::Bool(false),
+        control: SettingControl::Toggle,
+        requires_restart: false,
+        i18n_key: "teleprompter.remote_enabled",
+    },
+    // 跟读的总开关（ADR-176 ④，PRD-20-005）：用户开、默认关；关着时面板没有跟读控件、不碰麦克风。
+    SettingSpec {
+        key: "teleprompter.follow_enabled",
+        group: SettingGroup::General,
+        section: None,
+        scope: SettingScope::Device,
+        default: SettingDefault::Bool(false),
+        control: SettingControl::Toggle,
+        requires_restart: false,
+        i18n_key: "teleprompter.follow_enabled",
+    },
     // 一方应用的启用状态（ADR-165 ③）：内部键（`is_internal` 前缀 `apps.`），只由「应用」页的
     // 启用 / 停用改；与活动栏布局同一归属层（设备）、同一种值（每个应用一位开关，默认全关）。
     SettingSpec {
@@ -3451,6 +3588,26 @@ pub static SETTINGS: &[SettingSpec] = &[
         i18n_key: "apps.installed",
     },
 ];
+
+/// 提词器浮窗的一个按键（ADR-176 ⑥）：全局作用域，但只在浮窗显示时由 Rust 注册。
+const fn teleprompter_shortcut(
+    key: &'static str,
+    i18n_key: &'static str,
+    default: &'static str,
+) -> SettingSpec {
+    SettingSpec {
+        key,
+        group: SettingGroup::Shortcuts,
+        section: None,
+        scope: SettingScope::Device,
+        default: SettingDefault::Str(default),
+        control: SettingControl::Shortcut {
+            scope: ShortcutScope::Global,
+        },
+        requires_restart: false,
+        i18n_key,
+    }
+}
 
 /// 提词器的数值偏好（字号 px、行宽 %、滚动速度 px/s）：内部键，由面板按钮步进。
 const fn teleprompter_number(
@@ -4255,6 +4412,7 @@ mod tests {
             "vault.recordings_dir",
             "vault.chats_dir",
             "vault.creator_dir",
+            "vault.teleprompter_dir",
             "vault.translate_space_dir",
             "vault.knowledge_dir",
         ] {
@@ -4270,6 +4428,7 @@ mod tests {
             ("vault.recordings_dir", "Recordings"),
             ("vault.chats_dir", "Chats"),
             ("vault.creator_dir", "Creator"),
+            ("vault.teleprompter_dir", "Teleprompter"),
             ("vault.translate_space_dir", "TranslateSpace"),
             ("vault.knowledge_dir", "Knowledge"),
         ] {
@@ -4866,6 +5025,7 @@ mod tests {
             "vault.documents_dir",
             "vault.chats_dir",
             "vault.creator_dir",
+            "vault.teleprompter_dir",
             "vault.translate_space_dir",
             "vault.knowledge_dir",
             "vault.attachment_location",
@@ -5005,6 +5165,7 @@ mod ordered_multi_select_tests {
                     "transcripts",
                     "chat",
                     "creator",
+                    "teleprompter",
                     "hidden:search"
                 ]
                 .iter()
@@ -5022,6 +5183,7 @@ mod ordered_multi_select_tests {
             "knowledge",
             "notes",
             "creator",
+            "teleprompter",
             "hidden:search",
         ]);
         assert_eq!(normalize(spec, kept.clone()), kept);

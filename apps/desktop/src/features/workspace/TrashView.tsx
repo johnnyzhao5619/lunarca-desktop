@@ -22,7 +22,7 @@ import {
   FolderIcon,
   SortIcon,
   TrashIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { IconButton } from "../../components/ui/IconButton";
 import { useContextMenu } from "../../components/ContextMenuHost";
 import { buildMenu, separator } from "../../lib/context-menu";
@@ -42,7 +42,7 @@ import {
   selectionAfterClick,
   type SelectionState,
 } from "./note-selection";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { trashComparator, TRASH_SORT_MODES, type TrashSortMode } from "./trash-sort";
 import { summarizeRestoreBatch } from "./trash-batch";
 import { goTo } from "../../lib/navigate";

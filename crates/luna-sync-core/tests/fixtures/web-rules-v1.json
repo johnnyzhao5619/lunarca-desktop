@@ -1,0 +1,423 @@
+{
+  "attachments": [
+    {
+      "dir_rel": "写作/assets",
+      "folder": "",
+      "link": "assets/Pasted-image-1.png",
+      "mode": "",
+      "name": "Pasted-image-1.png",
+      "note": "写作/上传.md"
+    },
+    {
+      "dir_rel": "assets",
+      "folder": "assets",
+      "link": "assets/p.png",
+      "mode": "note_subfolder",
+      "name": "p.png",
+      "note": "根.md"
+    },
+    {
+      "dir_rel": "项目",
+      "folder": "",
+      "link": "图 1.png",
+      "mode": "note_folder",
+      "name": "图 1.png",
+      "note": "项目/计划.md"
+    },
+    {
+      "dir_rel": "",
+      "folder": "",
+      "link": "../../p.png",
+      "mode": "vault_root",
+      "name": "p.png",
+      "note": "项目/子/计划.md"
+    },
+    {
+      "dir_rel": "附件",
+      "folder": "附件",
+      "link": "../附件/说明.pdf",
+      "mode": "specified_folder",
+      "name": "说明.pdf",
+      "note": "写作/上传.md"
+    },
+    {
+      "dir_rel": "Attachments",
+      "folder": "",
+      "link": "Attachments/p.png",
+      "mode": "specified_folder",
+      "name": "p.png",
+      "note": "a.md"
+    },
+    {
+      "dir_rel": "a/越界/sub",
+      "folder": "../越界/sub",
+      "link": "越界/sub/p.png",
+      "mode": "unknown",
+      "name": "p.png",
+      "note": "a/b.md"
+    }
+  ],
+  "matches": [
+    {
+      "content": "---\ntitle: 周报\n---\n# 周报\n本周完成了网页版骨架。\n",
+      "match_case": false,
+      "query": "骨架",
+      "result": {
+        "lines": [
+          {
+            "line": 5,
+            "segments": [
+              {
+                "hit": false,
+                "text": "本周完成了网页版"
+              },
+              {
+                "hit": true,
+                "text": "骨架"
+              },
+              {
+                "hit": false,
+                "text": "。"
+              }
+            ]
+          }
+        ],
+        "match_count": 1
+      }
+    },
+    {
+      "content": "Le Café ouvre\nCAFÉ fermé\n",
+      "match_case": false,
+      "query": "café",
+      "result": {
+        "lines": [
+          {
+            "line": 1,
+            "segments": [
+              {
+                "hit": false,
+                "text": "Le "
+              },
+              {
+                "hit": true,
+                "text": "Café"
+              },
+              {
+                "hit": false,
+                "text": " ouvre"
+              }
+            ]
+          },
+          {
+            "line": 2,
+            "segments": [
+              {
+                "hit": true,
+                "text": "CAFÉ"
+              },
+              {
+                "hit": false,
+                "text": " fermé"
+              }
+            ]
+          }
+        ],
+        "match_count": 2
+      }
+    },
+    {
+      "content": "Le Café ouvre\n",
+      "match_case": true,
+      "query": "café",
+      "result": null
+    },
+    {
+      "content": "안녕하세요 회의\n각 가\n",
+      "match_case": false,
+      "query": "가",
+      "result": {
+        "lines": [
+          {
+            "line": 2,
+            "segments": [
+              {
+                "hit": false,
+                "text": "각 "
+              },
+              {
+                "hit": true,
+                "text": "가"
+              }
+            ]
+          }
+        ],
+        "match_count": 1
+      }
+    },
+    {
+      "content": "[00:01:02] 讲到骨架 [00:01:03]\n## User\n骨架\n",
+      "match_case": false,
+      "query": "骨架 -草稿",
+      "result": {
+        "lines": [
+          {
+            "line": 1,
+            "segments": [
+              {
+                "hit": false,
+                "text": "[00:01:02] 讲到"
+              },
+              {
+                "hit": true,
+                "text": "骨架"
+              },
+              {
+                "hit": false,
+                "text": " [00:01:03]"
+              }
+            ]
+          },
+          {
+            "line": 3,
+            "segments": [
+              {
+                "hit": true,
+                "text": "骨架"
+              }
+            ]
+          }
+        ],
+        "match_count": 2
+      }
+    },
+    {
+      "content": "甲 乙\n乙 丙\n",
+      "match_case": false,
+      "query": "甲 乙",
+      "result": {
+        "lines": [
+          {
+            "line": 1,
+            "segments": [
+              {
+                "hit": true,
+                "text": "甲"
+              },
+              {
+                "hit": false,
+                "text": " "
+              },
+              {
+                "hit": true,
+                "text": "乙"
+              }
+            ]
+          },
+          {
+            "line": 2,
+            "segments": [
+              {
+                "hit": true,
+                "text": "乙"
+              },
+              {
+                "hit": false,
+                "text": " 丙"
+              }
+            ]
+          }
+        ],
+        "match_count": 3
+      }
+    },
+    {
+      "content": "甲\n",
+      "match_case": false,
+      "query": "\"甲 乙\"",
+      "result": null
+    }
+  ],
+  "names": {
+    "at": {
+      "day": 6,
+      "hour": 21,
+      "minute": 4,
+      "month": 11,
+      "second": 5,
+      "stamp": "20261106-210405",
+      "year": 2026
+    },
+    "mimes": [
+      {
+        "ext": "png",
+        "first": "Pasted-image-20261106-210405.png",
+        "mime": "image/png",
+        "prefix": "Pasted-image",
+        "third": "Pasted-image-20261106-210405-2.png"
+      },
+      {
+        "ext": "jpg",
+        "first": "Pasted-image-20261106-210405.jpg",
+        "mime": "image/jpeg",
+        "prefix": "Pasted-image",
+        "third": "Pasted-image-20261106-210405-2.jpg"
+      },
+      {
+        "ext": "heic",
+        "first": "Pasted-image-20261106-210405.heic",
+        "mime": "image/heic",
+        "prefix": "Pasted-image",
+        "third": "Pasted-image-20261106-210405-2.heic"
+      },
+      {
+        "ext": "bin",
+        "first": "Pasted-image-20261106-210405.bin",
+        "mime": "image/x-icon",
+        "prefix": "Pasted-image",
+        "third": "Pasted-image-20261106-210405-2.bin"
+      },
+      {
+        "ext": "bin",
+        "first": "Pasted-file-20261106-210405.bin",
+        "mime": "application/pdf",
+        "prefix": "Pasted-file",
+        "third": "Pasted-file-20261106-210405-2.bin"
+      },
+      {
+        "ext": "bin",
+        "first": "Pasted-file-20261106-210405.bin",
+        "mime": "",
+        "prefix": "Pasted-file",
+        "third": "Pasted-file-20261106-210405-2.bin"
+      }
+    ],
+    "named": [
+      {
+        "attempt": 0,
+        "file": "diagram.png",
+        "name": "diagram.png"
+      },
+      {
+        "attempt": 0,
+        "file": "季度 报告 (终).PDF",
+        "name": "季度-报告-(终).pdf"
+      },
+      {
+        "attempt": 2,
+        "file": "季度 报告.PDF",
+        "name": "季度-报告-2.pdf"
+      },
+      {
+        "attempt": 0,
+        "file": "archive.tar.gz",
+        "name": "archive.tar.gz"
+      },
+      {
+        "attempt": 0,
+        "file": "   .png",
+        "name": "Attachment.png"
+      },
+      {
+        "attempt": 1,
+        "file": "说明.p df",
+        "name": "说明-1"
+      },
+      {
+        "attempt": 0,
+        "file": "한국어 문서.docx",
+        "name": "한국어-문서.docx"
+      }
+    ]
+  },
+  "tags": {
+    "covers": [
+      {
+        "covers": true,
+        "filter": "工作",
+        "tag": "工作"
+      },
+      {
+        "covers": true,
+        "filter": "工作",
+        "tag": "工作/周报"
+      },
+      {
+        "covers": true,
+        "filter": "#Project",
+        "tag": "project/luna"
+      },
+      {
+        "covers": false,
+        "filter": "工作",
+        "tag": "工作室"
+      },
+      {
+        "covers": false,
+        "filter": "工作/周报",
+        "tag": "工作"
+      }
+    ],
+    "notes": [
+      {
+        "content": "---\ntags: [入门, 网页]\n---\n# 欢迎\n正文 #标签/子 与 #入门 再见",
+        "tags": [
+          {
+            "source": "user",
+            "tag": "入门"
+          },
+          {
+            "source": "user",
+            "tag": "网页"
+          },
+          {
+            "source": "user",
+            "tag": "标签/子"
+          }
+        ]
+      },
+      {
+        "content": "---\ntags: 工作, 重要\nluna:\n  ai_tags: [会议, 工作]\n---\n正文",
+        "tags": [
+          {
+            "source": "user",
+            "tag": "工作"
+          },
+          {
+            "source": "user",
+            "tag": "重要"
+          },
+          {
+            "source": "ai",
+            "tag": "会议"
+          }
+        ]
+      },
+      {
+        "content": "안녕하세요 #한국어 그리고 #中文 `#代码` 不算\n```\n#围栏\n```\n# 标题不是标签 #123",
+        "tags": [
+          {
+            "source": "user",
+            "tag": "한국어"
+          },
+          {
+            "source": "user",
+            "tag": "中文"
+          }
+        ]
+      },
+      {
+        "content": "没有标签的笔记",
+        "tags": []
+      },
+      {
+        "content": "---\ntags: [未闭合\n正文 #仍然读",
+        "tags": [
+          {
+            "source": "user",
+            "tag": "仍然读"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -15,9 +15,9 @@ use std::path::{Component, Path, PathBuf};
 
 use uuid::Uuid;
 
-use crate::crypto::{CryptoError, KeyRing};
-use crate::manifest::{assemble, open_entry, ManifestError};
 use crate::ports::{Remote, RemoteError};
+use luna_sync_core::crypto::{CryptoError, KeyRing};
+use luna_sync_core::manifest::{assemble, open_entry, ManifestError};
 
 /// 一次恢复的结果。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -163,7 +163,7 @@ async fn fill(
             continue;
         };
         // 大文件（录音）逐块解密直接写盘、边写边算哈希：不把几百 MB 拼在内存里。
-        if plain.size > crate::chunk::WHOLE_FILE_MAX as u64 {
+        if plain.size > luna_sync_core::chunk::WHOLE_FILE_MAX as u64 {
             if write_streamed(remote, ring, vault, &plain, &target).await? {
                 report.files += 1;
                 report.bytes += plain.size;
@@ -211,7 +211,7 @@ async fn write_streamed(
     remote: &dyn Remote,
     ring: &KeyRing,
     vault: Uuid,
-    plain: &crate::manifest::EntryPlain,
+    plain: &luna_sync_core::manifest::EntryPlain,
     target: &Path,
 ) -> Result<bool, RestoreError> {
     use sha2::Digest as _;
@@ -236,7 +236,7 @@ async fn write_streamed(
                 break;
             }
         };
-        let Ok(chunk) = crate::chunk::unpad(&padded) else {
+        let Ok(chunk) = luna_sync_core::chunk::unpad(&padded) else {
             ok = false;
             break;
         };

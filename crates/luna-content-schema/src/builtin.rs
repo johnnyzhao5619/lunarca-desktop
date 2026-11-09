@@ -39,7 +39,7 @@ pub fn is_builtin_theme(id: &str) -> bool {
     builtin_themes().iter().any(|theme| theme.id.as_str() == id)
 }
 
-/// 前端随包的主题样式表（`apps/desktop/src/styles/tokens/themes.generated.css`）。
+/// 前端随包的主题样式表（`packages/styles/src/tokens/themes.generated.css`）。
 ///
 /// 回落主题不带族选择器：`:root` 裸值（外观偏好挂上之前）、`[data-theme]` 两档，以及系统深色而
 /// 还没有 `data-theme` 时的兜底——族 id 对不上任何样式时，界面也还是它。其余内置主题挂

@@ -5,7 +5,7 @@ import { EditorView } from "@codemirror/view";
 import { commands } from "../../ipc/bindings";
 import { editorSurfaceAt, logicalPoint, markEditorDropTarget } from "../../lib/editor-file-drop";
 import { dropAt, type PasteAssetsContext } from "./paste-assets";
-import { pasteRangeField } from "./paste-range";
+import { pasteRangeField } from "@lunarca/editor-core/paste-range";
 
 vi.mock("../../ipc/bindings", () => ({
   commands: { importAssetPaths: vi.fn(), vaultLinkMarkdown: vi.fn(), discardPastedAssets: vi.fn() },

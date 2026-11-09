@@ -3,9 +3,12 @@
 //! 测试与模拟器用内存替身。
 //!
 //! 这里的类型是本 crate 自己的形状，不是 wire DTO：服务端的 JSON 由 `luna-cloud` 解析，装配层
-//! 翻译过来。两边各持一份，中层与 `luna-cloud` 才能互不依赖（TDD-00 §3）。
+//! 翻译过来。两边各持一份，中层与 `luna-cloud` 才能互不依赖（TDD-00 §3）。唯一的例外是提交：
+//! 条目、请求体与逐条结果用的是零依赖叶子 `luna-sync-core::commit` 的类型——网页版发的是同一份，
+//! 两端的提交体必须逐字节相同（ADR-177 ⑥）。
 
 use async_trait::async_trait;
+use luna_sync_core::commit::{CommitItem, CommitReply};
 use uuid::Uuid;
 
 use crate::core::LocalFile;
@@ -33,52 +36,6 @@ pub struct RemoteManifest {
     pub epoch: Uuid,
     pub at_seq: i64,
     pub entries: Vec<RemoteEntry>,
-}
-
-/// 一次提交里的一个文件。
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RemoteCommitItem {
-    pub file_id: Uuid,
-    pub base_rev: Option<i64>,
-    pub change: RemoteChange,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum RemoteChange {
-    Put {
-        entry_ct: Vec<u8>,
-        size_padded: i64,
-        chunk_ids: Vec<String>,
-    },
-    Delete,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum RemoteItemResult {
-    Committed {
-        file_id: Uuid,
-        rev: i64,
-        seq: i64,
-    },
-    StaleBase {
-        file_id: Uuid,
-        current_rev: Option<i64>,
-    },
-    MissingBlobs {
-        file_id: Uuid,
-        chunk_ids: Vec<String>,
-    },
-    /// 超过单文件上限（ADR-156 ④）：这一条没提交。
-    TooLarge {
-        file_id: Uuid,
-        max_bytes: i64,
-    },
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RemoteCommitReply {
-    pub head_seq: i64,
-    pub results: Vec<RemoteItemResult>,
 }
 
 /// 远端的失败（稳定码由装配层从服务端错误体翻译过来，TDD-16 §9）。
@@ -177,8 +134,8 @@ pub trait Remote: Send + Sync {
         &self,
         vault_id: Uuid,
         idempotency_key: &str,
-        items: Vec<RemoteCommitItem>,
-    ) -> Result<RemoteCommitReply, RemoteError>;
+        items: Vec<CommitItem>,
+    ) -> Result<CommitReply, RemoteError>;
 }
 
 /// 写本地之前对现状的期望（不符就不写：用户在这一轮里刚改过它）。

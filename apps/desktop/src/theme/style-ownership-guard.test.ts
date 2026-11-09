@@ -25,21 +25,25 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { layeredCmContentBox, layeredCmLinePadding } from "@lunarca/lint-config/css-guards";
 
-const CSS = import.meta.glob("../{styles,components,features}/**/*.css", {
+const CSS = import.meta.glob(["../{styles,components,features}/**/*.css", "../../../../packages/*/src/**/*.css"], {
   eager: true,
   import: "default",
   query: "?raw",
 }) as Record<string, string>;
 
-const TOKENS = import.meta.glob("../styles/tokens/*.css", {
+/** CM 自带类名的收编条（`@lunarca/styles/codemirror.css`）：`.cm-line` / `.cm-content` 物理内距的唯一负责者。 */
+const CODEMIRROR_INTEGRATION = "../../../../packages/styles/src/codemirror.css";
+
+const TOKENS =import.meta.glob("../../../../packages/styles/src/tokens/*.css", {
   eager: true,
   import: "default",
   query: "?raw",
 }) as Record<string, string>;
 
 /** 运行时由 JS 注入的 CSS 变量（`cssVariables({...})`，§3.2 唯一许可的 inline 形态）。 */
-const CODE = import.meta.glob("../{app,features,components,hooks,lib}/**/*.{ts,tsx}", {
+const CODE = import.meta.glob(["../{app,features,components,hooks,lib}/**/*.{ts,tsx}", "../../../../packages/*/src/**/*.{ts,tsx}"], {
   eager: true,
   import: "default",
   query: "?raw",
@@ -53,7 +57,7 @@ const CODE = import.meta.glob("../{app,features,components,hooks,lib}/**/*.{ts,t
  * 一条；反向判据（有规则却没人用，见 ⑤）漏掉一个消费面就直接变成**一条假阳性**——而假阳性
  * 会教下一个人「这条守护会乱叫」，然后它就废了。
  */
-const ALL_CODE = import.meta.glob("../**/*.{ts,tsx}", {
+const ALL_CODE = import.meta.glob(["../**/*.{ts,tsx}", "../../../../packages/*/src/**/*.{ts,tsx}"], {
   eager: true,
   import: "default",
   query: "?raw",
@@ -206,42 +210,12 @@ export function viewportBreakpoints(css: string): string[] {
 }
 
 
-/**
- * 分层样式表里对 `.cm-line` 声明内距物理属性的规则（§3.3d，2026-08-03 裁字事故）：
- * CM6 baseTheme 的无层 `padding: 0 2px 0 6px` 压过**任何**分层 longhand——声明会静默
- * 失效；若同一规则还有配套的负 `text-indent`（无人竞争、独自生效），首行直接被拉出
- * 左缘裁字。唯一合法通道是设 `--cm-line-pad-*` 变量（物理属性由
- * `styles/integrations/codemirror.css` 的收编条单点负责）。
- */
-export function layeredCmLinePadding(css: string): string[] {
-  const found: string[] = [];
-  const code = css.replace(/\/\*[\s\S]*?\*\//g, " ");
-  for (const match of code.matchAll(/(?:^|\})\s*([^{}]*\.cm-line[^{}]*)\{([^}]*)\}/g)) {
-    const decl = match[2];
-    for (const prop of decl.matchAll(/(?:^|;)\s*(padding[\w-]*)\s*:/g)) {
-      found.push(`${match[1].trim().slice(0, 60)} → ${prop[1]}`);
-    }
-  }
-  return found;
-}
-
-/** `.cm-content` 的物理内距 / 外距同样只能由 integrations 收编条负责。 */
-export function layeredCmContentBox(css: string): string[] {
-  const found: string[] = [];
-  const code = css.replace(/\/\*[\s\S]*?\*\//g, " ");
-  for (const match of code.matchAll(/(?:^|\})\s*([^{}]*\.cm-content[^{}]*)\{([^}]*)\}/g)) {
-    const decl = match[2];
-    for (const prop of decl.matchAll(/(?:^|;)\s*((?:padding|margin)[\w-]*)\s*:/g)) {
-      found.push(`${match[1].trim().slice(0, 60)} → ${prop[1]}`);
-    }
-  }
-  return found;
-}
-
 describe("样式归属 · 位置、Token 与响应式判据", () => {
   it("扫描面非空（glob 失效时本用例先红）", () => {
     expect(Object.keys(CSS).length).toBeGreaterThan(15);
     expect(definedTokens().size).toBeGreaterThan(100);
+    // 两条 CM 物理内距守护按路径豁免收编条：路径对不上时豁免就落空、守护照样绿着空转。
+    expect(CSS[CODEMIRROR_INTEGRATION], "CM 收编条不在扫描面里").toContain(".luna-md-surface .cm-line");
   });
 
   it("每个类前缀的主体规则只住在一个文件里", () => {
@@ -265,9 +239,9 @@ describe("样式归属 · 位置、Token 与响应式判据", () => {
       if (prefix === "luna-workspace") continue;
       const substantial = [...files.entries()]
         .filter(([f]) => !f.endsWith("styles/base.css"))
-        // integrations/ 是刻意跨 feature 的第三方 DOM 边界：它只覆写供应商类，并以宿主
-        // `.luna-*` 限定作用域；是否越权由下面的 CM 物理属性专项守护负责，不属于主体寄居。
-        .filter(([f]) => !f.includes("styles/integrations/"))
+        // CM 集成层是刻意跨 feature 的第三方 DOM 边界：它只覆写供应商类，并以编辑面
+        // `.luna-md-surface` 限定作用域；是否越权由下面的 CM 物理属性专项守护负责，不属于主体寄居。
+        .filter(([f]) => f !== CODEMIRROR_INTEGRATION)
         .filter(([, n]) => n >= 3);
       if (substantial.length > 1) {
         offenders.push(
@@ -289,7 +263,7 @@ describe("样式归属 · 位置、Token 与响应式判据", () => {
     );
     expect(
       offenders,
-      `这些 Token 没有任何定义点；要么补进 styles/tokens/，要么直接写目标值：\n${offenders.join("\n")}`,
+      `这些 Token 没有任何定义点；要么补进 packages/styles/src/tokens/，要么直接写目标值：\n${offenders.join("\n")}`,
     ).toEqual([]);
   });
 
@@ -307,7 +281,7 @@ describe("样式归属 · 位置、Token 与响应式判据", () => {
   it(".cm-line 的内距只走 --cm-line-pad-* 钩子（§3.3d：分层声明会被无层注入静默压制）", () => {
     const offenders = Object.entries(CSS)
       // 收编条自身就是那个单点负责者。
-      .filter(([path]) => path !== "../styles/integrations/codemirror.css")
+      .filter(([path]) => path !== CODEMIRROR_INTEGRATION)
       .flatMap(([path, css]) => layeredCmLinePadding(css).map((hit) => `${path}: ${hit}`));
     expect(
       offenders,
@@ -317,7 +291,7 @@ describe("样式归属 · 位置、Token 与响应式判据", () => {
 
   it(".cm-content 的内距与居中只走集成层收编条", () => {
     const offenders = Object.entries(CSS)
-      .filter(([path]) => path !== "../styles/integrations/codemirror.css")
+      .filter(([path]) => path !== CODEMIRROR_INTEGRATION)
       .flatMap(([path, css]) => layeredCmContentBox(css).map((hit) => `${path}: ${hit}`));
     expect(
       offenders,
@@ -639,6 +613,8 @@ describe("样式归属守护 · 反向：样式表里有规则、却没人用", 
   it("扫描面非空（glob 或正则失效时本用例先红，而不是让下面的断言凭空通过）", () => {
     expect(Object.keys(CSS).length).toBeGreaterThan(15);
     expect(Object.keys(ALL_CODE).length).toBeGreaterThan(100);
+    expect(Object.keys(ALL_CODE).some((path) => path.includes("/packages/editor-core/src/")), "共享渲染包不在扫描面里").toBe(true);
+    expect(Object.keys(CODE).some((path) => path.includes("/packages/editor-core/src/")), "共享渲染包不在扫描面里").toBe(true);
     // 判据的三个中间产物都不许是空集：任一为空，「没有死规则」就是凭空通过的。
     const declared = new Set(Object.values(CSS).flatMap((css) => [...declaredClassNames(css)]));
     expect(declared.size).toBeGreaterThan(500);

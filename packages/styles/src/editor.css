@@ -1,0 +1,884 @@
+/*
+ * 共享编辑面（CodeMirror 6，`@lunarca/editor-core` 的编辑扩展）的样式：正文字号与行宽、选区与匹配、
+ * 实时预览的渲染件（引用、标注、列表、分隔线、表格、代码块、图片、嵌入、脚注）、块间距、Markdown 就地样式、
+ * 标题折叠、表格尺寸选择器、frontmatter 胶囊。桌面与网页同一份（TDD-17 §2、PRD-21-020）。
+ *
+ * 作用域是编辑面容器上的 `.luna-md-surface`（包住 EditorView 的那个元素）：宿主给它挂上这个类，
+ * 源码模式再挂 `data-view-mode="source"`、专注模式挂 `data-focus`。容器本身的排布、焦点框与宿主专属
+ * 的部件（桌面的 AI 面板、拼写、拖入文件……）归宿主自己的样式表；CM 自带类名的收编（光标、选区层、
+ * 搜索面板、浮层外框、`.cm-line` / `.cm-content` 的内距）在同包的 `codemirror.css`。只用设计 Token。
+ */
+
+/* 实时预览的嵌入部件里的阅读视图（共享样式 `@lunarca/styles/reading.css` 里 `.luna-embed .luna-reading`
+   的同一条）：只是一段内容，不是一整页——去掉页面版心与页边距。 */
+.luna-editor-embed .luna-reading {
+  max-inline-size: none;
+  margin: var(--space-0);
+  padding: var(--space-0);
+}
+
+/* 正文字号、行高与可读行宽落在 `.cm-scroller` / `.cm-content` 上，那两个选择器的定义块在 CM 集成层
+   （`@lunarca/styles/codemirror.css`）：同一个选择器只有一个定义块（TDD-15 §3.3b），而它们的字族与内距
+   本来就得在那里收编。 */
+
+/* ─── 编辑器原生文本交互（代码块亦适用） ──────────────────────────────────── */
+/* 活动行底色归 CM 集成层（`@lunarca/styles/codemirror.css`，CM 无层基类压过层内声明，§3.3d）。 */
+
+/* 自绘选区矩形（selection-layer.ts）：颜色与界面 `::selection` 同一 Token。它是本仓库
+   自己的 class、不在 CM baseTheme 里，故层内常规声明即生效。 */
+.luna-md-surface .luna-selection-layer .luna-selection {
+  background: var(--color-selection);
+}
+
+.luna-md-surface .cm-selectionMatch {
+  background: var(--color-accent-surface);
+}
+
+.luna-md-surface .cm-searchMatch {
+  background: var(--color-status-attention-surface);
+  outline: var(--border-width-thin) solid var(--color-status-attention);
+  border-radius: var(--radius-xs);
+}
+
+.luna-md-surface .cm-searchMatch-selected {
+  background: var(--color-bg-selected);
+}
+
+/* 匹配括号 */
+.luna-md-surface .cm-matchingBracket {
+  background: var(--color-accent-surface);
+  outline: var(--border-width-thin) solid var(--color-border-default);
+}
+
+/* 搜索/替换面板的皮归 CM 集成层（`@lunarca/styles/codemirror.css`）：CM6 的面板主题（灰底、渐变按钮、
+   银边输入框）由无层 StyleModule 注入，本层的常规声明压不过它——此前这里写了一整块，
+   真机上看到的仍是系统灰控件。 */
+
+/* 补全 / 斜杠菜单 / 表格尺寸选择器的浮层外框归 CM 集成层（`@lunarca/styles/codemirror.css`）：CM6 的 `&light .cm-tooltip`
+   与补全列表主题是无层注入的，本层的常规声明压不过它（真机 2026-10-04 看到的是白底浅字）。 */
+
+/* 折叠三角（heading-fold.ts，B3）：行首零宽部件，按钮用 transform 推进左侧页边，不占正文
+   宽度、不挪文字。悬停该行才显，折起来的常显。 */
+/* 零宽、与所在行等高的锚点：三角在其中垂直居中。此前按钮只设了绝对定位、没给垂直位置，
+   标题行行高大、三角字号小，于是掉在标题左下角（真机 2026-10-04）。 */
+.luna-fold-marker {
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+  inline-size: var(--space-0);
+  block-size: 1lh;
+}
+
+.luna-fold-marker__button {
+  position: absolute;
+  inset-block: var(--space-0);
+  inset-inline-start: var(--space-0);
+  display: flex;
+  align-items: center;
+  transform: translateX(calc(-100% - var(--space-1)));
+  padding: var(--space-0) var(--space-0-5);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.luna-md-surface .cm-line:hover .luna-fold-marker__button,
+.luna-fold-marker[data-folded] .luna-fold-marker__button {
+  opacity: 1;
+}
+
+.luna-fold-marker__button:hover {
+  color: var(--color-text-primary);
+}
+
+/* 折起后的「…」：点一下展开。 */
+.luna-fold-placeholder {
+  margin-inline-start: var(--space-1);
+  padding: var(--space-0) var(--space-1-5);
+  border-radius: var(--radius-xs);
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+/* 插入表格的网格尺寸选择器（table-picker.ts）：外框沿用 `.cm-tooltip`（见 CM 集成层 `@lunarca/styles/codemirror.css`）。 */
+.luna-table-picker {
+  display: grid;
+  gap: var(--space-1-5);
+  padding: var(--space-2);
+}
+
+.luna-table-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(8, var(--space-4));
+  gap: var(--space-0-5);
+}
+
+.luna-table-picker__cell {
+  block-size: var(--space-4);
+  padding: var(--space-0);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-xs);
+  background: var(--color-bg-surface);
+  cursor: pointer;
+}
+
+.luna-table-picker__cell[data-on] {
+  border-color: var(--color-accent);
+  background: var(--color-bg-selected);
+}
+
+.luna-table-picker__caption {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+/* ─── Live Preview 渲染件（live-preview.ts） ─────────────────────────────── */
+/* 引用块左边条（QuoteMark 折叠后仍保留块感）。边条 / 底色 / 内距全部走 `--editor-quote-*`，
+   阅读面的 `blockquote` 消费同一组 Token（两面同源，TDD-15 §3.4a）。 */
+.luna-md-surface .cm-line.luna-md-quoteline {
+  border-inline-start: var(--editor-quote-border-width) solid var(--editor-quote-border-color);
+  /* `.cm-line` 的内距物理属性由 CM 集成层（`@lunarca/styles/codemirror.css`）单点负责（§3.3d，CM 无层
+     padding 简写压过一切分层 longhand）；feature 侧一律设 `--cm-line-pad-*` 变量。 */
+  --cm-line-pad-inline-start: var(--editor-quote-pad-inline);
+  background: var(--editor-quote-surface);
+}
+
+/* ── 标注块（callout，PRD-06-011，Obsidian 对标） ──────────────────────────
+   两个渲染面（Live Preview 的行装饰 / 阅读模式的 <details>）共用同一套色调变量：
+   `--callout-*` 由 `[data-callout]` 一处赋值，容器与标签各取所需，避免两面各调一次
+   颜色而慢慢分叉。**刻意不做图标**——理由见 `@lunarca/editor-core/callout` 模块注释。 */
+[data-callout="note"] {
+  --callout-accent: var(--color-accent);
+  --callout-surface: var(--color-accent-surface);
+}
+
+[data-callout="success"] {
+  --callout-accent: var(--color-status-success);
+  --callout-surface: var(--color-status-success-surface);
+}
+
+[data-callout="warning"] {
+  --callout-accent: var(--color-status-warning);
+  --callout-surface: var(--color-status-warning-surface);
+}
+
+[data-callout="danger"] {
+  --callout-accent: var(--color-status-error);
+  --callout-surface: var(--color-status-error-surface);
+}
+
+[data-callout="quote"] {
+  --callout-accent: var(--color-status-muted);
+  --callout-surface: var(--color-status-muted-surface);
+}
+
+/* Live Preview：整块每行同底同边条，首尾成角——正文始终是可编辑的真文本。 */
+.luna-md-surface .cm-line.luna-md-calloutline {
+  border-inline-start: var(--border-width-thick) solid var(--callout-accent);
+  --cm-line-pad-inline-start: var(--space-3);
+  background: var(--callout-surface);
+}
+
+.luna-md-surface .cm-line.luna-md-calloutline[data-callout-pos="head"],
+.luna-md-surface .cm-line.luna-md-calloutline[data-callout-pos="solo"] {
+  border-start-start-radius: var(--radius-sm);
+  border-start-end-radius: var(--radius-sm);
+  /* 容器**内缘**留白；块间距是另一个来源，二者在 integrations 收编条里相加。 */
+  --md-block-inset-start: var(--space-1);
+}
+
+.luna-md-surface .cm-line.luna-md-calloutline[data-callout-pos="tail"],
+.luna-md-surface .cm-line.luna-md-calloutline[data-callout-pos="solo"] {
+  border-end-start-radius: var(--radius-sm);
+  border-end-end-radius: var(--radius-sm);
+  --md-block-inset-end: var(--space-1);
+}
+
+/* 类型标签：两个渲染面同一枚胶囊（标签文字来自文档，不是界面文案）。 */
+.luna-md-callout__label {
+  display: inline-block;
+  margin-inline-end: var(--space-2);
+  padding-inline: var(--space-1-5);
+  border-radius: var(--radius-xs);
+  background: var(--callout-accent);
+  color: var(--color-bg-panel);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  vertical-align: baseline;
+}
+
+/* 阅读模式：原生 <details> 承载折叠语义（`> [!note]-`）。 */
+.luna-md-callout {
+  margin-block: var(--space-3);
+  border-inline-start: var(--border-width-thick) solid var(--callout-accent);
+  border-radius: var(--radius-sm);
+  background: var(--callout-surface);
+  padding: var(--space-2) var(--space-3);
+}
+
+.luna-md-callout__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  cursor: pointer;
+  list-style: none;
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.luna-md-callout__head::-webkit-details-marker {
+  display: none;
+}
+
+.luna-md-callout__title {
+  min-width: var(--space-0);
+}
+
+.luna-md-callout__body > :first-child {
+  margin-block-start: var(--space-2);
+}
+
+.luna-md-callout__body > :last-child {
+  margin-block-end: var(--space-0);
+}
+
+/* 列表行悬挂缩进（list-indent.ts 注入 `--md-hang` = 标记前缀的**渲染**宽度）：
+   在 CM 基线内距上再加 hang、等量负 text-indent 把首行拉回原位——于是软折行的
+   续行对齐在圆点右侧，而不是顶回行首；嵌套层级随前导空格自然递进。
+   块内的 `--md-hang: 0` 同时是守护认可的本地变量定义点（装饰逐行覆盖它）。
+   内距物理属性由 CM 集成层（`@lunarca/styles/codemirror.css`）单点负责（§3.3d）。 */
+.luna-md-surface .cm-line.luna-md-listline {
+  /* 行装饰逐行注入两份事实（`--md-hang-live` / `--md-hang-source`，见 list-indent.ts）：
+     Live 把无序标记换成定宽圆点 widget，源码模式原样显示裸字符，两个模式的前缀渲染
+     宽度不同。此处是两个变量的声明点（缺席装饰时为零），选用哪份按编辑器的
+     `data-view-mode` 决定，装饰零重建。 */
+  --md-hang-live: 0px;
+  --md-hang-source: 0px;
+  --md-hang: var(--md-hang-live);
+  --cm-line-pad-inline-start: calc(var(--space-1-5) + var(--md-hang));
+
+  text-indent: calc(-1 * var(--md-hang));
+}
+
+/* 引用块里的列表：引用内距与悬挂宽度**由这一条合并负责**（§3.3c——两个类各设
+   一遍同名变量就是两个负责者）。 */
+.luna-md-surface .cm-line.luna-md-quoteline.luna-md-listline {
+  --cm-line-pad-inline-start: calc(var(--space-3) + var(--md-hang));
+}
+
+/* 源码模式：悬挂改按裸字符前缀计（`--md-hang-source`），与可见的 `* ` 原文对齐。 */
+.luna-md-surface[data-view-mode="source"] .cm-line.luna-md-listline {
+  --md-hang: var(--md-hang-source);
+}
+
+/* 无序列表圆点（替换 `- ` 标记连同其后空格）：定宽 = 一格层级步长，使首行内容起点
+   与折行续行（`--md-hang`，同样按步长计）像素级对齐。字形与颜色取自
+   `--editor-list-marker-*` —— 阅读面的 `::marker` 消费同一组 Token（两面同源）。 */
+.luna-md-bullet {
+  --editor-list-marker: var(--editor-list-marker-1);
+
+  display: inline-block;
+  inline-size: var(--editor-list-indent);
+  /* 字形靠正文侧摆、再留一道字形→正文间隙（Typora 同形态）：缩进的空白落在字形
+     **前面**，字形与正文之间只隔 `--editor-list-marker-gap`。只有 `text-align: end`
+     没有这道间隙时，正文会贴着字形（真机反馈 2026-08-23 的「空白错位」）。 */
+  padding-inline-end: var(--editor-list-marker-gap);
+  text-align: end;
+  color: var(--editor-list-marker-color);
+  font-weight: var(--editor-list-marker-weight);
+}
+
+/* 有序列表编号（`1.`）：**不换 widget，只着色**——编号是作者敲进文档的真字符，换成
+   widget 就不可编辑了。装饰 mark 与语法高亮是嵌套两层 span（外层装饰、内层
+   `.luna-md-mark`，同下方 `.luna-md-link--unresolved` 那条实测结论），故后代选择器
+   那一条才是真正压过弱化色的；两条一起才完整。颜色/字重与无序字形同 Token。 */
+.luna-md-ordered-mark,
+.luna-md-ordered-mark .luna-md-mark {
+  color: var(--editor-list-marker-color);
+  font-weight: var(--editor-list-marker-weight);
+}
+
+.luna-md-bullet[data-depth="2"] {
+  --editor-list-marker: var(--editor-list-marker-2);
+}
+
+.luna-md-bullet[data-depth="3"] {
+  --editor-list-marker: var(--editor-list-marker-3);
+}
+
+.luna-md-bullet::before {
+  content: var(--editor-list-marker);
+}
+
+/* 水平分隔线（替换 `---`） */
+.luna-md-hrline {
+  display: inline-block;
+  inline-size: var(--size-full);
+  vertical-align: middle;
+  border-block-start: var(--border-width-thin) solid var(--color-border-default);
+}
+
+/* 表格块就地编辑（table-preview.ts，PRD-06-011；源码模式保留）。 */
+.luna-table-preview {
+  padding-block: var(--space-1);
+  overflow-x: auto;
+}
+
+/* 与阅读面同一种布局（`markdown.css`）：列宽随内容，放不下才横向滚动。
+   此前固定布局 + 100% 宽把多列宽表等分压窄，横向滚动条永远不出现，两面也长得不一样。 */
+.luna-table-preview table {
+  table-layout: auto;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.luna-table-preview th,
+.luna-table-preview td {
+  position: relative;
+}
+
+.luna-table-preview__input {
+  position: absolute;
+  inset: var(--space-0);
+  inline-size: 100%;
+  block-size: 100%;
+  padding: var(--space-1) var(--space-3);
+  border: none;
+  resize: none;
+  font: inherit;
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  opacity: 0;
+  cursor: text;
+  overflow-wrap: anywhere;
+}
+
+.luna-table-preview__input:focus {
+  opacity: 1;
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: calc(-1 * var(--outline-width-focus));
+}
+
+/* 网格态（单元格里按一次 Esc）：整格选中、不显示光标，看到的是渲染后的内容；
+   输入框仍持有焦点，打字或输入法第一下即回到编辑（table-preview.ts `enterGrid`）。 */
+.luna-table-preview__input[data-grid] {
+  opacity: 0;
+  caret-color: transparent;
+}
+
+/* 比 `tr:hover td` 多一层类型选择器：悬停在选中格上时选中态仍在。 */
+.luna-table-preview :is(thead, tbody) > tr > :is(th, td)[aria-selected="true"] {
+  background: var(--color-bg-selected);
+  outline: var(--outline-width-focus) solid var(--color-focus-ring);
+  outline-offset: calc(-1 * var(--outline-width-focus));
+}
+
+/* 表格 + 右侧「加列」窄条 + 下方「加行」窄条（table-preview.ts `frame`）。窄条与把手悬停才显，
+   键盘聚焦时也显（`:focus-visible`），不常驻占位——此前表格下方四个按钮一直挂着是视觉噪声。 */
+.luna-table-preview__frame {
+  display: inline-grid;
+  grid-template-columns: auto var(--space-4);
+  grid-template-rows: auto var(--space-4);
+  min-inline-size: 60%;
+}
+
+.luna-table-preview__frame > table {
+  grid-column: 1;
+  grid-row: 1;
+  min-inline-size: 100%;
+}
+
+.luna-table-preview__append {
+  padding: var(--space-0);
+  border: var(--border-width-thin) dashed var(--color-border-subtle);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.luna-table-preview__append--column {
+  grid-column: 2;
+  grid-row: 1;
+  margin-inline-start: var(--space-1);
+}
+
+.luna-table-preview__append--row {
+  grid-column: 1;
+  grid-row: 2;
+  margin-block-start: var(--space-1);
+}
+
+.luna-table-preview__handle {
+  position: absolute;
+  z-index: 1;
+  padding: var(--space-0) var(--space-1);
+  border: none;
+  border-radius: var(--radius-xs);
+  background: var(--color-bg-panel);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1;
+  cursor: grab;
+  opacity: 0;
+}
+
+.luna-table-preview__handle--row {
+  inset-block-start: var(--space-1);
+  inset-inline-start: var(--space-0);
+}
+
+.luna-table-preview__handle--column {
+  inset-block-start: var(--space-0);
+  inset-inline-end: var(--space-1);
+}
+
+.luna-table-preview:hover .luna-table-preview__append,
+.luna-table-preview tr:hover > :first-child > .luna-table-preview__handle--row,
+.luna-table-preview th:hover > .luna-table-preview__handle--column,
+.luna-table-preview__append:focus-visible,
+.luna-table-preview__handle:focus-visible {
+  opacity: 1;
+}
+
+.luna-table-preview[data-dragging] {
+  cursor: grabbing;
+}
+
+/* 拖动把手时的插入线：落点行的上沿 / 落点列的起始沿。 */
+.luna-table-preview :is(th, td)[data-drop-target="row"] {
+  box-shadow: inset 0 var(--border-width-thick) 0 var(--color-accent);
+}
+
+.luna-table-preview :is(th, td)[data-drop-target="column"] {
+  box-shadow: inset var(--border-width-thick) 0 0 var(--color-accent);
+}
+
+.luna-table-preview__append:hover,
+.luna-table-preview__handle:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-muted);
+}
+
+.luna-table-preview th,
+.luna-table-preview td {
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  padding: var(--space-1) var(--space-3);
+  /* 至少一行字高：格里的输入框是绝对定位的，空格子没有行盒，整行只剩内边距那么高
+     （真机 2026-10-04：新插的空表扁成几道线，点不进去）。表格单元格上 block-size 即最小高度。 */
+  block-size: 1lh;
+  text-align: start;
+  cursor: text;
+}
+
+/* 每列至少约六个字宽，放不下才横向滚动——与阅读面同一最窄宽度（`markdown.css`）。中文可在任意两字间断行，不设最窄宽度时
+   自动表格布局把每列压到一个字宽。WebKit 不认单元格上的 min-width（CSS 2.1 未定义），故由一个
+   零高的块占住最小内容宽度。 */
+.luna-table-preview :is(th, td)::before {
+  content: "";
+  display: block;
+  inline-size: var(--table-cell-min-inline);
+}
+
+.luna-table-preview th {
+  background: var(--color-bg-panel);
+  font-weight: 600;
+}
+
+.luna-table-preview th[data-align="center"],
+.luna-table-preview td[data-align="center"] {
+  text-align: center;
+}
+
+.luna-table-preview th[data-align="right"],
+.luna-table-preview td[data-align="right"] {
+  text-align: end;
+}
+
+.luna-table-preview tr:hover td {
+  background: var(--color-bg-muted);
+}
+
+.luna-table-preview code {
+  font-family: var(--font-family-mono);
+  background: var(--editor-code-inline-surface);
+  color: var(--editor-code-inline-color);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-xs);
+  font-size: var(--editor-code-inline-font-size);
+}
+
+.luna-table-preview__link {
+  color: var(--editor-link-color);
+}
+
+/* ─── 块级纵向节奏（block-spacing.ts，Live 与源码两模式共用）──────────────────
+   只能是 `padding-block-start`，不能是 margin**：CM6 按 `.cm-line` 的盒高做行高
+   测量与滚动定位，纵向 margin 不计入该盒（且相邻块会合并），会让测量值与实际渲染错开。
+   padding 计入盒高，与 `.luna-md-codeblock-line--first/--last` 已在用的内缘留白同一机制。
+   物理属性归 integrations 收编条单点负责（§3.3d），此处只表达设计意图：块起始行拿到
+   块间距，标题行再加一份章节留白。取值与阅读模式同源（TDD-15 §3.4a）。
+   上一行是空行时块间距为零**（block-spacing.ts 的 `data-tight` 只在上一行非空时给）：
+   空行本身就是一整行高的 `.cm-line`，它已经兑现了"块间距 = 一个正文行高"这一目标值，
+   再加一份就是双份（真机 2026-09-04「段落间距太大」）。标题的章节留白不看空行，恒加。 */
+.luna-md-surface .cm-line.luna-md-blockline {
+  --md-block-gap: var(--space-0);
+}
+
+.luna-md-surface .cm-line.luna-md-blockline[data-tight] {
+  --md-block-gap: var(--editor-block-gap);
+}
+
+.luna-md-surface .cm-line.luna-md-blockline[data-block="heading"] {
+  --md-block-gap: var(--editor-heading-gap);
+}
+
+.luna-md-surface .cm-line.luna-md-blockline[data-block="heading"][data-tight] {
+  --md-block-gap: calc(var(--editor-block-gap) + var(--editor-heading-gap));
+}
+
+/* ─── Markdown 就地渲染样式（PRD-06-011/016，class 由 markdown-style.ts 输出） ─── */
+/* 行高是**标题自己的一档**（`--editor-heading-line-height`），阅读面消费同一个值。
+   给 `.cm-line` 内的 inline span 设行高是安全的：行盒高度取「strut 与各 inline 盒的
+   最大值」，而标题的字号本来就已经在改这个最大值——CM6 逐行**实测** DOM 高度做行高
+   测量与滚动定位，改的是同一个被测量的量，不是绕过它。 */
+.luna-md-h1,
+.luna-md-h2,
+.luna-md-h3,
+.luna-md-h4,
+.luna-md-h5,
+.luna-md-h6 {
+  font-weight: 700;
+  line-height: var(--editor-heading-line-height);
+}
+
+/* h6 是标题阶梯的末档，刻意退到次要色（见下）——故主文本色只发给 h1–h5，不靠"后面再覆盖
+   一次"取胜（TDD-15 §3.3b）。 */
+.luna-md-h1,
+.luna-md-h2,
+.luna-md-h3,
+.luna-md-h4,
+.luna-md-h5 {
+  color: var(--color-text-primary);
+}
+
+/* 阶梯走**正文比例阶** Token（阅读模式消费同一组），不再各挑一档界面字号：
+   界面档在正文 16px 面前挤成 h4/h5/h6 只差 1–2px，末两档只能靠字重硬撑。 */
+.luna-md-h1 {
+  font-size: var(--editor-h1-font-size);
+}
+
+.luna-md-h2 {
+  font-size: var(--editor-h2-font-size);
+}
+
+.luna-md-h3 {
+  font-size: var(--editor-h3-font-size);
+}
+
+.luna-md-h4 {
+  font-size: var(--editor-h4-font-size);
+}
+
+.luna-md-h5 {
+  font-size: var(--editor-h5-font-size);
+}
+
+.luna-md-h6 {
+  font-size: var(--editor-h6-font-size);
+  color: var(--color-text-secondary);
+}
+
+/* 通用 heading（`#` 标记、GFM 表头单元格）：加粗不加字号。 */
+.luna-md-heading {
+  font-weight: 600;
+}
+
+.luna-md-strong {
+  font-weight: 700;
+}
+
+.luna-md-em {
+  font-style: italic;
+}
+
+.luna-md-del {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+/* 行内代码：底色/前景/字号走 `--editor-code-inline-*`，阅读面的 `.luna-markdown code`
+   消费同一组 Token（此前一面 13px 界面档、一面 0.9em）。 */
+.luna-md-code {
+  padding-inline: var(--space-0-5);
+  border-radius: var(--radius-xs);
+  background: var(--editor-code-inline-surface);
+  color: var(--editor-code-inline-color);
+  font-family: var(--font-family-mono);
+  font-size: var(--editor-code-inline-font-size);
+}
+
+/* ─── 代码块整块容器（code-block-lines.ts，PRD-06-011 Typora 对标）──────────
+   围栏/缩进代码块逐行铺底色（含 fence 行与空行），首末行圆角成块；
+   块内文本的行内代码胶囊底色归零（块底色已承担），保留等宽字体。 */
+.luna-md-surface .cm-line.luna-md-codeblock-line {
+  background: var(--code-surface);
+  border-inline-start: var(--border-width-thick) solid var(--code-border);
+  --cm-line-pad-inline-start: var(--space-3);
+  --cm-line-pad-inline-end: var(--space-3);
+  color: var(--code-text);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  font-variant-ligatures: none;
+  tab-size: var(--code-tab-size);
+}
+
+.luna-md-surface .cm-line.luna-md-codeblock-line--first {
+  background: var(--code-surface-header);
+  border-start-start-radius: var(--radius-sm);
+  border-start-end-radius: var(--radius-sm);
+  --md-block-inset-start: var(--space-1);
+  /* 复制按钮的定位基准（下一条）。首行同时是"语言标题条"，与阅读面代码块的头条对位。 */
+  position: relative;
+}
+
+/* 「复制代码」按钮的挂载点（code-block-lines.ts 的 widget；按钮本体是阅读面同一个
+   React 组件）。**绝对定位**：不占行盒、不参与 CM6 的行高测量与滚动定位，等同于
+   它不在文本流里——这条与「块间距只能是 padding、绝不能是 margin」出于同一个约束。 */
+.luna-md-code-copy {
+  position: absolute;
+  inset-inline-end: var(--space-1);
+  inset-block-start: var(--space-0);
+}
+
+.luna-md-surface .cm-line.luna-md-codeblock-line--last {
+  border-end-start-radius: var(--radius-sm);
+  border-end-end-radius: var(--radius-sm);
+  --md-block-inset-end: var(--space-1);
+}
+
+/* Live Preview 的围栏投影：未触及围栏行时只显示语言 Info String，不显示 Markdown
+   反引号/波浪线。文本仍在 CM 文档中；光标或选区触及该行即由装饰撤回，完整源码可编辑。 */
+.luna-md-surface .cm-line.luna-md-codeblock-line--fence-hidden .luna-md-meta,
+.luna-md-surface .cm-line.luna-md-codeblock-line--fence-hidden .luna-md-label {
+  color: var(--code-text);
+  font-family: inherit;
+  font-weight: 700;
+}
+
+.luna-md-codeblock-line .luna-md-code {
+  background: transparent;
+  padding-inline: var(--space-0);
+  border-radius: var(--radius-none);
+  /* 块内已是代码字号，行内胶囊不再按正文比例二次缩放。 */
+  font-size: inherit;
+}
+
+/* 引用正文只退次级色，**不斜体**：理由（中日文无真斜体字形、业界一致不斜体）写在
+   `--editor-quote-text` 的定义处，此处不复写。 */
+.luna-md-quote {
+  color: var(--editor-quote-text);
+}
+
+/* 链接文字：常态**只有颜色**（Token 与阅读面同源）。源码模式显示的是源码、点不动，
+   故这一条只取常态那一半。 */
+.luna-md-link {
+  color: var(--editor-link-color);
+}
+
+/* 折叠成一段文字的 `[文本](目标)`（live preview）——它**点得动**（`md-link.ts`），
+   故给指针与 hover 下划线，与阅读面那一份长相一致。这个类只在折叠态挂上，源码模式下
+   不存在，于是"点一下想改 URL"不会变成"跳走了"。 */
+.luna-md-linkbody {
+  cursor: pointer;
+}
+
+.luna-md-linkbody:hover {
+  text-decoration: underline;
+  text-underline-offset: var(--editor-link-underline-offset);
+}
+
+/* 解析不到定义的引用式链接（`[1]`、`[3][5]`、`list[1]`）：收回链接色。
+   理由见 live-preview.ts 的 `unresolvedLinkMark`——它不是链接，就不该长得像链接。
+   后代选择器那一条才是干活的**：真实浏览器实测，CM6 把本装饰渲染成**外层** span，
+   语法高亮的 `.luna-md-link` 是它的**子** span：
+     <span class="luna-md-link--unresolved"><span class="luna-md-link">4</span>…</span>
+   只写 `.luna-md-link--unresolved` 的话，颜色被子元素自己的规则覆盖，修复静默失效
+   （本仓库无 jsdom，单测证明不了这件事——同 TDD-15 §3.3d「验证不能靠推理」）。
+   第一个选择器留着覆盖装饰未包住的边角字符，两条一起才是完整的。 */
+.luna-md-link--unresolved,
+.luna-md-link--unresolved .luna-md-link {
+  color: var(--color-text-primary);
+}
+
+.luna-md-url {
+  color: var(--editor-link-color);
+}
+
+.luna-md-atom,
+.luna-md-label {
+  color: var(--color-accent);
+}
+
+.luna-md-hr {
+  color: var(--color-border-strong);
+  font-weight: 600;
+}
+
+.luna-md-escape {
+  color: var(--color-status-attention);
+}
+
+.luna-md-comment {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* 语法标记字符（**、`、表格分隔线等）与元信息弱化，正文内容突出。 */
+.luna-md-mark,
+.luna-md-meta {
+  color: var(--color-text-muted);
+}
+
+/* ─── 专注模式（PRD-06-014，Typora 对标）：淡化非活动逻辑行（= Markdown 段落） ── */
+.luna-md-surface[data-focus] .cm-line:not(.cm-activeLine) {
+  opacity: var(--editor-focus-dim-opacity);
+  transition: opacity var(--transition-base);
+}
+
+/* 任务列表复选框（点击就地改写 [ ]/[x]，markdown-decorations.ts）。 */
+.luna-md-task-checkbox {
+  inline-size: var(--font-size-sm);
+  block-size: var(--font-size-sm);
+  margin: var(--space-0);
+  margin-inline-end: var(--space-0-5);
+  vertical-align: text-top;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+/* 就地图片渲染（Live Preview 内联，PRD-06-011/013）。 */
+.luna-md-image-embed {
+  position: relative;
+  display: inline-block;
+  max-inline-size: var(--size-full);
+  vertical-align: top;
+}
+
+/* 写了宽度（`![说明|300]`，对标方案 D4）就按它显示：放开默认的显示上限，只保留不超出正文列。
+   编辑面与阅读面同一条（TDD-15 §3.4a）。 */
+.luna-md-image-embed .luna-md-image[width] {
+  max-inline-size: var(--size-full);
+  max-block-size: none;
+}
+
+/* 悬停才显的「看大图」与右下角缩放把手。 */
+.luna-md-image-embed__view,
+.luna-md-image-embed__resize {
+  position: absolute;
+  opacity: 0;
+}
+
+.luna-md-image-embed__view {
+  inset-block-start: var(--space-1);
+  inset-inline-end: var(--space-1);
+  padding: var(--space-0-5) var(--space-1-5);
+  border: none;
+  border-radius: var(--radius-xs);
+  background: var(--color-bg-panel);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.luna-md-image-embed__resize {
+  inset-block-end: var(--space-0);
+  inset-inline-end: var(--space-0);
+  inline-size: var(--space-3);
+  block-size: var(--space-3);
+  border-inline-end: var(--border-width-thick) solid var(--color-accent);
+  border-block-end: var(--border-width-thick) solid var(--color-accent);
+  cursor: nwse-resize;
+}
+
+.luna-md-image-embed:hover .luna-md-image-embed__view,
+.luna-md-image-embed:hover .luna-md-image-embed__resize,
+.luna-md-image-embed__view:focus-visible {
+  opacity: 1;
+}
+
+.luna-md-image-embed .luna-md-image {
+  max-inline-size: min(var(--size-full), var(--editor-image-max-inline));
+  max-block-size: var(--editor-image-max-block);
+  block-size: auto;
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+}
+
+.luna-md-image-embed[data-broken="true"] {
+  color: var(--color-text-muted);
+  font-style: italic;
+  border-block-end: var(--border-width-thin) dashed var(--color-border-default);
+}
+
+/* ─── Frontmatter Folding Visuals ───────────────────────────────────────── */
+.luna-frontmatter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  margin-block-end: var(--space-2);
+  margin-inline-start: var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: var(--color-bg-muted);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+}
+
+.luna-frontmatter-toggle:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-focus);
+}
+
+.luna-frontmatter-toggle__icon {
+  font-size: 1.1em;
+}
+
+.luna-frontmatter-toggle__action {
+  opacity: 0.7;
+}
+
+/* 源码模式里的 frontmatter：YAML 原文，等宽、淡一档，与正文分开（ADR-139 真机修订）。 */
+.luna-frontmatter-line {
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+}
+
+/* 属性面板的挂载外框（面板本身是宿主的组件，`EditorHost.PropertiesPanel`）。 */
+.luna-frontmatter-panel {
+  margin-block-end: var(--space-3);
+}
+
+/* 编辑面的脚注上标是裸 <sup>（rich-preview.ts），阅读面那份是带内距的按钮：补同样的左右内距，
+   两面一样宽，也不至于只有几像素宽、点不中（真机 2026-10-04）。 */
+.luna-md-surface .luna-footnote-ref {
+  padding-inline: var(--space-0-5);
+}

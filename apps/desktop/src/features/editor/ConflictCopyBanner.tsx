@@ -11,7 +11,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { DiffView } from "../../components/ui/DiffView";
+import { DiffView } from "@lunarca/editor-core/DiffView";
 import { useConfirm } from "../../components/ConfirmHost";
 import { commands, type ConflictCopyDto, type LineDiffDto } from "../../ipc/bindings";
 import { vaultErrorText } from "../../lib/vault-error";

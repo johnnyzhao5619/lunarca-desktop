@@ -20,7 +20,7 @@ import {
 import { IconButton } from "../../components/ui/IconButton";
 import { useTranslation } from "react-i18next";
 import type { NoteTypeDto, SearchHitDto } from "../../ipc/bindings";
-import { DiscIcon, FileIcon, FilmIcon, FolderPlusIcon } from "../../components/ui/Icon";
+import { DiscIcon, FileIcon, FilmIcon, FolderPlusIcon } from "@lunarca/editor-core/Icon";
 import { distillFolderAction } from "../distill/distill-actions";
 import { graphScopeSubmenu } from "../knowledge/graph-scope-menu";
 import { useGraphTagExclusions } from "../knowledge/use-graph-tag-exclusions";

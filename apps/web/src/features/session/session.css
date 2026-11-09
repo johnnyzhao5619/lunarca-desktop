@@ -1,0 +1,104 @@
+/* 登录页与锁屏（同一张卡片）。 */
+
+.luna-web-auth {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 0;
+  overflow: auto;
+  padding: var(--space-4);
+}
+
+.luna-web-auth__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  inline-size: 100%;
+  max-inline-size: var(--web-auth-card-max-inline);
+  padding: var(--space-5);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.luna-web-auth__title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+}
+
+.luna-web-auth__subtitle,
+.luna-web-auth__account {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.luna-web-auth__notice {
+  margin: 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--color-status-attention-surface);
+  color: var(--color-text-primary);
+}
+
+.luna-web-auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.luna-web-auth__or {
+  margin: 0;
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.luna-web-auth__providers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.luna-web-auth__signup {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* 会话结束时没来得及保存的那几篇（PRD-21-004）：名字 + 复制。 */
+.luna-web-unsaved {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.luna-web-unsaved__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.luna-web-unsaved__path {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.luna-web-language {
+  inline-size: auto;
+}
+
+.luna-web-auth__switch {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

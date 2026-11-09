@@ -7,7 +7,7 @@ import { createElement } from "react";
 import { describe, expect, it } from "vitest";
 
 import type { ModelInstallPlanDto } from "../../ipc/bindings";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { ModelInstallPlanCard } from "./ModelInstallPlanCard";
 import { renderWithSettingsHosts, translateForTest } from "./settings-test-fixture";
 

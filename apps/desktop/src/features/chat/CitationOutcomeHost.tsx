@@ -10,7 +10,7 @@
 import { useEffect, useState } from "react";
 import { IconButton } from "../../components/ui/IconButton";
 import { useTranslation } from "react-i18next";
-import { CloseIcon } from "../../components/ui/Icon";
+import { CloseIcon } from "@lunarca/editor-core/Icon";
 import { CITATION_OUTCOME_EVENT, type CitationOutcomeDetail } from "../../lib/app-events";
 
 const AUTO_DISMISS_MS = 6_000;

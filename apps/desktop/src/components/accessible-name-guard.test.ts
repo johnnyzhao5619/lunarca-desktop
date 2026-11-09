@@ -13,7 +13,7 @@
 
 import { describe, expect, it } from "vitest";
 
-const TSX = import.meta.glob("../{app,features,components}/**/*.tsx", {
+const TSX = import.meta.glob(["../{app,features,components}/**/*.tsx", "../../../../packages/*/src/**/*.tsx"], {
   eager: true,
   import: "default",
   query: "?raw",
@@ -79,6 +79,7 @@ describe("可访问名", () => {
   it("扫描面非空（glob 失效时本用例先红）", () => {
     expect(Object.keys(TSX).length).toBeGreaterThan(50);
     expect(TSX[PRIMITIVE]).toBeTypeOf("string");
+    expect(Object.keys(TSX).some((path) => path.includes("/packages/editor-core/src/")), "共享渲染包不在扫描面里").toBe(true);
   });
 
   it("只有图标的按钮都念得出自己是什么", () => {

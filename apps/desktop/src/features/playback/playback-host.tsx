@@ -41,7 +41,7 @@ import {
   MusicIcon,
   PauseIcon,
   PlayIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import {
   usePlayback,
   type PlaybackActions,
@@ -58,7 +58,7 @@ import {
   type FloatPosition,
   type VideoLayout,
 } from "./video-stage";
-import { shouldStartDrag } from "../../lib/pointer-drag";
+import { shouldStartDrag } from "@lunarca/editor-core/drag-threshold";
 import { NowPlayingBar } from "./NowPlayingBar";
 import { goTo } from "../../lib/navigate";
 import { PLAYBACK_AT_EVENT, type PlaybackAtDetail } from "../../lib/app-events";

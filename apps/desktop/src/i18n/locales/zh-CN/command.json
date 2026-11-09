@@ -39,6 +39,7 @@
     "transcripts": "前往：转写",
     "chat": "前往：AI 对话",
     "creator": "前往：创作",
+    "teleprompter": "前往：提词器",
     "apps": "前往：应用",
     "trash": "前往：回收站",
     "settings": "前往：设置"
@@ -54,5 +55,10 @@
     "swipe_library": "创作：打开灵感库",
     "teleprompter": "创作：打开这个项目的提词器",
     "publish": "创作：打开这个项目的发布清单"
+  },
+  "teleprompter": {
+    "open_current": "提词器：在提词器中打开这篇",
+    "new_draft": "提词器：新建提词稿",
+    "from_clipboard": "提词器：从剪贴板新建提词稿"
   }
 }

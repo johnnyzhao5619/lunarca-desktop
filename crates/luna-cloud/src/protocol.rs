@@ -101,7 +101,7 @@ use serde::{Deserialize, Serialize};
 /// 允许放宽 TLS 校验的两条，[`crate::first_contact`]）、`/opaque/session`（只走钉住的 TLS，领取凭据换设备
 /// 会话或注册授权）与 `/opaque/register/{start,finish}`（带 Bearer 注册口令）；新增 `POST /v1/auth/signup/start`；
 /// 新错误码 `410 login_expired`。口令不离开设备，服务端的 TLS 根证书与两把签名公钥随信任包经会话密钥送达
-/// （[`crate::opaque_auth`]）。服务端 `MIN_CLIENT_PROTOCOL` 同批抬到 16，新字段一律必填（ADR-046）。
+/// （`luna_opaque`）。服务端 `MIN_CLIENT_PROTOCOL` 同批抬到 16，新字段一律必填（ADR-046）。
 /// **v17（债务批 D1，破坏性）**：`GET /v1/billing/plans` 的 `billing_rules` 去掉 `micro_credits_per_credit`
 /// ——换算比是协议量纲（[`crate::billing::MICRO_CREDITS_PER_CREDIT`]），不随价目下发；
 /// `GET /v1/account/deletion-preview` 恒带 `deletion`（`allowed` / `blocked { reason: last_org_owner }`，

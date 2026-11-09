@@ -27,7 +27,7 @@ import {
 import type { RemoteVaultDto, SyncOverviewDto, VaultSyncDto } from "../../ipc/bindings";
 import { ConfirmHost } from "../../components/ConfirmHost";
 import { t, withI18n } from "../../i18n/i18n-test-fixture";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { formatDate, formatDateTime } from "../../lib/format-datetime";
 import { SyncSection } from "./SyncSection";
 
@@ -215,7 +215,7 @@ describe("云同步一节", () => {
       name: "家里",
       is_open: false,
       phase: "other_account",
-      bound_account: "jo***@gmail.com",
+      bound_account: { label: "jo***@gmail.com", server_host: "10.0.0.62:8443", server_official: false },
       display_path: "~/v/home",
     });
 
@@ -223,15 +223,17 @@ describe("云同步一节", () => {
       setCommandReply("syncOverview", { status: "ok", data: overview([ELSEWHERE, SYNCED]) });
     });
 
-    it("开关为关，写明连在哪个账户下，不报错、不给暂停与恢复", async () => {
+    it("开关为关，写明连在哪台服务器的哪个账户下，不报错、不给暂停与恢复", async () => {
       const view = mount();
       await waitFor(() => expect(switchOf(view, "家里")).toBeTruthy());
       expect(switchOf(view, "家里").getAttribute("aria-checked")).toBe("false");
       const row = view.container.querySelectorAll("li.cloud-sync__vault")[0];
       const status = row.querySelector(".cloud-sync__status");
       expect(status?.textContent).toBe(
-        t("cloud:sync.phase.other_account", { account: "jo***@gmail.com" }),
+        t("cloud:sync.phase.other_account", { account: "jo***@gmail.com", server: "10.0.0.62:8443" }),
       );
+      // 同一个邮箱可能在两台服务器上各有一个账户：只写邮箱就与此刻登录的那个一字不差。
+      expect(status?.textContent).toContain("10.0.0.62:8443");
       expect(status?.getAttribute("data-tone")).toBe("muted");
       expect(row.textContent).toContain(t("cloud:sync.other_account"));
       expect(row.querySelector("[data-tone=error]")).toBeNull();
@@ -301,6 +303,17 @@ describe("云同步一节", () => {
     await waitFor(() =>
       expect(view.queryByText(t("cloud:sync.cloud_vaults.title"))).toBeNull(),
     );
+  });
+
+  it("同步完成一轮就重取云端库，大小与更新时间不停在旧值", async () => {
+    setCommandReply("syncCloudVaults", { status: "ok", data: [] });
+    const linked = { ...vault(), phase: "idle" as const, remote_vault_id: "remote-work" };
+    const view = mount();
+    expect(await view.findByText(t("cloud:sync.cloud_vaults.title"))).toBeTruthy();
+    act(() => emitEvent("syncStatus", overview([{ ...linked, last_synced_ms: 1000 }, SYNCED])));
+    await waitFor(() => expect(commandMock("syncCloudVaults")).toHaveBeenCalledTimes(2));
+    act(() => emitEvent("syncStatus", overview([{ ...linked, last_synced_ms: 2000 }, SYNCED])));
+    await waitFor(() => expect(commandMock("syncCloudVaults")).toHaveBeenCalledTimes(3));
   });
 
   it("单库暂停只动那一行；全部暂停可选时长，暂停中给恢复", async () => {

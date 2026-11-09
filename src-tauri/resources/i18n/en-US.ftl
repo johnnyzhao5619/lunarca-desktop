@@ -52,6 +52,10 @@ teleprompter-no-script = No script is open in the teleprompter yet.
 teleprompter-no-line = Couldn't find that line on the teleprompter. The script may have just changed.
 teleprompter-retake-once = Retake · { $times }
 teleprompter-retake-many = Retake ×{ $count } · { $times }
+teleprompter-follow-off = Follow-along is off. Turn it on from the Teleprompter home or the panel menu.
+teleprompter-clipboard-empty = There's no text on the clipboard.
+teleprompter-draft-title = Script { $time }
+teleprompter-file-unsupported = The teleprompter reads .txt, .md, .docx, .pdf, .html, .rtf, .doc and .odt files. Spreadsheets and scanned PDFs can't be read aloud.
 window-title-screenshot = Lunarca Screenshot Translate
 window-title-desktop-lens = Lunarca Translate Space
 window-title-desktop-lens-trigger = Lunarca Translate Space Controls
@@ -248,7 +252,7 @@ empty-result-note = The result is empty; there is nothing to save into a note.
 empty-result-lens-note = The result is empty; there is nothing to save into a Lens note.
 vault-missing-path-gone = The vault path no longer exists: { $path }
 vault-missing-open-failed = The vault could not be opened: { $error }
-vault-in-cloud = The files of the vault at { $path } are still in iCloud and are downloading to this Mac. Try again in a moment, or right-click the folder in Finder and choose “Keep Downloaded”.
+vault-in-cloud = The files of the vault at { $path } are still in iCloud. Lunarca has asked iCloud to download them to this Mac; iCloud downloads can be slow, so try again later, or right-click the folder in Finder and choose “Keep Downloaded”.
 vault-switch-busy = Some tasks could not be paused in time, so the switch was cancelled. Try again shortly.
 vault-queue-save-failed = Pending tasks could not be saved to the vault, so the switch was cancelled. Check disk space and folder permissions, then try again.
 vault-switch-recording = A recording is in progress. Stop it before switching vaults.
@@ -265,6 +269,7 @@ strict-local-blocked-image = Strict local mode is on, so downloading the remote 
 url-rejected = Only http/https image links are supported.
 vault-not-registered = That folder is not in your vault list. Add it under Manage vaults first.
 vault-window-is-active = This vault is already open in the main window, so a separate window is not needed.
+app-restarting = Lunarca is saving and restarting. Try opening the window again in a moment.
 
 # 批次 J′：够不着 AppHandle 的那一批（ADR-107）。
 vault-switching = Switching vaults. Try again in a moment.

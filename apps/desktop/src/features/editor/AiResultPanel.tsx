@@ -10,14 +10,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { FloatingMenuLanding, FloatingMenuScope } from "../../ipc/bindings";
-import { MarkdownContent } from "../../components/markdown/MarkdownContent";
+import { MarkdownContent } from "@lunarca/editor-core/MarkdownContent";
+import { desktopMarkdownHost } from "../../components/markdown/markdown-host";
 import { ResultActionBar } from "../popup-translate/ResultActionBar";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   SendIcon,
   StopCircleIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { applyChanges, diffChanges, diffSegments, type DiffChange } from "./ai-diff";
 import type { FloatingMenuResult } from "./use-floating-menu";
 import { isImeKeyEvent } from "../../lib/ime-key-event";
@@ -66,6 +67,11 @@ interface AiResultPanelProps {
   onExplain: (change: DiffChange) => Promise<string>;
   /** 转入后台（只有整篇作用域给得出）；`null` = 这一轮不能转。 */
   onBackground: (() => void) | null;
+  /**
+   * 「压到 N 秒」这一轮（ADR-176 ⑧）：目标秒数与估时（Rust 按本人语速算）；结果下面写清约几秒、
+   * 超了多出几秒。`null` = 这一轮不是按时长压缩。
+   */
+  fitTarget: { seconds: number; estimate: (text: string) => Promise<number | null> } | null;
 }
 
 /** 结果以逐条差异审阅、而不是整段替换的动作（作用域须为选区）。 */
@@ -75,6 +81,9 @@ const DIFF_REVIEW_ACTIONS: ReadonlySet<string> = new Set([
   "script_hook",
   "script_spoken",
   "script_dictation",
+  "prompter_spoken",
+  "prompter_fit",
+  "prompter_cues",
 ]);
 
 export function AiResultPanel({
@@ -96,6 +105,7 @@ export function AiResultPanel({
   onSavePreset,
   onExplain,
   onBackground,
+  fitTarget,
 }: AiResultPanelProps) {
   const { t } = useTranslation("editor");
   const outputRef = useRef<HTMLDivElement | null>(null);
@@ -146,6 +156,25 @@ export function AiResultPanel({
   );
   const landingText = reviewByDiff ? applyChanges(originalText, changes, accepted) : result.output;
   const canLand = canUseResult && !showOriginal && (!reviewByDiff || accepted.size > 0);
+
+  // 按时长压缩：估的是「接受后会写进正文的那一版」，逐条取舍时跟着变。
+  const [fitSeconds, setFitSeconds] = useState<number | null>(null);
+  useEffect(() => {
+    if (!fitTarget || !canUseResult) {
+      setFitSeconds(null);
+      return;
+    }
+    let live = true;
+    void fitTarget.estimate(landingText).then((seconds) => {
+      if (live) {
+        setFitSeconds(seconds);
+      }
+    });
+    return () => {
+      live = false;
+    };
+  }, [fitTarget, canUseResult, landingText]);
+  const fitOver = fitTarget && fitSeconds !== null ? fitSeconds - fitTarget.seconds : null;
 
   // 流式输出跟到底：用户看的是「正在写到哪」，不是开头。
   useEffect(() => {
@@ -261,6 +290,16 @@ export function AiResultPanel({
           {result.message ? `: ${result.message}` : ""}
         </p>
       ) : null}
+      {fitTarget && fitSeconds !== null && fitOver !== null ? (
+        <p
+          className={fitOver > 0 ? "luna-floating-menu__notice" : "luna-floating-menu__fit"}
+          role="status"
+        >
+          {fitOver > 0
+            ? t("floating.prompter.fit_over", { secs: fitSeconds, target: fitTarget.seconds, over: fitOver })
+            : t("floating.prompter.fit_ok", { secs: fitSeconds, target: fitTarget.seconds })}
+        </p>
+      ) : null}
       {reviewByDiff && done ? (
         <div className="luna-floating-menu__output luna-floating-menu__diff">
           {changes.length === 0 ? (
@@ -342,7 +381,7 @@ export function AiResultPanel({
         </pre>
       ) : result.output ? (
         <div ref={outputRef} className="luna-floating-menu__output">
-          <MarkdownContent content={result.output} streaming={running} />
+          <MarkdownContent host={desktopMarkdownHost} content={result.output} streaming={running} />
         </div>
       ) : null}
       {canUseResult ? (
@@ -356,7 +395,7 @@ export function AiResultPanel({
                 disabled={!canLand}
                 title={
                   index === 0
-                    ? t("toolbar.labelShortcut", {
+                    ? t("editor-core:editor.toolbar.labelShortcut", {
                         label: t(`floating.action.${landing}`),
                         shortcut: acceptShortcut,
                       })

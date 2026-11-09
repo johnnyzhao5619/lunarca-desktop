@@ -20,7 +20,7 @@
 import { useTranslation } from "react-i18next";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import { commands } from "../../ipc/bindings";
-import { TagsIcon } from "../../components/ui/Icon";
+import { TagsIcon } from "@lunarca/editor-core/Icon";
 import { FactRow } from "../../components/ui/FactRow";
 import type { GraphController } from "./use-graph-controller";
 

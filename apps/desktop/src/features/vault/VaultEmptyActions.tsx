@@ -10,7 +10,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { CloudVaultDto } from "../../ipc/bindings";
-import { DownloadIcon, FolderIcon, PlusIcon } from "../../components/ui/Icon";
+import { DownloadIcon, FolderIcon, PlusIcon } from "@lunarca/editor-core/Icon";
 import { sameStructure } from "../../hooks/use-store-selector";
 import { vaultErrorText } from "../../lib/vault-error";
 import { syncErrorText } from "../account/sync-error";

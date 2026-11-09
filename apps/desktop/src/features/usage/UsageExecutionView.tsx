@@ -22,7 +22,7 @@ import { useUsage, terminalStatusKind, type UsageRow } from "./use-usage";
 import { useContextMenu } from "../../components/ContextMenuHost";
 import { buildMenu, separator } from "../../lib/context-menu";
 import { commands } from "../../ipc/bindings";
-import { ArrowClockwiseIcon, CopyIcon, TrashIcon } from "../../components/ui/Icon";
+import { ArrowClockwiseIcon, CopyIcon, TrashIcon } from "@lunarca/editor-core/Icon";
 import type { StatusVisitMetrics } from "../../hooks/use-status-visit-metrics";
 
 export interface UsageExecutionViewProps {

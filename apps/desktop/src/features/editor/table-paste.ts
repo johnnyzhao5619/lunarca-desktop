@@ -1,9 +1,9 @@
 import type { EditorView } from "@codemirror/view";
 import { commands } from "../../ipc/bindings";
 import type { PasteAssetsContext } from "./paste-assets";
-import { cancelPaste, freezePaste, insertFrozenPaste, pasteRangeOf } from "./paste-range";
-import { tableCellText, tableFillSpec } from "./table-edit";
-import type { TableModel } from "./table-model";
+import { cancelPaste, freezePaste, insertFrozenPaste, pasteRangeOf } from "@lunarca/editor-core/paste-range";
+import { tableCellText, tableFillSpec } from "@lunarca/editor-core/table-edit";
+import type { TableModel } from "@lunarca/editor-core/table-model";
 
 /** 转换归 Rust；此处只冻结编辑范围、展示填充预览并应用 CM6 事务。 */
 export async function pasteTableCell(view: EditorView, input: HTMLTextAreaElement, model: TableModel,

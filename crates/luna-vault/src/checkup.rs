@@ -18,8 +18,9 @@
 //! 远高于"用户自己看一眼"的成本；一个会自动改笔记的体检器，错一次就够让人再也不敢开它。
 
 use crate::frontmatter::{NoteStage, NoteType};
-use crate::graph::{build_graph, GraphEdgeKind, GraphNodeKind, GraphRows, LinkIndex};
-use crate::hashing::ContentHash;
+use crate::graph::{build_graph, GraphEdgeKind, GraphNodeKind, GraphRows};
+use luna_sync_core::hashing::ContentHash;
+use luna_sync_core::links::LinkIndex;
 
 /// 发现的种类。**卡片文案由前端按种类查 i18n**——本模块只出种类与涉及对象，绝不出人读文案。
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -717,7 +718,7 @@ mod tests {
     fn note(path: &str, kind: &str, chars: u32, modified: i64) -> CheckupNote {
         CheckupNote {
             path: path.to_owned(),
-            title: crate::parse::title_of(path),
+            title: luna_sync_core::links::title_of(path),
             note_type: kind.to_owned(),
             is_topic: false,
             is_knowledge_map: false,

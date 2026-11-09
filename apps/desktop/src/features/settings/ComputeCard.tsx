@@ -8,7 +8,7 @@
 
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronDownIcon } from "../../components/ui/Icon";
+import { ChevronDownIcon } from "@lunarca/editor-core/Icon";
 import { goTo } from "../../lib/navigate";
 import { useAccount } from "../../hooks/use-account";
 import { refreshComputeStatus, useComputeStatus } from "../../hooks/use-compute-status";

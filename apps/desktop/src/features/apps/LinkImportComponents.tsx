@@ -40,7 +40,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands, type FetchToolUpdateDto } from "../../ipc/bindings";
-import { ArrowClockwiseIcon, DownloadIcon } from "../../components/ui/Icon";
+import { ArrowClockwiseIcon, DownloadIcon } from "@lunarca/editor-core/Icon";
 import { HudActionMenu, type HudActionMenuItem } from "../../components/ui/HudActionMenu";
 import { InstallGuide } from "../../components/InstallGuide";
 import { HelpDetails } from "../../components/ui/HelpDetails";

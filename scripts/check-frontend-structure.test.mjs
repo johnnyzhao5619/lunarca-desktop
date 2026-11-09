@@ -1,11 +1,17 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import {
   collectImportSpecifiers,
+  escapesPackage,
   findDependencyCycle,
   hasOpaqueDynamicImport,
   isProhibitedFeatureBarrel,
+  reachesIntoPackages,
 } from "./check-frontend-structure.mjs";
+
+const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 test("collects static, side-effect, re-export and dynamic imports", () => {
   const source = `
@@ -46,4 +52,21 @@ test("rejects feature barrel indexes without rejecting application entrypoints",
 test("rejects opaque dynamic imports but accepts literal dynamic imports", () => {
   assert.equal(hasOpaqueDynamicImport('const module = import("../alpha/a");'), false);
   assert.equal(hasOpaqueDynamicImport("const module = import(`../${feature}/entry`);"), true);
+});
+
+test("shared packages may not reach outside themselves through relative imports", () => {
+  const root = path.join(repositoryRoot, "packages/editor-core");
+  const file = path.join(root, "src/render/MarkdownContent.tsx");
+  assert.equal(escapesPackage(root, file, "../markdown/markdown"), false);
+  assert.equal(escapesPackage(root, file, "react"), false);
+  assert.equal(escapesPackage(root, file, "../../../../apps/desktop/src/ipc/bindings"), true);
+  // 同名前缀的兄弟目录不算包内（`editor-core-x` 不是 `editor-core`）。
+  assert.equal(escapesPackage(root, file, "../../../editor-core-x/src/a"), true);
+});
+
+test("app code uses shared packages by name, never by a relative path into packages/", () => {
+  const file = path.join(repositoryRoot, "apps/desktop/src/features/chat/ChatMarkdown.tsx");
+  assert.equal(reachesIntoPackages(file, "@lunarca/editor-core/MarkdownContent"), false);
+  assert.equal(reachesIntoPackages(file, "../../components/markdown/markdown-host"), false);
+  assert.equal(reachesIntoPackages(file, "../../../../../packages/editor-core/src/host"), true);
 });

@@ -32,7 +32,7 @@ import {
   HardDriveIcon,
   PencilIcon,
   PlusIcon,
-} from "../../components/ui/Icon";
+} from "@lunarca/editor-core/Icon";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { vaultErrorText } from "../../lib/vault-error";
 

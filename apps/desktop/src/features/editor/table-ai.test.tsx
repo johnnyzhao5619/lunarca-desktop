@@ -19,6 +19,8 @@ beforeEach(() => {
   resetBindingsDouble();
   setCommandReply("computeStatus", { status: "ok", data: { routes: [] } });
   setCommandReply("floatingPresetsList", { status: "ok", data: [] });
+  // 选区菜单按已启用的应用摆放专属动作组（提词器 / 创作）：表格用例里一个都不开。
+  setCommandReply("appsList", []);
 });
 afterEach(cleanup);
 
@@ -74,7 +76,7 @@ describe("表格菜单打开的 AI 面板（对标方案 T6）", () => {
       <AiResultPanel scope="selection" result={result} originalText={TABLE} candidateIndex={0} candidateCount={1}
         onSelectCandidate={() => {}} routeLabel={null} acceptShortcut="⌘↵" onStop={() => {}} onRetry={() => {}}
         onReject={() => {}} onCopy={() => {}} onSaveNote={() => {}} onLand={() => {}} onFollowUp={() => {}}
-        onSavePreset={null} onExplain={async () => ""} onBackground={null} />,
+        onSavePreset={null} onExplain={async () => ""} onBackground={null} fitTarget={null} />,
     ));
     expect(panel(running("table_fill_column")).container.textContent).toContain("正在填写第 1 / 3 行");
     cleanup();

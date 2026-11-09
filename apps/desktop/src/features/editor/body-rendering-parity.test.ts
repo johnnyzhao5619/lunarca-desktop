@@ -16,19 +16,35 @@ function raw(glob: Record<string, unknown>): string {
 }
 
 const READING_CSS = raw(
-  import.meta.glob("../../components/markdown.css", {
+  import.meta.glob("../../../../../packages/styles/src/markdown.css", {
     eager: true,
     import: "default",
     query: "?raw",
   }),
 );
 
+/** 阅读视图自己的版式（文档级级距、图片上限……），桌面与网页共用（`@lunarca/styles/reading.css`）。 */
+const READING_VIEW_CSS = raw(
+  import.meta.glob("../../../../../packages/styles/src/reading.css", { eager: true, import: "default", query: "?raw" }),
+);
+
+/** 编辑面（共享编辑器的 CM6 扩展）的样式：桌面与网页共用（`@lunarca/styles/editor.css`）。 */
 const EDITOR_CSS = raw(
+  import.meta.glob("../../../../../packages/styles/src/editor.css", { eager: true, import: "default", query: "?raw" }),
+);
+
+/** 桌面编辑器外壳与桌面专属部件（页头、AI 面板、版本历史……）的样式。 */
+const DESKTOP_EDITOR_CSS = raw(
   import.meta.glob("./editor-core.css", { eager: true, import: "default", query: "?raw" }),
 );
 
+/** 桌面的编辑器宿主端口：编辑面的复制按钮从这里的 `markdown` 取，与阅读面同一份。 */
+const EDITOR_HOST = raw(
+  import.meta.glob("./editor-host.ts", { eager: true, import: "default", query: "?raw" }),
+);
+
 const TOKENS_CSS = raw(
-  import.meta.glob("../../styles/tokens/base.css", {
+  import.meta.glob("../../../../../packages/styles/src/tokens/base.css", {
     eager: true,
     import: "default",
     query: "?raw",
@@ -36,7 +52,7 @@ const TOKENS_CSS = raw(
 );
 
 const READING_TSX = raw(
-  import.meta.glob("../../components/markdown/MarkdownContent.tsx", {
+  import.meta.glob("../../../../../packages/editor-core/src/render/MarkdownContent.tsx", {
     eager: true,
     import: "default",
     query: "?raw",
@@ -51,8 +67,16 @@ const COPY_BUTTON_TSX = raw(
   }),
 );
 
+const MARKDOWN_HOST = raw(
+  import.meta.glob("../../components/markdown/markdown-host.ts", {
+    eager: true,
+    import: "default",
+    query: "?raw",
+  }),
+);
+
 const CODE_BLOCK_LINES = raw(
-  import.meta.glob("./code-block-lines.ts", {
+  import.meta.glob("../../../../../packages/editor-core/src/editor/code-block-lines.ts", {
     eager: true,
     import: "default",
     query: "?raw",
@@ -60,7 +84,7 @@ const CODE_BLOCK_LINES = raw(
 );
 
 const SHARED_MARKDOWN = raw(
-  import.meta.glob("../../lib/markdown.ts", {
+  import.meta.glob("../../../../../packages/editor-core/src/markdown/markdown.ts", {
     eager: true,
     import: "default",
     query: "?raw",
@@ -68,15 +92,15 @@ const SHARED_MARKDOWN = raw(
 );
 
 const TABLE_MODEL = raw(
-  import.meta.glob("./table-model.ts", { eager: true, import: "default", query: "?raw" }),
+  import.meta.glob("../../../../../packages/editor-core/src/editor/table-model.ts", { eager: true, import: "default", query: "?raw" }),
 );
 
 const LIVE_PREVIEW = raw(
-  import.meta.glob("./live-preview.ts", { eager: true, import: "default", query: "?raw" }),
+  import.meta.glob("../../../../../packages/editor-core/src/editor/live-preview.ts", { eager: true, import: "default", query: "?raw" }),
 );
 
 const IMAGE_EMBED = raw(
-  import.meta.glob("./image-embed.ts", { eager: true, import: "default", query: "?raw" }),
+  import.meta.glob("../../../../../packages/editor-core/src/editor/image-embed.ts", { eager: true, import: "default", query: "?raw" }),
 );
 
 /** 剥掉注释：注释里提到某个写法不算真的在用它（CSS）。 */
@@ -119,9 +143,12 @@ describe("正文渲染：两面同源（列表以外）", () => {
     for (const [name, text] of Object.entries({
       READING_CSS,
       EDITOR_CSS,
+      DESKTOP_EDITOR_CSS,
+      EDITOR_HOST,
       TOKENS_CSS,
       READING_TSX,
       COPY_BUTTON_TSX,
+      MARKDOWN_HOST,
       CODE_BLOCK_LINES,
       SHARED_MARKDOWN,
       TABLE_MODEL,
@@ -143,20 +170,23 @@ describe("正文渲染：两面同源（列表以外）", () => {
   // ── A. 代码高亮 ────────────────────────────────────────────────────────────
   describe("围栏代码高亮", () => {
     it("阅读面接上了编辑面同一条高亮链路（同一份 HighlightStyle + 同一个语言目录）", () => {
-      expect(READING_TSX).toContain('from "../../lib/code-highlight"');
+      // 阅读面在共享渲染包里，与编辑面消费同一个 `code-highlight` 模块（包内相对引用）。
+      expect(READING_TSX).toContain('from "../highlight/code-highlight"');
       expect(READING_TSX).toContain("highlightCodeSpans");
       expect(READING_TSX).toContain("ensureFenceLanguage");
     });
 
     it("阅读面着色产出的是 `.luna-tok-*` 语义类，颜色单点在 --syntax-*", () => {
-      // class 由 `lunaHighlightStyle` 给，CSS 只有一处定义（编辑面写的那处），阅读面复用。
-      const tokenRules = [...code(EDITOR_CSS).matchAll(/\.luna-tok-([a-z]+)\s*\{([^}]*)\}/g)];
+      // class 由 `lunaHighlightStyle` 给，CSS 只有一处定义：共享样式包的 `markdown.css`（桌面与网页、阅读面
+      // 与编辑面都引它）。
+      const tokenRules = [...code(READING_CSS).matchAll(/\.luna-tok-([a-z]+)\s*\{([^}]*)\}/g)];
       expect(tokenRules.length).toBeGreaterThan(4);
       for (const [, name, body] of tokenRules) {
         expect(body, `.luna-tok-${name} 应当只取 --syntax-* 色`).toContain("var(--syntax-");
       }
-      // 阅读面绝不另起一套代码配色。
-      expect(code(READING_CSS)).not.toMatch(/\.luna-tok-/);
+      // 编辑面绝不另起一套代码配色（共享编辑面与桌面编辑器外壳都不许）。
+      expect(code(EDITOR_CSS)).not.toMatch(/\.luna-tok-/);
+      expect(code(DESKTOP_EDITOR_CSS)).not.toMatch(/\.luna-tok-/);
     });
 
     it("阅读面渲染代码零 innerHTML（着色不得走字符串拼 HTML）", () => {
@@ -165,10 +195,16 @@ describe("正文渲染：两面同源（列表以外）", () => {
     });
 
     it("复制按钮是**同一个组件**，两面各自挂载（配色类名也只有一处）", () => {
+      // 两面都从宿主端口取按钮：阅读面取 `MarkdownHost.CodeCopyButton`，编辑面取编辑器端口里的同一份
+      // `markdown`；桌面的编辑器端口把阅读面那份端口原样交过去，于是两面挂的是同一个组件。
       expect(READING_TSX).toContain("<CodeCopyButton");
-      expect(CODE_BLOCK_LINES).toContain(
-        'from "../../components/markdown/CodeCopyButton"',
-      );
+      expect(READING_TSX).toContain("const { CodeCopyButton } = host;");
+      expect(MARKDOWN_HOST).toContain('import { CodeCopyButton } from "./CodeCopyButton";');
+      expect(js(MARKDOWN_HOST)).toMatch(/^\s*CodeCopyButton,$/m);
+      expect(js(CODE_BLOCK_LINES)).toContain("host.markdown.CodeCopyButton");
+      expect(js(EDITOR_HOST)).toMatch(/^\s*markdown: desktopMarkdownHost,$/m);
+      // 反向：编辑面不许绕过端口直接引一颗按钮组件。
+      expect(js(CODE_BLOCK_LINES)).not.toMatch(/import[^;]*CodeCopyButton/);
       expect(COPY_BUTTON_TSX).toContain('className="luna-md-code-copy-btn"');
       expect(code(READING_CSS)).toContain(".luna-md-code-copy-btn");
       // 反向：编辑面不许自绘一颗按钮外壳（那会绕过 IconButton 的必填 label）。
@@ -187,7 +223,7 @@ describe("正文渲染：两面同源（列表以外）", () => {
     it("对齐判定单点在 lib，两面都调它", () => {
       expect(SHARED_MARKDOWN).toContain("export function parseTableAlign");
       expect(TABLE_MODEL).toContain("parseTableAlign(");
-      expect(TABLE_MODEL).toContain('from "../../lib/markdown"');
+      expect(TABLE_MODEL).toContain('from "../markdown/markdown"');
       // 反向：编辑面不许再留一份自己的分隔行解析。
       expect(TABLE_MODEL).not.toContain("function parseAlignRow");
     });
@@ -301,7 +337,7 @@ describe("正文渲染：两面同源（列表以外）", () => {
     expect(code(EDITOR_CSS)).toMatch(
       /\.luna-md-h1[\s\S]{0,200}line-height:\s*var\(--editor-heading-line-height\)/,
     );
-    expect(code(EDITOR_CSS)).toMatch(
+    expect(code(READING_VIEW_CSS)).toMatch(
       /\.luna-reading \.luna-markdown h1[\s\S]{0,300}line-height:\s*var\(--editor-heading-line-height\)/,
     );
   });
@@ -317,7 +353,7 @@ describe("正文渲染：两面同源（列表以外）", () => {
     it("「这是不是一张图、alt/src 是什么」两面同一个函数，且判定读语法树", () => {
       expect(SHARED_MARKDOWN).toContain("export function imageTargetOf");
       expect(LIVE_PREVIEW).toContain("imageTargetOf(");
-      expect(LIVE_PREVIEW).toContain('from "../../lib/markdown"');
+      expect(LIVE_PREVIEW).toContain('from "../markdown/markdown"');
       // 判定的入参是语法节点（不是一段被切出来的字符串）。
       expect(SHARED_MARKDOWN).toMatch(/imageTargetOf\(\s*image: SyntaxNode/);
     });
@@ -330,7 +366,7 @@ describe("正文渲染：两面同源（列表以外）", () => {
 
     it("显示上限两面同 Token（此前编辑面 720/480 裸像素、阅读面纵向不封顶）", () => {
       for (const selector of IMAGE_RULES) {
-        const body = ruleBody(code(EDITOR_CSS), selector);
+        const body = ruleBody(code(`${EDITOR_CSS}\n${READING_VIEW_CSS}`), selector);
         expect(body, `${selector} 的规则找不到了`).not.toBeNull();
         for (const token of ["--editor-image-max-inline", "--editor-image-max-block"]) {
           expect(body, `${selector} 未消费 ${token}`).toContain(`var(${token})`);
@@ -340,7 +376,7 @@ describe("正文渲染：两面同源（列表以外）", () => {
 
     it("反向：两面的图片规则里不再出现裸像素上限", () => {
       for (const selector of IMAGE_RULES) {
-        expect(ruleBody(code(EDITOR_CSS), selector), `${selector} 里还有裸像素`).not.toMatch(
+        expect(ruleBody(code(`${EDITOR_CSS}\n${READING_VIEW_CSS}`), selector), `${selector} 里还有裸像素`).not.toMatch(
           /\d+px/,
         );
       }

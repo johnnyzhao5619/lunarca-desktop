@@ -17,7 +17,7 @@ import { useTranslation } from "react-i18next";
 import { commands, events, type AppDto } from "../../ipc/bindings";
 import { useConfirm } from "../../components/ConfirmHost";
 import { installApp, refreshApps, setAppEnabled, uninstallApp } from "../../hooks/use-apps";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { goTo } from "../../lib/navigate";
 import { InstallConfirmContent } from "./InstallConfirmContent";
 

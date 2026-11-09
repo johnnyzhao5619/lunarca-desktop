@@ -7,13 +7,13 @@
 @layer reset, tokens, base, primitives, layout, integrations, features;
 @layer tokens.primitive, tokens.base, tokens.family, tokens.accessibility;
 
-@import "./reset.css" layer(reset);
-@import "./tokens/primitive.css" layer(tokens.primitive);
-@import "./tokens/base.css" layer(tokens.base);
+@import "@lunarca/styles/reset.css" layer(reset);
+@import "@lunarca/styles/tokens/primitive.css" layer(tokens.primitive);
+@import "@lunarca/styles/tokens/base.css" layer(tokens.base);
 /* 内置主题（主题包生成物，ADR-169 ③）；导入的主题在运行时注入同一层。 */
-@import "./tokens/themes.generated.css" layer(tokens.family);
-@import "./tokens/density.css" layer(tokens.base);
-@import "./tokens/accessibility.css" layer(tokens.accessibility);
+@import "@lunarca/styles/tokens/themes.generated.css" layer(tokens.family);
+@import "@lunarca/styles/tokens/density.css" layer(tokens.base);
+@import "@lunarca/styles/tokens/accessibility.css" layer(tokens.accessibility);
 @import "./base.css" layer(base);
 @import "../components/button.css" layer(primitives);
 @import "../components/icon-button.css" layer(primitives);
@@ -29,7 +29,7 @@
 @import "../components/indexing-notice.css" layer(primitives);
 @import "../components/hud.css" layer(primitives);
 @import "../components/task-status.css" layer(primitives);
-@import "../components/markdown.css" layer(primitives);
+@import "@lunarca/styles/markdown.css" layer(primitives);
 @import "../components/progress.css" layer(primitives);
 @import "../components/error-text.css" layer(primitives);
 @import "../components/failure-card.css" layer(primitives);
@@ -47,7 +47,7 @@
 @import "./layout/surfaces.css" layer(layout);
 @import "./layout/main-header.css" layer(layout);
 @import "./layout/next-action-row.css" layer(layout);
-@import "./integrations/codemirror.css" layer(integrations);
+@import "@lunarca/styles/codemirror.css" layer(integrations);
 
 @import "../features/transcribe/transcribe.css" layer(features);
 @import "../features/settings/external-tools.css" layer(features);
@@ -56,6 +56,9 @@
 @import "./layout/workspace-navigation.css" layer(layout);
 @import "../features/command/command.css" layer(features);
 @import "../features/notifications/notifications.css" layer(features);
+@import "@lunarca/styles/reading.css" layer(features);
+@import "@lunarca/styles/editor.css" layer(features);
+@import "@lunarca/styles/editor-chrome.css" layer(features);
 @import "../features/editor/editor-core.css" layer(features);
 @import "../features/editor/tidy-list.css" layer(features);
 @import "../features/usage/usage.css" layer(features);
@@ -77,6 +80,7 @@
 @import "../features/capture/desktop-note.css" layer(features);
 @import "../features/graph/graph.css" layer(features);
 @import "../features/creator/creator.css" layer(features);
+@import "../features/teleprompter/teleprompter.css" layer(features);
 @import "../features/apps/apps.css" layer(features);
 @import "../features/vault/vault.css" layer(features);
 @import "../features/search/search.css" layer(features);

@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { IconButton } from "../../components/ui/IconButton";
 import { useTranslation } from "react-i18next";
-import { CloseIcon } from "../../components/ui/Icon";
+import { CloseIcon } from "@lunarca/editor-core/Icon";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import { commands, type NoteTemplateEntryDto, type NoteTypeDto, type TemplateFileDto } from "../../ipc/bindings";
 import { GetMoreTemplates } from "../../components/GetMoreTemplates";

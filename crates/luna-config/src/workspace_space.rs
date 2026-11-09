@@ -22,6 +22,7 @@ pub const RAIL_SPACE_IDS: &[&str] = &[
     "transcripts",
     "chat",
     "creator",
+    "teleprompter",
 ];
 
 /// 隐藏项的值语法前缀：`hidden:<space id>`（TDD-05 §7.5a）。
@@ -40,6 +41,7 @@ pub const RAIL_LAYOUT_DEFAULT: &[&str] = &[
     "transcripts",
     "chat",
     "creator",
+    "teleprompter",
 ];
 
 /// 设置控件的选项元数据：id、名字键、是否锁定（锚点，PRD-07-003）、默认是否显示。
@@ -94,6 +96,13 @@ pub const RAIL_SPACE_OPTIONS: &[ToggleOption] = &[
         label_key: "workspace:nav.creator",
         locked: false,
         // 「默认看不到创作」由应用默认未启用承担（ADR-165 ③）；启用后它像别的空间一样显示。
+        default_visible: true,
+    },
+    ToggleOption {
+        id: "teleprompter",
+        label_key: "workspace:nav.teleprompter",
+        locked: false,
+        // 同创作：「默认看不到」由应用默认未安装承担（ADR-176 ①）。
         default_visible: true,
     },
 ];
@@ -234,8 +243,8 @@ mod tests {
             "chat",
             "creator",
         ]));
-        // 创作所属的应用未启用：它不在可见顺序里，槽位原地冻结（ADR-165 ③）。
-        let frozen = ["creator"];
+        // 创作与提词器所属的应用未启用：它们不在可见顺序里，槽位原地冻结（ADR-165 ③）。
+        let frozen = ["creator", "teleprompter"];
         let visible = [
             "search",
             "notes",
@@ -270,6 +279,7 @@ mod tests {
                 "transcripts",
                 "chat",
                 "creator",
+                "teleprompter",
             ])
         );
         // 期望顺序过期 → 拒绝，让调用方重读。
@@ -376,8 +386,10 @@ mod tests {
             ids(&entries),
             [
                 "chat",
-                // 创作缺失：补在它的默认前驱（chat）之后——chat 被拖到了最前，它就跟到第二格。
+                // 创作缺失：补在它的默认前驱（chat）之后——chat 被拖到了最前，它就跟到第二格；
+                // 提词器跟在创作之后。
                 "creator",
+                "teleprompter",
                 "search",
                 "notes",
                 "knowledge",
@@ -413,10 +425,11 @@ mod tests {
             "transcripts",
         ]);
         assert_eq!(
-            keep_frozen_slots(&previous, &next, &["creator"]),
+            keep_frozen_slots(&previous, &next, &["creator", "teleprompter"]),
             tokens(&[
                 "chat",
                 "hidden:creator",
+                "teleprompter",
                 "search",
                 "notes",
                 "knowledge",

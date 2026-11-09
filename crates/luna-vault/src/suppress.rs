@@ -7,9 +7,9 @@
 //! 若文件当前 hash == 该 path 的 `last_written_hash` → 判为自写、跳过合并与 `vault://changed`。
 //!
 //! 本模块只判定「这次事件要不要当外部改动处理」：无脏页静默重载、有脏页给冲突横幅。横幅上的
-//! 「合并两边改动」由 [`crate::merge3`] 计算（ADR-148 ②、TDD-06 §4.2），不在这里。
+//! 「合并两边改动」由 [`luna_sync_core::merge3`] 计算（ADR-148 ②、TDD-06 §4.2），不在这里。
 
-use crate::hashing::ContentHash;
+use luna_sync_core::hashing::ContentHash;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 

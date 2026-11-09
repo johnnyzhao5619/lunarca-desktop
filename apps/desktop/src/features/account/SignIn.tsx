@@ -2,7 +2,7 @@
  * 登录——全应用**唯一**一份（统一登录 ADR-155，邮箱优先 ADR-158）。只出现在账户页与首启引导。
  *
  * 像常见应用那样：先填邮箱 → Rust 按邮箱找到服务器（这台设备记住的 → 邮箱域名上发布的 →
- * Lunarca 云；或用户点「使用其他服务器」自己填）→ 「将登录到 X」→ 输密码 → 进入。忘记密码、
+ * Lunarca 云；「登录到」可改成 Lunarca 云或自己填的服务器）→ 「将登录到 X」→ 输密码 → 进入。忘记密码、
  * 手上有一次性码、创建账户都走「邮件里的码 → 设密码」同一条路。自签服务器不再需要链接：
  * 密码握手本身会建立对这台服务器的信任（证书、公钥、指纹一概不出现）；只有它的身份变了才停下来
  * 请用户核对确认。
@@ -30,6 +30,7 @@ import {
 import { commands as appCommands } from "../../ipc/bindings";
 import { useComputeStatus } from "../../hooks/use-compute-status";
 import { errorAction, errorText } from "../../lib/cloud-error";
+import { SelectBox } from "../../components/ui/SelectBox";
 import { TrustChangeConfirm } from "./ServerIdentity";
 import { DeviceLimitPicker, type DeviceLimitExit } from "./DeviceLimitPicker";
 import { refreshAccount, useAccount } from "../../hooks/use-account";
@@ -74,24 +75,36 @@ function ErrorLines({ error }: { error: CloudError }) {
 export function SignIn({
   embedded = false,
   onOpenOrgConfig,
+  initialChoice = "default",
 }: {
   embedded?: boolean;
   /** 打开「高级 › 导入组织配置文件」；没有这一节的宿主（首启引导）不传。 */
   onOpenOrgConfig?: () => void;
+  /** 「登录到」一开始选哪一档：账户页「切换服务器」退出后给另一侧，其余一律按邮箱找。 */
+  initialChoice?: ServerChoice;
 }) {
   const account = useAccount();
   if (account === null) return null;
-  return <SignInFlow account={account} embedded={embedded} onOpenOrgConfig={onOpenOrgConfig} />;
+  return (
+    <SignInFlow
+      account={account}
+      embedded={embedded}
+      onOpenOrgConfig={onOpenOrgConfig}
+      initialChoice={initialChoice}
+    />
+  );
 }
 
 export function SignInFlow({
   account,
   embedded,
   onOpenOrgConfig,
+  initialChoice = "default",
 }: {
   account: AccountStateDto;
   embedded: boolean;
   onOpenOrgConfig?: () => void;
+  initialChoice?: ServerChoice;
 }) {
   const compute = useComputeStatus();
   const strictLocal = compute?.location === "strict_local";
@@ -177,6 +190,7 @@ export function SignInFlow({
             account={account}
             embedded={embedded}
             strictLocal={strictLocal}
+            initialChoice={initialChoice}
             onReady={(ready) => {
               setLimitExit(null);
               setStep({ kind: "ready", ready });
@@ -188,31 +202,48 @@ export function SignInFlow({
   }
 }
 
-/** 第一站：只问邮箱。服务器由 Rust 找；要换就「使用其他服务器」。 */
+/**
+ * 「登录到」那一格的三档：`default` = 按邮箱找（记住的那台 → 邮箱域名 → Lunarca 云）；
+ * `official` = 越过记住的那台、就是 Lunarca 云；`other` = 自己填地址或邀请链接。
+ *
+ * 选择常驻、默认就是自动发现的结果（Bitwarden 的「Logging in on」同一路数）：记住的是测试或
+ * 组织服务器时，回 Lunarca 云不必知道 API 地址（真机 2026-11-03）。仍是邮箱优先的单一入口，
+ * 不是被 ADR-158 ① 取消的两个页签。
+ */
+export type ServerChoice = "default" | "official" | "other";
+
+/** 第一站：只问邮箱；「登录到」默认是 Rust 按邮箱找到的那台，可改。 */
 function EmailStep({
   account,
   embedded,
   strictLocal,
+  initialChoice,
   onReady,
   onTrust,
 }: {
   account: AccountStateDto;
   embedded: boolean;
   strictLocal: boolean;
+  initialChoice: ServerChoice;
   onReady: (ready: Ready) => void;
   onTrust: (trust: TrustStatusDto, retry: () => void) => void;
 }) {
   const { t } = useTranslation("cloud");
   const [email, setEmail] = useState("");
-  const [otherServer, setOtherServer] = useState(false);
+  // 记住的是 Lunarca 云（或什么都没记住）时，「默认」那一档就是 Lunarca 云，不再单列一项。
+  const remembered = account.server?.kind === "official" ? null : account.server;
+  // 没有单列的那一项就落回默认档（它此刻就是 Lunarca 云）。
+  const [choice, setChoice] = useState<ServerChoice>(
+    initialChoice === "official" && remembered === null ? "default" : initialChoice,
+  );
+  const otherServer = choice === "other";
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<CloudError | null>(null);
   const incoming = account.incoming_link;
-  const remembered = account.server;
 
-  // 换了服务器来源（打开 / 收起「使用其他服务器」、送达了链接），上一次的报错说的已不是眼前这台。
-  useEffect(() => setError(null), [otherServer, incoming]);
+  // 换了服务器来源（改了「登录到」、送达了链接），上一次的报错说的已不是眼前这台。
+  useEffect(() => setError(null), [choice, incoming]);
 
   const begin = async (target: SignInTarget) => {
     setBusy(true);
@@ -235,7 +266,8 @@ function EmailStep({
   const submit = () => {
     if (busy || strictLocal || email.trim() === "") return;
     if (incoming) void begin({ kind: "incoming_link", email });
-    else if (otherServer) void begin({ kind: "server", email, input });
+    else if (choice === "other") void begin({ kind: "server", email, input });
+    else if (choice === "official") void begin({ kind: "official", email });
     else void begin({ kind: "discover", email });
   };
 
@@ -268,7 +300,25 @@ function EmailStep({
           onChange={(event) => setEmail(event.currentTarget.value)}
         />
       </label>
-      {incoming ? null : otherServer ? (
+      {incoming ? null : (
+        <label className="cloud-account__field">
+          <span>{t("signin.server_choice.label")}</span>
+          <SelectBox
+            value={choice}
+            disabled={busy}
+            onChange={(event) => setChoice(event.currentTarget.value as ServerChoice)}
+          >
+            <option value="default">
+              {remembered
+                ? t("signin.server_choice.remembered", { name: serverName(remembered, t("signin.official")) })
+                : t("signin.official")}
+            </option>
+            {remembered ? <option value="official">{t("signin.official")}</option> : null}
+            <option value="other">{t("signin.server_choice.other")}</option>
+          </SelectBox>
+        </label>
+      )}
+      {otherServer && !incoming ? (
         <label className="cloud-account__field">
           <span>{t("signin.server_input")}</span>
           <input
@@ -282,10 +332,6 @@ function EmailStep({
             onChange={(event) => setInput(event.currentTarget.value)}
           />
         </label>
-      ) : remembered ? (
-        <p className="luna-settings-panel__hint">
-          {t("signin.remembered", { name: serverName(remembered, t("signin.official")) })}
-        </p>
       ) : null}
       {error ? <ErrorLines error={error} /> : null}
       <div className="luna-settings-panel__actions">
@@ -305,17 +351,7 @@ function EmailStep({
           >
             {t("signin.cancel")}
           </button>
-        ) : (
-          <button
-            type="button"
-            className="luna-btn luna-btn--secondary"
-            // 核对途中不许换：结果回来时会落在另一种来源下（Windows 真机 2026-10-15）。
-            disabled={busy}
-            onClick={() => setOtherServer((open) => !open)}
-          >
-            {t(otherServer ? "signin.use_default_server" : "signin.use_other_server")}
-          </button>
-        )}
+        ) : null}
       </div>
       {strictLocal ? (
         <p className="luna-settings-panel__hint" role="status">

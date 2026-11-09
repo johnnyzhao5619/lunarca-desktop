@@ -4,7 +4,7 @@
  * 组件只问「这一下是什么」，与 `popup-translate/popup-keys.ts` 同一形态。
  *
  * 「这一下属于输入法吗」不在本文件里判——那条规则两个功能面相同，唯一事实源是
- * `lib/ime-composition.ts`。本文件只把「不是输入法的回车」翻译成捕获自己的动作。
+ * `@lunarca/editor-core/ime-composition`。本文件只把「不是输入法的回车」翻译成捕获自己的动作。
  */
 
 import {
@@ -12,7 +12,7 @@ import {
   NO_COMPOSITION,
   type CompositionState,
   type ImeCompositionKey,
-} from "../../lib/ime-composition";
+} from "@lunarca/editor-core/ime-composition";
 
 export type CaptureKeyAction = "save" | "saveAndOpen" | "newline" | "ignore";
 

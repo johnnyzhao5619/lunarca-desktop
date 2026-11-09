@@ -37,7 +37,7 @@ vi.mock("@tauri-apps/api/window", () => ({
 
 import { commandMock, resetBindingsDouble, setCommandReply } from "../../ipc/bindings-test-double";
 import { withI18n } from "../../i18n/i18n-test-fixture";
-import { COMPOSITION_COMMIT_WINDOW_MS } from "../../lib/ime-composition";
+import { COMPOSITION_COMMIT_WINDOW_MS } from "@lunarca/editor-core/ime-composition";
 import { PopupTranslateView } from "./PopupTranslateView";
 
 const PRESETS = [{ id: "to_en", name: "英文", group: "target_lang" }];

@@ -1,0 +1,350 @@
+{
+  "app": {
+    "name": "Lunarca",
+    "connecting": "正在连接 Lunarca 云…"
+  },
+  "signin": {
+    "language": "语言",
+    "languageName": "简体中文",
+    "title": "登录 Lunarca",
+    "subtitle": "在浏览器里查看你同步到 Lunarca 云的笔记。笔记在这个页面里解密，服务端看不到内容。",
+    "email": "邮箱",
+    "password": "口令",
+    "keep": "保持登录",
+    "keepHint": "只在自己的电脑上勾选：7 天内用过就续期，最长 30 天。不勾选时关闭浏览器即退出。",
+    "submit": "登录",
+    "submitting": "正在登录…",
+    "or": "或",
+    "google": "用 Google 继续",
+    "facebook": "用 Facebook 继续",
+    "noAccount": "还没有账户？",
+    "signUp": "注册",
+    "downloadUrl": "https://lunarca.app/download.html",
+    "home": "Lunarca 首页",
+    "downloadNav": "下载"
+  },
+  "signup": {
+    "title": "注册 Lunarca",
+    "subtitle": "注册后就可以在浏览器里写笔记，并同步到你的各台设备。",
+    "sendCode": "发送验证码",
+    "codeSent": "验证码已发到 {{email}}，几分钟内会到，也看一下垃圾邮件。",
+    "code": "验证码",
+    "verify": "下一步",
+    "password": "设置口令",
+    "passwordHint": "至少 {{count}} 位。口令只在这个浏览器里处理，不会发给服务器。",
+    "agree": "创建账户即表示你同意",
+    "and": "和",
+    "create": "创建账户",
+    "working": "请稍候…",
+    "haveAccount": "已有账户？",
+    "backToSignIn": "去登录",
+    "badCode": "验证码不对，或已经过期。"
+  },
+  "error": {
+    "invalid_credentials": "邮箱或口令不对。",
+    "invalid_code": "验证码格式不对。",
+    "login_expired": "这一步等得太久了，请重新开始。",
+    "account_exists": "这个邮箱已有账户，请直接登录。",
+    "email_domain_not_allowed": "这个邮箱域名不能用来注册，请换一个邮箱。",
+    "signup_mail_failed": "验证码邮件发送失败，请稍后再试。",
+    "terms_required": "请先勾选同意条款。",
+    "password_invalid": "口令设置失败，请重试。",
+    "rate_limited": "尝试次数太多，请稍后再试。",
+    "web_access_disabled": "这个账户关闭了网页访问。可以在桌面端「账户」页重新打开。",
+    "web_origin_rejected": "这次请求没有从 Lunarca 网页发出，已被拒绝。请刷新页面后重试。",
+    "password_login_disabled": "这个账户由组织单点登录管理，不能在网页上用口令登录。",
+    "password_not_set": "这个账户没有设口令，请用 Google 或 Facebook 解锁。",
+    "network_unavailable": "连不上 Lunarca 云，请检查网络后重试。",
+    "account_disabled": "这个账户已停用。",
+    "sync_not_entitled": "你的方案不含云同步。",
+    "no_managed_key": "这个库开了高级数据保护，网页上不可访问。",
+    "sync_quota_exceeded": "云端容量已满，改动没能保存。删除一些笔记可以腾出空间。",
+    "sync_read_only": "这个库现在只读，改动没能保存。",
+    "account_frozen": "账户已冻结，笔记只读，改动没能保存。",
+    "too_large": "超过了单个文件的上限（{{limit}}）。",
+    "too_large_unknown": "超过了单个文件的上限。",
+    "path_taken": "这个位置已经有同名的文件了，换个名字再试。",
+    "invalid_name_empty": "名字不能为空。",
+    "invalid_name_reserved": "「.」和「..」不能用作名字。",
+    "invalid_name_separator": "名字里不能有「/」「\\」或控制字符。",
+    "invalid_name_hidden": "以「.」开头的名字是隐藏文件，不会出现在各设备上；换个名字。",
+    "not_found": "找不到这篇笔记了：它可能刚在别处被删除。",
+    "not_text": "这个文件不是文本，网页上不能编辑。",
+    "chunk_missing": "云端缺了这篇笔记的一部分内容，请稍后再试。",
+    "content_mismatch": "取回的内容校验不对，没有显示。请稍后再试。",
+    "sync_remote_corrupt": "云端返回的数据读不懂，这次操作没有完成。",
+    "conflict_copy_exhausted": "同名的冲突副本太多，没能另存。请先整理一下这些副本。",
+    "vault_create_exhausted": "同名的笔记太多，没能新建。换个名字再试。",
+    "sync_busy": "这篇笔记在别处改得太频繁，这次没能保存，稍后会再试。",
+    "vault_not_open": "笔记库已经关闭，请重新选择库。",
+    "download_too_large": "这个附件超过了网页的下载上限（{{limit}}），请到桌面端打开。",
+    "download_too_large_unknown": "这个附件超过了网页的下载上限，请到桌面端打开。",
+    "fulltext_not_ready": "全文索引还没建好。",
+    "fulltext_cancelled": "已取消，索引没有保留。",
+    "changed_elsewhere": "这个文件刚在别处被恢复或改过，这次没有恢复。请刷新列表后再看。",
+    "invalid_kind": "这种附件没法上传。",
+    "generic": "出了点问题（{{code}}），请稍后再试。"
+  },
+  "signinError": {
+    "provider_unavailable": "暂时连不上这个登录方式，请稍后再试，或改用邮箱与口令登录。",
+    "signin_expired": "登录用的时间太久，已经失效。请重新登录。",
+    "account_unavailable": "这个身份还没有 Lunarca 账户。请先下载桌面版注册，再回来登录。",
+    "web_access_disabled": "这个账户关闭了网页访问。可以在桌面端「账户」页重新打开。",
+    "unlock_mismatch": "解锁没有成功：登录的不是这个会话的账户，或这个会话已经结束。",
+    "generic": "登录没有完成（{{code}}），请重试。"
+  },
+  "ended": {
+    "web_session_displaced": "你在别处的新登录让这个浏览器退出了：同一个账户最多同时在 5 个浏览器上登录。",
+    "web_session_revoked": "这个浏览器的登录已在别处退出或被吊销，请重新登录。"
+  },
+  "lock": {
+    "title": "已锁定",
+    "body": "空闲太久，这个页面已锁定，笔记已从屏幕上清除。验证身份后在原处继续。",
+    "account": "账户：{{email}}",
+    "unlock": "解锁",
+    "unlocking": "正在解锁…",
+    "google": "用 Google 解锁",
+    "facebook": "用 Facebook 解锁",
+    "signOut": "退出登录",
+    "sealed": "有 {{count}} 篇笔记的改动还没存到云端，已加密留在这个页面。解锁后会接着保存，请先别关闭或刷新这个页面。"
+  },
+  "header": {
+    "account": "账户与会话",
+    "signOut": "退出"
+  },
+  "vaults": {
+    "title": "选择笔记库",
+    "empty": "还没有笔记库。新建一个，就可以开始写了。",
+    "create": "新建笔记库",
+    "defaultName": "我的笔记",
+    "welcomeBody": "# 欢迎使用 Lunarca\n\n这篇笔记保存在你的云端笔记库里，改动会自动保存。从左侧新建笔记，直接开始写。\n\n想把笔记存成电脑上的 Markdown 文件？安装 Lunarca 桌面应用，登录同一个账户就行。\n",
+    "notEntitledTitle": "你的方案不含云同步",
+    "notEntitled": "网页版显示的是同步到 Lunarca 云的笔记。在桌面端「账户」页开通含云同步的方案并开启同步后，就能在这里查看。",
+    "unnamed": "无法显示库名",
+    "switch": "切换库",
+    "loading": "正在读取笔记库…"
+  },
+  "nav": {
+    "label": "笔记",
+    "tree": "文件夹",
+    "recent": "最近",
+    "newNote": "新建笔记",
+    "newFolder": "新建文件夹",
+    "inFolder": "新建在「{{folder}}」里",
+    "inRoot": "新建在库的根目录",
+    "tags": "标签",
+    "trash": "最近删除"
+  },
+  "search": {
+    "label": "搜索标题与路径",
+    "placeholder": "搜索标题与路径",
+    "empty": "没有找到匹配的笔记。",
+    "fulltext": "搜索正文",
+    "fulltextPlaceholder": "搜索笔记正文"
+  },
+  "tree": {
+    "empty": "这个库里还没有笔记。"
+  },
+  "reader": {
+    "empty": "从左边选一篇笔记来阅读。",
+    "loading": "正在载入…",
+    "mediaHint": "请在桌面端播放",
+    "fileMeta": "{{name}} · {{size}}",
+    "back": "返回笔记列表",
+    "copy": "复制",
+    "copied": "已复制",
+    "diagramTimeout": "渲染超时",
+    "download": "下载",
+    "downloading": "正在下载…"
+  },
+  "fulltext": {
+    "privacy": "搜索在你的浏览器里完成：第一次用时，会把这个库全部笔记的正文下载到本页、在本页里建索引；不写入任何存储，关闭页面即丢弃。",
+    "start": "下载正文并建索引",
+    "progress": "正在下载正文 {{done}} / {{total}}",
+    "cancel": "取消",
+    "failed": "没能建好索引：{{reason}}",
+    "empty": "正文里没有找到匹配的内容。",
+    "summary": "{{notes}} 篇笔记里共 {{matches}} 处匹配",
+    "truncated": "匹配的笔记太多，只列出最近修改的这些。",
+    "moreLines": "这篇还有更多匹配",
+    "line": "第 {{line}} 行"
+  },
+  "tags": {
+    "empty": "这个库里还没有标签。",
+    "count": "{{count}} 篇",
+    "aiOnly": "AI",
+    "aiOnlyHint": "只由 AI 提炼的标签",
+    "all": "全部标签",
+    "notesTitle": "带 #{{tag}} 的笔记（含子标签）",
+    "none": "没有带这个标签的笔记。"
+  },
+  "trash": {
+    "hint": "云端保留期内删除的文件，最近删除的在前。恢复后，各台设备上都会重新出现。",
+    "empty": "最近没有删除的文件。",
+    "deletedAt": "删除于 {{time}}",
+    "restore": "恢复",
+    "expired": "已过保留期，无法恢复",
+    "unreadable": "（名字无法读取）",
+    "more": "加载更多",
+    "restored": "已恢复「{{path}}」。"
+  },
+  "history": {
+    "open": "版本历史",
+    "title": "「{{name}}」的版本历史",
+    "hint": "云端保留期内的版本，新的在前。「恢复为新版本」会以那一版的内容保存一个新版本，现在的内容仍留在历史里。",
+    "back": "返回笔记",
+    "empty": "还没有别的版本。",
+    "loading": "正在载入…",
+    "rev": "版本 {{rev}}",
+    "current": "当前版本",
+    "deleted": "删除",
+    "web": "网页 · {{browser}}",
+    "webCurrent": "网页 · {{browser}}（这个浏览器）",
+    "webUnknown": "网页",
+    "webUnknownCurrent": "网页（这个浏览器）",
+    "other": "其他设备",
+    "view": "查看",
+    "viewing": "正在查看版本 {{rev}}（只读）",
+    "restore": "恢复为新版本",
+    "restored": "已恢复为新版本（版本 {{rev}}）。",
+    "notText": "这一版不是文本，网页上不能查看。"
+  },
+  "upload": {
+    "uploading": "正在上传附件…",
+    "done": "附件已上传。",
+    "failed": "附件没能上传：{{reason}}",
+    "cancelled": "笔记已切换，上传的附件没有插入，已删除。",
+    "saveFirst": "笔记还没有保存，附件没有上传。"
+  },
+  "account": {
+    "title": "账户与会话",
+    "signedInAs": "已登录：{{email}}",
+    "webAccess": "允许在网页上访问我的笔记",
+    "webAccessHint": "关掉后，所有浏览器上的网页登录立即退出（包括这一个），之后也不能再用网页登录。可以在桌面端「账户」页重新打开。",
+    "webAccessConfirm": "关掉网页访问？所有浏览器上的网页登录会立即退出，包括这一个。",
+    "sessions": "网页会话",
+    "sessionsHint": "同一个账户最多同时在 {{max}} 个浏览器上登录；再登录一个时，最久没用的那个会自动退出。",
+    "current": "当前浏览器",
+    "unknownBrowser": "未知浏览器",
+    "browserOs": "{{browser}} · {{os}}",
+    "lastSeen": "最近使用：{{time}}",
+    "keepSignedIn": "保持登录",
+    "revoke": "退出这个会话",
+    "revokeAll": "退出全部网页会话",
+    "revokeAllConfirm": "退出全部网页会话？包括这个浏览器。",
+    "idle": "空闲锁定",
+    "idleHint": "空闲到这个时长就锁定这个页面，需要重新验证身份。只保存在这个浏览器里。",
+    "idleOption": {
+      "auto": "默认（未勾选保持登录时 30 分钟）",
+      "15m": "15 分钟",
+      "1h": "1 小时",
+      "4h": "4 小时",
+      "never": "从不"
+    },
+    "back": "返回笔记",
+    "signOut": "退出登录",
+    "loadFailed": "读取失败（{{code}}）。",
+    "webAccessConfirmAction": "关掉网页访问"
+  },
+  "footer": {
+    "version": "服务端 {{version}}",
+    "source": "源代码（AGPL）",
+    "sourceUrl": "https://github.com/johnnyzhao5619/lunarca-desktop",
+    "terms": "服务条款",
+    "termsUrl": "https://lunarca.app/terms.html",
+    "privacy": "云隐私政策",
+    "privacyUrl": "https://lunarca.app/cloud-privacy.html"
+  },
+  "common": {
+    "retry": "重试",
+    "cancel": "取消",
+    "confirm": "确定"
+  },
+  "note": {
+    "placeholder": "开始输入…",
+    "untitled": "未命名",
+    "conflictLabel": "冲突 网页",
+    "status": {
+      "saved": "已保存",
+      "saving": "保存中…",
+      "offline": "离线，改动暂存在本页",
+      "failed": "保存失败：{{reason}}"
+    },
+    "actions": {
+      "rename": "改名",
+      "move": "移动",
+      "delete": "删除"
+    },
+    "readOnly": {
+      "sync_quota_exceeded": "云端容量已满，笔记现在只读。删除笔记可以腾出空间；没能保存的改动还留在这一页。",
+      "sync_read_only": "这个库现在只读：可以阅读，不能修改或删除。没能保存的改动还留在这一页。",
+      "account_frozen": "账户已冻结：笔记只读，不能修改或删除。没能保存的改动还留在这一页。",
+      "generic": "笔记现在只读（{{code}}）。没能保存的改动还留在这一页。"
+    },
+    "gone": "这篇在别处被删除了。没保存的改动还在这一页，保存就会把它恢复。",
+    "remote": {
+      "body": "别处改了这篇，而这一页还有没保存的改动。",
+      "compare": "查看对比",
+      "hideCompare": "收起对比",
+      "merge": "合并",
+      "saveMine": "另存我的这份"
+    },
+    "compare": {
+      "caption": "标 − 的行是别处那一版，标 + 的行是这一页还没保存的改动。",
+      "same": "两边的内容一样。",
+      "degraded": "改动太多，没法逐行比，下面按整段替换显示。"
+    },
+    "merged": {
+      "body": "已合并别处的改动",
+      "undo": "撤回",
+      "dismiss": "关闭"
+    },
+    "conflict": {
+      "body": "两边改了同一段，两份都在：这一篇现在是别处的版本，你的改动另存为「{{path}}」。",
+      "show": "打开我的这份",
+      "dismiss": "知道了"
+    },
+    "panes": {
+      "main": "这一篇",
+      "copy": "我的这份",
+      "close": "关闭旁边这份"
+    },
+    "folder": {
+      "title": "新建文件夹",
+      "label": "文件夹名",
+      "hint": "空文件夹不同步：文件夹在放进第一篇笔记时才出现在各台设备上。这里会在新文件夹里新建一篇笔记。",
+      "confirm": "新建"
+    },
+    "rename": {
+      "title": "改名",
+      "label": "新名字",
+      "confirm": "改名"
+    },
+    "move": {
+      "title": "移到…",
+      "label": "目标文件夹",
+      "root": "库的根目录",
+      "confirm": "移动"
+    },
+    "delete": {
+      "title": "删除「{{name}}」？",
+      "body": "笔记会进各台设备的 Lunarca 回收站，在那里可以恢复。",
+      "confirm": "删除",
+      "changedElsewhere": "没有删除：这篇刚在别处改过。先看看新的版本，再决定要不要删。"
+    },
+    "signOutUnsaved": {
+      "title": "还有没保存的改动",
+      "body": "有 {{count}} 篇笔记的改动还没存到云端。现在退出，这些改动会丢失。",
+      "confirm": "仍然退出"
+    }
+  },
+  "unsaved": {
+    "title": "登录已结束",
+    "lockedTitle": "页面已锁定",
+    "body": "下面这些笔记的改动没来得及保存到云端。复制下来，重新登录后再贴回去。",
+    "copy": "复制",
+    "copied": "已复制",
+    "continue": "去登录",
+    "continueLocked": "去解锁"
+  }
+}

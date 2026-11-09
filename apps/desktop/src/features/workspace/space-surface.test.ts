@@ -39,7 +39,7 @@ function usesClassesTogether(source: string, classNames: readonly string[]): boo
   });
 }
 
-const TSX = import.meta.glob("../../{app,features,components}/**/*.tsx", {
+const TSX = import.meta.glob(["../../{app,features,components}/**/*.tsx", "../../../../../packages/*/src/**/*.tsx"], {
   eager: true,
   import: "default",
   query: "?raw",

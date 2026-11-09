@@ -1,0 +1,50 @@
+{
+  "name": "luna-web-app",
+  "private": true,
+  "version": "1.0.0",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "build:wasm": "node scripts/build-wasm.mjs",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "node --test eslint-config-tests.js && eslint . && node ../../scripts/check-frontend-structure.mjs",
+    "lint:css": "vitest run src/theme/style-guard.test.ts",
+    "test": "vitest run",
+    "preview": "node scripts/preview-server.mjs",
+    "e2e": "vite build && playwright test"
+  },
+  "dependencies": {
+    "@codemirror/autocomplete": "^6.20.3",
+    "@codemirror/commands": "^6.10.3",
+    "@codemirror/lang-markdown": "^6.5.0",
+    "@codemirror/language": "^6.12.3",
+    "@codemirror/search": "^6.7.0",
+    "@codemirror/state": "^6.6.0",
+    "@codemirror/view": "^6.43.0",
+    "@lezer/common": "^1.2.3",
+    "@lezer/highlight": "^1.2.3",
+    "@lezer/markdown": "^1.7.2",
+    "@lunarca/editor-core": "*",
+    "@lunarca/styles": "*",
+    "i18next": "^26.3.1",
+    "mermaid": "~11.17.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-i18next": "^17.0.8"
+  },
+  "devDependencies": {
+    "@lunarca/lint-config": "*",
+    "@playwright/test": "~1.64.0",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9",
+    "happy-dom": "^21.0.4",
+    "typescript": "^5.6.3",
+    "vite": "^6",
+    "vitest": "^4.1.8"
+  }
+}

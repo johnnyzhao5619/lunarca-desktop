@@ -15,6 +15,7 @@
 import { useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
+import { boundAccountParams } from "../../lib/bound-account";
 
 import { useConfirm } from "../../components/ConfirmHost";
 import {
@@ -30,7 +31,7 @@ import {
   type UsageAlertDto,
   type VaultSyncDto,
 } from "../../ipc/bindings";
-import { formatBytes } from "../../lib/format-bytes";
+import { formatBytes } from "@lunarca/editor-core/format-bytes";
 import { formatDate, formatDateTime } from "../../lib/format-datetime";
 import { CloudVaultList } from "./CloudVaultList";
 import { syncErrorText } from "./sync-error";
@@ -224,6 +225,9 @@ export function SyncSection() {
   const linkedRemotes = overview.vaults
     .map((v) => v.remote_vault_id)
     .filter((id): id is string => id !== null);
+  const cloudListKey = overview.vaults
+    .map((v) => `${v.remote_vault_id ?? ""}:${v.last_synced_ms ?? ""}`)
+    .join(",");
 
   /** 大小与时间一行：选中的库「本地 · 云端 · 上次同步」，没选中的只有本地（开同步大约要占多少）。 */
   const metaLine = (vault: VaultSyncDto) => {
@@ -382,7 +386,9 @@ export function SyncSection() {
                       <span className="cloud-account__badge">{t("sync.open_badge")}</span>
                     ) : null}
                     <span className="cloud-sync__status" data-tone={status.tone}>
-                      {t(status.label, { account: vault.bound_account ?? "" })}
+                      {vault.bound_account
+                        ? t(status.label, boundAccountParams(vault.bound_account, t))
+                        : t(status.label)}
                     </span>
                   </span>
                   {/* 第二行：大小与时间；第三行：路径（单独一行、超长省略，悬停看全路径）。 */}
@@ -489,7 +495,7 @@ export function SyncSection() {
       )}
 
       {/* 账户里的全部云端库（ADR-151 修订 2026-10-15）：下载到本机、删除与恢复。 */}
-      {ready ? <CloudVaultList linkedKey={linkedRemotes.join(",")} /> : null}
+      {ready ? <CloudVaultList refreshKey={cloudListKey} /> : null}
 
       {/* 这台设备的同步偏好（录音同步方式、大文件暂停，ADR-156）：对所有选中的库生效。 */}
       {ready ? (

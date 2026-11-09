@@ -2,7 +2,7 @@
 """错误码族对齐门禁（TDD-15 §5 L10 的最后一支，AGENTS.md §3）。
 
 Job 错误码 ↔ 渲染通道那一支由 `job-error-code-channels.test.ts` 从生成物判定；后端 Fluent
-注册表那一支由 `ipc_error_copy` 扫源码判定。剩下三族**领域错误码**此前没有任何机器判定：
+注册表那一支由 `ipc_error_copy` 扫源码判定。本脚本校验以下错误码族：
 
 - **抓取**：`luna_fetch::FetchError::code()` → 前端 `lib/task-failure.ts` 的 `CODE_TO_KEY`
   → `transcribe:fetchError.<sub>`；
@@ -10,8 +10,9 @@ Job 错误码 ↔ 渲染通道那一支由 `job-error-code-channels.test.ts` 从
   `CODE_TO_KEY` → `settings:<key>`；
 - **Vault 存储**：`luna_vault::VaultError::code()` → `common:vaultError.<CODE>`（或
   `common:failure.<CODE>`，`vault-error.ts` 的 `lookup` 按此顺序问）。
+- **云 IPC**：`CloudError` 的生成联合类型 → `lib/cloud-error.ts` → `cloud:error.<code>`。
 
-三族的形状一样：Rust 给稳定码，前端按码取句子。任何一端加了一条、另一端没跟上，
+Rust 给稳定码，前端按码取句子。任何一端加了一条、另一端没跟上，
 现象都是"界面上出现一串 SCREAMING_SNAKE"——而这一类错只在真机上撞见。本脚本把它变成
 会变红的东西，四条断言：
 
@@ -19,7 +20,7 @@ Job 错误码 ↔ 渲染通道那一支由 `job-error-code-channels.test.ts` 从
 2) 前端映射到的每一个 i18n key 在 **zh-CN 与 en-US 两份** locale 里都存在；
 3) 前端映射表里的每一个码在 Rust 源码里**真的出现过**（`crates/` + `src-tauri/src/`）
    ——否则是一条永远走不到的死映射；
-4) 三族涉及的 i18n 节在两种语言里键集相同（少翻一条即红）。
+4) 各族涉及的 i18n 节在两种语言里键集相同（少翻一条即红）。
 
 用法：
     python3 scripts/check-error-code-families.py            # 校验工作树
@@ -37,6 +38,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 LOCALES = ("zh-CN", "en-US")
 RUST_ROOTS = ("crates", "src-tauri/src")
+CLOUD_BINDINGS = Path("apps/desktop/src/ipc/cloud-bindings.ts")
 
 CODE_ARM = re.compile(r'=>\s*"([A-Z][A-Z0-9_]+)"')
 TS_ENTRY = re.compile(r'^\s*([A-Z][A-Z0-9_]+)\s*:\s*"([^"]+)"', re.MULTILINE)
@@ -147,8 +149,34 @@ def rust_sources(root: Path) -> str:
     return "\n".join(chunks)
 
 
+def check_cloud(root: Path) -> list[str]:
+    bindings = root / CLOUD_BINDINGS
+    if not bindings.is_file():
+        return [f"[cloud] 缺生成绑定 {CLOUD_BINDINGS}"]
+    _, _, cloud_error = bindings.read_text(encoding="utf-8").partition("export type CloudError =\n")
+    codes = re.findall(r'^\{ code: "([a-z_]+)"', cloud_error.split("\nexport type ", 1)[0], re.MULTILINE)
+    if not codes:
+        return ["[cloud] 未解析到 CloudError 的错误码"]
+    problems = []
+    special = {"network": "network_kind", "login_rejected": "login_rejected", "link_rejected": "link_rejected"}
+    keys = {}
+    for loc in LOCALES:
+        tree = load_locale(root, loc, "cloud")
+        keys[loc] = flat_keys(tree, "error")
+        for code in codes:
+            present = (
+                any(key.startswith(f"{special[code]}.") for key in keys[loc]) if code in special
+                else key_exists(tree, f"error.{code}")
+            )
+            if not present:
+                problems.append(f"[cloud] 码 {code} 在 {loc}/cloud.json 里没有句子")
+    for key in sorted(keys["zh-CN"] ^ keys["en-US"]):
+        problems.append(f"[cloud] cloud:error.{key} 在中英文案中不一致")
+    return problems
+
+
 def check(root: Path) -> list[str]:
-    problems: list[str] = []
+    problems = check_cloud(root)
     all_rust = rust_sources(root)
     for fam in FAMILIES:
         name = fam["name"]
@@ -258,6 +286,8 @@ def _write_fixture(root: Path, *, drop_ts_b: bool = False, drop_en: bool = False
     (root / "crates/luna-vault/src").mkdir(parents=True)
     (root / "apps/desktop/src/lib").mkdir(parents=True)
     (root / "apps/desktop/src/features/settings").mkdir(parents=True)
+    (root / CLOUD_BINDINGS.parent).mkdir(parents=True)
+    (root / CLOUD_BINDINGS).write_text('export type CloudError =\n{ code: "web_access_unavailable" };\n', encoding="utf-8")
     (root / "crates/luna-fetch/src/error.rs").write_text(FIXTURE_RUST_FETCH, encoding="utf-8")
     (root / "crates/luna-config/src/registry.rs").write_text(FIXTURE_RUST_SETTINGS, encoding="utf-8")
     (root / "crates/luna-vault/src/error.rs").write_text(FIXTURE_RUST_VAULT, encoding="utf-8")
@@ -277,6 +307,7 @@ def _write_fixture(root: Path, *, drop_ts_b: bool = False, drop_en: bool = False
         (d / "transcribe.json").write_text(json.dumps(fetch), encoding="utf-8")
         (d / "settings.json").write_text(json.dumps({"error": {"type": "T"}}), encoding="utf-8")
         (d / "common.json").write_text(json.dumps({"vaultError": {"VAULT_NOT_FOUND": "nf"}, "failure": {}}), encoding="utf-8")
+        (d / "cloud.json").write_text(json.dumps({"error": {"web_access_unavailable": "unavailable"}}), encoding="utf-8")
 
 
 def self_test() -> None:
@@ -284,6 +315,10 @@ def self_test() -> None:
         root = Path(tmp) / "ok"
         _write_fixture(root)
         assert check(root) == [], check(root)
+        for loc in LOCALES:
+            path = root / "apps/desktop/src/i18n/locales" / loc / "cloud.json"
+            path.write_text('{"error": {}}', encoding="utf-8")
+        assert len(check_cloud(root)) == 2, check_cloud(root)
 
         root = Path(tmp) / "missing-map"
         _write_fixture(root, drop_ts_b=True)
@@ -313,7 +348,7 @@ def main(argv: list[str]) -> int:
         for line in problems:
             print(f"  - {line}", file=sys.stderr)
         return 1
-    print("错误码族对齐 OK — 抓取 / 设置写入 / Vault 存储三族的 Rust 码、前端映射与 zh-CN / en-US 文案一一对应。")
+    print("错误码族对齐 OK — 抓取 / 设置写入 / Vault 存储 / 云 IPC 与 zh-CN / en-US 文案对齐。")
     return 0
 
 

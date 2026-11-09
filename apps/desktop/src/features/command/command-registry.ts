@@ -1,6 +1,7 @@
 import type { DoubleTapDetector } from "../../lib/double-tap";
-import { parseShortcutValue } from "../../lib/shortcut-display";
+import { parseShortcutValue } from "@lunarca/editor-core/shortcut-display";
 import { mainKeyOf } from "../../lib/shortcut-keys";
+import { EDITOR_SHORTCUTS, SHORTCUT_MODIFIER_TOKENS, type EditorCommandId } from "@lunarca/editor-core/editor-shortcuts";
 
 /**
  * 一级空间 id（与 `features/workspace/workspace-ia.ts` 的空间联合逐字一致，由
@@ -16,6 +17,7 @@ export type CommandSpace =
   | "transcripts"
   | "chat"
   | "creator"
+  | "teleprompter"
   | "apps"
   | "trash"
   | "settings";
@@ -66,6 +68,10 @@ export interface CommandContext {
   /** 创作：此刻打开着的项目的提词器 / 发布清单（没有打开着的项目时命令面板不列）。 */
   openCreatorProjectTeleprompter: () => void;
   openCreatorProjectPublish: () => void;
+  /** 提词器：用提词器打开此刻编辑着的那篇笔记（没有打开着的笔记时命令面板不列）。 */
+  openActiveNoteInTeleprompter: () => void;
+  /** 提词器：新建一篇提词稿（`fromClipboard`：正文取剪贴板）并用提词器打开。 */
+  createTeleprompterDraft: (fromClipboard: boolean) => void;
 }
 
 export type WorkspaceCommandId =
@@ -84,6 +90,9 @@ export type WorkspaceCommandId =
   | "creator_swipe_library"
   | "creator_teleprompter"
   | "creator_publish"
+  | "teleprompter_open_current"
+  | "teleprompter_new_draft"
+  | "teleprompter_from_clipboard"
   | `go_${CommandSpace}`;
 
 export interface CommandDefinition {
@@ -103,6 +112,8 @@ export interface CommandDefinition {
   space?: CommandSpace;
   /** 只在打开着一个创作项目时有意义（项目的提词器、发布清单）：没打开时命令面板不列。 */
   needsCreatorProject?: true;
+  /** 只在有一篇打开着的笔记时有意义（「在提词器中打开这篇」）：没有时命令面板不列。 */
+  needsActiveNote?: true;
   run: (context: CommandContext) => void;
 }
 
@@ -127,6 +138,7 @@ export const COMMAND_SPACES: readonly CommandSpace[] = [
   "transcripts",
   "chat",
   "creator",
+  "teleprompter",
   "apps",
   "trash",
   "settings",
@@ -274,6 +286,35 @@ export const COMMANDS: readonly CommandDefinition[] = [
       context.openCreatorProjectPublish();
     },
   },
+  // 「提词器：」命令组（ADR-176 ①）：归提词器空间——应用未生效时与「前往：提词器」一起不列。
+  {
+    id: "teleprompter_open_current",
+    titleKey: "command:teleprompter.open_current",
+    scope: "workspace",
+    space: "teleprompter",
+    needsActiveNote: true,
+    run: (context) => {
+      context.openActiveNoteInTeleprompter();
+    },
+  },
+  {
+    id: "teleprompter_new_draft",
+    titleKey: "command:teleprompter.new_draft",
+    scope: "workspace",
+    space: "teleprompter",
+    run: (context) => {
+      context.createTeleprompterDraft(false);
+    },
+  },
+  {
+    id: "teleprompter_from_clipboard",
+    titleKey: "command:teleprompter.from_clipboard",
+    scope: "workspace",
+    space: "teleprompter",
+    run: (context) => {
+      context.createTeleprompterDraft(true);
+    },
+  },
   ...COMMAND_SPACES.map(
     (space): CommandDefinition => ({
       id: `go_${space}`,
@@ -292,50 +333,6 @@ export const COMMANDS: readonly CommandDefinition[] = [
 
 export function commandById(id: WorkspaceCommandId): CommandDefinition | undefined {
   return COMMANDS.find((command) => command.id === id);
-}
-
-/**
- * 编辑器作用域命令的 id：键位在这里定义一次，执行归当前活跃的那个编辑器
- * （视图模式与正文都是它的状态，shell 并不总是持有者，TDD-07 §4.2）。
- * 右键菜单与格式工具栏的提示经 `formatShortcut`、CM6 keymap 经 `codeMirrorKey` 都从本表派生。
- */
-export type EditorCommandId =
-  | "save"
-  | "bold"
-  | "italic"
-  | "insert_link"
-  | "insert_table"
-  | "heading_0"
-  | "heading_1"
-  | "heading_2"
-  | "heading_3"
-  | "heading_4"
-  | "heading_5"
-  | "heading_6"
-  | "tab_focus_mode";
-
-export const EDITOR_SHORTCUTS: Readonly<Record<EditorCommandId, string>> = {
-  save: "cmd_or_ctrl+s",
-  bold: "cmd_or_ctrl+b",
-  italic: "cmd_or_ctrl+i",
-  insert_link: "cmd_or_ctrl+k",
-  insert_table: "cmd_or_ctrl+alt+t",
-  // Typora 风格段落快捷键：⌘0 正文、⌘1–⌘6 标题（PRD-06-014）。
-  heading_0: "cmd_or_ctrl+0",
-  heading_1: "cmd_or_ctrl+1",
-  heading_2: "cmd_or_ctrl+2",
-  heading_3: "cmd_or_ctrl+3",
-  heading_4: "cmd_or_ctrl+4",
-  heading_5: "cmd_or_ctrl+5",
-  heading_6: "cmd_or_ctrl+6",
-  // 「Tab 键移动焦点」开关（VS Code 同义，Windows 为 Ctrl+M）：⌘⇧M。不用 CodeMirror 在 macOS 上
-  // 公布的 ⇧⌥M——⌥ 加字母在 mac 上是输入字符（⇧⌥M = Â），经拼音输入法直接上屏，真机按下去
-  // 打出一个「Â」而不切换（2026-10-06）。由编辑器接到会话级的那一份（`lib/tab-focus-mode.ts`）。
-  tab_focus_mode: "cmd_or_ctrl+shift+m",
-};
-
-export function editorShortcut(id: EditorCommandId): string {
-  return EDITOR_SHORTCUTS[id];
 }
 
 /**
@@ -390,9 +387,9 @@ export const EDITOR_PALETTE_COMMANDS: readonly EditorPaletteCommand[] = [
     titleKey: "command:editor.ai_composer",
     settingKey: "shortcuts.ai_composer",
   },
-  { id: "view_live", titleKey: "editor:mode.live" },
-  { id: "view_source", titleKey: "editor:mode.source" },
-  { id: "view_reading", titleKey: "editor:mode.reading" },
+  { id: "view_live", titleKey: "editor-core:editor.mode.live" },
+  { id: "view_source", titleKey: "editor-core:editor.mode.source" },
+  { id: "view_reading", titleKey: "editor-core:editor.mode.reading" },
   { id: "read_aloud", titleKey: "editor:read.readDoc" },
   { id: "version_history", titleKey: "editor:version.open" },
   { id: "ai_doc", titleKey: "editor:floating.trigger_title" },
@@ -404,21 +401,19 @@ export const EDITOR_PALETTE_COMMANDS: readonly EditorPaletteCommand[] = [
   { id: "word_goal", titleKey: "editor:wordGoal.menu" },
   { id: "format_toolbar", titleKey: "editor:toolbar.show" },
   // 插入模板（V6）：与斜杠菜单「/模板」、右键「插入 ▸」同一个动作。
-  { id: "insert_template", titleKey: "editor:menu.insertTemplate" },
+  { id: "insert_template", titleKey: "editor-core:editor.menu.insertTemplate" },
   { id: "view_in_graph", titleKey: "editor:graphTags.viewGraph" },
   { id: "generate_graph_tags", titleKey: "editor:graphTags.generate" },
   // 键盘用户离开正文的显式出路（WCAG 2.1.2）：面板里搜得到、带键位提示，开着时状态栏有指示。
   { id: "tab_focus_mode", titleKey: "command:editor.tab_focus_mode", editorShortcut: "tab_focus_mode" },
 ];
 
-const MODIFIER_TOKENS = new Set(["cmd_or_ctrl", "shift", "alt"]);
-
 /**
  * 键盘事件是否命中一枚注册表键值串（`cmd_or_ctrl+shift+f` 这种）。
  *
  * 判定是**精确**的：要求的修饰键必须都按下，没要求的 Shift / Alt 必须都没按下——
  * 否则 `⌘⇧F` 会同时命中 `⌘F` 的谓词，两条命令抢同一次按键。`cmd_or_ctrl` 取
- * `metaKey || ctrlKey`，与 `lib/shortcut-display.ts` 的展示口径一致（macOS 显 ⌘、
+ * `metaKey || ctrlKey`，与 `@lunarca/editor-core/shortcut-display` 的展示口径一致（macOS 显 ⌘、
  * 其余显 Ctrl，判定两边都认）。
  */
 export function matchesShortcut(
@@ -429,7 +424,7 @@ export function matchesShortcut(
 ): boolean {
   // 只判"这一下按的是不是这个组合"；是否要按两次由 `workspaceCommandForKey` 另判。
   const { parts } = parseShortcutValue(value);
-  const keys = parts.filter((part) => !MODIFIER_TOKENS.has(part));
+  const keys = parts.filter((part) => !SHORTCUT_MODIFIER_TOKENS.has(part));
   if (keys.length !== 1) {
     return false;
   }
@@ -451,31 +446,6 @@ export function matchesShortcut(
  */
 function pressedKeyName(event: { key: string; code?: string }): string {
   return (event.code ? mainKeyOf({ code: event.code, key: event.key }) : null) ?? event.key.toLowerCase();
-}
-
-/**
- * 注册表键值串 → CodeMirror keymap 的键名（`cmd_or_ctrl+alt+t` → `Mod-Alt-t`）。
- *
- * CM 的 `Mod` 就是 macOS 的 ⌘ / 其余平台的 Ctrl，与 `cmd_or_ctrl` 同义；修饰键顺序
- * 按 CM 文档的 `Shift-Alt-Mod` 惯例无关紧要，但这里固定输出顺序以便测试断言稳定。
- */
-export function codeMirrorKey(value: string): string {
-  const parts = value
-    .split("+")
-    .map((part) => part.trim())
-    .filter(Boolean);
-  const modifiers: string[] = [];
-  if (parts.includes("cmd_or_ctrl")) {
-    modifiers.push("Mod");
-  }
-  if (parts.includes("alt")) {
-    modifiers.push("Alt");
-  }
-  if (parts.includes("shift")) {
-    modifiers.push("Shift");
-  }
-  const keys = parts.filter((part) => !MODIFIER_TOKENS.has(part));
-  return [...modifiers, ...keys].join("-");
 }
 
 /** 应用内双击判定所需的运行态：检测器 + 时间窗（`null` = 尚未从设置读到，暂不判双击）。 */

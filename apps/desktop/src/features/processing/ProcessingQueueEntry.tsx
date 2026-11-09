@@ -13,7 +13,7 @@ import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 
 import { useTranslation } from "react-i18next";
 import { commands, type ProcTaskDto } from "../../ipc/bindings";
 import { IconButton } from "../../components/ui/IconButton";
-import { CheckIcon, QueueIcon } from "../../components/ui/Icon";
+import { CheckIcon, QueueIcon } from "@lunarca/editor-core/Icon";
 import { useDialogBehavior } from "../../hooks/use-dialog-behavior";
 import type { StatusVisitMetrics } from "../../hooks/use-status-visit-metrics";
 import { ProcessingQueuePanel } from "./ProcessingQueuePanel";

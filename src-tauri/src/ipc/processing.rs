@@ -1192,8 +1192,10 @@ async fn attach_media_to_note(
             .unwrap_or("media");
         let asset_dir = media_asset_dir(&settings, note_rel);
         let kind = media_kind(&src.to_string_lossy()).unwrap_or(PlaybackMediaKind::Audio);
-        let media_rel =
-            luna_vault::join_vault_rel(&asset_dir, &import_media_file_name(stem, src, kind));
+        let media_rel = luna_sync_core::attachment::join_vault_rel(
+            &asset_dir,
+            &import_media_file_name(stem, src, kind),
+        );
         let media_abs = vault.root().join(&media_rel);
         if let Some(parent) = media_abs.parent() {
             std::fs::create_dir_all(parent).map_err(|e| format!("MKDIR_FAILED: {e}"))?;
@@ -1806,8 +1808,10 @@ pub(crate) fn plan_import_note(
         .unwrap_or(&stem)
         .to_string();
     let asset_dir = media_asset_dir(&settings, &doc.path);
-    let media_rel =
-        luna_vault::join_vault_rel(&asset_dir, &import_media_file_name(&note_stem, src, kind));
+    let media_rel = luna_sync_core::attachment::join_vault_rel(
+        &asset_dir,
+        &import_media_file_name(&note_stem, src, kind),
+    );
     let media_abs = vault.root().join(&media_rel);
     if let Some(parent) = media_abs.parent() {
         std::fs::create_dir_all(parent).map_err(|e| format!("MKDIR_FAILED: {e}"))?;

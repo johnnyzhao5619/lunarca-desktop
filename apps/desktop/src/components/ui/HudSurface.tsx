@@ -5,7 +5,7 @@ import {
   NO_COMPOSITION,
   isImeCompositionKey,
   type CompositionState,
-} from "../../lib/ime-composition";
+} from "@lunarca/editor-core/ime-composition";
 
 type NativeMainProps = Omit<HTMLAttributes<HTMLElement>, "className" | "children">;
 
@@ -71,7 +71,7 @@ export function HudSurface({
   useEffect(() => {
     dismissRef.current = onDismiss;
   });
-  // 组字中按 Esc 是在取消候选，不是在关窗：判据只有 `lib/ime-composition.ts` 这一份。
+  // 组字中按 Esc 是在取消候选，不是在关窗：判据只有 `@lunarca/editor-core/ime-composition` 这一份。
   // 只看 `isComposing` 不够——WKWebView 里 `compositionend` 早于 keydown，那一下 Esc 的
   // isComposing 已是 false，故在窗口上记下组字边界交给同一条判据（时间窗内即属输入法）。
   const compositionRef = useRef<CompositionState>({ ...NO_COMPOSITION });

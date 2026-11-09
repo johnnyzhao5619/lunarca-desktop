@@ -15,7 +15,7 @@ import {
   type SwipeProposalDto,
 } from "../../ipc/bindings";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { BookmarkIcon, CloseIcon } from "../../components/ui/Icon";
+import { BookmarkIcon, CloseIcon } from "@lunarca/editor-core/Icon";
 import { IconButton } from "../../components/ui/IconButton";
 import { useVaultReload } from "../../hooks/use-vault-reload";
 import { vaultErrorText } from "../../lib/vault-error";

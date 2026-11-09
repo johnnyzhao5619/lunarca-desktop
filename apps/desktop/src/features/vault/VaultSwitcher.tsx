@@ -19,7 +19,7 @@
 
 import { useTranslation } from "react-i18next";
 import type { CloudVaultDto, VaultEntryDto } from "../../ipc/bindings";
-import { DownloadIcon, HardDriveIcon, SettingsIcon } from "../../components/ui/Icon";
+import { DownloadIcon, HardDriveIcon, SettingsIcon } from "@lunarca/editor-core/Icon";
 import { useContextMenu } from "../../components/ContextMenuHost";
 import { buildMenu, heading, separator, type ContextMenuEntry } from "../../lib/context-menu";
 import { syncErrorText } from "../account/sync-error";

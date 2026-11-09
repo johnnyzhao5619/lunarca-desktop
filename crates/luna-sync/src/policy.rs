@@ -28,6 +28,21 @@ impl RecordingsMode {
     }
 }
 
+/// 库是否放在第三方同步盘里（iCloud Drive、Dropbox、OneDrive、Google Drive）。两套同步叠用要用户
+/// 自己决定（ADR-148 ⑨），所以登录后不主动询问（ADR-178 ②）。
+#[must_use]
+pub fn in_third_party_sync_folder(path: &std::path::Path) -> bool {
+    let parts: Vec<String> = path
+        .components()
+        .map(|part| part.as_os_str().to_string_lossy().to_lowercase())
+        .collect();
+    parts.windows(2).any(|pair| {
+        pair[0] == "library" && (pair[1] == "mobile documents" || pair[1] == "cloudstorage")
+    }) || parts
+        .iter()
+        .any(|part| part == "dropbox" || part == "google drive" || part.starts_with("onedrive"))
+}
+
 /// 音频 / 视频扩展名（小写）：录音与导入的音视频是同一性质。
 const MEDIA_EXTENSIONS: [&str; 12] = [
     "wav", "m4a", "mp3", "aac", "flac", "ogg", "opus", "webm", "mp4", "mov", "mkv", "m4v",
@@ -83,5 +98,26 @@ mod tests {
         assert!(!is_settling("r.wav", 1, Some(now - SETTLE_MS), now));
         assert!(!is_settling("n.md", 1, Some(now), now), "笔记不等");
         assert!(!is_settling("r.wav", 1, None, now));
+    }
+}
+
+#[cfg(test)]
+mod third_party_tests {
+    use super::in_third_party_sync_folder;
+    use std::path::Path;
+
+    #[test]
+    fn recognizes_the_common_sync_folders_only() {
+        for path in [
+            "/Users/a/Library/Mobile Documents/com~apple~CloudDocs/Notes",
+            "/Users/a/Library/CloudStorage/GoogleDrive-a/Notes",
+            "/Users/a/Dropbox/Notes",
+            "C:/Users/a/OneDrive - Acme/Notes",
+        ] {
+            assert!(in_third_party_sync_folder(Path::new(path)), "{path}");
+        }
+        assert!(!in_third_party_sync_folder(Path::new(
+            "/Users/a/Documents/Notes"
+        )));
     }
 }

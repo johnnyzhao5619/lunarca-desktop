@@ -13,7 +13,7 @@ import { useState, type MouseEvent as ReactMouseEvent, type PointerEvent as Reac
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import type { ChannelDto, ProjectCardDto, ProjectStageDto } from "../../ipc/bindings";
-import { ChevronDownIcon, ChevronRightIcon } from "../../components/ui/Icon";
+import { ChevronDownIcon, ChevronRightIcon } from "@lunarca/editor-core/Icon";
 import { SelectBox } from "../../components/ui/SelectBox";
 import { formatDateTime, formatMonthDay } from "../../lib/format-datetime";
 import { formatClock } from "../../lib/format-duration";

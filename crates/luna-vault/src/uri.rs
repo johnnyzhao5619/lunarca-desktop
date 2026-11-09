@@ -79,7 +79,11 @@ pub fn parse(input: &str) -> Result<VaultLink, VaultLinkRejection> {
                     .ok_or(VaultLinkRejection::BadPath)?,
                 heading: url
                     .fragment()
-                    .map(|fragment| crate::percent_decode(fragment).trim().to_owned())
+                    .map(|fragment| {
+                        luna_sync_core::links::percent_decode(fragment)
+                            .trim()
+                            .to_owned()
+                    })
                     .filter(|heading| !heading.is_empty()),
             }
         }

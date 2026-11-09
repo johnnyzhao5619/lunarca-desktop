@@ -309,8 +309,8 @@ mod tests {
         )))));
         let (one, two) = (Uuid::from_u128(1), Uuid::from_u128(2));
         assert!(cmks.load(one).unwrap().is_empty());
-        let v1 = luna_sync::crypto::Cmk::generate(1);
-        let v2 = luna_sync::crypto::Cmk::generate(2);
+        let v1 = luna_sync_core::crypto::Cmk::generate(1);
+        let v2 = luna_sync_core::crypto::Cmk::generate(2);
         cmks.save(one, &v2).unwrap();
         cmks.save(one, &v1).unwrap();
         cmks.save(two, &v1).unwrap();
@@ -341,7 +341,8 @@ mod tests {
             &shared,
         )))));
         let id = Uuid::from_u128(7);
-        cmks.save(id, &luna_sync::crypto::Cmk::generate(1)).unwrap();
+        cmks.save(id, &luna_sync_core::crypto::Cmk::generate(1))
+            .unwrap();
         let raw = std::fs::read_to_string(shared.path()).unwrap();
         let name = format!("\"cloud/sync-cmk/{id}\":\"");
         std::fs::write(shared.path(), raw.replace(&name, &format!("{name}AAAA"))).unwrap();

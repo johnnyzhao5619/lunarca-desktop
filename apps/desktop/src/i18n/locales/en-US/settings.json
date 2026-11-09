@@ -463,6 +463,30 @@
     "ai_composer_desc": "Open or close the AI actions panel in a note (in-app shortcut).",
     "recording_toggle_desc": "Starts or pauses recording using the shortcut.",
     "recording_bookmark_desc": "Marks the current moment so playback can jump straight to it. While the teleprompter is following you, it marks the line you are reading as a retake instead. Unbound by default.",
+    "teleprompter_toggle": "Hide / show teleprompter",
+    "teleprompter_toggle_desc": "Instantly hides the teleprompter if it shows up in a recording; press again to bring it back. Only active when the Teleprompter app is installed.",
+    "teleprompter_send": "Send to teleprompter",
+    "teleprompter_send_desc": "Sends the selected text to the teleprompter; when no selection can be read (as in Google Docs), sends the clipboard text instead. Only active when the Teleprompter app is installed.",
+    "teleprompter_play": "Teleprompter: Start / pause",
+    "teleprompter_play_desc": "While the teleprompter is shown: start or pause auto-scroll.",
+    "teleprompter_line_up": "Teleprompter: Previous line",
+    "teleprompter_line_up_desc": "While shown: move the reading line up one line; follow-along continues from there.",
+    "teleprompter_line_down": "Teleprompter: Next line",
+    "teleprompter_line_down_desc": "While shown: move the reading line down one line; follow-along continues from there.",
+    "teleprompter_block_prev": "Teleprompter: Previous section",
+    "teleprompter_block_prev_desc": "While shown: back to the start of this section, or the previous one if already there.",
+    "teleprompter_block_next": "Teleprompter: Next section",
+    "teleprompter_block_next_desc": "While shown: jump to the start of the next section.",
+    "teleprompter_faster": "Teleprompter: Faster",
+    "teleprompter_faster_desc": "While shown: speed up auto-scroll one step.",
+    "teleprompter_slower": "Teleprompter: Slower",
+    "teleprompter_slower_desc": "While shown: slow down auto-scroll one step.",
+    "teleprompter_current": "Teleprompter: Back to where you are",
+    "teleprompter_current_desc": "During follow-along: bring the line you're reading back to the reading line.",
+    "teleprompter_top": "Teleprompter: Back to top",
+    "teleprompter_top_desc": "While shown: back to the start of the script.",
+    "teleprompter_close": "Teleprompter: Close",
+    "teleprompter_close_desc": "While shown: close the teleprompter and stop follow-along.",
     "live_caption_desc": "Shows or hides the floating caption panel.",
     "diagnostic_unavailable": "The system refused this combination (most likely another app owns it). Pick another one.",
     "diagnostic_invalid": "This binding could not be registered — record it again.",
@@ -510,6 +534,8 @@
     "documents_dir_desc": "Where notes converted from imported documents (Word, text, spreadsheets…) and their original files are filed.",
     "chats_dir_desc": "Where AI chats saved to history are stored.",
     "creator_dir_desc": "Where video project folders and swipe entries are stored.",
+    "teleprompter_dir": "Teleprompter scripts folder",
+    "teleprompter_dir_desc": "Where “New script” and “New from clipboard” save scripts.",
     "translate_space_dir_desc": "Source and translated text you confirm in Translate Space is written here.",
     "knowledge_dir_desc": "Used for new topic pages and knowledge maps only. Existing pages are not moved.",
     "attachment_location_desc": "Whether pasted images and files go to the Vault root, next to the note, a subfolder next to the note, or one specific folder.",
@@ -974,7 +1000,14 @@
       "title": "Server-managed",
       "mode": "Automatic selection",
       "intro": "The server selects text models automatically; execution records show the model used. Semantic indexing uses verified embedding profiles.",
-      "local_available": "{{count}} installed on-device models are hidden from the default view. Turn on Show full settings to see them and pin individual items."
+      "local_available": "{{count}} installed on-device models are hidden from the default view. Turn on Show full settings to see them and pin individual items.",
+      "gate": {
+        "consent_option": "Server-managed (turn on server-side transcription first)",
+        "blocked_option": "Server-managed (unavailable right now)",
+        "consent_off": "You haven't allowed transcription to go to the server yet. Turn on “Server-side transcription” above, then you can pick server-managed here.",
+        "open_consent": "Turn on",
+        "change_strategy": "Change"
+      }
     },
     "diarize_auto": "Used automatically (picked by meeting language; no assignment needed)",
     "pause": "Pause",
@@ -1484,6 +1517,7 @@
       "transcripts": "Transcripts",
       "chat": "AI chat",
       "creator": "Create",
+      "teleprompter": "Teleprompter",
       "apps": "Apps",
       "trash": "Trash",
       "settings": "Settings"
@@ -1585,9 +1619,12 @@
     "done": {
       "vault_cache": "Cache cleared, rebuilding the index",
       "vault_trash": "Trash emptied",
-      "models": "Deleted {{count}} models",
-      "reset": "Reset done, old configuration backed up at {{path}}; restarting…",
-      "reset_no_backup": "Reset done; restarting…"
+      "models": "Deleted {{count}} models"
+    },
+    "reset_blocked": {
+      "restart_blocked_capture": "A recording, live captions, or voice input is still running, so nothing was reset. Try again when it’s finished.",
+      "restart_save_failed": "A note couldn’t be saved (a write failed or it conflicts with an outside change), so nothing was reset. Your text is still in the editor. Sort it out and try again.",
+      "restart_save_timeout": "Saving your notes took too long, so nothing was reset. Your text is still in the editor. Try again in a moment."
     },
     "locations": "Data locations",
     "uninstall_title": "Data retained after uninstalling",
@@ -1663,6 +1700,9 @@
       "update_check_failed": "Couldn’t reach the update server. Try again later.",
       "no_pending_update": "Check for updates first.",
       "update_install_failed": "The download or signature check failed, so nothing was installed. Your current version keeps working.",
+      "restart_blocked_capture": "A recording, live captions, or voice input is still running, so nothing was installed. Try again when it’s finished.",
+      "restart_save_failed": "A note couldn’t be saved (a write failed or it conflicts with an outside change), so nothing was installed. Your text is still in the editor. Sort it out and try again.",
+      "restart_save_timeout": "Saving your notes took too long, so nothing was installed. Your text is still in the editor. Try again in a moment.",
       "unknown": "Checking for updates didn’t finish. Try again later."
     }
   }

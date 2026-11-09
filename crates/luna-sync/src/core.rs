@@ -15,8 +15,8 @@
 
 use uuid::Uuid;
 
-use crate::manifest::EntryPlain;
 use crate::state::BaseFile;
+use luna_sync_core::manifest::EntryPlain;
 
 /// 本地观察到的一个文件。
 #[derive(Debug, Clone, PartialEq, Eq)]

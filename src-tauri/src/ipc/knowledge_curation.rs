@@ -921,7 +921,7 @@ fn review_inbox_of(
     let mut groups = Vec::new();
     let mut omitted = 0u32;
     let mut topics = vault.topic_pages().map_err(vault_err)?;
-    topics.sort_by_key(|path| luna_vault::title_of(path));
+    topics.sort_by_key(|path| luna_sync_core::links::title_of(path));
     for topic_path in topics {
         let mut ready = None;
         for id in vault.sealed_plan_ids_for_target(&topic_path) {
@@ -968,7 +968,7 @@ fn review_inbox_of(
             shown(&operation_id, &result_hash);
         }
         groups.push(ReviewGroupDto {
-            topic_title: luna_vault::title_of(&topic_path).to_owned(),
+            topic_title: luna_sync_core::links::title_of(&topic_path).to_owned(),
             topic_path,
             operation_id,
             before_hash,
@@ -1079,7 +1079,7 @@ fn topic_reading_summary_of(
                 source_title: item
                     .source_path
                     .as_deref()
-                    .map(|path| luna_vault::title_of(path).to_owned()),
+                    .map(|path| luna_sync_core::links::title_of(path).to_owned()),
                 source_path: item.source_path,
                 state: item.state.into(),
                 claims: item.claims,
@@ -1137,7 +1137,7 @@ fn topic_claim_citation_dto(citation: luna_vault::ClaimCitationView) -> TopicCla
         source_title: citation
             .source_path
             .as_deref()
-            .map(|path| luna_vault::title_of(path).to_owned()),
+            .map(|path| luna_sync_core::links::title_of(path).to_owned()),
         citation_id: citation.citation_id,
         source_path: citation.source_path,
         state: citation.state.into(),
@@ -1244,7 +1244,7 @@ fn topic_preview_of(
 ) -> Result<TopicPreviewDto, String> {
     let doc = vault.read(topic_path).map_err(vault_err)?;
     let summary = luna_vault::topic_summary(&doc.content);
-    let title = luna_vault::title_of(topic_path).to_owned();
+    let title = luna_sync_core::links::title_of(topic_path).to_owned();
     let reading = match vault.topic_reading_summary(topic_path) {
         Ok(reading) => reading,
         // 旧格式、未知 schema、坏证据：只给页名与摘要，不编范围与结论。
@@ -1299,7 +1299,9 @@ fn topic_preview_of(
                         source_title: citation
                             .source_path
                             .as_deref()
-                            .map_or_else(String::new, |path| luna_vault::title_of(path).to_owned()),
+                            .map_or_else(String::new, |path| {
+                                luna_sync_core::links::title_of(path).to_owned()
+                            }),
                         citation_id: citation.citation_id,
                     })
                     .collect(),
@@ -1400,7 +1402,7 @@ pub(crate) fn knowledge_recent_activity(
         .saturating_sub(WEEK_WINDOW_MS);
     Ok(KnowledgeRecentActivityDto {
         continue_reading: vault.last_knowledge_visit().map(|path| KnowledgeVisitDto {
-            title: luna_vault::title_of(&path).to_owned(),
+            title: luna_sync_core::links::title_of(&path).to_owned(),
             path,
         }),
         week: knowledge_week_of(vault, since)?,
@@ -1439,7 +1441,7 @@ fn knowledge_week_of(vault: &luna_vault::Vault, since_ms: u64) -> Result<Knowled
             .into_iter()
             .take(WEEK_LIST_LIMIT)
             .map(|topic| WeekTopicDto {
-                title: luna_vault::title_of(&topic.path).to_owned(),
+                title: luna_sync_core::links::title_of(&topic.path).to_owned(),
                 path: topic.path,
                 claims: topic.claims,
                 conflicts: topic.conflicts,
@@ -1451,7 +1453,7 @@ fn knowledge_week_of(vault: &luna_vault::Vault, since_ms: u64) -> Result<Knowled
             .take(WEEK_LIST_LIMIT)
             .map(|source| WeekSourceDto {
                 path: source.path.clone(),
-                title: luna_vault::title_of(&source.path).to_owned(),
+                title: luna_sync_core::links::title_of(&source.path).to_owned(),
             })
             .collect(),
     })
@@ -1630,7 +1632,7 @@ fn topic_upgrade_candidates_of(
             .into_iter()
             .take(MAX_TOPIC_UPGRADE_BATCH)
             .map(|path| TopicUpgradeCandidateDto {
-                title: luna_vault::title_of(&path).to_owned(),
+                title: luna_sync_core::links::title_of(&path).to_owned(),
                 path,
             })
             .collect(),
@@ -2285,7 +2287,7 @@ pub(crate) fn open_topic_link(
     let (_, outcome) = open_source_at_anchor(&app, &state, &source_path, &anchor, true)?;
     Ok(TopicLinkOpenDto::Opened {
         outcome,
-        title: luna_vault::title_of(&source_path).to_owned(),
+        title: luna_sync_core::links::title_of(&source_path).to_owned(),
     })
 }
 
@@ -2315,7 +2317,7 @@ pub(crate) fn open_topic_citation(
     let (_, outcome) = open_source_at_anchor(&app, &state, &source_path, &anchor, true)?;
     Ok(TopicLinkOpenDto::Opened {
         outcome,
-        title: luna_vault::title_of(&source_path).to_owned(),
+        title: luna_sync_core::links::title_of(&source_path).to_owned(),
     })
 }
 
@@ -2759,7 +2761,7 @@ mod tests {
                     // 撤销凭据：写入前指纹就是预览时这一页的整文件指纹。
                     assert_eq!(
                         before_hash,
-                        luna_vault::ContentHash::of(before.as_bytes()).to_string()
+                        luna_sync_core::hashing::ContentHash::of(before.as_bytes()).to_string()
                     );
                     assert_eq!(items.len(), 1);
                     assert_eq!(items[0].action, SealedPlanActionDto::Append);
@@ -2819,7 +2821,7 @@ mod tests {
         assert_eq!(report.applied_items, 1);
         let written = reopened.read(SEALED_TARGET).unwrap().content;
         assert_eq!(
-            luna_vault::ContentHash::of(written.as_bytes()).as_str(),
+            luna_sync_core::hashing::ContentHash::of(written.as_bytes()).as_str(),
             plan.result_hash
         );
         // 续跑档还没确认清理前的重复执行识别已落盘结果，不追加第二份声明。

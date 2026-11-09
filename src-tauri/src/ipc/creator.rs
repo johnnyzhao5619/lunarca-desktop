@@ -6,6 +6,7 @@
 use super::settings::{apply_setting_side_effects, set_setting_value, SettingValueDto};
 use super::*;
 use luna_config::creator_board::{board_stage_tokens, resolve_board_stages};
+use luna_sync_core::naming::sanitized_file_stem;
 use luna_vault::{
     display_column, first_visible_stage, next_action, NextAction, ProjectCard, ProjectChild,
     ProjectStage,
@@ -560,7 +561,7 @@ pub(crate) fn script_move_section(
 ) -> Option<ScriptSectionMoveDto> {
     let (moved, line) = luna_vault::move_section(&content, from_line, before_line)?;
     Some(ScriptSectionMoveDto {
-        change: luna_vault::frontmatter_edit::text_change(&content, &moved).into(),
+        change: luna_sync_core::frontmatter_edit::text_change(&content, &moved).into(),
         line,
     })
 }
@@ -576,7 +577,7 @@ pub(crate) fn script_set_broll_done(
     done: bool,
 ) -> Option<TextChangeDto> {
     let changed = luna_vault::set_broll_done(&content, line, done)?;
-    Some(luna_vault::frontmatter_edit::text_change(&content, &changed).into())
+    Some(luna_sync_core::frontmatter_edit::text_change(&content, &changed).into())
 }
 
 /// 镜头清单的 CSV（纯函数）：表头一行，每个镜头一行（序号、段落、镜头、完成）；带 UTF-8 BOM，

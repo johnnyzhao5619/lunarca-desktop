@@ -85,6 +85,8 @@ export type WorkspaceRouteIntent =
   | { kind: "chat"; path: string | null; location: WorkspaceLocation }
   /** 创作（ADR-162 / ADR-165 ⑥）：看板、灵感库，或某个项目的某个页签。 */
   | { kind: "creator"; target: CreatorTarget; location: WorkspaceLocation }
+  /** 提词器（ADR-176 ①）：落提词器首页。 */
+  | { kind: "teleprompter"; location: WorkspaceLocation }
   /** 应用（ADR-165 ⑤）：不带 id 落列表，带 id 落那个应用的详情页。 */
   | { kind: "apps"; appId: string | null; location: WorkspaceLocation }
   /** 笔记：落「笔记」，`target` 为空表示这条 `notes://` 解析不出对象。 */
@@ -172,6 +174,9 @@ export function parseWorkspaceRoute(route: string): WorkspaceRouteIntent | null 
   }
   if (route.startsWith("creator://")) {
     return { kind: "creator", target: creatorTargetOf(route), location: locationFor("creator") };
+  }
+  if (route.startsWith("teleprompter://")) {
+    return { kind: "teleprompter", location: locationFor("teleprompter") };
   }
   if (route.startsWith("apps://")) {
     return {

@@ -3,118 +3,12 @@
 //! - [`title_of`]：标题 = 文件名 stem（去 `.md`）——**单一来源**（标题 = 文件名 = 链接锚点，§3）。
 //! - [`clean_for_fts`]：FTS 入库前预清洗——剥 frontmatter（[`crate::frontmatter::body_of`]）+ 剥时间轴
 //!   行标记 `[HH:MM:SS.mmm]`（§3 索引卫生命门），否则搜索会命中 YAML 键与时间码、`snippet` 被污染。
-//! - [`extract_tags`]：读 frontmatter 顶层 `tags`（§2.3，派生索引；只读不写）。
+//!   时间码与结构脚手架的判定住在 `luna_sync_core::scaffold`，标签的读法住在 `luna_sync_core::tags`——
+//!   网页版的 WASM 与桌面共用同一份（ADR-177 ⑥）；调用方直接从那里引用。
 //! - [`extract_links`]：解析 wikilink `[[t]]`/`[[t|alias]]`/`![[embed]]` 与标准 md 相对链接
 //!   `[文本](rel.md)`，建 `links` 边（§3 反链图谱统一）。
 
 use crate::frontmatter::body_of;
-
-/// 标题 = 文件名 stem（去末尾 `.md`，大小写不敏感）。不引入独立 title 字段（§3）。
-#[must_use]
-pub fn title_of(rel_path: &str) -> String {
-    let file = rel_path.rsplit('/').next().unwrap_or(rel_path);
-    let stem = file
-        .strip_suffix(".md")
-        .or_else(|| file.strip_suffix(".MD"))
-        .or_else(|| file.strip_suffix(".markdown"))
-        .unwrap_or(file);
-    stem.to_string()
-}
-
-/// 判断从 `bytes[i..]` 起是否为一个时间轴行标记 `[HH:MM:SS]` 或 `[HH:MM:SS.mmm]`，
-/// 返回标记的字节长度（含中括号）；不是则返回 `None`。
-fn timecode_len(s: &[u8]) -> Option<usize> {
-    // 形如 [dd:dd:dd] 或 [dd:dd:dd.d{1,3}]
-    if s.first() != Some(&b'[') {
-        return None;
-    }
-    let mut i = 1;
-    let digit = |b: u8| b.is_ascii_digit();
-    let take = |s: &[u8], i: &mut usize, n: usize| -> bool {
-        for _ in 0..n {
-            if s.get(*i).copied().is_some_and(digit) {
-                *i += 1;
-            } else {
-                return false;
-            }
-        }
-        true
-    };
-    // HH:MM:SS
-    if !take(s, &mut i, 2) || s.get(i) != Some(&b':') {
-        return None;
-    }
-    i += 1;
-    if !take(s, &mut i, 2) || s.get(i) != Some(&b':') {
-        return None;
-    }
-    i += 1;
-    if !take(s, &mut i, 2) {
-        return None;
-    }
-    // 可选 .mmm（1~3 位）
-    if s.get(i) == Some(&b'.') {
-        i += 1;
-        let mut frac = 0;
-        while frac < 3 && s.get(i).copied().is_some_and(digit) {
-            i += 1;
-            frac += 1;
-        }
-        if frac == 0 {
-            return None;
-        }
-    }
-    if s.get(i) == Some(&b']') {
-        Some(i + 1)
-    } else {
-        None
-    }
-}
-
-/// 一段文本中被时间轴行标记 `[HH:MM:SS(.mmm)]` 覆盖的字节区间（升序不重叠）。
-///
-/// 搜索与替换的**禁区**：这些标记不进 FTS（[`clean_for_fts`] 已剥掉），若命中定位阶段
-/// 反而能匹配它们，就会出现「索引筛不出、逐行扫得到」的口径分裂；更要命的是跨库替换
-/// 可能改写转写笔记的时间码而毁掉回放锚点。故两处共用同一判定（DRY，TDD-06 §3）。
-#[must_use]
-pub fn timecode_spans(text: &str) -> Vec<(usize, usize)> {
-    let bytes = text.as_bytes();
-    let mut out = Vec::new();
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == b'[' {
-            if let Some(len) = timecode_len(&bytes[i..]) {
-                out.push((i, i + len));
-                i += len;
-                continue;
-            }
-        }
-        i += utf8_char_len(bytes[i]);
-    }
-    out
-}
-
-/// 判断一行是否为**结构脚手架**：它由 Lunarca 自己写入用于定界/分角色，不是任何人写下的内容，
-/// 故不该进 FTS（ADR-024 索引卫生）。命中即整行不入索引（保留换行，不改行结构）。
-///
-/// 两类（判据都是**整行精确匹配**，不做前缀匹配）：
-/// - 转写块哨兵 `<!-- luna:transcript -->` / `<!-- /luna:transcript -->`（[`crate::vault`] 单一来源）；
-/// - 对话笔记角色标题 `## User` / `## Assistant` / `## System`（`render_chat_markdown` 固定英文写入）。
-///
-/// **必须整行精确匹配**：用户自己写的 `## User research` 是内容，理应可搜——只有恰好一行
-/// 只有这三个词时才是机器脚手架。
-///
-/// `pub(crate)`：FTS 预清洗（本模块）与搜索命中定位/替换（[`crate::search`] 的整行禁区）
-/// 共用**同一判定**——两处分家就是 TDD-06 §3 警告过的「索引筛不出、逐行扫得到」口径分裂，
-/// 更要命的是替换会改写 `## User` 结构行、毁掉对话笔记的往返解析。
-pub(crate) fn is_scaffold_line(line: &str) -> bool {
-    let t = line.trim();
-    t == crate::vault::TRANSCRIPT_BEGIN
-        || t == crate::vault::TRANSCRIPT_END
-        || t == "## User"
-        || t == "## Assistant"
-        || t == "## System"
-}
 
 /// FTS 预清洗：剥 frontmatter + 移除时间轴行标记 `[HH:MM:SS(.mmm)]` + 丢弃结构脚手架行，
 /// 仅留可读正文。
@@ -126,7 +20,7 @@ pub fn clean_for_fts(content: &str) -> String {
     let body = body_of(content);
     let mut out = String::with_capacity(body.len());
     for line in body.split_inclusive('\n') {
-        if is_scaffold_line(line) {
+        if luna_sync_core::scaffold::is_scaffold_line(line) {
             // 行内容不入索引，但保留换行——不改变行结构，snippet 不会把上下两行黏成一句。
             if line.ends_with('\n') {
                 out.push('\n');
@@ -144,7 +38,7 @@ fn strip_timecodes_into(line: &str, out: &mut String) {
     let mut i = 0;
     while i < bytes.len() {
         if bytes[i] == b'[' {
-            if let Some(len) = timecode_len(&bytes[i..]) {
+            if let Some(len) = luna_sync_core::scaffold::timecode_len(&bytes[i..]) {
                 i += len;
                 // 跳过紧随标记的一个空格（常见 "[..] 正文"），避免行首留下孤立空格。
                 if bytes.get(i) == Some(&b' ') {
@@ -169,82 +63,12 @@ fn utf8_char_len(first: u8) -> usize {
     }
 }
 
-/// 读笔记全部标签（去重保序）：frontmatter 顶层 `tags` ∪ `luna.ai_tags`（AI 关系标签，
-/// PRD-06-035）∪ 正文内联 `#tag`（Obsidian 兼容，PRD-06-033）。frontmatter 顶层 `tags`
-/// 只读不写（§2.3）；内联解析跳过代码块。
-#[must_use]
-pub fn extract_tags(content: &str) -> Vec<TaggedTerm> {
-    let mut out: Vec<TaggedTerm> = Vec::new();
-    let mut push = |tag: String, source: TagSource| {
-        // 同一标签重复出现只记一次，且**先到的来源胜出**——下面的顺序保证"用户来源优先"。
-        if !out.iter().any(|t| t.tag.eq_ignore_ascii_case(&tag)) {
-            out.push(TaggedTerm { tag, source });
-        }
-    };
-    if let Some(value) = frontmatter_yaml(content) {
-        for tag in yaml_tag_list(value.get("tags")) {
-            push(tag, TagSource::User);
-        }
-    }
-    // 内联 `#tag` 排在 `ai_tags` **之前**：它同样是用户亲手写的，用户与 AI 都提到
-    // 同一个标签时，事实是"用户在用这个标签"——AI 恰好也提到不该改变它的归属。
-    for tag in extract_inline_tags(body_of(content)) {
-        push(tag, TagSource::User);
-    }
-    if let Some(value) = frontmatter_yaml(content) {
-        // AI 关系标签与用户标签**同池**入索引（标签面板/过滤/关系图谱同源，PRD-06-035）；
-        // 来源只作区分呈现，不改变"同池"这一契约。
-        for tag in yaml_tag_list(value.get("luna").and_then(|l| l.get("ai_tags"))) {
-            push(tag, TagSource::Ai);
-        }
-    }
-    out
-}
-
-/// 一条标签及其**来源**（PRD-06-046）。
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct TaggedTerm {
-    pub tag: String,
-    pub source: TagSource,
-}
-
-/// 标签来源。**刻意只有两档**：产品诉求是"哪些是机器给的"，而 frontmatter 顶层 `tags`
-/// 与正文内联 `#tag` 在这个问题上是同一答案（都是用户亲手写的）——存三档而只用两档，
-/// 等于给未来挖一个"第三档在界面上该长什么样"没人回答得了的坑。
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum TagSource {
-    /// 用户写的（frontmatter 顶层 `tags` ∪ 正文内联 `#tag`）。
-    User,
-    /// LLM 提炼的（`luna.ai_tags`，PRD-06-035）。
-    Ai,
-}
-
-impl TagSource {
-    /// 派生索引列的字面值（单一事实源）。
-    #[must_use]
-    pub fn key(self) -> &'static str {
-        match self {
-            Self::User => "user",
-            Self::Ai => "ai",
-        }
-    }
-}
-
-/// 写在 frontmatter 顶层 `tags` 里的标签（与 [`extract_tags`] 同一读法）——只有这些能被
-/// 单篇「移除标签」改掉；正文 `#标签` 与 AI 标签各有各的出口（ADR-135）。
-#[must_use]
-pub fn frontmatter_tags(content: &str) -> Vec<String> {
-    frontmatter_yaml(content)
-        .map(|value| yaml_tag_list(value.get("tags")))
-        .unwrap_or_default()
-}
-
 /// frontmatter 顶层 `aliases` 里的别名（Obsidian 同一写法；对标方案 C2）：列表逐项取，
 /// 写成一个字符串时按逗号分开——别名里常有空格（「周会 纪要」），不能像标签那样按空格切。
 /// 去空白、去空项，不分大小写去重，保留书写顺序。
 #[must_use]
 pub fn frontmatter_aliases(content: &str) -> Vec<String> {
-    let Some(value) = frontmatter_yaml(content) else {
+    let Some(value) = luna_sync_core::tags::frontmatter_value(content) else {
         return Vec::new();
     };
     let raw: Vec<String> = match value.get("aliases") {
@@ -265,157 +89,6 @@ pub fn frontmatter_aliases(content: &str) -> Vec<String> {
     out
 }
 
-/// 解析 frontmatter 为 YAML 值。容错：无 frontmatter / 解析失败返回 `None`。
-fn frontmatter_yaml(content: &str) -> Option<serde_yaml_ng::Value> {
-    let inner = frontmatter_inner(content)?;
-    serde_yaml_ng::from_str::<serde_yaml_ng::Value>(inner).ok()
-}
-
-/// 把一个 YAML 标签值（list 或逗号串）读成标签列表。缺失/类型不符返回空。
-fn yaml_tag_list(value: Option<&serde_yaml_ng::Value>) -> Vec<String> {
-    match value {
-        Some(serde_yaml_ng::Value::Sequence(seq)) => seq
-            .iter()
-            .filter_map(|v| v.as_str().map(str::to_string))
-            .collect(),
-        Some(serde_yaml_ng::Value::String(s)) => s
-            .split([',', ' '])
-            .map(str::trim)
-            .filter(|t| !t.is_empty())
-            .map(str::to_string)
-            .collect(),
-        _ => Vec::new(),
-    }
-}
-
-/// 判断字符是否可出现在内联标签体内（Obsidian 规则：字母/数字/`_`/`-`/`/`；
-/// 含 CJK 等非 ASCII 字母）。
-pub(crate) fn is_tag_char(ch: char) -> bool {
-    ch.is_alphanumeric() || ch == '_' || ch == '-' || ch == '/'
-}
-
-/// 解析正文内联 `#tag`（PRD-06-033 可扩展项）。规则对齐 Obsidian：
-/// `#` 前必须是行首或空白；标签体至少含一个非数字字符（排除 `#123` 式锚点/序号）；
-/// 跳过 fenced code block 与行内 code span；`#` 后紧跟空白（Markdown 标题）自然不匹配。
-#[must_use]
-pub fn extract_inline_tags(body: &str) -> Vec<String> {
-    let mut out: Vec<String> = Vec::new();
-    for span in inline_tag_spans(body) {
-        let tag = &body[span];
-        if !out.iter().any(|t| t == tag) {
-            out.push(tag.to_string());
-        }
-    }
-    out
-}
-
-/// 正文内联 `#tag` 的**位置**：每个标签体（不含 `#`、不含尾部 `/`）在 `body` 里的字节区间，
-/// 按出现顺序。索引读标签与改名改写标签用的是**同一个**扫描（ADR-135）——两套判定的结局是
-/// 改名改到了索引不认的地方，或漏改了索引认的地方。跳过围栏代码块与行内代码。
-#[must_use]
-pub fn inline_tag_spans(body: &str) -> Vec<std::ops::Range<usize>> {
-    let mut out = Vec::new();
-    let mut in_fence = false;
-    let mut offset = 0usize;
-    for raw in body.split_inclusive('\n') {
-        let line_start = offset;
-        offset += raw.len();
-        let line = raw.trim_end_matches(['\n', '\r']);
-        let trimmed = line.trim_start();
-        if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
-            in_fence = !in_fence;
-            continue;
-        }
-        if in_fence {
-            continue;
-        }
-        let mut prev: Option<char> = None;
-        let mut in_code_span = false;
-        let mut chars = line.char_indices().peekable();
-        while let Some((idx, ch)) = chars.next() {
-            if ch == '`' {
-                in_code_span = !in_code_span;
-                prev = Some(ch);
-                continue;
-            }
-            if in_code_span {
-                prev = Some(ch);
-                continue;
-            }
-            if ch == '#' && prev.is_none_or(char::is_whitespace) {
-                let rest = &line[idx + ch.len_utf8()..];
-                let end = rest.find(|c: char| !is_tag_char(c)).unwrap_or(rest.len());
-                // 尾部 `/` 不计入标签体；首字符为 `/` 视为非标签（与前端 scanLineForTags 同构）。
-                let tag = rest[..end].trim_end_matches('/');
-                if !tag.is_empty()
-                    && !tag.starts_with('/')
-                    && tag.chars().any(|c| !c.is_ascii_digit())
-                {
-                    let tag_start = line_start + idx + ch.len_utf8();
-                    out.push(tag_start..tag_start + tag.len());
-                    // 跳过已消费的标签体，避免 `#a/b` 内部再触发匹配。
-                    while chars
-                        .peek()
-                        .is_some_and(|(i, _)| *i < idx + ch.len_utf8() + end)
-                    {
-                        chars.next();
-                    }
-                    prev = Some('x');
-                    continue;
-                }
-            }
-            prev = Some(ch);
-        }
-    }
-    out
-}
-
-/// 取 frontmatter 内部文本（`---`…`---` 之间）。复用 §4.4 同一定位口径。
-fn frontmatter_inner(content: &str) -> Option<&str> {
-    // 与 frontmatter::find_frontmatter 同口径，但只需 inner；此处轻量重实现避免暴露内部类型。
-    let rest = content.strip_prefix("---\n").or_else(|| {
-        content
-            .strip_prefix("---\r\n")
-            .map(|_| &content["---\r\n".len()..])
-    })?;
-    let start = content.len() - rest.len();
-    let mut cursor = start;
-    let bytes = content.as_bytes();
-    while cursor < content.len() {
-        let line_end = content[cursor..]
-            .find('\n')
-            .map_or(content.len(), |r| cursor + r);
-        let line = content[cursor..line_end]
-            .strip_suffix('\r')
-            .unwrap_or(&content[cursor..line_end]);
-        if line == "---" {
-            return Some(&content[start..cursor]);
-        }
-        cursor = if line_end < content.len() {
-            line_end + 1
-        } else {
-            content.len()
-        };
-        let _ = bytes;
-    }
-    None
-}
-
-/// wikilink `|` 之前的部分拆成「指向哪一篇」与「落到哪一处」：`笔记#标题` →
-/// (`笔记`, `Some("标题")`)，`笔记#^块` → (`笔记`, `Some("^块")`)。片段不参与解析——
-/// 把 `笔记#标题` 整串当笔记名，结果是一条明明存在的链接被画成「未创建」。
-#[must_use]
-pub fn split_wikilink_target(target: &str) -> (&str, Option<&str>) {
-    match target.split_once('#') {
-        Some((note, fragment)) => {
-            let fragment = fragment.trim();
-            (note.trim(), (!fragment.is_empty()).then_some(fragment))
-        }
-        None => (target.trim(), None),
-    }
-}
-
-/// wikilink 片段在一篇笔记里的位置：`(行号, 标题序号)`。
 ///
 /// - `标题`：正文里第一个文字相同的 ATX 标题（忽略大小写、首尾空白与收尾 `#`）；
 /// - `^块`：第一个以 ` ^块` 结尾的行（Obsidian 块标记），标题序号为 `None`。
@@ -818,25 +491,7 @@ fn push_unique(v: &mut Vec<String>, s: String) {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    /// 测试助手：只比对标签串（来源另有专测，避免每条断言都写一遍 `TaggedTerm{..}`）。
-    fn tag_names(terms: Vec<TaggedTerm>) -> Vec<String> {
-        terms.into_iter().map(|t| t.tag).collect()
-    }
-
-    #[test]
-    fn timecode_spans_mark_markers_only() {
-        // 搜索/替换禁区与 FTS 剥离口径同源：只圈标记本身，正文里的裸时间字符串不算。
-        assert_eq!(
-            timecode_spans("[00:01:23.400] 讲到 00:01:23 这里"),
-            vec![(0, 14)]
-        );
-        assert!(timecode_spans("没有标记的一行 12:34:56").is_empty());
-        assert_eq!(
-            timecode_spans("[00:00:01][00:00:02]"),
-            vec![(0, 10), (10, 20)]
-        );
-    }
+    use luna_sync_core::links::{split_wikilink_target, title_of};
 
     #[test]
     fn title_is_filename_stem() {
@@ -905,81 +560,6 @@ mod tests {
         );
         assert!(frontmatter_aliases("---\ntags: [a]\n---\n").is_empty());
         assert!(frontmatter_aliases("没有 frontmatter").is_empty());
-    }
-
-    #[test]
-    fn extracts_frontmatter_tags() {
-        let content = "---\ntitle: x\ntags:\n  - 工作\n  - 重要\n---\n正文";
-        assert_eq!(tag_names(extract_tags(content)), vec!["工作", "重要"]);
-        let inline = "---\ntags: 工作, 重要\n---\n正文";
-        assert_eq!(tag_names(extract_tags(inline)), vec!["工作", "重要"]);
-        assert!(extract_tags("无 frontmatter").is_empty());
-    }
-
-    // ── 内联 #tag 解析（PRD-06-033）─────────────────────────────────────────
-
-    #[test]
-    fn extracts_inline_tags_obsidian_rules() {
-        let body = "开头 #工作 中间 #project/luna 结尾\n下一行 #re-check_2 ok";
-        assert_eq!(
-            extract_inline_tags(body),
-            vec!["工作", "project/luna", "re-check_2"]
-        );
-    }
-
-    #[test]
-    fn inline_tags_reject_headings_numbers_and_midword() {
-        // 标题（# 后空白）、纯数字（#123）、词中 #（a#b）都不是标签。
-        assert!(extract_inline_tags("# 标题\n序号 #123 词中a#b").is_empty());
-    }
-
-    #[test]
-    fn inline_tags_skip_code_regions() {
-        let body = "```\n#in-fence\n```\n行内 `#in-span` 之外 #real";
-        assert_eq!(extract_inline_tags(body), vec!["real"]);
-    }
-
-    #[test]
-    fn inline_tags_dedupe_and_merge_with_frontmatter() {
-        let content = "---\ntags: [工作]\n---\n正文 #工作 #复盘 再次 #复盘";
-        assert_eq!(tag_names(extract_tags(content)), vec!["工作", "复盘"]);
-    }
-
-    #[test]
-    fn extract_tags_merges_luna_ai_tags() {
-        // PRD-06-035：`luna.ai_tags` 与用户顶层 tags / 内联 #tag 同池去重入索引。
-        // 顺序 = 顶层 tags → 内联 #tag → ai_tags（PRD-06-046：用户来源优先，见下一条测试）。
-        let content =
-            "---\ntags: [工作]\nluna:\n  schema: 1\n  ai_tags:\n    - 会议\n    - 工作\n---\n正文 #复盘";
-        assert_eq!(
-            tag_names(extract_tags(content)),
-            vec!["工作", "复盘", "会议"]
-        );
-        // 仅 ai_tags、无用户 tags 也可独立成立。
-        let only_ai = "---\nluna:\n  ai_tags: [luna/图谱]\n---\n正文";
-        assert_eq!(tag_names(extract_tags(only_ai)), vec!["luna/图谱"]);
-    }
-
-    #[test]
-    fn tag_source_prefers_user_when_both_sides_use_the_same_tag() {
-        // PRD-06-046：用户与 AI 都提到同一个标签时，事实是「用户在用它」——
-        // AI 恰好也提到不该把它降格为机器标签（否则「只看用户标签」会把它藏起来）。
-        let content = "---\ntags: [工作]\nluna:\n  ai_tags: [工作, 会议]\n---\n正文 #复盘";
-        let terms = extract_tags(content);
-        let by = |name: &str| {
-            terms
-                .iter()
-                .find(|t| t.tag == name)
-                .unwrap_or_else(|| panic!("缺标签 {name}"))
-                .source
-        };
-        assert_eq!(
-            by("工作"),
-            TagSource::User,
-            "顶层 tags 与 ai_tags 都有 → 归用户"
-        );
-        assert_eq!(by("复盘"), TagSource::User, "正文内联 #tag 是用户亲手写的");
-        assert_eq!(by("会议"), TagSource::Ai, "只有 AI 提到 → 归 AI");
     }
 
     #[test]

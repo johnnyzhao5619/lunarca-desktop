@@ -20,7 +20,7 @@
 //! 同一套指纹机制，不写第二份。
 
 use crate::frontmatter::{body_of, read_luna, NoteStage, NoteType};
-use crate::hashing::ContentHash;
+use luna_sync_core::hashing::ContentHash;
 
 /// 一页 AI 维护笔记的所有权状态（ADR-026 ①）。
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -121,7 +121,7 @@ pub fn cites_source(body: &str, source_rel: &str) -> bool {
 pub fn cited_targets(body: &str) -> Vec<String> {
     crate::parse::extract_links(body)
         .iter()
-        .map(|link| crate::pathutil::percent_decode(link).to_lowercase())
+        .map(|link| luna_sync_core::links::percent_decode(link).to_lowercase())
         .collect()
 }
 
@@ -131,7 +131,7 @@ pub fn cited_targets(body: &str) -> Vec<String> {
 /// 仍然只有一个答案。
 #[must_use]
 pub fn cites_any_of(cited: &[String], source_rel: &str) -> bool {
-    let stem = crate::parse::title_of(source_rel).to_lowercase();
+    let stem = luna_sync_core::links::title_of(source_rel).to_lowercase();
     let target = source_rel.to_lowercase();
     cited.iter().any(|link| {
         // 链接在 `cited_targets` 里**已经百分号解码**：写入侧的 `markdown_link` 恒转义

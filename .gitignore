@@ -18,7 +18,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-lock.yaml
 .yarn-integrity
-# package-lock.json 入库（可复现安装，TDD-13 §3 工具链固定）
+# 仓库根的 package-lock.json（npm workspaces 唯一 lockfile）入库（可复现安装，TDD-13 §3 工具链固定）
 
 # Rust
 /target
